@@ -1,0 +1,3 @@
+[submodule "mathex"]
+	path = mathex
+	url = git@github.com:wangyongcong/mathex.git
