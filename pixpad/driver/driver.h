@@ -3,10 +3,50 @@
 
 #include <cstdint>
 
+// TODO: it's already defined in mathex.h
+// I should put it in a common header
+typedef float float32_t;
+
+inline bool have_state(unsigned st, unsigned flag) {
+	return flag == (st & flag);
+}
+inline void add_state(unsigned &st, unsigned flag) {
+	st |= flag;
+}
+inline void set_state(unsigned &st, unsigned mask, unsigned flag) {
+	st &= ~mask;
+	st |= flag;
+}
+inline void remove_state(unsigned &st, unsigned flag) {
+	st &= ~flag;
+}
+
 namespace wyc 
 {
 
-typedef float float32_t;
+inline bool is_power2(unsigned val)
+{
+	return (val&(val-1))==0;
+}
+unsigned next_power2(unsigned val)
+{
+	// val可能是2的幂
+	--val;
+	// 将MSB右边的所有位全部置为1
+	val |= (val >>  1);
+	val |= (val >>  2);
+	val |= (val >>  4);
+	val |= (val >>  8);		/* Ok, since int >= 16 bits */
+#if (UINT_MAX != 0xffff)
+	val |= (val >> 16);		/* For 32 bit int systems */
+#if (UINT_MAX > 0xffffffffUL)
+	val |= (val >> 32);		/* For 64 bit int systems */
+#endif // UINT_MAX != 0xffff
+#endif // UINT_MAX > 0xffffffffUL
+	++val;
+	return val;
+}
+
 
 // 像素类型
 enum XG_PIXEL_FORMAT

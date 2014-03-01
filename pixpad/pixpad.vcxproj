@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClInclude Include="driver\color.h" />
     <ClInclude Include="driver\driver.h" />
+    <ClInclude Include="driver\rect.h" />
     <ClInclude Include="driver\xbuffer.h" />
     <ClInclude Include="driver\xraster.h" />
     <ClInclude Include="driver\xtnl.h" />

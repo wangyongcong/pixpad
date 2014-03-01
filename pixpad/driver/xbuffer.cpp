@@ -1,4 +1,5 @@
 #include <cstring>
+#include "driver.h"
 #include "xbuffer.h"
 
 namespace wyc

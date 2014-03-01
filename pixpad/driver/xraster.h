@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "mathex/vecmath.h"
 #include "color.h"
-#include "xrect.h"
+#include "rect.h"
 #include "driver.h"
 #include "xbuffer.h"
 
@@ -185,7 +185,7 @@ public:
 	}
 	// …Ë÷√ª≠± øÌ∂»
 	inline void set_pen_width(unsigned wpen) {
-		add_state(m_state,PEN_ST_WIDTH,wpen);
+		set_state(m_state,PEN_ST_WIDTH,wpen);
 	}
 	inline unsigned pen_width() const {
 		return m_state&PEN_ST_WIDTH;

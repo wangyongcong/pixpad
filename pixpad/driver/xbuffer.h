@@ -1,7 +1,8 @@
 #ifndef WYC_HEADER_XBUFFER
-#define WYC_HEADER_DRIVER
+#define WYC_HEADER_XBUFFER
 
 #include <cstdint>
+#include "driver.h"
 
 namespace wyc
 {
@@ -163,4 +164,4 @@ private:
 
 }; // end of namespace wyc
 
-#endif // end of WYC_HEADER_DRIVER
+#endif // end of WYC_HEADER_XBUFFER

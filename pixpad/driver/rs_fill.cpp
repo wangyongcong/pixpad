@@ -1,6 +1,5 @@
 #include <cassert>
 #include <list>
-#include "xutil.h"
 #include "xraster.h"
 
 using namespace std;
@@ -194,12 +193,12 @@ public:
 		int cnt=0;
 		for(EdgeList::iterator node=m_edgeList.begin(); node!=m_edgeList.end(); ++node)
 		{
-			print("node%d  scan=%d",cnt++,node->m_scan);
+			printf("node%d  scan=%d\n",cnt++,node->m_scan);
 			int cnt2=0;
 			for(ActiveList::iterator edge=node->m_list.begin();
 				edge!=node->m_list.end(); ++edge)
 			{
-				print("edge%d: yupper=%d, xlower=%f, dxdy=%f",
+				printf("edge%d: yupper=%d, xlower=%f, dxdy=%f\n",
 					cnt2++,edge->m_yupper,edge->m_xlower,edge->m_dxdy);
 			}
 		}

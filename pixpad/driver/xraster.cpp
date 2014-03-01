@@ -1,6 +1,5 @@
 #include <cassert>
 #include <algorithm>
-#include "xutil.h"
 #include "xraster.h"
 
 using namespace std;
@@ -59,9 +58,9 @@ bool xcolor_buffer::create(unsigned w, unsigned h, XG_PIXEL_FORMAT fmt)
 {
 	unsigned elem=pixel_size(fmt);
 	assert(is_power2(elem));
-	m_elemPower=log2(elem);
+	m_elemPower=next_power2(elem);
 	m_elemMask=elem-1;
-	print("sizeelem=%d,power=%d,mask=%d",elem,m_elemPower,m_elemMask);
+	printf("sizeelem=%d,power=%d,mask=%d\n",elem,m_elemPower,m_elemMask);
 	unsigned oldh=m_height;
 	if(!xbuffer::create(w,h,pixel_size(fmt),BOUNDARY_ALIGNMENT))
 		return false;
@@ -74,7 +73,7 @@ void xcolor_buffer::reset_span_map(bool resize)
 	if(resize || m_spans==0) {
 		if(m_spans) 
 			delete [] m_spans;
-		m_spans=new puint8_t[m_height];
+		m_spans=new uint8_t*[m_height];
 	}
 	uint8_t *pline=get_buffer();
 	for(unsigned i=0; i<m_height; ++i) {
@@ -500,7 +499,7 @@ void xraster::bitblt(int x, int y, int srcx, int srcy, int srcw, int srch)
 	else if(elemsize==sizeof(uint8_t)) {
 		m_colorBuffer.move_elem<uint8_t>(x,y,srcx,srcy,srcw,srch);
 	}
-	else err("xraster::bitblt: not support %d bit pixel format",elemsize);
+	else printf("xraster::bitblt: not support %d bit pixel format\n",elemsize);
 }
 
 void xraster::bitblt(int x, int y, uint8_t *pbits, XG_PIXEL_FORMAT srcfmt, int pitch, 

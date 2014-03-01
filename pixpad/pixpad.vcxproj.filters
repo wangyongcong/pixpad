@@ -25,6 +25,9 @@
     <ClInclude Include="driver\xtnl.h">
       <Filter>driver</Filter>
     </ClInclude>
+    <ClInclude Include="driver\rect.h">
+      <Filter>driver</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="driver\driver.cpp">
