@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <cstdio>
+#include "logger.h"
 
 // 全局变量:
 HINSTANCE hInst;						// 当前实例
@@ -19,6 +20,10 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
+
+	wyc::init_logger("pixpad");
+
+	wyc::print("hello boost.log");
 
  	// TODO: 在此放置代码。
 	MSG msg;

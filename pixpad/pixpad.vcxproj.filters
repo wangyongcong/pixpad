@@ -31,6 +31,7 @@
     <ClInclude Include="util.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="logger.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="driver\driver.cpp">
@@ -57,6 +58,7 @@
     <ClCompile Include="util.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="wmain.cpp" />
+    <ClCompile Include="logger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="driver\rgba8888.inl">
