@@ -1,3 +1,6 @@
 [submodule "mathex"]
 	path = mathex
 	url = git@github.com:wangyongcong/mathex.git
+[submodule "elog"]
+	path = elog
+	url = https://github.com/wangyongcong/elog.git

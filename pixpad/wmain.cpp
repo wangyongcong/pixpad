@@ -1,6 +1,25 @@
 #include "stdafx.h"
 #include <cstdio>
-#include "logger.h"
+#include "log.h"
+
+#ifdef _DEBUG
+	#pragma comment (lib, "mathexd.lib")
+	#pragma comment (lib, "elogd.lib")
+#else
+	#pragma comment (lib, "mathex.lib")
+	#pragma comment (lib, "elog.lib")
+#endif 
+
+// Global logger
+wyc::xlogger *g_log = NULL;
+// Timer ID for log flushing
+#define ID_TIMER_LOG 1
+// Flush logger on time
+void CALLBACK TimerFlushLog(HWND hwnd, UINT umsg, UINT_PTR id, DWORD time)
+{
+	if (id == ID_TIMER_LOG)
+		g_log->flush();
+}
 
 // 全局变量:
 HINSTANCE hInst;						// 当前实例
@@ -21,9 +40,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	wyc::init_logger("pixpad");
-
-	wyc::print("hello boost.log");
+	g_log = new wyc::xlogger();
+	g_log->create("pixpad",NULL,0,wyc::LOG_DEBUG);
+	debug("Pixpad starting...");
 
  	// TODO: 在此放置代码。
 	MSG msg;
@@ -40,8 +59,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	hAccelTable = NULL;
 
-//	OutputDebugString(L"Enter main loop\n");
-
 	// 主消息循环:
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
@@ -52,10 +69,12 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
+	debug("Pixpad exit");
+	delete g_log;
+	g_log = NULL;
+
 	return (int) msg.wParam;
 }
-
-
 
 //
 //  函数: MyRegisterClass()
@@ -106,6 +125,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    {
       return FALSE;
    }
+
+   SetTimer(hWnd, ID_TIMER_LOG, 1000, &TimerFlushLog);
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
