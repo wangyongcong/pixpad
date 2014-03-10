@@ -18,6 +18,7 @@
     <ClInclude Include="driver\xraster.h" />
     <ClInclude Include="driver\xtnl.h" />
     <ClInclude Include="log.h" />
+    <ClInclude Include="render\render.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="util.h" />
@@ -30,6 +31,7 @@
     <ClCompile Include="driver\xbuffer.cpp" />
     <ClCompile Include="driver\xraster.cpp" />
     <ClCompile Include="driver\xtnl.cpp" />
+    <ClCompile Include="render\render.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="wmain.cpp" />
@@ -79,12 +81,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>BOOST_LIB_DIAGNOSTIC;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)mathex;$(SolutionDir)elog;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)driver;$(ProjectDir)render;$(SolutionDir)mathex;$(SolutionDir)elog;$(SolutionDir)glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;glew32mx.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

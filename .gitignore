@@ -213,4 +213,5 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-lib/*.lib
+lib/mathex*.lib
+lib/elog*.lib
