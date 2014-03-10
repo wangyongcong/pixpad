@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include <cstdio>
 #include "log.h"
+#include "render.h"
 
 #ifdef _DEBUG
 	#pragma comment (lib, "mathexd.lib")
@@ -21,12 +22,10 @@ void CALLBACK TimerFlushLog(HWND hwnd, UINT umsg, UINT_PTR id, DWORD time)
 		g_log->flush();
 }
 
-// 全局变量:
-HINSTANCE hInst;						// 当前实例
-wchar_t *szTitle = L"Pixpad";			// 标题栏文本
-wchar_t *szWindowClass=L"PixpadMain";	// 主窗口类名
+HINSTANCE hInst;						// app instance
+wchar_t *szTitle = L"Pixpad";			// app title
+wchar_t *szWindowClass=L"PixpadMain";	// main window class name
 
-// 此代码模块中包含的函数的前向声明:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -39,48 +38,53 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
-
+	
+	// init logger
 	g_log = new wyc::xlogger();
 	g_log->create("pixpad",NULL,0,wyc::LOG_DEBUG);
 	debug("Pixpad starting...");
 
- 	// TODO: 在此放置代码。
 	MSG msg;
-	HACCEL hAccelTable;
+	HACCEL hAccelTable = NULL;
 
-	// 初始化全局字符串
+	// register main window
 	MyRegisterClass(hInstance);
-
-	// 执行应用程序初始化:
+	
+	// init instance
 	if (!InitInstance (hInstance, nCmdShow))
 	{
 		return FALSE;
 	}
 
-	hAccelTable = NULL;
-
-	// 主消息循环:
-	while (GetMessage(&msg, NULL, 0, 0))
+	// main loop
+	while (true)
 	{
-		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+		if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			if (msg.message == WM_QUIT) {
+				break;
+			}
+			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) {
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		}
+		else
+		{
+			glClear(GL_COLOR_BUFFER_BIT);
+			wyc::gl_get_context()->swap_buffers();
+			Sleep(1);
 		}
 	}
-
 	debug("Pixpad exit");
+
+	// release logger
 	delete g_log;
 	g_log = NULL;
 
 	return (int) msg.wParam;
 }
 
-//
-//  函数: MyRegisterClass()
-//
-//  目的: 注册窗口类。
-//
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
 	WNDCLASSEX wcex;
@@ -94,7 +98,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hInstance		= hInstance;
 	wcex.hIcon			= (HICON)::LoadImage(NULL,L"favicon32.ico",IMAGE_ICON,0,0,LR_LOADFROMFILE);
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
+	wcex.hbrBackground	= NULL;
 	wcex.lpszMenuName	= NULL;
 	wcex.lpszClassName	= szWindowClass;
 	wcex.hIconSm		= (HICON)::LoadImage(NULL,L"favicon16.ico",IMAGE_ICON,0,0,LR_LOADFROMFILE);
@@ -102,23 +106,13 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	return RegisterClassEx(&wcex);
 }
 
-//
-//   函数: InitInstance(HINSTANCE, int)
-//
-//   目的: 保存实例句柄并创建主窗口
-//
-//   注释:
-//
-//        在此函数中，我们在全局变量中保存实例句柄并
-//        创建和显示主程序窗口。
-//
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    HWND hWnd;
 
-   hInst = hInstance; // 将实例句柄存储在全局变量中
+   hInst = hInstance; 
 
-   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN ,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
 
    if (!hWnd)
@@ -126,6 +120,42 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       return FALSE;
    }
 
+   RECT rectClient;
+   GetClientRect(hWnd, &rectClient);
+   int width = rectClient.right - rectClient.left;
+   int height = rectClient.bottom - rectClient.top;
+   // Create a temporary window to initialize driver
+   HWND hTmpWnd = wyc::gl_create_window(hInstance, hWnd, 0, 0, width, height);
+   int pixel_format = wyc::gl_detect_drivers(hTmpWnd);
+   DestroyWindow(hTmpWnd);
+   if (!pixel_format)
+   {
+	   return FALSE;
+   }
+   // Create the real target window
+   HWND hTargetWnd = wyc::gl_create_window(hInstance, hWnd, 0, 0, width, height);
+   if (!wyc::gl_create_context(hTargetWnd, pixel_format))
+   {
+	   return FALSE;
+   }
+   // Do not response user input
+   EnableWindow(hTargetWnd, FALSE);
+   ShowWindow(hTargetWnd, SW_NORMAL);
+
+   // Show OpenGL infomation
+   const char *version = (const char*)glGetString(GL_VERSION);
+   const char *glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+   const char *vendor = (const char*)glGetString(GL_VENDOR);
+   const char *device = (const char*)glGetString(GL_RENDERER);
+   info("%s %s", vendor, device);
+   info("OpenGL %s (GLSL %s)", version, glsl_version);
+   info("GLEW version %s", glewGetString(GLEW_VERSION));
+
+   // Set viewport & background color
+   glViewport(0, 0, width, height);
+   glClearColor(0, 0, 0, 1.0f);
+
+   // Set timer for log flushing 
    SetTimer(hWnd, ID_TIMER_LOG, 1000, &TimerFlushLog);
 
    ShowWindow(hWnd, nCmdShow);
@@ -135,14 +165,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 }
 
 //
-//  函数: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  目的: 处理主窗口的消息。
-//
-//  WM_COMMAND	- 处理应用程序菜单
-//  WM_PAINT	- 绘制主窗口
-//  WM_DESTROY	- 发送退出消息并返回
-//
+// Main window
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -152,17 +175,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)
 	{
-	case WM_COMMAND:
+	case WM_COMMAND: // Window menu
 		wmId    = LOWORD(wParam);
 		wmEvent = HIWORD(wParam);
-		// 分析菜单选择:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 		break;
-	case WM_PAINT:
-		hdc = BeginPaint(hWnd, &ps);
-		// TODO: 在此添加任意绘图代码...
-		EndPaint(hWnd, &ps);
-		break;
+	//case WM_PAINT:
+	//	hdc = BeginPaint(hWnd, &ps);
+	//	// TODO: custom GUI paint 
+	//	EndPaint(hWnd, &ps);
+	//	break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
@@ -172,7 +194,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-// “关于”框的消息处理程序。
+//
+// About dialog 
+//
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
