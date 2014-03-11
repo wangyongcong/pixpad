@@ -169,13 +169,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 // Main window
 //
+bool is_size_changed = false;
+auto client_size = std::make_tuple<int, int>(0, 0);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId, wmEvent;
 	//PAINTSTRUCT ps;
 	//HDC hdc;
-	bool is_size_changed = false;
-	auto client_size = std::make_tuple<int, int>(0, 0);
 
 	switch (message)
 	{
@@ -190,7 +190,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	//	EndPaint(hWnd, &ps);
 	//	break;
 	case WM_SIZE:
-		is_size_changed = wParam == SIZE_RESTORED;
+		if (wParam == SIZE_RESTORED)
+			is_size_changed = true;
 		client_size = std::make_tuple(LOWORD(lParam), HIWORD(lParam));
 		break;
 	case WM_EXITSIZEMOVE:
