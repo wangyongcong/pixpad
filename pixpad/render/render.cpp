@@ -113,14 +113,14 @@ int gl_detect_drivers(HWND hWnd, const char *profile)
 		PFD_SUPPORT_OPENGL |				// Format Must Support OpenGL
 		PFD_DOUBLEBUFFER,					// Must Support Double Buffering
 		PFD_TYPE_RGBA,						// Request An RGBA Format
-		32,									// Select Our Color Depth
+		32,									// 32-bit Color Depth
 		0, 0, 0, 0, 0, 0,					// Color Bits Ignored
 		8,									// 8-bit alpha
 		0,									// Shift Bit Ignored
 		0,									// No Accumulation Buffer
 		0, 0, 0, 0,							// Accumulation Bits Ignored
-		24,									// 24Bit Z-Buffer (Depth Buffer)  
-		8,									// 8-bit Stencil Buffer
+		0,									// 0-bit Z-Buffer (Depth Buffer)  
+		0,									// 0-bit Stencil Buffer
 		0,									// No Auxiliary Buffer
 		PFD_MAIN_PLANE,						// Main Drawing Layer
 		0,									// Reserved

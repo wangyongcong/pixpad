@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <cstdio>
+#include <tuple>
 #include "log.h"
 #include "render.h"
 
@@ -30,6 +31,7 @@ ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
+void OnResizeWindow (int width, int height);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -170,8 +172,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId, wmEvent;
-	PAINTSTRUCT ps;
-	HDC hdc;
+	//PAINTSTRUCT ps;
+	//HDC hdc;
+	bool is_size_changed = false;
+	auto client_size = std::make_tuple<int, int>(0, 0);
 
 	switch (message)
 	{
@@ -185,6 +189,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	//	// TODO: custom GUI paint 
 	//	EndPaint(hWnd, &ps);
 	//	break;
+	case WM_SIZE:
+		is_size_changed = wParam == SIZE_RESTORED;
+		client_size = std::make_tuple(LOWORD(lParam), HIWORD(lParam));
+		break;
+	case WM_EXITSIZEMOVE:
+		if (is_size_changed) {
+			is_size_changed = false;
+			OnResizeWindow(std::get<0>(client_size), std::get<1>(client_size));
+		}
+		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
@@ -214,4 +228,14 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	return (INT_PTR)FALSE;
+}
+
+void OnResizeWindow(int width, int height)
+{
+	debug("resize window: %d x %d", width, height);
+	assert(width > 0 && height > 0);
+	HWND target_wnd = wyc::gl_get_context()->get_window();
+	MoveWindow(target_wnd, 0, 0, width, height, FALSE);
+	// TODO: rebuild OpenGL view
+	glViewport(0, 0, width, height);
 }
