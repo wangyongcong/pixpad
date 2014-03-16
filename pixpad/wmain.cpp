@@ -12,26 +12,28 @@
 	#pragma comment (lib, "elog.lib")
 #endif 
 
+struct AppContext
+{
+	HINSTANCE instance = NULL;
+	HWND main_wnd = NULL;
+	bool is_size_changed = false;
+} g_app;
+
 // Global logger
 wyc::xlogger *g_log = NULL;
 // Timer ID for log flushing
 #define ID_TIMER_LOG 1
-// Flush logger on time
-void CALLBACK TimerFlushLog(HWND hwnd, UINT umsg, UINT_PTR id, DWORD time)
-{
-	if (id == ID_TIMER_LOG)
-		g_log->flush();
-}
 
-HINSTANCE hInst;						// app instance
-wchar_t *szTitle = L"Pixpad";			// app title
-wchar_t *szWindowClass=L"PixpadMain";	// main window class name
+const wchar_t *APP_TITLE = L"Pixpad";		// app title
+const wchar_t *WND_CLASS = L"PixpadMain";	// main window class name
 
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
-void OnResizeWindow (int width, int height);
+void				OnResizeWindow (int, int);
+void CALLBACK		TimerFlushLog(HWND, UINT, UINT_PTR, DWORD);
+void				OnRender();
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -73,8 +75,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		}
 		else
 		{
-			glClear(GL_COLOR_BUFFER_BIT);
-			wyc::gl_get_context()->swap_buffers();
+			OnRender();
 			Sleep(1);
 		}
 	}
@@ -102,7 +103,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground	= NULL;
 	wcex.lpszMenuName	= NULL;
-	wcex.lpszClassName	= szWindowClass;
+	wcex.lpszClassName  = WND_CLASS;
 	wcex.hIconSm		= (HICON)::LoadImage(NULL,L"favicon16.ico",IMAGE_ICON,0,0,LR_LOADFROMFILE);
 
 	return RegisterClassEx(&wcex);
@@ -112,15 +113,16 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    HWND hWnd;
 
-   hInst = hInstance; 
+   g_app.instance = hInstance;
 
-   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN ,
+   hWnd = CreateWindow(WND_CLASS, APP_TITLE, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
 
    if (!hWnd)
    {
       return FALSE;
    }
+   g_app.main_wnd = hWnd;
 
    RECT rectClient;
    GetClientRect(hWnd, &rectClient);
@@ -169,8 +171,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 // Main window
 //
-bool is_size_changed = false;
-auto client_size = std::make_tuple<int, int>(0, 0);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId, wmEvent;
@@ -190,14 +190,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	//	EndPaint(hWnd, &ps);
 	//	break;
 	case WM_SIZE:
-		if (wParam == SIZE_RESTORED)
-			is_size_changed = true;
-		client_size = std::make_tuple(LOWORD(lParam), HIWORD(lParam));
+		if (wParam == SIZE_RESTORED) {
+			OnResizeWindow(LOWORD(lParam),HIWORD(lParam));
+			g_app.is_size_changed = true;
+		}
 		break;
 	case WM_EXITSIZEMOVE:
-		if (is_size_changed) {
-			is_size_changed = false;
-			OnResizeWindow(std::get<0>(client_size), std::get<1>(client_size));
+		if (g_app.is_size_changed) {
+			g_app.is_size_changed = false;
 		}
 		break;
 	case WM_DESTROY:
@@ -239,4 +239,18 @@ void OnResizeWindow(int width, int height)
 	MoveWindow(target_wnd, 0, 0, width, height, FALSE);
 	// TODO: rebuild OpenGL view
 	glViewport(0, 0, width, height);
+}
+
+// Flush logger on time
+void CALLBACK TimerFlushLog(HWND hwnd, UINT umsg, UINT_PTR id, DWORD time)
+{
+	if (id == ID_TIMER_LOG)
+		g_log->flush();
+}
+
+// Render frame
+void OnRender()
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+	wyc::gl_get_context()->swap_buffers();
 }
