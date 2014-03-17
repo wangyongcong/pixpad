@@ -3,6 +3,7 @@
 #include <tuple>
 #include "log.h"
 #include "render.h"
+#include "swpipeline.h"
 
 #ifdef _DEBUG
 	#pragma comment (lib, "mathexd.lib")
@@ -17,6 +18,7 @@ struct AppContext
 	HINSTANCE instance = NULL;
 	HWND main_wnd = NULL;
 	bool is_size_changed = false;
+	wyc::xpipeline *pipeline = NULL;
 } g_app;
 
 // Global logger
@@ -159,6 +161,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    glViewport(0, 0, width, height);
    glClearColor(0, 0, 0, 1.0f);
 
+   g_app.pipeline = new wyc::xsw_pipeline();
+   g_app.pipeline->create_surface(0, width, height);
+
    // Set timer for log flushing 
    SetTimer(hWnd, ID_TIMER_LOG, 1000, &TimerFlushLog);
 
@@ -239,6 +244,7 @@ void OnResizeWindow(int width, int height)
 	MoveWindow(target_wnd, 0, 0, width, height, FALSE);
 	// TODO: rebuild OpenGL view
 	glViewport(0, 0, width, height);
+	glOrtho(0, width, 0, height, 1, 1000);
 }
 
 // Flush logger on time
@@ -251,6 +257,10 @@ void CALLBACK TimerFlushLog(HWND hwnd, UINT umsg, UINT_PTR id, DWORD time)
 // Render frame
 void OnRender()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+
+	g_app.pipeline->beg_frame();
+	// TODO: draw something
+	g_app.pipeline->end_frame();
+
 	wyc::gl_get_context()->swap_buffers();
 }

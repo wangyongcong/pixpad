@@ -3,6 +3,8 @@
 
 #include "framebuffer.h"
 #include "pipeline.h"
+#include "xraster.h"
+#include "render.h"
 
 namespace wyc
 {
@@ -19,6 +21,8 @@ namespace wyc
 
 	private:
 		xframe_buffer *m_fbo;
+		xraster m_raster;
+		GLuint m_texobj;
 	};
 }; // end of namespace wyc
 
