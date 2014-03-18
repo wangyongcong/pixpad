@@ -1,4 +1,7 @@
 #include "stdafx.h"
+#include <cassert>
+#include <ctime>
+#include <fstream>
 #include "log.h"
 #include "render.h"
 
@@ -285,6 +288,84 @@ void xglcontext::destroy()
 		m_hdc = NULL;
 		m_hrc = NULL;
 	}
+}
+
+void glsl_print_error (GLuint shader)
+{
+	GLint ret;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &ret);
+	if (ret<1) {
+		error("Shader compile error: Unknown");
+		return;
+	}
+	ret += 1;
+	char *info = new char[ret];
+	glGetShaderInfoLog(shader, ret, &ret, info);
+	error("Shader compile error:\n%s", info);
+	delete[] info;
+}
+
+GLuint glsl_load_source(GLenum shader_type, const char *src, size_t length)
+{
+	GLuint shader = glCreateShader(shader_type);
+	if (shader == 0) {
+		return 0;
+	}
+	const GLchar *src_list[1] = { src };
+	const GLint len_list[1] = { length };
+	glShaderSource(shader, 1, src_list, len_list);
+	glCompileShader(shader);
+	GLint ret;
+	::glGetShaderiv(shader, GL_COMPILE_STATUS, &ret);
+	if (ret == GL_FALSE) {
+		glsl_print_error(shader);
+		glDeleteShader(shader);
+		return 0;
+	}
+	return shader;
+}
+
+GLuint glsl_load_file(GLenum shader_type, const char *file_path)
+{
+	std::fstream fs;
+	fs.open(file_path, std::ios_base::in);
+	if (!fs.is_open()) {
+		error("Can't open file: %s", file_path);
+		return 0;
+	}
+	fs.seekg(0, std::ios_base::end);
+	size_t size = fs.tellg();
+	char *src = new char[size + 1];
+	fs.seekg(0);
+	fs.read(src, size);
+	std::streamoff  cnt = fs.gcount();
+	if (size<cnt) {
+		fs.close();
+		delete[] src;
+		error("Read file error");
+		return 0;
+	}
+	src[cnt] = 0;
+	fs.close();
+	GLuint shader = glsl_load_source(shader_type, src, size);
+	delete[] src;
+	return shader;
+}
+
+GLuint glsl_build_shader(GLuint *shaders, size_t count)
+{
+	GLuint program = glCreateProgram();
+	for (size_t i = 0; i < count; ++i)
+		glAttachShader(program, shaders[i]);
+	glLinkProgram(program);
+	GLint ret;
+	::glGetProgramiv(program, GL_LINK_STATUS, &ret);
+	if (ret == GL_FALSE) {
+		glsl_print_error(program);
+		glDeleteProgram(program);
+		return 0;
+	}
+	return program;
 }
 
 }; // namespace wyc

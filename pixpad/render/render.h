@@ -35,6 +35,12 @@ xglcontext* gl_create_context(HWND hWnd, int pixel_fmt);
 void gl_destroy_context();
 // Get current context
 xglcontext* gl_get_context();
+// Load shader source
+GLuint glsl_load_source(GLenum shader_type, const char *src, size_t length=0);
+// Load shader source file
+GLuint glsl_load_file(GLenum shader_type, const char *file_path);
+// Build shader program
+GLuint glsl_build_shader(GLuint *shaders, size_t count);
 
 class xglcontext
 {
