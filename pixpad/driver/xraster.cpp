@@ -58,7 +58,7 @@ bool xcolor_buffer::create(unsigned w, unsigned h, XG_PIXEL_FORMAT fmt)
 {
 	unsigned elem=pixel_size(fmt);
 	assert(is_power2(elem));
-	m_elemPower=next_power2(elem);
+	m_elemPower=log2p2(elem);
 	m_elemMask=elem-1;
 	printf("sizeelem=%d,power=%d,mask=%d\n",elem,m_elemPower,m_elemMask);
 	unsigned oldh=m_height;
@@ -178,6 +178,14 @@ void xraster::destroy()
 		m_patternBuffer=0;
 	}
 	m_pixelfmt=PIXEL_FMT_UNKNOWN;
+}
+
+void xraster::share_color_buffer(xcolor_buffer &sub_buffer, unsigned x, unsigned y, unsigned w, unsigned h) 
+{
+	m_colorBuffer.share(sub_buffer, x, y, w, h);
+	m_xmin = m_ymin = 0;
+	m_xmax = m_colorBuffer.width();
+	m_ymax = m_colorBuffer.height();
 }
 
 void xraster::attach_color_buffer(xcolor_buffer &new_buffer, XG_PIXEL_FORMAT fmt)

@@ -822,17 +822,17 @@ void xraster::fill_circle_flat_anti(int cx, int cy, int radius)
 	plot_quadrant(cx,cy,x+1,y,c);
 }
 
-// 中点椭圆算法,在大约rx+ry>850左右第二部分会出现收敛错误,可能是由于误差累积造成?
+// 中点椭圆算法
 void xraster::ellipse_outline(int cx, int cy, int rx, int ry)
 {
 	int x=0, y=ry;
 	int rx2 = rx*rx;
 	int ry2 = ry*ry;
-	int tx = rx2<<1;
-	int ty = ry2<<1;
+	int tx = rx2 << 1;
+	int ty = ry2 << 1;
 	int kx = 0;
 	int ky = tx*y;
-	int d = int(ry2-rx2*ry+0.25*rx2);
+	int64_t d = int64_t(ry2 - rx2*ry + 0.25f*rx2);
 	plot_quadrant(cx,cy,x,y);
 	while(kx<ky)
 	{
@@ -850,8 +850,8 @@ void xraster::ellipse_outline(int cx, int cy, int rx, int ry)
 		}
 		plot_quadrant(cx,cy,x,y);
 	}
-	// 下面部分有BUG
-	d = int(ry2*(x*x+x+0.25)+rx2*(y*y-(y<<1)+1)-rx2*ry2);
+	// 对于大坐标,要扩展到64位整数,否则会溢出
+	d = int64_t(ry2*(int64_t(x)*x + x + 0.25) + rx2*(int64_t(y)*y - (y << 1) + 1) - int64_t(rx2)*ry2);
 	while(y>0)
 	{
 		--y;
@@ -878,15 +878,17 @@ void xraster::ellipse_outline_anti(int cx, int cy, int rx, int ry)
 	float ryrx=float(ry2)/rx2;
 	float rxry=float(rx2)/ry2;
 	int ix=fast_floor(rx2/sqrt(float(rx2+ry2)));
-	float d=0;
+	double d=0;
 	pixel_t c=m_color;
 	uint8_t a=ALPHA_CHANNEL(m_color);
 	plot_quadrant(cx,cy,x,y);
 	while(x<ix)
 	{
 		++x;
-		// ry2-ryrx*x*x有可能溢出而成为负数,改为double可解决
-		d=y-sqrt(max(ry2-ryrx*x*x,0.0f));
+	//	d=y-sqrt(max(ry2-ryrx*x*int64_t(x),0.0f));
+		d = ry2 - ryrx*x*int64_t(x); // 大坐标有可能会溢出,要扩展到64位
+		if (d <= 0) d = y;
+		else d = y - sqrt(d);
 		if(d>=1) {
 			--y;
 			--d;
@@ -926,9 +928,11 @@ void xraster::ellipse_outline_pattern(int cx, int cy, int rx, int ry)
 	while(x<ix)
 	{
 		++x;
-		// ry2-ryrx*x*x有可能溢出而成为负数,改为double可解决
-		d=y-sqrt(max(ry2-ryrx*x*x,0.0f));
-		if(d>=1) {
+	//	d=y-sqrt(max(ry2-ryrx*x*x,0.0f));
+		d = ry2 - ryrx*x*int64_t(x); // 大坐标有可能会溢出,要扩展到64位
+		if (d <= 0) d = y;
+		else d = y - sqrt(d);
+		if (d >= 1) {
 			--y;
 			--d;
 		}
