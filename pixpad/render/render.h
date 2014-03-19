@@ -55,10 +55,10 @@ public:
 		SwapBuffers(m_hdc);
 	}
 private:
+	friend GLEWContext* ::glewGetContext();
+	friend WGLEWContext* ::wglewGetContext();
 	friend xglcontext* gl_create_context(HWND, int);
 	friend void gl_destroy_context();
-	friend GLEWContext* glewGetContext();
-	friend WGLEWContext* wglewGetContext();
 	
 	xglcontext();
 	bool create(HWND hwnd, int pixel_fmt);

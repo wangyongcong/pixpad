@@ -5,7 +5,6 @@
 #include "log.h"
 #include "render.h"
 
-
 namespace wyc
 {
 
@@ -22,16 +21,6 @@ thread_local xglcontext *tls_gl_context = NULL;
 static PFNWGLCREATECONTEXTATTRIBSARBPROC create_context_attribs = 0;
 // function pointer to wglChoosePixelFormatARB
 static PFNWGLCHOOSEPIXELFORMATARBPROC choose_pixel_format = 0;
-
-// Inplement GLEW interface
-GLEWContext* glewGetContext()
-{
-	return &tls_gl_context->m_glew_ctx;
-}
-WGLEWContext* wglewGetContext()
-{
-	return &tls_gl_context->m_wglew_ctx;
-}
 
 #pragma warning(push)
 #pragma warning(disable:4996)
@@ -369,3 +358,13 @@ GLuint glsl_build_shader(GLuint *shaders, size_t count)
 }
 
 }; // namespace wyc
+
+// Inplement GLEW interface
+GLEWContext* glewGetContext()
+{
+	return &wyc::tls_gl_context->m_glew_ctx;
+}
+WGLEWContext* wglewGetContext()
+{
+	return &wyc::tls_gl_context->m_wglew_ctx;
+}

@@ -22,7 +22,7 @@ void xbuffer::_free_mem(uint8_t* pBuffer)
 xbuffer::xbuffer() 
 {
 	m_info=0;
-	m_pBuffer=0;
+	m_data=0;
 	m_pitch=0;
 	m_width=0;
 	m_height=0;
@@ -31,14 +31,14 @@ xbuffer::xbuffer()
 xbuffer::~xbuffer() 
 {
 	if(!empty() && !is_share()) 
-		_free_mem(m_pBuffer);
+		_free_mem(m_data);
 }
 
 bool xbuffer::create(unsigned w, unsigned h, unsigned size_elem, unsigned char alignment) {
 	if(!empty() && !is_share()) 
-		_free_mem(m_pBuffer);
-	m_pBuffer=_alloc_mem(w,h,size_elem,alignment,m_pitch);
-	if(m_pBuffer==0)
+		_free_mem(m_data);
+	m_data=_alloc_mem(w,h,size_elem,alignment,m_pitch);
+	if(m_data==0)
 		return false;
 	m_info=((alignment&0xF)<<16)|(size_elem&0xFFFF);
 	m_width=w;
@@ -49,8 +49,8 @@ bool xbuffer::create(unsigned w, unsigned h, unsigned size_elem, unsigned char a
 void xbuffer::clear() {
 	if(!empty()) {
 		if(!is_share())
-			_free_mem(m_pBuffer);
-		m_pBuffer=0;
+			_free_mem(m_data);
+		m_data=0;
 		m_info=0;
 		m_pitch=0;
 		m_width=0;
@@ -59,7 +59,7 @@ void xbuffer::clear() {
 }
 
 uint8_t* xbuffer::release(unsigned *pitch, unsigned *width, unsigned *height) {
-	uint8_t *pBuffer=m_pBuffer;
+	uint8_t *pBuffer=m_data;
 	if(pitch) 
 		*pitch=m_pitch;
 	if(width) 
@@ -67,7 +67,7 @@ uint8_t* xbuffer::release(unsigned *pitch, unsigned *width, unsigned *height) {
 	if(height) 
 		*height=m_height;
 	m_info=0;
-	m_pBuffer=0;
+	m_data=0;
 	m_pitch=0;
 	m_width=0;
 	m_height=0;
@@ -77,11 +77,11 @@ uint8_t* xbuffer::release(unsigned *pitch, unsigned *width, unsigned *height) {
 void xbuffer::deliver(xbuffer &accept)
 {
 	accept.m_info=m_info;
-	accept.m_pBuffer=m_pBuffer;
+	accept.m_data=m_data;
 	accept.m_pitch=m_pitch;
 	accept.m_width=m_width;
 	accept.m_height=m_height;
-	m_pBuffer=0;
+	m_data=0;
 	m_info=0;
 	m_pitch=0;
 	m_width=0;
@@ -103,8 +103,8 @@ bool xbuffer::share(const xbuffer &buffer, int x, int y, unsigned w, unsigned h,
 		}
 	}
 	if(!empty() && !is_share()) 
-		_free_mem(m_pBuffer);
-	m_pBuffer=buffer.m_pBuffer+y*buffer.m_pitch+x*buffer.size_elem();		
+		_free_mem(m_data);
+	m_data=buffer.m_data+y*buffer.m_pitch+x*buffer.size_elem();		
 	m_info=buffer.m_info|BI_SHARE;
 	m_pitch=buffer.m_pitch;
 	m_width=x+w>buffer.m_width?buffer.m_width-x:w;
@@ -120,7 +120,7 @@ void xbuffer::init(const uint8_t *pdata, unsigned size) {
 		cnt=m_pitch/size;
 		packed=m_pitch%size;
 	}
-	uint8_t *pbuff=m_pBuffer;
+	uint8_t *pbuff=m_data;
 	for(unsigned y=0; y<m_height; ++y) {
 		uint8_t *pline=pbuff;
 		pbuff+=m_pitch;

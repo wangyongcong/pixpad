@@ -11,31 +11,19 @@ namespace wyc
 
 class xbuffer
 {
-	enum BUFFER_INFO
-	{
-		BI_ELEMENT_SIZE=0xFFFF,
-		BI_MEM_ALIGNMENT=0xF0000,
-		BI_BIG_ENDIAN=0x100000,
-		BI_SHARE=0x200000
-	};
-	unsigned m_info;
-	uint8_t *m_pBuffer;
-protected:
-	unsigned m_pitch;
-	unsigned m_width, m_height;
 public:
 	xbuffer();
 	~xbuffer();
 	bool create(unsigned w, unsigned h, unsigned size_elem, unsigned char alignment=4);
 	void clear();
 	uint8_t* release(unsigned *pitch=0, unsigned *width=0, unsigned *height=0);
-	void deliver(xbuffer &accept);
+	void deliver(xbuffer &accept); // deprecated
 	bool share(const xbuffer &buffer, int x, int y, unsigned w, unsigned h, bool bsafe=true);
 	static inline void free(uint8_t *pmem) {
 		_free_mem(pmem);
 	}
 	inline bool empty() const {
-		return m_pBuffer==0;
+		return m_data==0;
 	}
 	inline bool little_endian() const {
 		return !have_state(m_info,BI_BIG_ENDIAN);
@@ -65,28 +53,28 @@ public:
 		return (x<m_width && y<m_height);
 	}
 	inline uint8_t* get_buffer() {
-		return m_pBuffer;
+		return m_data;
 	}
 	inline uint8_t* get_line(unsigned idx) {
-		return m_pBuffer+idx*m_pitch;
+		return m_data+idx*m_pitch;
 	}
 	inline uint8_t* get_elem(unsigned x, unsigned y) {
-		return m_pBuffer+y*m_pitch+x*size_elem();
+		return m_data+y*m_pitch+x*size_elem();
 	}
 	inline const uint8_t* get_elem(unsigned x, unsigned y) const {
-		return m_pBuffer+y*m_pitch+x*size_elem();
+		return m_data+y*m_pitch+x*size_elem();
 	}
 	template<class T>
 	inline T& get(unsigned x, unsigned y) {
-		return ((T*)(m_pBuffer+y*m_pitch))[x];
+		return ((T*)(m_data+y*m_pitch))[x];
 	}
 	template<class T>
 	inline void set(unsigned x, unsigned y, const T& val) {
-		((T*)(m_pBuffer+y*m_pitch))[x]=val;
+		((T*)(m_data+y*m_pitch))[x]=val;
 	}
 	template<class T>
 	void set_line(unsigned ln, const T& val) {
-		T* iter=(T*)(m_pBuffer+ln*m_pitch);
+		T* iter=(T*)(m_data+ln*m_pitch);
 		for(unsigned i=0; i<m_width; ++i) {
 			*iter=val;
 			iter+=1;
@@ -94,7 +82,7 @@ public:
 	}
 	template<class T>
 	void set_line(unsigned ln, const T& val, unsigned begx, unsigned endx) {
-		T* iter=(T*)(m_pBuffer+ln*m_pitch);
+		T* iter=(T*)(m_data+ln*m_pitch);
 		for(unsigned i=begx; i<=endx; ++i) {
 			*iter=val;
 			iter+=1;
@@ -104,7 +92,7 @@ public:
 	template<class T>
 	void init(const T& val) 
 	{
-		uint8_t *pline=m_pBuffer;
+		uint8_t *pline=m_data;
 		for(unsigned y=0; y<m_height; ++y) {
 			T* iter=(T*)pline;
 			pline+=m_pitch;
@@ -155,7 +143,19 @@ public:
 		}
 	}
 private:
-	static uint8_t* _alloc_mem(unsigned w, unsigned h, unsigned size_elem, 
+	enum BUFFER_INFO
+	{
+		BI_ELEMENT_SIZE = 0xFFFF,
+		BI_MEM_ALIGNMENT = 0xF0000,
+		BI_BIG_ENDIAN = 0x100000,
+		BI_SHARE = 0x200000
+	};
+	unsigned m_info;
+	unsigned m_pitch;
+	unsigned m_width, m_height;
+	uint8_t *m_data;
+
+	static uint8_t* _alloc_mem(unsigned w, unsigned h, unsigned size_elem,
 		unsigned char alignment, unsigned &pitch);
 	static void _free_mem(uint8_t* pBuffer);
 	xbuffer(const xbuffer &buffer);
