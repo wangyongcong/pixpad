@@ -43,6 +43,9 @@
   <ItemGroup>
     <None Include="driver\rgba8888.inl" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="pixpad.rc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D95E7C89-6F46-499B-9F33-574B524C6F5F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

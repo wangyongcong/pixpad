@@ -6,7 +6,7 @@ namespace wyc
 	class xpipeline
 	{
 	public:
-		virtual ~xpipeline() = 0;
+		virtual ~xpipeline() {};
 		virtual bool create_surface(unsigned format, unsigned width, unsigned height) = 0;
 		virtual void beg_frame() = 0;
 		virtual void end_frame() = 0;

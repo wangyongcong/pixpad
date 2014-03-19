@@ -130,9 +130,7 @@ public:
 		return m_pixelfmt;
 	}
 	// 缓冲区绑定
-	inline void share_color_buffer(xcolor_buffer &sub_buffer, unsigned x, unsigned y, unsigned w, unsigned h) {
-		m_colorBuffer.share(sub_buffer,x,y,w,h);
-	}
+	void share_color_buffer(xcolor_buffer &sub_buffer, unsigned x, unsigned y, unsigned w, unsigned h);
 	void attach_color_buffer(xcolor_buffer &new_buffer, XG_PIXEL_FORMAT fmt);
 	XG_PIXEL_FORMAT detach_color_buffer(xcolor_buffer &pre_buffer);
 	// 设置颜色

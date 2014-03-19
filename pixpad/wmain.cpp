@@ -1,8 +1,10 @@
 #include "stdafx.h"
+#include "resource.h"
 #include <cstdio>
 #include <tuple>
 #include "log.h"
 #include "render.h"
+#include "swpipeline.h"
 
 #ifdef _DEBUG
 	#pragma comment (lib, "mathexd.lib")
@@ -17,6 +19,7 @@ struct AppContext
 	HINSTANCE instance = NULL;
 	HWND main_wnd = NULL;
 	bool is_size_changed = false;
+	wyc::xpipeline *pipeline = NULL;
 } g_app;
 
 // Global logger
@@ -48,8 +51,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	g_log->create("pixpad",NULL,0,wyc::LOG_DEBUG);
 	debug("Pixpad starting...");
 
-	MSG msg;
-	HACCEL hAccelTable = NULL;
+	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_PIXPAD));
 
 	// register main window
 	MyRegisterClass(hInstance);
@@ -61,6 +63,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	}
 
 	// main loop
+	MSG msg;
 	while (true)
 	{
 		if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -99,12 +102,12 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.cbClsExtra		= 0;
 	wcex.cbWndExtra		= 0;
 	wcex.hInstance		= hInstance;
-	wcex.hIcon			= (HICON)::LoadImage(NULL,L"favicon32.ico",IMAGE_ICON,0,0,LR_LOADFROMFILE);
+	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_PIXPAD));
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground	= NULL;
-	wcex.lpszMenuName	= NULL;
+	wcex.hbrBackground  = HBRUSH(COLOR_WINDOW+1);
+	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_PIXPAD);
 	wcex.lpszClassName  = WND_CLASS;
-	wcex.hIconSm		= (HICON)::LoadImage(NULL,L"favicon16.ico",IMAGE_ICON,0,0,LR_LOADFROMFILE);
+	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
 	return RegisterClassEx(&wcex);
 }
@@ -159,6 +162,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    glViewport(0, 0, width, height);
    glClearColor(0, 0, 0, 1.0f);
 
+   g_app.pipeline = new wyc::xsw_pipeline();
+   g_app.pipeline->create_surface(0, width, height);
+
    // Set timer for log flushing 
    SetTimer(hWnd, ID_TIMER_LOG, 1000, &TimerFlushLog);
 
@@ -174,21 +180,32 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId, wmEvent;
-	//PAINTSTRUCT ps;
-	//HDC hdc;
+	PAINTSTRUCT ps;
+	HDC hdc;
 
 	switch (message)
 	{
 	case WM_COMMAND: // Window menu
-		wmId    = LOWORD(wParam);
+		wmId = LOWORD(wParam);
 		wmEvent = HIWORD(wParam);
-		return DefWindowProc(hWnd, message, wParam, lParam);
+		// ·ÖÎö²Ëµ¥Ñ¡Ôñ: 
+		switch (wmId)
+		{
+		case IDM_ABOUT:
+			DialogBox(g_app.instance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+			break;
+		case IDM_EXIT:
+			DestroyWindow(hWnd);
+			break;
+		default:
+			return DefWindowProc(hWnd, message, wParam, lParam);
+		}
 		break;
-	//case WM_PAINT:
-	//	hdc = BeginPaint(hWnd, &ps);
-	//	// TODO: custom GUI paint 
-	//	EndPaint(hWnd, &ps);
-	//	break;
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+		// TODO: custom GUI paint 
+		EndPaint(hWnd, &ps);
+		break;
 	case WM_SIZE:
 		if (wParam == SIZE_RESTORED) {
 			OnResizeWindow(LOWORD(lParam),HIWORD(lParam));
@@ -239,6 +256,9 @@ void OnResizeWindow(int width, int height)
 	MoveWindow(target_wnd, 0, 0, width, height, FALSE);
 	// TODO: rebuild OpenGL view
 	glViewport(0, 0, width, height);
+	glMatrixMode(GL_PROJECTION_MATRIX);
+	glLoadIdentity();
+	glOrtho(0, width, 0, height, 1, 1000);
 }
 
 // Flush logger on time
@@ -251,6 +271,10 @@ void CALLBACK TimerFlushLog(HWND hwnd, UINT umsg, UINT_PTR id, DWORD time)
 // Render frame
 void OnRender()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+
+	g_app.pipeline->beg_frame();
+	// TODO: draw something
+	g_app.pipeline->end_frame();
+
 	wyc::gl_get_context()->swap_buffers();
 }
