@@ -42,79 +42,6 @@ xpattern xraster::s_PreDefinedPattern[xraster::NUM_PATTERN]={
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-// ÑÕÉ«»º´æ
-//////////////////////////////////////////////////////////////////////////////////////////////////
-
-xcolor_buffer::xcolor_buffer() {
-	m_spans=0;
-}
-
-xcolor_buffer::~xcolor_buffer()
-{
-	clear();
-}
-
-bool xcolor_buffer::create(unsigned w, unsigned h, XG_PIXEL_FORMAT fmt)
-{
-	unsigned elem=pixel_size(fmt);
-	assert(is_power2(elem));
-	m_elemPower=log2p2(elem);
-	m_elemMask=elem-1;
-	printf("sizeelem=%d,power=%d,mask=%d\n",elem,m_elemPower,m_elemMask);
-	unsigned oldh=m_height;
-	if(!xbuffer::create(w,h,pixel_size(fmt),BOUNDARY_ALIGNMENT))
-		return false;
-	reset_span_map(oldh!=h);
-	return true;
-}
-
-void xcolor_buffer::reset_span_map(bool resize)
-{
-	if(resize || m_spans==0) {
-		if(m_spans) 
-			delete [] m_spans;
-		m_spans=new uint8_t*[m_height];
-	}
-	uint8_t *pline=get_buffer();
-	for(unsigned i=0; i<m_height; ++i) {
-		m_spans[i]=pline;
-		pline+=m_pitch;
-	}
-}
-
-void xcolor_buffer::clear()
-{
-	if(m_spans) {
-		delete [] m_spans;
-		m_spans=0;
-	}
-	xbuffer::clear();
-}
-
-bool xcolor_buffer::share(const xcolor_buffer &buffer)
-{
-	unsigned oldh = m_height;
-	if (!xbuffer::share(buffer))
-		return false;
-	m_elemPower = buffer.m_elemPower;
-	m_elemMask = buffer.m_elemMask;
-	reset_span_map(oldh != m_height);
-	return true;
-}
-
-bool xcolor_buffer::share(const xcolor_buffer &buffer, int x, int y, unsigned w, unsigned h)
-{
-	unsigned oldh = m_height;
-	if(!xbuffer::share(buffer,x,y,w,h))
-		return false;
-	m_elemPower=buffer.m_elemPower;
-	m_elemMask=buffer.m_elemMask;
-	reset_span_map(oldh != m_height);
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
 // Èí¼þ¹âÕ¤Æ÷
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -129,10 +56,10 @@ xraster::xraster()
 {
 	m_pixelfmt=PIXEL_FMT_UNKNOWN;
 	m_color=0xFFFFFFFF;
-	m_bkcolor=0;
+	m_bkcolor=0xFF000000;
 	m_colorkey=0;
 	m_plotter=0;
-	m_plotmode=PLOT_MODE_UNKNOWN;
+	m_plotmode = PLOT_MODE_REPLACE;
 
 	m_state=0;
 	m_palette=0;
@@ -143,54 +70,46 @@ xraster::xraster()
 
 xraster::~xraster() 
 {
-	destroy();
-}
-
-bool xraster::create(unsigned w, unsigned h, XG_PIXEL_FORMAT fmt) {
-	if(!m_colorBuffer.create(w,h,fmt))
-		return false;
-	m_pixelfmt=fmt;
-	set_plot_mode(PLOT_MODE_REPLACE);
-	set_pattern(BRUSH_W3);
-	set_bkcolor(0,0,0,255);
-	set_color(255,255,255,255);
-	m_xmin=m_ymin=0;
-	m_xmax=w;
-	m_ymax=h;
-	return true;
-}
-
-void xraster::destroy()
-{
-	if(m_palette) {
-		delete [] m_palette;
-		m_palette=0;
+	if (m_palette) {
+		delete[] m_palette;
+		m_palette = 0;
 	}
-	if(m_patternBuffer) {
+	if (m_patternBuffer) {
 		delete[] m_patternBuffer;
-		m_patternBuffer=0;
+		m_patternBuffer = 0;
 	}
-	m_pixelfmt=PIXEL_FMT_UNKNOWN;
 }
 
-void xraster::share_color_buffer(const xcolor_buffer &sub_buffer, unsigned x, unsigned y, unsigned w, unsigned h) 
+bool xraster::attach_color_buffer(XG_PIXEL_FORMAT fmt, const xbuffer &new_buffer, unsigned x, unsigned y, unsigned w, unsigned h)
 {
-	m_colorBuffer.share(sub_buffer, x, y, w, h);
+	unsigned elem_size = pixel_size(fmt);
+	if (elem_size != new_buffer.size_elem())
+		return false;
+	m_colorBuffer.share(new_buffer, x, y, w, h);
+	if (m_pixelfmt != fmt) {
+		m_pixelfmt = fmt;
+		set_plot_mode(m_plotmode);
+	}
 	m_xmin = m_ymin = 0;
 	m_xmax = m_colorBuffer.width();
 	m_ymax = m_colorBuffer.height();
+	return true;
 }
 
-void xraster::attach_color_buffer(const xcolor_buffer &new_buffer, XG_PIXEL_FORMAT fmt)
+bool xraster::attach_color_buffer(XG_PIXEL_FORMAT fmt, const xbuffer &new_buffer)
 {
+	unsigned elem_size = pixel_size(fmt);
+	if (elem_size != new_buffer.size_elem())
+		return false;
 	m_colorBuffer.share(new_buffer);
-	if(m_pixelfmt!=fmt) {
-		m_pixelfmt=fmt;
+	if(m_pixelfmt != fmt) {
+		m_pixelfmt = fmt;
 		set_plot_mode(m_plotmode);
 	}
-	m_xmin=m_ymin=0;
-	m_xmax=m_colorBuffer.width();
-	m_ymax=m_colorBuffer.height();
+	m_xmin = m_ymin = 0;
+	m_xmax = m_colorBuffer.width();
+	m_ymax = m_colorBuffer.height();
+	return true;
 }
 
 void xraster::set_plot_mode(XG_PLOT_MODE mode) {

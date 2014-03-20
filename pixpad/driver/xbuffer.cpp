@@ -22,8 +22,8 @@ xbuffer::~xbuffer()
 	}
 }
 
-bool xbuffer::create(unsigned w, unsigned h, unsigned size_elem, unsigned char alignment) {
-	if (m_data) clear();
+bool xbuffer::storage(unsigned w, unsigned h, unsigned size_elem, unsigned char alignment) {
+	if (m_data) release();
 	size_t pitch = (w * size_elem + alignment - 1) / alignment * alignment;
 	size_t required_bytes = pitch*h;
 	if (required_bytes<1) 
@@ -38,7 +38,7 @@ bool xbuffer::create(unsigned w, unsigned h, unsigned size_elem, unsigned char a
 	return true;
 }
 
-void xbuffer::clear() 
+void xbuffer::release()
 {
 	if (!m_data)
 		return;
@@ -86,7 +86,7 @@ bool xbuffer::share(const xbuffer &buffer, unsigned x, unsigned y, unsigned w, u
 	return true;
 }
 
-void xbuffer::init(const uint8_t *pdata, unsigned size) {
+void xbuffer::clear(const uint8_t *pdata, unsigned size) {
 	unsigned cnt;
 	if(size>m_pitch)
 		size=m_pitch;

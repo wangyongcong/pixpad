@@ -16,6 +16,8 @@ namespace wyc
 		}
 		virtual bool create(unsigned image_format, unsigned width, unsigned height, unsigned depth_format = 0, unsigned stencil_format = 0)
 		{
+			if ( !m_color_buffer.storage(width, height, pixel_size(XG_PIXEL_FORMAT(image_format))) )
+				return false;
 			return true;
 		}
 		virtual void beg_render()
@@ -26,7 +28,14 @@ namespace wyc
 		{
 
 		}
+		virtual xbuffer* get_buffer(BUFFER_TYPE t)
+		{
+			if (t == COLOR_BUFFER)
+				return &m_color_buffer;
+			return NULL;
+		}
 	private:
+		xbuffer m_color_buffer;
 	};
 
 	xsw_pipeline::xsw_pipeline()
@@ -51,7 +60,13 @@ namespace wyc
 
 	bool xsw_pipeline::create_surface(unsigned format, unsigned width, unsigned height)
 	{
-		m_raster.create(width, height);
+		assert(m_fbo == NULL);
+		m_fbo = new xsw_frame_buffer();
+		if (!m_fbo->create(NATIVE_PIXEL_FORMAT, width, height))
+			return false;
+		xbuffer* color_buffer = m_fbo->get_buffer(xframe_buffer::COLOR_BUFFER);
+		assert(color_buffer);
+		m_raster.attach_color_buffer(NATIVE_PIXEL_FORMAT, *color_buffer);
 		m_raster.clear_screen();
 		m_raster.enable_anti(true);
 		int cx = width / 2, cy = height / 2;

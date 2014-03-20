@@ -20,39 +20,6 @@ struct xpattern
 	uint8_t* bitmap;
 };
 
-class xcolor_buffer : public xbuffer
-{
-	uint8_t **m_spans;
-	uint8_t m_elemPower;
-	uint8_t m_elemMask;
-public:
-	xcolor_buffer();
-	~xcolor_buffer();
-	bool create(unsigned w, unsigned h, XG_PIXEL_FORMAT fmt);
-	void clear();
-	bool share(const xcolor_buffer &buffer);
-	bool share(const xcolor_buffer &buffer, int x, int y, unsigned w, unsigned h);
-	inline uint8_t* get_elem(unsigned x, unsigned y) {
-		assert(y<m_height);
-		assert(m_spans!=0);
-		return m_spans[y]+(x<<m_elemPower);
-	//	return m_spans[y]+(x<<2);
-	}
-	inline uint8_t* get_line(unsigned y) {
-		assert(y<m_height);
-		assert(m_spans!=0);
-		return m_spans[y];
-	}
-	inline uint8_t get_elem_power() const {
-		return m_elemPower;
-	}
-	inline uint8_t get_elem_mask() const {
-		return m_elemMask;
-	}
-private:
-	void reset_span_map(bool resize=true);
-};
-
 class xraster
 {
 public:
@@ -73,39 +40,12 @@ public:
 		NUM_PATTERN
 	};
 
-private:
-	// 缓冲区
-	xcolor_buffer m_colorBuffer;
-	XG_PIXEL_FORMAT m_pixelfmt;
-	// 绘制模式
-	xplotter m_plotter;
-	XG_PLOT_MODE m_plotmode;
-	// 当前状态
-	pixel_t m_color;
-	pixel_t m_bkcolor;
-	pixel_t m_colorkey;
-	// 光栅化状态
-	uint32_t m_state;
-	// 裁剪区域
-	int m_xmin, m_ymin, 
-		m_xmax, m_ymax;
-	// 调色板
-	pixel_t *m_palette;
-	unsigned m_colorNum;
-	// 画笔样式
-	static xpattern s_PreDefinedPattern[NUM_PATTERN];
-	xpattern m_pattern;
-	unsigned m_patternPitch;
-	uint8_t *m_patternBuffer;
-	// 填充器
-	void *m_pfiller;
-	// 任意像素格式绘制器
-	static void general_format_plotter(void *pctx, void *pdst, void *psrc);
 public:
 	xraster();
 	~xraster();
-	void destroy();
-	bool create(unsigned w, unsigned h, XG_PIXEL_FORMAT fmt=PIXEL_FMT_RGBA8888);
+	// 缓冲区绑定
+	bool attach_color_buffer(XG_PIXEL_FORMAT fmt, const xbuffer &new_buffer);
+	bool attach_color_buffer(XG_PIXEL_FORMAT fmt, const xbuffer &sub_buffer, unsigned x, unsigned y, unsigned w, unsigned h);
 	// 缓冲区数据访问
 	inline uint8_t* color_buffer() {
 		return m_colorBuffer.get_buffer();
@@ -128,9 +68,6 @@ public:
 	inline XG_PIXEL_FORMAT pixel_format() const {
 		return m_pixelfmt;
 	}
-	// 缓冲区绑定
-	void share_color_buffer(const xcolor_buffer &sub_buffer, unsigned x, unsigned y, unsigned w, unsigned h);
-	void attach_color_buffer(const xcolor_buffer &new_buffer, XG_PIXEL_FORMAT fmt);
 	// 设置颜色
 	inline void set_index(unsigned index) {
 		if(m_palette && index<m_colorNum) 
@@ -223,7 +160,7 @@ public:
 	}
 	// 用背景色清屏
 	inline void clear_screen() {
-		m_colorBuffer.init(m_bkcolor);
+		m_colorBuffer.clear(m_bkcolor);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -298,7 +235,7 @@ public:
 	// 填充任意封闭区域
 	void flood_fill(int x, int y);
 
-//protected:
+protected:
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// 基本绘制接口: 所有的光栅化函数使用(且仅使用)以下这些接口读写颜色缓存
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -473,17 +410,44 @@ public:
 	// 移植自fblend: 快速透明混合(NATIVE_PIXEL_FORMAT必须为RGBA8888)
 	void _fast_blend(unsigned dstx, unsigned dsty, uint8_t *pbits, unsigned pitch, unsigned srcx, unsigned srcy, unsigned srcw, unsigned srch, uint8_t fact);
 
+#ifdef _DEBUG
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// debug 接口
 	////////////////////////////////////////////////////////////////////////////////////////////////
-#ifdef _DEBUG
-
 	bool poly_fill_start();
 	bool poly_fill_step();
 	void poly_fill_clear();
 	void poly_dump();
-
 #endif // _DEBUG
+
+private:
+	// 缓冲区
+	xbuffer m_colorBuffer;
+	XG_PIXEL_FORMAT m_pixelfmt;
+	// 绘制模式
+	xplotter m_plotter;
+	XG_PLOT_MODE m_plotmode;
+	// 当前状态
+	pixel_t m_color;
+	pixel_t m_bkcolor;
+	pixel_t m_colorkey;
+	// 光栅化状态
+	uint32_t m_state;
+	// 裁剪区域
+	int m_xmin, m_ymin,
+		m_xmax, m_ymax;
+	// 调色板
+	pixel_t *m_palette;
+	unsigned m_colorNum;
+	// 画笔样式
+	static xpattern s_PreDefinedPattern[NUM_PATTERN];
+	xpattern m_pattern;
+	unsigned m_patternPitch;
+	uint8_t *m_patternBuffer;
+	// 填充器
+	void *m_pfiller;
+	// 任意像素格式绘制器
+	static void general_format_plotter(void *pctx, void *pdst, void *psrc);
 
 };
 
