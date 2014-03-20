@@ -323,7 +323,7 @@ GLuint glsl_load_file(GLenum shader_type, const char *file_path)
 		return 0;
 	}
 	fs.seekg(0, std::ios_base::end);
-	size_t size = fs.tellg();
+	size_t size = (size_t)fs.tellg();
 	char *src = new char[size + 1];
 	fs.seekg(0);
 	fs.read(src, size);

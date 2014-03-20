@@ -80,7 +80,7 @@ namespace wyc
 	{
 		glClear(GL_COLOR_BUFFER_BIT);
 		glBindTexture(GL_TEXTURE_RECTANGLE, m_texobj);
-		float w = m_raster.width(), h = m_raster.height();
+		float w = (float)m_raster.width(), h = (float)m_raster.height();
 		float z = -10;
 		glBegin(GL_QUADS);
 		glTexCoord2f(0, 0);

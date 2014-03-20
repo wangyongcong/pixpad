@@ -30,9 +30,8 @@ public:
 	~xcolor_buffer();
 	bool create(unsigned w, unsigned h, XG_PIXEL_FORMAT fmt);
 	void clear();
-	uint8_t* release(unsigned *pitch=0, unsigned *width=0, unsigned *height=0);
-	void deliver(xcolor_buffer &accept);
-	bool share(const xcolor_buffer &buffer, int x, int y, unsigned w, unsigned h, bool bsafe=true);
+	bool share(const xcolor_buffer &buffer);
+	bool share(const xcolor_buffer &buffer, int x, int y, unsigned w, unsigned h);
 	inline uint8_t* get_elem(unsigned x, unsigned y) {
 		assert(y<m_height);
 		assert(m_spans!=0);
@@ -130,9 +129,8 @@ public:
 		return m_pixelfmt;
 	}
 	// 缓冲区绑定
-	void share_color_buffer(xcolor_buffer &sub_buffer, unsigned x, unsigned y, unsigned w, unsigned h);
-	void attach_color_buffer(xcolor_buffer &new_buffer, XG_PIXEL_FORMAT fmt);
-	XG_PIXEL_FORMAT detach_color_buffer(xcolor_buffer &pre_buffer);
+	void share_color_buffer(const xcolor_buffer &sub_buffer, unsigned x, unsigned y, unsigned w, unsigned h);
+	void attach_color_buffer(const xcolor_buffer &new_buffer, XG_PIXEL_FORMAT fmt);
 	// 设置颜色
 	inline void set_index(unsigned index) {
 		if(m_palette && index<m_colorNum) 

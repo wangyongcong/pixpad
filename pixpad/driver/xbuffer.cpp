@@ -5,121 +5,93 @@
 namespace wyc
 {
 
-uint8_t* xbuffer::_alloc_mem(unsigned w, unsigned h, unsigned size_elem, unsigned char alignment, unsigned &pitch) 
-{
-	if(alignment<2) pitch=w*size_elem;
-	pitch=(w*size_elem+alignment-1)/alignment*alignment;
-	unsigned size=pitch*h;
-	if(size<1) return 0;
-	return new uint8_t[size];
-}
-
-void xbuffer::_free_mem(uint8_t* pBuffer) 
-{
-	delete [] pBuffer;
-}
-
 xbuffer::xbuffer() 
 {
-	m_info=0;
-	m_data=0;
-	m_pitch=0;
-	m_width=0;
-	m_height=0;
+	m_data = 0;
+	m_info = 0;
+	m_pitch = 0;
+	m_width = 0;
+	m_height = 0;
 }
 
 xbuffer::~xbuffer() 
 {
-	if(!empty() && !is_share()) 
-		_free_mem(m_data);
+	if (m_data && is_owner()) {
+		delete[] m_data;
+		m_data = 0;
+	}
 }
 
 bool xbuffer::create(unsigned w, unsigned h, unsigned size_elem, unsigned char alignment) {
-	if(!empty() && !is_share()) 
-		_free_mem(m_data);
-	m_data=_alloc_mem(w,h,size_elem,alignment,m_pitch);
-	if(m_data==0)
+	if (m_data) clear();
+	size_t pitch = (w * size_elem + alignment - 1) / alignment * alignment;
+	size_t required_bytes = pitch*h;
+	if (required_bytes<1) 
 		return false;
-	m_info=((alignment&0xF)<<16)|(size_elem&0xFFFF);
-	m_width=w;
-	m_height=h;
+	m_data = new uint8_t[required_bytes];
+	if(m_data == 0)
+		return false;
+	m_info = ((alignment & 0xF) << 16) | (size_elem & 0xFFFF);
+	m_pitch = pitch;
+	m_width = w;
+	m_height = h;
 	return true;
 }
 
-void xbuffer::clear() {
-	if(!empty()) {
-		if(!is_share())
-			_free_mem(m_data);
-		m_data=0;
-		m_info=0;
-		m_pitch=0;
-		m_width=0;
-		m_height=0;
+void xbuffer::clear() 
+{
+	if (!m_data)
+		return;
+	if (is_owner()) {
+		delete[] m_data;
+		m_data = 0;
 	}
+	m_data = 0;
+	m_info = 0;
+	m_pitch = 0;
+	m_width = 0;
+	m_height = 0;
 }
 
-uint8_t* xbuffer::release(unsigned *pitch, unsigned *width, unsigned *height) {
-	uint8_t *pBuffer=m_data;
-	if(pitch) 
-		*pitch=m_pitch;
-	if(width) 
-		*width=m_width;
-	if(height) 
-		*height=m_height;
-	m_info=0;
-	m_data=0;
-	m_pitch=0;
-	m_width=0;
-	m_height=0;
-	return pBuffer;
-}
-
-void xbuffer::deliver(xbuffer &accept)
+bool xbuffer::share(const xbuffer &buffer)
 {
-	accept.m_info=m_info;
-	accept.m_data=m_data;
-	accept.m_pitch=m_pitch;
-	accept.m_width=m_width;
-	accept.m_height=m_height;
-	m_data=0;
-	m_info=0;
-	m_pitch=0;
-	m_width=0;
-	m_height=0;
-}
-
-bool xbuffer::share(const xbuffer &buffer, int x, int y, unsigned w, unsigned h, bool bsafe)
-{
-	if(x>=int(buffer.m_width) || y>=int(buffer.m_height))
+	if (!buffer.m_data) 
 		return false;
-	if(bsafe) {
-		if(x<0) {
-			w+=x;
-			x=0;
-		}
-		if(y<0) {
-			h+=y;
-			y=0;
-		}
+	if (m_data && is_owner()) {
+		delete[] m_data;
 	}
-	if(!empty() && !is_share()) 
-		_free_mem(m_data);
-	m_data=buffer.m_data+y*buffer.m_pitch+x*buffer.size_elem();		
-	m_info=buffer.m_info|BI_SHARE;
-	m_pitch=buffer.m_pitch;
-	m_width=x+w>buffer.m_width?buffer.m_width-x:w;
-	m_height=y+h>buffer.m_height?buffer.m_height-y:h;
+	m_data = buffer.m_data;
+	m_info = buffer.m_info | BI_SHARED;
+	m_pitch = buffer.m_pitch;
+	m_width = buffer.m_width;
+	m_height = buffer.m_height;
+	return true;
+}
+
+bool xbuffer::share(const xbuffer &buffer, unsigned x, unsigned y, unsigned w, unsigned h)
+{
+	if (x >= buffer.m_width || y >= buffer.m_height)
+		return false;
+	if (0 == w || x + w > buffer.m_width) {
+		w = buffer.m_width - x;
+	}
+	if (0 == h || y + h > buffer.m_height) {
+		h = buffer.m_height - y;
+	}
+	m_data = buffer.m_data + y*buffer.m_pitch + x*buffer.size_elem();
+	m_info = buffer.m_info | BI_SHARED;
+	m_pitch = buffer.m_pitch;
+	m_width = w;
+	m_height = h;
 	return true;
 }
 
 void xbuffer::init(const uint8_t *pdata, unsigned size) {
-	unsigned cnt, packed;
+	unsigned cnt;
 	if(size>m_pitch)
 		size=m_pitch;
-	else {
+	else 
 		cnt=m_pitch/size;
-		packed=m_pitch%size;
-	}
 	uint8_t *pbuff=m_data;
 	for(unsigned y=0; y<m_height; ++y) {
 		uint8_t *pline=pbuff;
@@ -128,8 +100,6 @@ void xbuffer::init(const uint8_t *pdata, unsigned size) {
 			memcpy(pline,pdata,size);
 			pline+=size;
 		}
-	//	if(packed>0) 
-	//		memset(pline,0,packed);
 	}
 }
 
