@@ -20,8 +20,8 @@
     <ClCompile Include="painter\xtnl.cpp" />
     <ClCompile Include="pipeline\render_buffer.cpp" />
     <ClCompile Include="pipeline\swpipeline.cpp" />
+    <ClCompile Include="pipeline\vertex_buffer.cpp" />
     <ClCompile Include="util\util.cpp" />
-    <ClCompile Include="vertex_buffer.cpp" />
     <ClCompile Include="windows\stdafx.cpp" />
     <ClCompile Include="windows\wmain.cpp" />
   </ItemGroup>
@@ -35,10 +35,10 @@
     <ClInclude Include="pipeline\pipeline.h" />
     <ClInclude Include="pipeline\render_buffer.h" />
     <ClInclude Include="pipeline\swpipeline.h" />
+    <ClInclude Include="pipeline\vertex_buffer.h" />
     <ClInclude Include="util\log.h" />
     <ClInclude Include="util\rect.h" />
     <ClInclude Include="util\util.h" />
-    <ClInclude Include="vertex_buffer.h" />
     <ClInclude Include="windows\stdafx.h" />
     <ClInclude Include="windows\targetver.h" />
   </ItemGroup>

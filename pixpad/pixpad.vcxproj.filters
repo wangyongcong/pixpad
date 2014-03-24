@@ -55,10 +55,10 @@
     <ClCompile Include="windows\wmain.cpp">
       <Filter>windows</Filter>
     </ClCompile>
-    <ClCompile Include="vertex_buffer.cpp">
+    <ClCompile Include="pipeline\render_buffer.cpp">
       <Filter>pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="pipeline\render_buffer.cpp">
+    <ClCompile Include="pipeline\vertex_buffer.cpp">
       <Filter>pipeline</Filter>
     </ClCompile>
   </ItemGroup>
@@ -99,14 +99,14 @@
     <ClInclude Include="windows\targetver.h">
       <Filter>windows</Filter>
     </ClInclude>
-    <ClInclude Include="vertex_buffer.h">
-      <Filter>pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="pipeline\render_buffer.h">
       <Filter>pipeline</Filter>
     </ClInclude>
     <ClInclude Include="util\rect.h">
       <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="pipeline\vertex_buffer.h">
+      <Filter>pipeline</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
