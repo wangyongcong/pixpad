@@ -1,5 +1,5 @@
-#ifndef WYC_HEADER_XBUFFER
-#define WYC_HEADER_XBUFFER
+#ifndef WYC_HEADER_RENDER_BUFFER
+#define WYC_HEADER_RENDER_BUFFER
 
 #include <cstdint>
 #include "driver.h"
@@ -199,4 +199,4 @@ void xrender_buffer::move_elem(unsigned dstx, unsigned dsty, unsigned srcx, unsi
 
 }; // end of namespace wyc
 
-#endif // end of WYC_HEADER_XBUFFER
+#endif // end of WYC_HEADER_RENDER_BUFFER
