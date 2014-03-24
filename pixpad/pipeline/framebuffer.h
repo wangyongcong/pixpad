@@ -1,7 +1,7 @@
 #ifndef WYC_HEADER_FRAMEBUFFER
 #define WYC_HEADER_FRAMEBUFFER
 
-#include "xbuffer.h"
+#include "render_buffer.h"
 
 namespace wyc
 {
@@ -18,7 +18,7 @@ namespace wyc
 		virtual bool create(unsigned image_format, unsigned width, unsigned height, unsigned depth_format=0, unsigned stencil_format=0) = 0;
 		virtual void beg_render() = 0;
 		virtual void end_render() = 0;
-		virtual xbuffer* get_buffer(BUFFER_TYPE t) = 0;
+		virtual xrender_buffer* get_buffer(BUFFER_TYPE t) = 0;
 	}; // class xframe_buffer
 
 }; // end of namespace wyc

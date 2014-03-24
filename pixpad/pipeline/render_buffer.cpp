@@ -1,11 +1,11 @@
 #include <cstring>
 #include "driver.h"
-#include "xbuffer.h"
+#include "render_buffer.h"
 
 namespace wyc
 {
 
-xbuffer::xbuffer() 
+xrender_buffer::xrender_buffer() 
 {
 	m_data = 0;
 	m_info = 0;
@@ -14,7 +14,7 @@ xbuffer::xbuffer()
 	m_height = 0;
 }
 
-xbuffer::~xbuffer() 
+xrender_buffer::~xrender_buffer() 
 {
 	if (m_data && is_owner()) {
 		delete[] m_data;
@@ -22,7 +22,7 @@ xbuffer::~xbuffer()
 	}
 }
 
-bool xbuffer::storage(unsigned w, unsigned h, unsigned size_elem, unsigned char alignment) {
+bool xrender_buffer::storage(unsigned w, unsigned h, unsigned size_elem, unsigned char alignment) {
 	if (m_data) release();
 	size_t pitch = (w * size_elem + alignment - 1) / alignment * alignment;
 	size_t required_bytes = pitch*h;
@@ -38,7 +38,7 @@ bool xbuffer::storage(unsigned w, unsigned h, unsigned size_elem, unsigned char 
 	return true;
 }
 
-void xbuffer::release()
+void xrender_buffer::release()
 {
 	if (!m_data)
 		return;
@@ -53,7 +53,7 @@ void xbuffer::release()
 	m_height = 0;
 }
 
-bool xbuffer::share(const xbuffer &buffer)
+bool xrender_buffer::share(const xrender_buffer &buffer)
 {
 	if (!buffer.m_data) 
 		return false;
@@ -68,7 +68,7 @@ bool xbuffer::share(const xbuffer &buffer)
 	return true;
 }
 
-bool xbuffer::share(const xbuffer &buffer, unsigned x, unsigned y, unsigned w, unsigned h)
+bool xrender_buffer::share(const xrender_buffer &buffer, unsigned x, unsigned y, unsigned w, unsigned h)
 {
 	if (x >= buffer.m_width || y >= buffer.m_height)
 		return false;
@@ -86,7 +86,7 @@ bool xbuffer::share(const xbuffer &buffer, unsigned x, unsigned y, unsigned w, u
 	return true;
 }
 
-void xbuffer::clear(const uint8_t *pdata, unsigned size) {
+void xrender_buffer::clear(const uint8_t *pdata, unsigned size) {
 	unsigned cnt;
 	if(size>m_pitch)
 		size=m_pitch;

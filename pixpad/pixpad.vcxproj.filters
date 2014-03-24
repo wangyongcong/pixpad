@@ -37,9 +37,6 @@
     <ClCompile Include="painter\rs_primitive.cpp">
       <Filter>painter</Filter>
     </ClCompile>
-    <ClCompile Include="painter\xbuffer.cpp">
-      <Filter>painter</Filter>
-    </ClCompile>
     <ClCompile Include="painter\xraster.cpp">
       <Filter>painter</Filter>
     </ClCompile>
@@ -58,6 +55,12 @@
     <ClCompile Include="windows\wmain.cpp">
       <Filter>windows</Filter>
     </ClCompile>
+    <ClCompile Include="vertex_buffer.cpp">
+      <Filter>pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="pipeline\render_buffer.cpp">
+      <Filter>pipeline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="util\log.h">
@@ -70,12 +73,6 @@
       <Filter>painter</Filter>
     </ClInclude>
     <ClInclude Include="painter\driver.h">
-      <Filter>painter</Filter>
-    </ClInclude>
-    <ClInclude Include="painter\rect.h">
-      <Filter>painter</Filter>
-    </ClInclude>
-    <ClInclude Include="painter\xbuffer.h">
       <Filter>painter</Filter>
     </ClInclude>
     <ClInclude Include="painter\xraster.h">
@@ -101,6 +98,15 @@
     </ClInclude>
     <ClInclude Include="windows\targetver.h">
       <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex_buffer.h">
+      <Filter>pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="pipeline\render_buffer.h">
+      <Filter>pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="util\rect.h">
+      <Filter>util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

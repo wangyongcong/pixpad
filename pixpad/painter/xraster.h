@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 #include "mathex/vecmath.h"
+#include "util/rect.h"
 #include "color.h"
-#include "rect.h"
 #include "driver.h"
-#include "xbuffer.h"
+#include "render_buffer.h"
 
 namespace wyc
 {
@@ -44,8 +44,8 @@ public:
 	xraster();
 	~xraster();
 	// 缓冲区绑定
-	bool attach_color_buffer(XG_PIXEL_FORMAT fmt, const xbuffer &new_buffer);
-	bool attach_color_buffer(XG_PIXEL_FORMAT fmt, const xbuffer &sub_buffer, unsigned x, unsigned y, unsigned w, unsigned h);
+	bool attach_color_buffer(XG_PIXEL_FORMAT fmt, const xrender_buffer &new_buffer);
+	bool attach_color_buffer(XG_PIXEL_FORMAT fmt, const xrender_buffer &sub_buffer, unsigned x, unsigned y, unsigned w, unsigned h);
 	// 缓冲区数据访问
 	inline uint8_t* color_buffer() {
 		return m_colorBuffer.get_buffer();
@@ -422,7 +422,7 @@ protected:
 
 private:
 	// 缓冲区
-	xbuffer m_colorBuffer;
+	xrender_buffer m_colorBuffer;
 	XG_PIXEL_FORMAT m_pixelfmt;
 	// 绘制模式
 	xplotter m_plotter;

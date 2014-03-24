@@ -16,11 +16,12 @@
     <ClCompile Include="painter\rs_bitblt.cpp" />
     <ClCompile Include="painter\rs_fill.cpp" />
     <ClCompile Include="painter\rs_primitive.cpp" />
-    <ClCompile Include="painter\xbuffer.cpp" />
     <ClCompile Include="painter\xraster.cpp" />
     <ClCompile Include="painter\xtnl.cpp" />
+    <ClCompile Include="pipeline\render_buffer.cpp" />
     <ClCompile Include="pipeline\swpipeline.cpp" />
     <ClCompile Include="util\util.cpp" />
+    <ClCompile Include="vertex_buffer.cpp" />
     <ClCompile Include="windows\stdafx.cpp" />
     <ClCompile Include="windows\wmain.cpp" />
   </ItemGroup>
@@ -28,15 +29,16 @@
     <ClInclude Include="glrender\glrender.h" />
     <ClInclude Include="painter\color.h" />
     <ClInclude Include="painter\driver.h" />
-    <ClInclude Include="painter\rect.h" />
-    <ClInclude Include="painter\xbuffer.h" />
     <ClInclude Include="painter\xraster.h" />
     <ClInclude Include="painter\xtnl.h" />
     <ClInclude Include="pipeline\framebuffer.h" />
     <ClInclude Include="pipeline\pipeline.h" />
+    <ClInclude Include="pipeline\render_buffer.h" />
     <ClInclude Include="pipeline\swpipeline.h" />
     <ClInclude Include="util\log.h" />
+    <ClInclude Include="util\rect.h" />
     <ClInclude Include="util\util.h" />
+    <ClInclude Include="vertex_buffer.h" />
     <ClInclude Include="windows\stdafx.h" />
     <ClInclude Include="windows\targetver.h" />
   </ItemGroup>

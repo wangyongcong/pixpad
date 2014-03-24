@@ -80,7 +80,7 @@ xraster::~xraster()
 	}
 }
 
-bool xraster::attach_color_buffer(XG_PIXEL_FORMAT fmt, const xbuffer &new_buffer, unsigned x, unsigned y, unsigned w, unsigned h)
+bool xraster::attach_color_buffer(XG_PIXEL_FORMAT fmt, const xrender_buffer &new_buffer, unsigned x, unsigned y, unsigned w, unsigned h)
 {
 	unsigned elem_size = pixel_size(fmt);
 	if (elem_size != new_buffer.size_elem())
@@ -96,7 +96,7 @@ bool xraster::attach_color_buffer(XG_PIXEL_FORMAT fmt, const xbuffer &new_buffer
 	return true;
 }
 
-bool xraster::attach_color_buffer(XG_PIXEL_FORMAT fmt, const xbuffer &new_buffer)
+bool xraster::attach_color_buffer(XG_PIXEL_FORMAT fmt, const xrender_buffer &new_buffer)
 {
 	unsigned elem_size = pixel_size(fmt);
 	if (elem_size != new_buffer.size_elem())

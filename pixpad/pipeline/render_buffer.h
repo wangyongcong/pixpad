@@ -7,19 +7,19 @@
 namespace wyc
 {
 
-//==xbuffer===============================================================================================
+//==xrender_buffer===============================================================================================
 
-class xbuffer
+class xrender_buffer
 {
 public:
-	xbuffer();
-	xbuffer(const xbuffer &buffer) = delete;
-	xbuffer& operator = (const xbuffer &buffer) = delete;
-	~xbuffer();
+	xrender_buffer();
+	xrender_buffer(const xrender_buffer &buffer) = delete;
+	xrender_buffer& operator = (const xrender_buffer &buffer) = delete;
+	~xrender_buffer();
 	bool storage(unsigned w, unsigned h, unsigned size_elem, unsigned char alignment=4);
 	void release();
-	bool share(const xbuffer &buffer);
-	bool share(const xbuffer &buffer, unsigned x, unsigned y, unsigned w, unsigned h);
+	bool share(const xrender_buffer &buffer);
+	bool share(const xrender_buffer &buffer, unsigned x, unsigned y, unsigned w, unsigned h);
 
 	bool empty() const;
 	bool is_owner() const;
@@ -66,66 +66,66 @@ protected:
 	unsigned m_height;
 };
 
-inline bool xbuffer::empty() const {
+inline bool xrender_buffer::empty() const {
 	return m_data == 0;
 }
 
-inline bool xbuffer::is_owner() const {
+inline bool xrender_buffer::is_owner() const {
 	return 0 == (m_info & BI_SHARED);
 }
 
-inline unsigned char xbuffer::alignment() const {
+inline unsigned char xrender_buffer::alignment() const {
 	return (m_info & BI_ALIGNMENT) >> BI_ALIGNMENT_SHIFT;
 }
 
-inline unsigned xbuffer::width() const {
+inline unsigned xrender_buffer::width() const {
 	return m_width;
 }
 
-inline unsigned xbuffer::height() const {
+inline unsigned xrender_buffer::height() const {
 	return m_height;
 }
 
-inline unsigned xbuffer::pitch() const {
+inline unsigned xrender_buffer::pitch() const {
 	return m_pitch;
 }
 
-inline unsigned xbuffer::size() const {
+inline unsigned xrender_buffer::size() const {
 	return m_pitch*m_height;
 }
 
-inline unsigned xbuffer::size_elem() const {
+inline unsigned xrender_buffer::size_elem() const {
 	return m_info & BI_ELEMENT_SIZE;
 }
 
-inline uint8_t* xbuffer::get_buffer() {
+inline uint8_t* xrender_buffer::get_buffer() {
 	return m_data;
 }
 
-inline uint8_t* xbuffer::get_line(unsigned idx) {
+inline uint8_t* xrender_buffer::get_line(unsigned idx) {
 	return m_data + idx*m_pitch;
 }
 
-inline uint8_t* xbuffer::get_elem(unsigned x, unsigned y) {
+inline uint8_t* xrender_buffer::get_elem(unsigned x, unsigned y) {
 	return m_data + y*m_pitch + x*size_elem();
 }
 
-inline const uint8_t* xbuffer::get_elem(unsigned x, unsigned y) const {
+inline const uint8_t* xrender_buffer::get_elem(unsigned x, unsigned y) const {
 	return m_data + y*m_pitch + x*size_elem();
 }
 
 template<class T>
-inline T& xbuffer::get(unsigned x, unsigned y) {
+inline T& xrender_buffer::get(unsigned x, unsigned y) {
 	return ((T*)(m_data + y*m_pitch))[x];
 }
 
 template<class T>
-inline void xbuffer::set(unsigned x, unsigned y, const T& val) {
+inline void xrender_buffer::set(unsigned x, unsigned y, const T& val) {
 	((T*)(m_data + y*m_pitch))[x] = val;
 }
 
 template<class T>
-void xbuffer::set_line(unsigned ln, const T& val) {
+void xrender_buffer::set_line(unsigned ln, const T& val) {
 	T* iter = (T*)(m_data + ln*m_pitch);
 	for (unsigned i = 0; i<m_width; ++i) {
 		*iter = val;
@@ -134,7 +134,7 @@ void xbuffer::set_line(unsigned ln, const T& val) {
 }
 
 template<class T>
-void xbuffer::set_line(unsigned ln, const T& val, unsigned begx, unsigned endx) {
+void xrender_buffer::set_line(unsigned ln, const T& val, unsigned begx, unsigned endx) {
 	T* iter = (T*)(m_data + ln*m_pitch);
 	for (unsigned i = begx; i <= endx; ++i) {
 		*iter = val;
@@ -143,7 +143,7 @@ void xbuffer::set_line(unsigned ln, const T& val, unsigned begx, unsigned endx) 
 }
 
 template<class T>
-void xbuffer::clear(const T& val)
+void xrender_buffer::clear(const T& val)
 {
 	uint8_t *pline = m_data;
 	for (unsigned y = 0; y<m_height; ++y) {
@@ -157,7 +157,7 @@ void xbuffer::clear(const T& val)
 }
 
 template<class T>
-void xbuffer::move_elem(unsigned dstx, unsigned dsty, unsigned srcx, unsigned srcy, unsigned w, unsigned h)
+void xrender_buffer::move_elem(unsigned dstx, unsigned dsty, unsigned srcx, unsigned srcy, unsigned w, unsigned h)
 {
 	if (dstx == srcx && dsty == srcy)
 		return;

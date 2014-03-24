@@ -2,7 +2,7 @@
 #define WYC_HEADER_XTNL
 
 #include "mathex/vecmath.h"
-#include "xbuffer.h"
+#include "render_buffer.h"
 
 namespace wyc
 {
