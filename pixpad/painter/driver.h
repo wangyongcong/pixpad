@@ -2,7 +2,7 @@
 #define WYC_HEADER_DRIVER
 
 #include <cstdint>
-#include "util.h"
+#include "util/util.h"
 
 namespace wyc 
 {

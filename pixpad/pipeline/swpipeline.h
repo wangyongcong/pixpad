@@ -4,7 +4,7 @@
 #include "framebuffer.h"
 #include "pipeline.h"
 #include "xraster.h"
-#include "render.h"
+#include "glrender.h"
 
 namespace wyc
 {

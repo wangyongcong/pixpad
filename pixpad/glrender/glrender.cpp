@@ -2,8 +2,8 @@
 #include <cassert>
 #include <ctime>
 #include <fstream>
-#include "log.h"
-#include "render.h"
+#include "util/log.h"
+#include "glrender.h"
 
 namespace wyc
 {

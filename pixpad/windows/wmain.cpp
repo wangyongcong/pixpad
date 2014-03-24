@@ -2,8 +2,8 @@
 #include "resource.h"
 #include <cstdio>
 #include <tuple>
-#include "log.h"
-#include "render.h"
+#include "util/log.h"
+#include "glrender.h"
 #include "swpipeline.h"
 
 #ifdef _DEBUG

@@ -11,40 +11,44 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="driver\color.h" />
-    <ClInclude Include="driver\driver.h" />
-    <ClInclude Include="driver\rect.h" />
-    <ClInclude Include="driver\xbuffer.h" />
-    <ClInclude Include="driver\xraster.h" />
-    <ClInclude Include="driver\xtnl.h" />
-    <ClInclude Include="log.h" />
-    <ClInclude Include="render\framebuffer.h" />
-    <ClInclude Include="render\pipeline.h" />
-    <ClInclude Include="render\render.h" />
-    <ClInclude Include="render\swpipeline.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="util.h" />
+    <ClCompile Include="glrender\glrender.cpp" />
+    <ClCompile Include="painter\driver.cpp" />
+    <ClCompile Include="painter\rs_bitblt.cpp" />
+    <ClCompile Include="painter\rs_fill.cpp" />
+    <ClCompile Include="painter\rs_primitive.cpp" />
+    <ClCompile Include="painter\xbuffer.cpp" />
+    <ClCompile Include="painter\xraster.cpp" />
+    <ClCompile Include="painter\xtnl.cpp" />
+    <ClCompile Include="pipeline\swpipeline.cpp" />
+    <ClCompile Include="util\util.cpp" />
+    <ClCompile Include="windows\stdafx.cpp" />
+    <ClCompile Include="windows\wmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="driver\driver.cpp" />
-    <ClCompile Include="driver\rs_bitblt.cpp" />
-    <ClCompile Include="driver\rs_fill.cpp" />
-    <ClCompile Include="driver\rs_primitive.cpp" />
-    <ClCompile Include="driver\xbuffer.cpp" />
-    <ClCompile Include="driver\xraster.cpp" />
-    <ClCompile Include="driver\xtnl.cpp" />
-    <ClCompile Include="render\render.cpp" />
-    <ClCompile Include="render\swpipeline.cpp" />
-    <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="util.cpp" />
-    <ClCompile Include="wmain.cpp" />
+    <ClInclude Include="glrender\glrender.h" />
+    <ClInclude Include="painter\color.h" />
+    <ClInclude Include="painter\driver.h" />
+    <ClInclude Include="painter\rect.h" />
+    <ClInclude Include="painter\xbuffer.h" />
+    <ClInclude Include="painter\xraster.h" />
+    <ClInclude Include="painter\xtnl.h" />
+    <ClInclude Include="pipeline\framebuffer.h" />
+    <ClInclude Include="pipeline\pipeline.h" />
+    <ClInclude Include="pipeline\swpipeline.h" />
+    <ClInclude Include="util\log.h" />
+    <ClInclude Include="util\util.h" />
+    <ClInclude Include="windows\stdafx.h" />
+    <ClInclude Include="windows\targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="driver\rgba8888.inl" />
+    <None Include="painter\rgba8888.inl" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="pixpad.rc" />
+    <ResourceCompile Include="windows\pixpad.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="windows\favicon16.ico" />
+    <Image Include="windows\favicon32.ico" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D95E7C89-6F46-499B-9F33-574B524C6F5F}</ProjectGuid>
@@ -88,7 +92,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>BOOST_LIB_DIAGNOSTIC;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)driver;$(ProjectDir)render;$(SolutionDir)mathex;$(SolutionDir)elog;$(SolutionDir)glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)windows;$(ProjectDir)glrender;$(ProjectDir)painter;$(ProjectDir)pipeline;$(SolutionDir)mathex;$(SolutionDir)elog;$(SolutionDir)glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

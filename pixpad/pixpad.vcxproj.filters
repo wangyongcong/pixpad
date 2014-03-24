@@ -5,89 +5,120 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="driver">
-      <UniqueIdentifier>{7b4aec4f-0cbe-43c6-a318-3605a8e21325}</UniqueIdentifier>
+    <Filter Include="util">
+      <UniqueIdentifier>{525d99d2-3407-4631-8cbc-16dca99c3ec3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="render">
-      <UniqueIdentifier>{832722cb-71be-4067-aa0a-a4e70e2263ab}</UniqueIdentifier>
+    <Filter Include="painter">
+      <UniqueIdentifier>{cc2cf9f7-64b0-401e-b01b-9ebb5ed6b4a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pipeline">
+      <UniqueIdentifier>{d165364a-adc4-48ad-8319-007d01e5efae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="glrender">
+      <UniqueIdentifier>{6e4dfd80-2168-413e-abd9-9f97b19b5d8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="windows">
+      <UniqueIdentifier>{e3c611ce-33e1-489d-bfc5-7d0e6dee016d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="driver\color.h">
-      <Filter>driver</Filter>
-    </ClInclude>
-    <ClInclude Include="driver\driver.h">
-      <Filter>driver</Filter>
-    </ClInclude>
-    <ClInclude Include="driver\xbuffer.h">
-      <Filter>driver</Filter>
-    </ClInclude>
-    <ClInclude Include="driver\xraster.h">
-      <Filter>driver</Filter>
-    </ClInclude>
-    <ClInclude Include="driver\xtnl.h">
-      <Filter>driver</Filter>
-    </ClInclude>
-    <ClInclude Include="driver\rect.h">
-      <Filter>driver</Filter>
-    </ClInclude>
-    <ClInclude Include="util.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="log.h" />
-    <ClInclude Include="render\render.h">
-      <Filter>render</Filter>
-    </ClInclude>
-    <ClInclude Include="render\framebuffer.h">
-      <Filter>render</Filter>
-    </ClInclude>
-    <ClInclude Include="render\pipeline.h">
-      <Filter>render</Filter>
-    </ClInclude>
-    <ClInclude Include="render\swpipeline.h">
-      <Filter>render</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="driver\driver.cpp">
-      <Filter>driver</Filter>
+    <ClCompile Include="util\util.cpp">
+      <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="driver\rs_bitblt.cpp">
-      <Filter>driver</Filter>
+    <ClCompile Include="painter\driver.cpp">
+      <Filter>painter</Filter>
     </ClCompile>
-    <ClCompile Include="driver\rs_fill.cpp">
-      <Filter>driver</Filter>
+    <ClCompile Include="painter\rs_bitblt.cpp">
+      <Filter>painter</Filter>
     </ClCompile>
-    <ClCompile Include="driver\rs_primitive.cpp">
-      <Filter>driver</Filter>
+    <ClCompile Include="painter\rs_fill.cpp">
+      <Filter>painter</Filter>
     </ClCompile>
-    <ClCompile Include="driver\xbuffer.cpp">
-      <Filter>driver</Filter>
+    <ClCompile Include="painter\rs_primitive.cpp">
+      <Filter>painter</Filter>
     </ClCompile>
-    <ClCompile Include="driver\xraster.cpp">
-      <Filter>driver</Filter>
+    <ClCompile Include="painter\xbuffer.cpp">
+      <Filter>painter</Filter>
     </ClCompile>
-    <ClCompile Include="driver\xtnl.cpp">
-      <Filter>driver</Filter>
+    <ClCompile Include="painter\xraster.cpp">
+      <Filter>painter</Filter>
     </ClCompile>
-    <ClCompile Include="util.cpp" />
-    <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="wmain.cpp" />
-    <ClCompile Include="render\render.cpp">
-      <Filter>render</Filter>
+    <ClCompile Include="painter\xtnl.cpp">
+      <Filter>painter</Filter>
     </ClCompile>
-    <ClCompile Include="render\swpipeline.cpp">
-      <Filter>render</Filter>
+    <ClCompile Include="pipeline\swpipeline.cpp">
+      <Filter>pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="glrender\glrender.cpp">
+      <Filter>glrender</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\stdafx.cpp">
+      <Filter>windows</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\wmain.cpp">
+      <Filter>windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="driver\rgba8888.inl">
-      <Filter>driver</Filter>
+    <ClInclude Include="util\log.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\util.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="painter\color.h">
+      <Filter>painter</Filter>
+    </ClInclude>
+    <ClInclude Include="painter\driver.h">
+      <Filter>painter</Filter>
+    </ClInclude>
+    <ClInclude Include="painter\rect.h">
+      <Filter>painter</Filter>
+    </ClInclude>
+    <ClInclude Include="painter\xbuffer.h">
+      <Filter>painter</Filter>
+    </ClInclude>
+    <ClInclude Include="painter\xraster.h">
+      <Filter>painter</Filter>
+    </ClInclude>
+    <ClInclude Include="painter\xtnl.h">
+      <Filter>painter</Filter>
+    </ClInclude>
+    <ClInclude Include="pipeline\framebuffer.h">
+      <Filter>pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="pipeline\pipeline.h">
+      <Filter>pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="pipeline\swpipeline.h">
+      <Filter>pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="glrender\glrender.h">
+      <Filter>glrender</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\stdafx.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\targetver.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="painter\rgba8888.inl">
+      <Filter>painter</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="pixpad.rc">
+    <ResourceCompile Include="windows\pixpad.rc">
       <Filter>资源文件</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="windows\favicon16.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="windows\favicon32.ico">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>
