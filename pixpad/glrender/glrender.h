@@ -9,8 +9,6 @@
 
 #define GL_COMPATIBLE // Compatible with OpenGL 3.0 before
 
-#define thread_local __declspec(thread)
-
 // Interface for GLEW multi-thread context
 // GLEW will use these interfaces to get context of current thread
 extern GLEWContext* glewGetContext();
@@ -19,7 +17,7 @@ extern WGLEWContext* wglewGetContext();
 namespace wyc
 {
 // class OpenGL context
-class xglcontext;
+class xgl_context;
 
 // Get OpenGL version
 void gl_get_version(int &major, int &minor);
@@ -30,11 +28,11 @@ HWND gl_create_window(HINSTANCE hInstance, HWND hParent, int x, int y, unsigned 
 // Check OpenGL drivers
 int  gl_detect_drivers(HWND hWnd, const char *profile = 0);
 // Create OpenGL context
-xglcontext* gl_create_context(HWND hWnd, int pixel_fmt);
+xgl_context* gl_create_context(HWND hWnd, int pixel_fmt);
 // Destroy current context
 void gl_destroy_context();
 // Get current context
-xglcontext* gl_get_context();
+xgl_context* gl_get_context();
 // Load shader source
 GLuint glsl_load_source(GLenum shader_type, const char *src, size_t length=0);
 // Load shader source file
@@ -42,7 +40,7 @@ GLuint glsl_load_file(GLenum shader_type, const char *file_path);
 // Build shader program
 GLuint glsl_build_shader(GLuint *shaders, size_t count);
 
-class xglcontext
+class xgl_context
 {
 public:
 	inline HWND get_window() const {
@@ -57,10 +55,10 @@ public:
 private:
 	friend GLEWContext* ::glewGetContext();
 	friend WGLEWContext* ::wglewGetContext();
-	friend xglcontext* gl_create_context(HWND, int);
+	friend xgl_context* gl_create_context(HWND, int);
 	friend void gl_destroy_context();
 	
-	xglcontext();
+	xgl_context();
 	bool create(HWND hwnd, int pixel_fmt);
 	void destroy();
 
@@ -70,7 +68,7 @@ private:
 	GLEWContext m_glew_ctx;
 	WGLEWContext m_wglew_ctx;
 
-}; // class xglcontext
+}; // class xgl_context
 
 }; // namespace wyc
 

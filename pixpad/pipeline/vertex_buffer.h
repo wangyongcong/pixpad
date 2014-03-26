@@ -12,8 +12,6 @@ namespace wyc
 		VERTEX_NORMAL,
 	};
 
-	template<typename VERTEX> struct VERTEX_META_DATA {};
-
 	template<typename VERTEX>
 	class xvertex_buffer
 	{
@@ -49,6 +47,9 @@ namespace wyc
 		inline size_t size() const {
 			return m_size;
 		}
+		inline size_t size_in_bytes() const {
+			return m_size * sizeof(vertex_t);
+		}
 		inline void* get_data() {
 			return m_data;
 		}
@@ -58,40 +59,27 @@ namespace wyc
 		inline vertex_t& operator[](size_t idx) {
 			return m_data[idx];
 		}
+
+		// Get attribute array pointer
 		template<VERTEX_ATTRIBUTE T>
-		inline void* get_attr() {
-			return m_data + VERTEX_META_DATA<VERTEX>::offset<T>();
-		}
+		void* get_ptr();
+
+#define GET_PTR_IMPL(m,attr) template<> inline void* get_ptr<attr>() {return &m_data->m;}
+
+		GET_PTR_IMPL(position, VERTEX_POSITION)
+		GET_PTR_IMPL(color, VERTEX_COLOR);
 
 	private:
 		vertex_t *m_data;
 		size_t m_size;
 	};
 
-#define META_ATTR(name,attr_name) \
-	typedef decltype(vertex_t::name) name##_t;\
-	typedef name##_t::element_t name##_comp_t;\
-	enum { name##_component=name##_t::DIMENSION };\
-	template<> static inline size_t offset<attr_name>() {\
-		return offsetof(vertex_t, name);\
-	}
-#define META_BEG(class_name) \
-	template<> struct VERTEX_META_DATA<class_name> {\
-		typedef class_name vertex_t;\
-		template<VERTEX_ATTRIBUTE T> static inline size_t offset();
-
-#define META_END };
-
 	struct VERTEX_P3C3
 	{
 		xvec3f_t position;
 		xvec3f_t color;
 	};
-	META_BEG(VERTEX_P3C3)
-		META_ATTR(position, VERTEX_POSITION)
-		META_ATTR(color, VERTEX_COLOR)
-	META_END
-	
+		
 }; // namespace wyc
 
 #endif WYC_HEADER_VERTEX_BUFFER

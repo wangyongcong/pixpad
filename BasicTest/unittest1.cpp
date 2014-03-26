@@ -33,8 +33,8 @@ namespace BasicTest
 			v.position = xvec3f_t(0, 0, 0);
 			v.color = xvec3f_t(0, 0, 0);
 			buffer[0] = v;
-			void *position_ptr = buffer.get_attr<VERTEX_POSITION>();
-			void *color_ptr = buffer.get_attr<VERTEX_COLOR>();
+			void *position_ptr = buffer.get_ptr<VERTEX_POSITION>();
+			void *color_ptr = buffer.get_ptr<VERTEX_COLOR>();
 			Assert::AreEqual(v.position, *(xvec3f_t*)position_ptr);
 			Assert::AreEqual(v.color, *(xvec3f_t*)color_ptr);
 			buffer.release();

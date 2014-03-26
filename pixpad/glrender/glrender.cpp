@@ -15,7 +15,8 @@ static int GLSL_VERSION_MAJOR = 0;
 static int GLSL_VERSION_MINOR = 0;
 
 // GL context instance of current thread
-thread_local xglcontext *tls_gl_context = NULL;
+// TODO: Use thread_local keyword (which is not supported now) in future
+__declspec(thread) xgl_context *tls_gl_context = NULL;
 
 // function pointer to wglCreateContextAttribsARB
 static PFNWGLCREATECONTEXTATTRIBSARBPROC create_context_attribs = 0;
@@ -169,14 +170,14 @@ EXIT:
 	return pixel_fmt;
 }
 
-xglcontext* gl_create_context(HWND hWnd, int pixel_fmt)
+xgl_context* gl_create_context(HWND hWnd, int pixel_fmt)
 {
 	if (tls_gl_context)
 	{
 		return tls_gl_context;
 	}
 	// create OpenGL context
-	xglcontext *glctx = new xglcontext();
+	xgl_context *glctx = new xgl_context();
 	if (!glctx->create(hWnd, pixel_fmt))
 	{
 		delete glctx;
@@ -206,19 +207,19 @@ void gl_destroy_context()
 	}
 }
 
-xglcontext* gl_get_context()
+xgl_context* gl_get_context()
 {
 	return tls_gl_context;
 }
 
-xglcontext::xglcontext()
+xgl_context::xgl_context()
 {
 	m_hwnd = NULL;
 	m_hdc = NULL;
 	m_hrc = NULL;
 }
 
-bool xglcontext::create(HWND hwnd, int pixel_fmt)
+bool xgl_context::create(HWND hwnd, int pixel_fmt)
 {
 	if (NULL == hwnd)
 		return false;
@@ -267,7 +268,7 @@ bool xglcontext::create(HWND hwnd, int pixel_fmt)
 	return true;
 }
 
-void xglcontext::destroy()
+void xgl_context::destroy()
 {
 	if (m_hrc) {
 		wglMakeCurrent(m_hdc, NULL);
