@@ -50,7 +50,7 @@ namespace wyc
 		inline size_t size_in_bytes() const {
 			return m_size * sizeof(vertex_t);
 		}
-		inline void* get_data() {
+		inline const void* get_data() const{
 			return m_data;
 		}
 		inline const vertex_t& operator[] (size_t idx) const {
@@ -62,9 +62,9 @@ namespace wyc
 
 		// Get attribute array pointer
 		template<VERTEX_ATTRIBUTE T>
-		void* get_ptr();
+		const void* get_ptr() const;
 
-#define GET_PTR_IMPL(m,attr) template<> inline void* get_ptr<attr>() {return &m_data->m;}
+#define GET_PTR_IMPL(m,attr) template<> inline const void* get_ptr<attr>() const {return &m_data->m;}
 
 		GET_PTR_IMPL(position, VERTEX_POSITION)
 		GET_PTR_IMPL(color, VERTEX_COLOR);
@@ -74,11 +74,39 @@ namespace wyc
 		size_t m_size;
 	};
 
+	struct VERTEX_P3
+	{
+		xvec3f_t position;
+	};
+
 	struct VERTEX_P3C3
 	{
 		xvec3f_t position;
 		xvec3f_t color;
 	};
+
+	struct VERTEX_P3_UV
+	{
+		xvec3f_t position;
+		xvec2f_t uv;
+	};
+
+	template<VERTEX>
+	void gen_plane(float w, float h, xvertex_buffer<VERTEX> &buffer)
+	{
+		w *= 0.5f;
+		h *= 0.5f;
+		buffer.storage(4);
+		buffer[0].position.set(-w, -h, 0);
+		buffer[1].position.set(w, -h, 0);
+		buffer[2].position.set(w, h, 0);
+		buffer[3].position.set(-w, h, 0);
+		
+		unsigned short index[] = {
+			0, 1, 3,
+			3, 1, 2,
+		};
+	}
 		
 }; // namespace wyc
 
