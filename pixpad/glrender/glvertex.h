@@ -12,12 +12,13 @@ namespace wyc {
 	public:
 		xgl_vertbuff();
 		~xgl_vertbuff();
-		template<typename VERTEX>
-		bool commit(const xvertex_buffer<VERTEX> &buffer);
+		template<typename VERTEX_BUFFER, typename INDEX_BUFFER>
+		bool commit(const VERTEX_BUFFER &vertices, const INDEX_BUFFER &indices);
 
 	private:
-		GLuint m_glvao;
-		GLuint m_glvbo;
+		GLuint m_vertex_array;
+		GLuint m_vertex_buffer;
+		GLuint m_index_buffer;
 
 		bool new_hw_buffers();
 		void del_hw_buffers();
@@ -29,23 +30,20 @@ namespace wyc {
 
 	};
 
-	template<typename VERTEX>
-	bool xgl_vertbuff::commit(const xvertex_buffer<VERTEX> &buffer)
+	template<typename VERTEX_BUFFER, typename INDEX_BUFFER>
+	bool commit(const VERTEX_BUFFER &vertices, const INDEX_BUFFER &indices)
 	{
-		typedef VERTEX vertex_t;
+		typedef VERTEX_BUFFER::value_t vertex_t;
 		if (!m_glvao)
 		{
 			if (!new_hw_buffers())
 				return false;
 		}
-		if (!m_glvbo)
-		{
-			// TODO: create vertex buffer object
-			return false;
-		}
+		
 		glBindVertexArray(m_glvao);
 		glBindBuffer(GL_ARRAY_BUFFER, m_glvbo);
-		glBufferData(GL_ARRAY_BUFFER, buffer.size_in_bytes(), buffer.get_data(), GL_STATIC_DRAW);
+		size_t size_in_bytes = sizeof(vertex_t)*buffer.size();
+		glBufferData(GL_ARRAY_BUFFER, size_in_bytes, &buffer[0], GL_STATIC_DRAW);
 		// Biding begin
 		bind_attribs<VERTEX>(buffer);
 		// Biding end
@@ -56,16 +54,16 @@ namespace wyc {
 	template<> inline void xgl_vertbuff::bind_attribs<VERTEX_P3>(const xvertex_buffer<VERTEX_P3> &buffer)
 	{
 		typedef VERTEX_P3 vertex_t;
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(vertex_t), buffer.get_ptr<VERTEX_POSITION>());
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(vertex_t), &buffer[0].position);
 		glEnableVertexAttribArray(0);
 	}
 
 	template<> inline void xgl_vertbuff::bind_attribs<VERTEX_P3C3>(const xvertex_buffer<VERTEX_P3C3> &buffer)
 	{
 		typedef VERTEX_P3C3 vertex_t;
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(VERTEX_P3C3), buffer.get_ptr<VERTEX_POSITION>());
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(VERTEX_P3C3), &buffer[0].position);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(vertex_t), buffer.get_ptr<VERTEX_COLOR>());
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(vertex_t), &buffer[0].color);
 		glEnableVertexAttribArray(1);
 	}
 
