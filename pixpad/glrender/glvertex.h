@@ -14,6 +14,8 @@ namespace wyc {
 		~xgl_vertbuff();
 		template<typename VERTEX_BUFFER, typename INDEX_BUFFER>
 		bool commit(const VERTEX_BUFFER &vertices, const INDEX_BUFFER &indices);
+		template<typename VERTEX>
+		bool commit(VERTEX *vertices, size_t vertex_count);
 
 	private:
 		GLuint m_vertex_array;
@@ -24,9 +26,9 @@ namespace wyc {
 		void del_hw_buffers();
 
 		template<typename VERTEX>
-		void bind_attribs (const xvertex_buffer<VERTEX> &buffer);
-		template<> inline void bind_attribs<VERTEX_P3>(const xvertex_buffer<VERTEX_P3> &buffer);
-		template<> inline void bind_attribs<VERTEX_P3C3>(const xvertex_buffer<VERTEX_P3C3> &buffer);
+		static void bind_attribs (const std::vector<VERTEX> &buffer);
+		template<> static void bind_attribs<VERTEX_P3>(const std::vector<VERTEX_P3> &buffer);
+		template<> static void bind_attribs<VERTEX_P3C3>(const std::vector<VERTEX_P3C3> &buffer);
 
 	};
 
@@ -45,23 +47,44 @@ namespace wyc {
 		size_t size_in_bytes = sizeof(vertex_t)*buffer.size();
 		glBufferData(GL_ARRAY_BUFFER, size_in_bytes, &buffer[0], GL_STATIC_DRAW);
 		// Biding begin
-		bind_attribs<VERTEX>(buffer);
+		bind_attribs<vertex_t>(buffer);
 		// Biding end
 		glBindVertexArray(0);
 		return true;
 	}
 
-	template<> inline void xgl_vertbuff::bind_attribs<VERTEX_P3>(const xvertex_buffer<VERTEX_P3> &buffer)
+	template<typename VERTEX>
+	bool commit(VERTEX *vertices, size_t vertex_count)
+	{
+		typedef VERTEX vertex_t;
+		if (!m_glvao)
+		{
+			if (!new_hw_buffers())
+				return false;
+		}
+
+		glBindVertexArray(m_glvao);
+		glBindBuffer(GL_ARRAY_BUFFER, m_glvbo);
+		size_t size_in_bytes = sizeof(vertex_t)*vertex_count;
+		glBufferData(GL_ARRAY_BUFFER, size_in_bytes, vertices, GL_STATIC_DRAW);
+		// Biding begin
+		bind_attribs<vertex_t>(buffer);
+		// Biding end
+		glBindVertexArray(0);
+		return true;
+	}
+
+	template<> void xgl_vertbuff::bind_attribs<VERTEX_P3>(const std::vector<VERTEX_P3> &buffer)
 	{
 		typedef VERTEX_P3 vertex_t;
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(vertex_t), &buffer[0].position);
 		glEnableVertexAttribArray(0);
 	}
 
-	template<> inline void xgl_vertbuff::bind_attribs<VERTEX_P3C3>(const xvertex_buffer<VERTEX_P3C3> &buffer)
+	template<> void xgl_vertbuff::bind_attribs<VERTEX_P3C3>(const std::vector<VERTEX_P3C3> &buffer)
 	{
 		typedef VERTEX_P3C3 vertex_t;
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(VERTEX_P3C3), &buffer[0].position);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(vertex_t), &buffer[0].position);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(vertex_t), &buffer[0].color);
 		glEnableVertexAttribArray(1);

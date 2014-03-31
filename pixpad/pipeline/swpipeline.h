@@ -17,7 +17,7 @@ namespace wyc
 		virtual bool create_surface(unsigned format, unsigned width, unsigned height);
 		virtual void beg_frame();
 		virtual void end_frame();
-		virtual void draw(/*vertex buffer*/);
+		virtual void draw(xvertex_buffer &vertices, xindex_buffer &indices);
 
 	private:
 		xframe_buffer *m_fbo;

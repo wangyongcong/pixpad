@@ -68,7 +68,6 @@ namespace wyc
 		assert(color_buffer);
 		m_raster.attach_color_buffer(NATIVE_PIXEL_FORMAT, *color_buffer);
 		m_raster.clear_screen();
-		m_raster.enable_anti(true);
 		int cx = width / 2, cy = height / 2;
 		int rx = width / 3, ry = height / 3;
 		m_raster.ellipse(cx, cy, rx, ry);
@@ -85,6 +84,8 @@ namespace wyc
 		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_raster.color_buffer());
+
+
 
 		return true;
 	}
@@ -108,7 +109,7 @@ namespace wyc
 		glVertex3f(0, h, z);
 		glEnd();
 	}
-	void xsw_pipeline::draw(/*vertex buffer*/)
+	void xsw_pipeline::draw(xvertex_buffer &vertices, xindex_buffer &indices)
 	{
 
 	}
