@@ -27,8 +27,8 @@ namespace wyc {
 
 		template<typename VERTEX>
 		static void bind_attribs (const std::vector<VERTEX> &buffer);
-		template<> static void bind_attribs<VERTEX_P3>(const std::vector<VERTEX_P3> &buffer);
-		template<> static void bind_attribs<VERTEX_P3C3>(const std::vector<VERTEX_P3C3> &buffer);
+		template<> static void bind_attribs<vertex_p3>(const std::vector<vertex_p3> &buffer);
+		template<> static void bind_attribs<vertex_p3c3>(const std::vector<vertex_p3c3> &buffer);
 
 	};
 
@@ -74,16 +74,16 @@ namespace wyc {
 		return true;
 	}
 
-	template<> void xgl_vertbuff::bind_attribs<VERTEX_P3>(const std::vector<VERTEX_P3> &buffer)
+	template<> void xgl_vertbuff::bind_attribs<vertex_p3>(const std::vector<vertex_p3> &buffer)
 	{
-		typedef VERTEX_P3 vertex_t;
+		typedef vertex_p3 vertex_t;
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(vertex_t), &buffer[0].position);
 		glEnableVertexAttribArray(0);
 	}
 
-	template<> void xgl_vertbuff::bind_attribs<VERTEX_P3C3>(const std::vector<VERTEX_P3C3> &buffer)
+	template<> void xgl_vertbuff::bind_attribs<vertex_p3c3>(const std::vector<vertex_p3c3> &buffer)
 	{
-		typedef VERTEX_P3C3 vertex_t;
+		typedef vertex_p3c3 vertex_t;
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(vertex_t), &buffer[0].position);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(vertex_t), &buffer[0].color);
