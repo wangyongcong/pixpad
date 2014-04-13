@@ -7,14 +7,14 @@
 namespace wyc
 {
 
-class xvertex_buffer
+class xvertex_buffer_deprecated
 {
 	xvec4f_t *m_pVertexBuffer;
 	unsigned m_size;
 	unsigned m_pushCursor;
 public:
-	xvertex_buffer();
-	~xvertex_buffer();
+	xvertex_buffer_deprecated();
+	~xvertex_buffer_deprecated();
 	bool create(unsigned num_of_vertex);
 	void clear();
 	void set_buffer(uint8_t *pdata, unsigned size);
@@ -72,7 +72,7 @@ public:
 	void translate(float x, float y, float z);
 	void perspective(float left, float right, float bottom, float top, float znear, float zfar);
 	void orthogonal(float left, float right, float bottom, float top, float znear, float zfar);
-	void process(xvertex_buffer &vb);
+	void process(xvertex_buffer_deprecated &vb);
 };
 
 }; // end of namespace wyc

@@ -5,8 +5,6 @@ VisualStudioVersion = 12.0.30110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pixpad", "pixpad\pixpad.vcxproj", "{D95E7C89-6F46-499B-9F33-574B524C6F5F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BasicTest", "BasicTest\BasicTest.vcxproj", "{EA4B0A69-264B-408C-A755-1445D6B85FB4}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -23,14 +21,6 @@ Global
 		{D95E7C89-6F46-499B-9F33-574B524C6F5F}.StaticLibDebug|Win32.Build.0 = Debug|Win32
 		{D95E7C89-6F46-499B-9F33-574B524C6F5F}.StaticLibRelease|Win32.ActiveCfg = Release|Win32
 		{D95E7C89-6F46-499B-9F33-574B524C6F5F}.StaticLibRelease|Win32.Build.0 = Release|Win32
-		{EA4B0A69-264B-408C-A755-1445D6B85FB4}.Debug|Win32.ActiveCfg = Debug|Win32
-		{EA4B0A69-264B-408C-A755-1445D6B85FB4}.Debug|Win32.Build.0 = Debug|Win32
-		{EA4B0A69-264B-408C-A755-1445D6B85FB4}.Release|Win32.ActiveCfg = Release|Win32
-		{EA4B0A69-264B-408C-A755-1445D6B85FB4}.Release|Win32.Build.0 = Release|Win32
-		{EA4B0A69-264B-408C-A755-1445D6B85FB4}.StaticLibDebug|Win32.ActiveCfg = Debug|Win32
-		{EA4B0A69-264B-408C-A755-1445D6B85FB4}.StaticLibDebug|Win32.Build.0 = Debug|Win32
-		{EA4B0A69-264B-408C-A755-1445D6B85FB4}.StaticLibRelease|Win32.ActiveCfg = Release|Win32
-		{EA4B0A69-264B-408C-A755-1445D6B85FB4}.StaticLibRelease|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

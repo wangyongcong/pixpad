@@ -3,6 +3,8 @@
 namespace wyc
 {
 
+#define xvertex_buffer xvertex_buffer_deprecated
+
 xvertex_buffer::xvertex_buffer()
 {
 	m_pVertexBuffer=0;
