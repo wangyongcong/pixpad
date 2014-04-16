@@ -61,7 +61,7 @@
     <ClCompile Include="pipeline\vertex_buffer.cpp">
       <Filter>pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="glrender\glvertex.cpp">
+    <ClCompile Include="glrender\glpipeline.cpp">
       <Filter>glrender</Filter>
     </ClCompile>
   </ItemGroup>
@@ -111,7 +111,7 @@
     <ClInclude Include="pipeline\vertex_buffer.h">
       <Filter>pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="glrender\glvertex.h">
+    <ClInclude Include="glrender\glpipeline.h">
       <Filter>glrender</Filter>
     </ClInclude>
   </ItemGroup>

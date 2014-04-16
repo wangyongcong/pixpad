@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="glrender\glpipeline.cpp" />
     <ClCompile Include="glrender\glrender.cpp" />
-    <ClCompile Include="glrender\glvertex.cpp" />
     <ClCompile Include="painter\driver.cpp" />
     <ClCompile Include="painter\rs_bitblt.cpp" />
     <ClCompile Include="painter\rs_fill.cpp" />
@@ -27,8 +27,8 @@
     <ClCompile Include="windows\wmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="glrender\glpipeline.h" />
     <ClInclude Include="glrender\glrender.h" />
-    <ClInclude Include="glrender\glvertex.h" />
     <ClInclude Include="painter\color.h" />
     <ClInclude Include="painter\driver.h" />
     <ClInclude Include="painter\xraster.h" />
