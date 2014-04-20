@@ -23,6 +23,8 @@ class xgl_context;
 void gl_get_version(int &major, int &minor);
 // Get GLSL version
 void glsl_get_version(int &major, int &minor);
+// Check OpenGL error
+void gl_check_error(const char *tag);
 // Create OpenGL target window
 HWND gl_create_window(HINSTANCE hInstance, HWND hParent, int x, int y, unsigned width, unsigned height);
 // Check OpenGL drivers

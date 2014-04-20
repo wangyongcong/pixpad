@@ -4,7 +4,7 @@
 #include <tuple>
 #include "util/log.h"
 #include "glrender.h"
-#include "swpipeline.h"
+#include "glpipeline.h"
 
 #ifdef _DEBUG
 	#pragma comment (lib, "mathexd.lib")
@@ -118,7 +118,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    g_app.instance = hInstance;
 
-   hWnd = CreateWindow(WND_CLASS, APP_TITLE, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
+   hWnd = CreateWindow(WND_CLASS, APP_TITLE, (WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN) & ~WS_THICKFRAME,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
 
    if (!hWnd)
@@ -159,11 +159,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    info("GLEW version %s", glewGetString(GLEW_VERSION));
 
    // Set viewport & background color
-   glViewport(0, 0, width, height);
    glClearColor(0, 0, 0, 1.0f);
 
-   g_app.pipeline = new wyc::xsw_pipeline();
-   g_app.pipeline->create_surface(0, width, height);
+   wyc::xpipeline *pipeline = new wyc::xgl_pipeline();
+   g_app.pipeline = pipeline;
+   pipeline->set_translate(wyc::xvec3f_t(0, 0, -4));
+
+   wyc::xvertex_buffer vertices;
+   wyc::xindex_buffer indices;
+   wyc::gen_regular_triangle<wyc::xvertex_p3c3>(1, vertices, indices);
+   auto v = vertices.get_as<wyc::xvertex_p3c3>();
+   v[0].color.set(1.0, 0, 0);
+   v[1].color.set(0, 1.0, 0);
+   v[2].color.set(0, 0, 1.0);
+   pipeline->commit(&vertices, &indices);
+   pipeline->set_material("color_face");
 
    // Set timer for log flushing 
    SetTimer(hWnd, ID_TIMER_LOG, 1000, &TimerFlushLog);
@@ -188,7 +198,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND: // Window menu
 		wmId = LOWORD(wParam);
 		wmEvent = HIWORD(wParam);
-		// ·ÖÎö²Ëµ¥Ñ¡Ôñ: 
+		// switch menu command ID 
 		switch (wmId)
 		{
 		case IDM_ABOUT:
@@ -256,9 +266,12 @@ void OnResizeWindow(int width, int height)
 	MoveWindow(target_wnd, 0, 0, width, height, FALSE);
 	// TODO: rebuild OpenGL view
 	glViewport(0, 0, width, height);
-	glMatrixMode(GL_PROJECTION_MATRIX);
-	glLoadIdentity();
-	glOrtho(0, width, 0, height, 1, 1000);
+	g_app.pipeline->create_surface(0, width, height);
+	g_app.pipeline->set_perspective(45, float(width) / height, 1, 1000);
+
+//	glMatrixMode(GL_PROJECTION_MATRIX);
+//	glLoadIdentity();
+//	glOrtho(0, width, 0, height, 1, 1000);
 }
 
 // Flush logger on time
@@ -271,10 +284,6 @@ void CALLBACK TimerFlushLog(HWND hwnd, UINT umsg, UINT_PTR id, DWORD time)
 // Render frame
 void OnRender()
 {
-
-	g_app.pipeline->beg_frame();
-	// TODO: draw something
-	g_app.pipeline->end_frame();
-
+	g_app.pipeline->render();
 	wyc::gl_get_context()->swap_buffers();
 }

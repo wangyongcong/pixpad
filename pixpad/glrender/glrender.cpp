@@ -62,6 +62,14 @@ void glsl_get_version(int &major, int &minor)
 	minor = GLSL_VERSION_MINOR;
 }
 
+void gl_check_error(const char *tag) 
+{
+	GLenum err = glGetError();
+	if (err != GL_NO_ERROR) {
+		error("OpenGL error: (code = %d) %s", err, tag);
+	}
+}
+
 HWND gl_create_window(HINSTANCE hInstance, HWND hParent, int x, int y, unsigned width, unsigned height)
 {
 	assert(hInstance);

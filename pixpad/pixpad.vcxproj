@@ -19,6 +19,7 @@
     <ClCompile Include="painter\rs_primitive.cpp" />
     <ClCompile Include="painter\xraster.cpp" />
     <ClCompile Include="painter\xtnl.cpp" />
+    <ClCompile Include="pipeline\pipeline.cpp" />
     <ClCompile Include="pipeline\render_buffer.cpp" />
     <ClCompile Include="pipeline\swpipeline.cpp" />
     <ClCompile Include="pipeline\vertex_buffer.cpp" />

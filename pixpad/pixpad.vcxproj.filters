@@ -64,6 +64,9 @@
     <ClCompile Include="glrender\glpipeline.cpp">
       <Filter>glrender</Filter>
     </ClCompile>
+    <ClCompile Include="pipeline\pipeline.cpp">
+      <Filter>pipeline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="util\log.h">

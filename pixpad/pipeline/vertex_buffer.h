@@ -22,6 +22,8 @@ namespace wyc
 		VERTEX_ATTRIBUTE_COUNT,
 	};
 
+	extern const char* ATTRIBUTE_NAMES[VERTEX_ATTRIBUTE_COUNT];
+
 	struct xvertex_attrib
 	{
 		VERTEX_ATTRIBUTE attrib_type;
@@ -30,18 +32,18 @@ namespace wyc
 		size_t offset;
 	};
 
-	struct vertex_p3
+	struct xvertex_p3
 	{
 		xvec3f_t position;
 	};
 
-	struct vertex_p3c3
+	struct xvertex_p3c3
 	{
 		xvec3f_t position;
 		xvec3f_t color;
 	};
 
-	struct vertex_p3uv
+	struct xvertex_p3uv
 	{
 		xvec3f_t position;
 		xvec2f_t uv;
@@ -50,20 +52,20 @@ namespace wyc
 	template<typename VERTEX> 
 	inline const xvertex_attrib* vertex_layout(unsigned &count) { return 0; }
 
-	template<> inline const xvertex_attrib* vertex_layout<vertex_p3>(unsigned &count)
+	template<> inline const xvertex_attrib* vertex_layout<xvertex_p3>(unsigned &count)
 	{
 		static xvertex_attrib _layout[1] = {
-			{ VERTEX_POSITION, 3, std::type_index(typeid(float)), offsetof(vertex_p3, position) },
+			{ VERTEX_POSITION, 3, std::type_index(typeid(float)), offsetof(xvertex_p3, position) },
 		};
 		count = 1;
 		return _layout;
 	}
 
-	template<> inline const xvertex_attrib* vertex_layout<vertex_p3c3>(unsigned &count)
+	template<> inline const xvertex_attrib* vertex_layout<xvertex_p3c3>(unsigned &count)
 	{
 		static xvertex_attrib _layout[2] = {
-			{ VERTEX_POSITION, 3, std::type_index(typeid(float)), offsetof(vertex_p3c3, position) },
-			{ VERTEX_COLOR, 3, std::type_index(typeid(float)), offsetof(vertex_p3c3, color) },
+			{ VERTEX_POSITION, 3, std::type_index(typeid(float)), offsetof(xvertex_p3c3, position) },
+			{ VERTEX_COLOR, 3, std::type_index(typeid(float)), offsetof(xvertex_p3c3, color) },
 		};
 		count = 2;
 		return _layout;
