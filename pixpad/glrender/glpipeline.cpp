@@ -67,9 +67,9 @@ namespace wyc
 		return true;
 	}
 
-	bool xgl_pipeline::create_surface(unsigned format, unsigned width, unsigned height)
+	void xgl_pipeline::set_viewport(unsigned width, unsigned height)
 	{
-		return true;
+
 	}
 
 	bool xgl_pipeline::commit(xvertex_buffer *vertices, xindex_buffer *indices)
@@ -101,33 +101,33 @@ namespace wyc
 			m_index_type = ms_gltype.at(indices->type());
 			m_index_count = indices->size();
 		}
-		glBindVertexArray(0);
 		return true;
 	}
 
-	bool xgl_pipeline::set_material(const char *name)
+	bool xgl_pipeline::set_material(const std::string &name)
 	{
 		if (m_program) {
 			glDeleteProgram(m_program);
 			m_program = 0;
 		}
-		std::string material = name;
-		std::string src;
+		std::string path;
+		std::string src = "material/";
+		src += name;
 		GLuint shader[2];
 		// vertex shader
-		src = name; 
-		src += ".vs";
-		shader[0] = glsl_load_file(GL_VERTEX_SHADER, src.c_str());
+		path = src;
+		path += ".vs";
+		shader[0] = glsl_load_file(GL_VERTEX_SHADER, path.c_str());
 		if (!shader[0]) {
-			error("Failed to load vertex shader: %s", src.c_str());
+			error("Failed to load vertex shader: %s", path.c_str());
 			return false;
 		}
 		// fragment shader
-		src = name;
-		src += ".fs";
-		shader[1] = glsl_load_file(GL_FRAGMENT_SHADER, src.c_str());
+		path = src;
+		path += ".fs";
+		shader[1] = glsl_load_file(GL_FRAGMENT_SHADER, path.c_str());
 		if (!shader[1]) {
-			error("Failed to load fragment shader: %s", src.c_str());
+			error("Failed to load fragment shader: %s", path.c_str());
 			glDeleteShader(shader[0]);
 			return false;
 		}
@@ -143,15 +143,14 @@ namespace wyc
 		{
 			glBindAttribLocation(m_program, i, ATTRIBUTE_NAMES[attrib->attrib_type]);
 		}
-		return m_program != 0;
+		glUseProgram(m_program);
+		return true;
 	}
 
 	void xgl_pipeline::render()
 	{
 		if (!m_program || !m_vertex_array || !m_index_count)
 			return;
-		glClear(GL_COLOR_BUFFER_BIT);
-		glUseProgram(m_program);
 		GLuint uf;
 		uf = glGetUniformLocation(m_program, "transform");
 		if (-1 != uf)
@@ -159,9 +158,8 @@ namespace wyc
 		uf = glGetUniformLocation(m_program, "projection");
 		if (-1 != uf)
 			glUniformMatrix4fv(uf, 1, GL_TRUE, m_projection.data());
-		glBindVertexArray(m_vertex_array);
 		glDrawElements(GL_TRIANGLES, m_index_count, m_index_type, 0);
-		glBindVertexArray(0);
 	}
+
 
 }; // namespace wyc

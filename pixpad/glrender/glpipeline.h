@@ -12,9 +12,9 @@ namespace wyc
 	public:
 		xgl_pipeline();
 		virtual ~xgl_pipeline();
-		virtual bool create_surface(unsigned format, unsigned width, unsigned height);		
+		virtual void set_viewport(unsigned width, unsigned height);
 		virtual bool commit(xvertex_buffer *vertices, xindex_buffer *indices);
-		virtual bool set_material(const char *name);
+		virtual bool set_material(const std::string &name);
 		virtual void render();
 
 	private:

@@ -11,14 +11,13 @@ namespace wyc
 	public:
 		xpipeline();
 		virtual ~xpipeline() {};
-		virtual bool create_surface(unsigned format, unsigned width, unsigned height) = 0;
+		virtual void set_viewport(unsigned width, unsigned height) = 0;
 		// commit triangles to draw
 		virtual bool commit (xvertex_buffer *vertices, xindex_buffer *indices) = 0;
-		virtual bool set_material(const char *name) = 0;
+		virtual bool set_material(const std::string &name) = 0;
 		// do render
 		virtual void render() = 0;
 		// set/get transform matrix
-		void set_translate(const xvec3f_t &translate);
 		void set_transform(const xmat4f_t &transform);
 		const xmat4f_t& get_transform() const;
 		// set/get projection matrix
@@ -29,11 +28,6 @@ namespace wyc
 		xmat4f_t m_projection;
 		xmat4f_t m_transform;
 	};
-
-	inline void xpipeline::set_translate(const xvec3f_t &translate)
-	{
-		m_transform.set_col(3, translate);
-	}
 
 	inline void xpipeline::set_transform(const xmat4f_t &transform)
 	{

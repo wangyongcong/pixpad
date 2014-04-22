@@ -5,6 +5,7 @@
 #include "util/log.h"
 #include "glrender.h"
 #include "glpipeline.h"
+#include "swpipeline.h"
 
 #ifdef _DEBUG
 	#pragma comment (lib, "mathexd.lib")
@@ -14,12 +15,64 @@
 	#pragma comment (lib, "elog.lib")
 #endif 
 
+enum RENDER_MODE {
+	SOFTWARE_RENDERER = 0,
+	OPENGL_RENDERER,
+
+	RENDERER_COUNT
+};
+
+enum MODEL_ID {
+	REGULAR_TRIANGLE = 0,
+	SQUARE_PLANE,
+
+	MODEL_COUNT,
+};
+
 struct AppContext
 {
 	HINSTANCE instance = NULL;
 	HWND main_wnd = NULL;
 	bool is_size_changed = false;
-	wyc::xpipeline *pipeline = NULL;
+	// renderer
+	wyc::xpipeline *pipelines[RENDERER_COUNT];
+	RENDER_MODE render_mode = OPENGL_RENDERER;
+	// models
+	wyc::xmat4f_t transform;
+	std::pair<wyc::xvertex_buffer*, wyc::xindex_buffer*> models[MODEL_COUNT];
+	MODEL_ID model_id = REGULAR_TRIANGLE;
+	std::string material;
+
+	AppContext()
+	{
+		for (int i = 0; i < RENDERER_COUNT; ++i)
+		{
+			pipelines[i] = nullptr;
+		}
+		for (int i = 0; i < MODEL_COUNT; ++i) {
+			models[i].first = nullptr;
+			models[i].second = nullptr;
+		}
+		transform.identity();
+	}
+
+	~AppContext()
+	{
+		wyc::xpipeline *pipeline;
+		for (int i = 0; i < RENDERER_COUNT; ++i)
+		{
+			pipeline = this->pipelines[i];
+			if (pipeline) 
+				delete pipeline;
+		}
+		for (int i = 0; i < MODEL_COUNT; ++i) {
+			if (models[i].first) 
+				delete models[i].first;
+			if (models[i].second)
+				delete models[i].second;
+		}
+	}
+
 } g_app;
 
 // Global logger
@@ -37,6 +90,7 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 void				OnResizeWindow (int, int);
 void CALLBACK		TimerFlushLog(HWND, UINT, UINT_PTR, DWORD);
 void				OnRender();
+void				SetRenderMode(RENDER_MODE mode);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -114,74 +168,90 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   HWND hWnd;
+	HWND hWnd;
 
-   g_app.instance = hInstance;
+	g_app.instance = hInstance;
 
-   hWnd = CreateWindow(WND_CLASS, APP_TITLE, (WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN) & ~WS_THICKFRAME,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
+	hWnd = CreateWindow(WND_CLASS, APP_TITLE, (WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN) & ~WS_THICKFRAME,
+		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
-   g_app.main_wnd = hWnd;
+	if (!hWnd)
+	{
+		return FALSE;
+	}
+	g_app.main_wnd = hWnd;
 
-   RECT rectClient;
-   GetClientRect(hWnd, &rectClient);
-   int width = rectClient.right - rectClient.left;
-   int height = rectClient.bottom - rectClient.top;
-   // Create a temporary window to initialize driver
-   HWND hTmpWnd = wyc::gl_create_window(hInstance, hWnd, 0, 0, width, height);
-   int pixel_format = wyc::gl_detect_drivers(hTmpWnd);
-   DestroyWindow(hTmpWnd);
-   if (!pixel_format)
-   {
-	   return FALSE;
-   }
-   // Create the real target window
-   HWND hTargetWnd = wyc::gl_create_window(hInstance, hWnd, 0, 0, width, height);
-   if (!wyc::gl_create_context(hTargetWnd, pixel_format))
-   {
-	   return FALSE;
-   }
-   // Do not response user input
-   EnableWindow(hTargetWnd, FALSE);
-   ShowWindow(hTargetWnd, SW_NORMAL);
+	RECT rectClient;
+	GetClientRect(hWnd, &rectClient);
+	int width = rectClient.right - rectClient.left;
+	int height = rectClient.bottom - rectClient.top;
+	// Create a temporary window to initialize driver
+	HWND hTmpWnd = wyc::gl_create_window(hInstance, hWnd, 0, 0, width, height);
+	int pixel_format = wyc::gl_detect_drivers(hTmpWnd);
+	DestroyWindow(hTmpWnd);
+	if (!pixel_format)
+	{
+		return FALSE;
+	}
+	// Create the real target window
+	HWND hTargetWnd = wyc::gl_create_window(hInstance, hWnd, 0, 0, width, height);
+	if (!wyc::gl_create_context(hTargetWnd, pixel_format))
+	{
+		return FALSE;
+	}
+	// Do not response user input
+	EnableWindow(hTargetWnd, FALSE);
+	ShowWindow(hTargetWnd, SW_NORMAL);
 
-   // Show OpenGL infomation
-   const char *version = (const char*)glGetString(GL_VERSION);
-   const char *glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-   const char *vendor = (const char*)glGetString(GL_VENDOR);
-   const char *device = (const char*)glGetString(GL_RENDERER);
-   info("%s %s", vendor, device);
-   info("OpenGL %s (GLSL %s)", version, glsl_version);
-   info("GLEW version %s", glewGetString(GLEW_VERSION));
+	// Initialize menu items
+	HMENU main_menu = GetMenu(g_app.main_wnd);
+	CheckMenuRadioItem(main_menu, IDM_SOFTWARE, IDM_OPENGL, IDM_OPENGL, MF_BYCOMMAND);
+	CheckMenuRadioItem(main_menu, IDM_REGULAR_TRIANGLE, IDM_REGULAR_TRIANGLE, IDM_REGULAR_TRIANGLE, MF_BYCOMMAND);
 
-   // Set viewport & background color
-   glClearColor(0, 0, 0, 1.0f);
+	// Show OpenGL infomation
+	const char *version = (const char*)glGetString(GL_VERSION);
+	const char *glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+	const char *vendor = (const char*)glGetString(GL_VENDOR);
+	const char *device = (const char*)glGetString(GL_RENDERER);
+	info("%s %s", vendor, device);
+	info("OpenGL %s (GLSL %s)", version, glsl_version);
+	info("GLEW version %s", glewGetString(GLEW_VERSION));
 
-   wyc::xpipeline *pipeline = new wyc::xgl_pipeline();
-   g_app.pipeline = pipeline;
-   pipeline->set_translate(wyc::xvec3f_t(0, 0, -4));
+	// initialize OpenGL
+	glClearColor(0, 0, 0, 1.0f);
+	
+	// create models
+	wyc::xvertex_buffer *vertices = new wyc::xvertex_buffer();
+	wyc::xindex_buffer *indices = new wyc::xindex_buffer();
+	g_app.models[g_app.model_id] = { vertices, indices };
+	wyc::gen_regular_triangle<wyc::xvertex_p3c3>(1, *vertices, *indices);
+	auto v = vertices->get_as<wyc::xvertex_p3c3>();
+	v[0].color.set(1.0, 0, 0);
+	v[1].color.set(0, 1.0, 0);
+	v[2].color.set(0, 0, 1.0);
 
-   wyc::xvertex_buffer vertices;
-   wyc::xindex_buffer indices;
-   wyc::gen_regular_triangle<wyc::xvertex_p3c3>(1, vertices, indices);
-   auto v = vertices.get_as<wyc::xvertex_p3c3>();
-   v[0].color.set(1.0, 0, 0);
-   v[1].color.set(0, 1.0, 0);
-   v[2].color.set(0, 0, 1.0);
-   pipeline->commit(&vertices, &indices);
-   pipeline->set_material("color_face");
+	g_app.material = "vertex_color";
+	g_app.transform.identity();
+	g_app.transform.set_col(3, wyc::xvec3f_t(0, 0, -4));
 
-   // Set timer for log flushing 
-   SetTimer(hWnd, ID_TIMER_LOG, 1000, &TimerFlushLog);
+	// initialize renderer
+	g_app.pipelines[SOFTWARE_RENDERER] = new wyc::xsw_pipeline();
+	g_app.pipelines[OPENGL_RENDERER] = new wyc::xgl_pipeline();
+	wyc::xpipeline *pipeline = g_app.pipelines[g_app.render_mode];
+	if (pipeline) {
+		auto model = g_app.models[g_app.model_id];
+		pipeline->commit(model.first, model.second);
+		pipeline->set_transform(g_app.transform);
+		pipeline->set_material(g_app.material);
+	}
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+	// Set timer for log flushing 
+	SetTimer(hWnd, ID_TIMER_LOG, 1000, &TimerFlushLog);
 
-   return TRUE;
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	return TRUE;
 }
 
 //
@@ -201,6 +271,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// switch menu command ID 
 		switch (wmId)
 		{
+		case IDM_OPENGL:
+			CheckMenuRadioItem(GetMenu(g_app.main_wnd), IDM_SOFTWARE, IDM_OPENGL, IDM_OPENGL, MF_BYCOMMAND);
+			SetRenderMode(OPENGL_RENDERER);
+			break;
+		case IDM_SOFTWARE:
+			CheckMenuRadioItem(GetMenu(g_app.main_wnd), IDM_SOFTWARE, IDM_OPENGL, IDM_SOFTWARE, MF_BYCOMMAND);
+			SetRenderMode(SOFTWARE_RENDERER);
+			break;
 		case IDM_ABOUT:
 			DialogBox(g_app.instance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
 			break;
@@ -264,14 +342,12 @@ void OnResizeWindow(int width, int height)
 	assert(width > 0 && height > 0);
 	HWND target_wnd = wyc::gl_get_context()->get_window();
 	MoveWindow(target_wnd, 0, 0, width, height, FALSE);
-	// TODO: rebuild OpenGL view
 	glViewport(0, 0, width, height);
-	g_app.pipeline->create_surface(0, width, height);
-	g_app.pipeline->set_perspective(45, float(width) / height, 1, 1000);
-
-//	glMatrixMode(GL_PROJECTION_MATRIX);
-//	glLoadIdentity();
-//	glOrtho(0, width, 0, height, 1, 1000);
+	wyc::xpipeline *pipeline = g_app.pipelines[g_app.render_mode];
+	if (pipeline) {
+		pipeline->set_viewport(width, height);
+		pipeline->set_perspective(45, float(width) / height, 1, 1000);
+	}
 }
 
 // Flush logger on time
@@ -284,6 +360,30 @@ void CALLBACK TimerFlushLog(HWND hwnd, UINT umsg, UINT_PTR id, DWORD time)
 // Render frame
 void OnRender()
 {
-	g_app.pipeline->render();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	wyc::xpipeline *pipeline = g_app.pipelines[g_app.render_mode];
+	if (pipeline)
+		pipeline->render();
 	wyc::gl_get_context()->swap_buffers();
+}
+
+void SetRenderMode(RENDER_MODE mode)
+{
+	if (mode == g_app.render_mode)
+		return;
+	g_app.render_mode = mode;
+	wyc::xpipeline *pipeline = g_app.pipelines[mode];
+	if (!pipeline)
+		return;
+	RECT rectClient;
+	GetClientRect(g_app.main_wnd, &rectClient);
+	int width = rectClient.right - rectClient.left;
+	int height = rectClient.bottom - rectClient.top;
+	pipeline->set_viewport(width, height);
+	pipeline->set_perspective(45, float(width) / height, 1, 1000);
+
+	auto model = g_app.models[g_app.model_id];
+	pipeline->commit(model.first, model.second);
+	pipeline->set_transform(g_app.transform);
+	pipeline->set_material(g_app.material);
 }

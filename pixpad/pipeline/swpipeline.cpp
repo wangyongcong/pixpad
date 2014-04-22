@@ -40,13 +40,13 @@ namespace wyc
 
 	xsw_pipeline::xsw_pipeline()
 	{
-		m_fbo = NULL;
+		m_fbo = nullptr;
 		m_texobj = 0;
 	}
 
 	xsw_pipeline::~xsw_pipeline()
 	{
-		if (m_fbo != NULL)
+		if (m_fbo)
 		{
 			delete m_fbo;
 			m_fbo = 0;
@@ -58,12 +58,13 @@ namespace wyc
 		}
 	}
 
-	bool xsw_pipeline::create_surface(unsigned format, unsigned width, unsigned height)
+	void xsw_pipeline::set_viewport(unsigned width, unsigned height)
 	{
-		assert(m_fbo == NULL);
+		if (m_fbo)
+			return;
 		m_fbo = new xsw_frame_buffer();
 		if (!m_fbo->create(NATIVE_PIXEL_FORMAT, width, height))
-			return false;
+			return;
 		xrender_buffer* color_buffer = m_fbo->get_buffer(xframe_buffer::COLOR_BUFFER);
 		assert(color_buffer);
 		m_raster.attach_color_buffer(NATIVE_PIXEL_FORMAT, *color_buffer);
@@ -75,7 +76,7 @@ namespace wyc
 		if (m_texobj == 0) {
 			glGenTextures(1, &m_texobj);
 			if (!m_texobj) 
-				return false;
+				return;
 		}
 		glEnable(GL_TEXTURE_RECTANGLE);
 		glBindTexture(GL_TEXTURE_RECTANGLE, m_texobj);
@@ -85,16 +86,25 @@ namespace wyc
 		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_raster.color_buffer());
 
+		glMatrixMode(GL_PROJECTION_MATRIX);
+		glLoadIdentity();
+		glOrtho(0, width, 0, height, 1, 1000);
+	}
 
-
+	bool xsw_pipeline::commit(xvertex_buffer *vertices, xindex_buffer *indices)
+	{
+		glBindVertexArray(0);
 		return true;
 	}
-	void xsw_pipeline::beg_frame()
+
+	bool xsw_pipeline::set_material(const std::string &name)
 	{
+		glUseProgram(0);
+		return true;
 	}
-	void xsw_pipeline::end_frame()
+
+	void xsw_pipeline::render()
 	{
-		glClear(GL_COLOR_BUFFER_BIT);
 		glBindTexture(GL_TEXTURE_RECTANGLE, m_texobj);
 		float w = (float)m_raster.width(), h = (float)m_raster.height();
 		float z = -10;
@@ -109,10 +119,5 @@ namespace wyc
 		glVertex3f(0, h, z);
 		glEnd();
 	}
-	void xsw_pipeline::draw(xvertex_buffer &vertices, xindex_buffer &indices)
-	{
-
-	}
-
 
 }; // end of namespace wyc

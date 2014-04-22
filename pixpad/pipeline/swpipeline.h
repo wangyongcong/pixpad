@@ -14,10 +14,10 @@ namespace wyc
 	public:
 		xsw_pipeline();
 		virtual ~xsw_pipeline();
-		virtual bool create_surface(unsigned format, unsigned width, unsigned height);
-		virtual void beg_frame();
-		virtual void end_frame();
-		virtual void draw(xvertex_buffer &vertices, xindex_buffer &indices);
+		virtual void set_viewport(unsigned width, unsigned height);
+		virtual bool commit(xvertex_buffer *vertices, xindex_buffer *indices);
+		virtual bool set_material(const std::string &name);
+		virtual void render();
 
 	private:
 		xframe_buffer *m_fbo;
