@@ -2,6 +2,7 @@
 #define WYC_HEADER_UTIL
 
 #include <cstdint>
+#include <string>
 
 namespace wyc
 {
@@ -32,6 +33,8 @@ unsigned next_power2(unsigned val);
 
 // 返回2为底的对数,val必须为2的幂
 uint32_t log2p2(uint32_t val);
+
+bool wstr2str(std::string &ret, const std::wstring &wstr);
 
 }; // end of namespace wyc
 

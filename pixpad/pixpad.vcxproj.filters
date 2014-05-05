@@ -67,6 +67,12 @@
     <ClCompile Include="pipeline\pipeline.cpp">
       <Filter>pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="windows\win_app.cpp">
+      <Filter>windows</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\pixpad.cpp">
+      <Filter>windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="util\log.h">
@@ -116,6 +122,12 @@
     </ClInclude>
     <ClInclude Include="glrender\glpipeline.h">
       <Filter>glrender</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\win_app.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\pixpad.h">
+      <Filter>windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

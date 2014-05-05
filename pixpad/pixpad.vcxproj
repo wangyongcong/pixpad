@@ -24,7 +24,9 @@
     <ClCompile Include="pipeline\swpipeline.cpp" />
     <ClCompile Include="pipeline\vertex_buffer.cpp" />
     <ClCompile Include="util\util.cpp" />
+    <ClCompile Include="windows\pixpad.cpp" />
     <ClCompile Include="windows\stdafx.cpp" />
+    <ClCompile Include="windows\win_app.cpp" />
     <ClCompile Include="windows\wmain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -42,8 +44,10 @@
     <ClInclude Include="util\log.h" />
     <ClInclude Include="util\rect.h" />
     <ClInclude Include="util\util.h" />
+    <ClInclude Include="windows\pixpad.h" />
     <ClInclude Include="windows\stdafx.h" />
     <ClInclude Include="windows\targetver.h" />
+    <ClInclude Include="windows\win_app.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="painter\rgba8888.inl" />
