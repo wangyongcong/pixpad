@@ -42,6 +42,8 @@ namespace wyc
 	{
 		m_fbo = nullptr;
 		m_texobj = 0;
+		m_vertices = nullptr;
+		m_indices = nullptr;
 	}
 
 	xsw_pipeline::~xsw_pipeline()
@@ -56,6 +58,8 @@ namespace wyc
 			glDeleteTextures(1, &m_texobj);
 			m_texobj = 0;
 		}
+		m_vertices = nullptr;
+		m_indices = nullptr;
 	}
 
 	void xsw_pipeline::set_viewport(unsigned width, unsigned height)
@@ -63,11 +67,11 @@ namespace wyc
 		if (m_fbo)
 			return;
 		m_fbo = new xsw_frame_buffer();
-		if (!m_fbo->create(NATIVE_PIXEL_FORMAT, width, height))
+		if (!m_fbo->create(PIXEL_FMT_RGBA8888, width, height))
 			return;
 		xrender_buffer* color_buffer = m_fbo->get_buffer(xframe_buffer::COLOR_BUFFER);
 		assert(color_buffer);
-		m_raster.attach_color_buffer(NATIVE_PIXEL_FORMAT, *color_buffer);
+		m_raster.attach_color_buffer(PIXEL_FMT_RGBA8888, *color_buffer);
 		m_raster.clear_screen();
 		int cx = width / 2, cy = height / 2;
 		int rx = width / 3, ry = height / 3;
@@ -94,12 +98,16 @@ namespace wyc
 	bool xsw_pipeline::commit(xvertex_buffer *vertices, xindex_buffer *indices)
 	{
 		glBindVertexArray(0);
+
+		m_vertices = vertices;
+		m_indices = indices;
 		return true;
 	}
 
 	bool xsw_pipeline::set_material(const std::string &name)
 	{
 		glUseProgram(0);
+		
 		return true;
 	}
 
