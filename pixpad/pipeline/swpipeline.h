@@ -25,7 +25,7 @@ namespace wyc
 		xindex_buffer *m_indices;
 		GLuint m_texobj;
 		xraster m_raster;
-;
+	};
 }; // end of namespace wyc
 
 #endif // WYC_HEADER_SWPIPELINE

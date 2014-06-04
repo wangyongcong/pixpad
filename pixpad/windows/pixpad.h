@@ -39,17 +39,17 @@ namespace wyc
 		void set_render_mode(RENDER_MODE mode);
 
 		// renderer
-		wyc::xpipeline *pipelines[RENDERER_COUNT];
+		xpipeline *pipelines[RENDERER_COUNT];
 		RENDER_MODE render_mode = OPENGL_RENDERER;
 		// models
-		wyc::xmat4f_t transform;
-		std::pair<wyc::xvertex_buffer*, wyc::xindex_buffer*> models[MODEL_COUNT];
+		xmat4f_t transform;
+		std::pair<xvertex_buffer*, xindex_buffer*> models[MODEL_COUNT];
 		MODEL_ID model_id = REGULAR_TRIANGLE;
 		std::string material;
 		// app state
 		bool is_drag_mode = false;
 		std::pair<int, int> drag_start_pos;
-		wyc::xvec4f_t rotate;
+		xvec4f_t rotate;
 	};
 
 }; // end of namespace wyc
