@@ -5,6 +5,10 @@ VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pixpad", "pixpad\pixpad.vcxproj", "{D95E7C89-6F46-499B-9F33-574B524C6F5F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "elog", "elog\elog\elog.vcxproj", "{0D938414-1C41-4C3F-A0D2-3708C09AAD7F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mathex", "mathex\mathex\mathex.vcxproj", "{F1389912-C57B-4693-8192-AB6ADCB37185}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +25,22 @@ Global
 		{D95E7C89-6F46-499B-9F33-574B524C6F5F}.StaticLibDebug|Win32.Build.0 = Debug|Win32
 		{D95E7C89-6F46-499B-9F33-574B524C6F5F}.StaticLibRelease|Win32.ActiveCfg = Release|Win32
 		{D95E7C89-6F46-499B-9F33-574B524C6F5F}.StaticLibRelease|Win32.Build.0 = Release|Win32
+		{0D938414-1C41-4C3F-A0D2-3708C09AAD7F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0D938414-1C41-4C3F-A0D2-3708C09AAD7F}.Debug|Win32.Build.0 = Debug|Win32
+		{0D938414-1C41-4C3F-A0D2-3708C09AAD7F}.Release|Win32.ActiveCfg = Release|Win32
+		{0D938414-1C41-4C3F-A0D2-3708C09AAD7F}.Release|Win32.Build.0 = Release|Win32
+		{0D938414-1C41-4C3F-A0D2-3708C09AAD7F}.StaticLibDebug|Win32.ActiveCfg = Debug|Win32
+		{0D938414-1C41-4C3F-A0D2-3708C09AAD7F}.StaticLibDebug|Win32.Build.0 = Debug|Win32
+		{0D938414-1C41-4C3F-A0D2-3708C09AAD7F}.StaticLibRelease|Win32.ActiveCfg = Release|Win32
+		{0D938414-1C41-4C3F-A0D2-3708C09AAD7F}.StaticLibRelease|Win32.Build.0 = Release|Win32
+		{F1389912-C57B-4693-8192-AB6ADCB37185}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F1389912-C57B-4693-8192-AB6ADCB37185}.Debug|Win32.Build.0 = Debug|Win32
+		{F1389912-C57B-4693-8192-AB6ADCB37185}.Release|Win32.ActiveCfg = Release|Win32
+		{F1389912-C57B-4693-8192-AB6ADCB37185}.Release|Win32.Build.0 = Release|Win32
+		{F1389912-C57B-4693-8192-AB6ADCB37185}.StaticLibDebug|Win32.ActiveCfg = Debug|Win32
+		{F1389912-C57B-4693-8192-AB6ADCB37185}.StaticLibDebug|Win32.Build.0 = Debug|Win32
+		{F1389912-C57B-4693-8192-AB6ADCB37185}.StaticLibRelease|Win32.ActiveCfg = Release|Win32
+		{F1389912-C57B-4693-8192-AB6ADCB37185}.StaticLibRelease|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
