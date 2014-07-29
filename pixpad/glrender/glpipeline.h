@@ -13,9 +13,9 @@ namespace wyc
 		xgl_pipeline();
 		virtual ~xgl_pipeline();
 		virtual void set_viewport(unsigned width, unsigned height);
-		virtual bool commit(xvertex_buffer *vertices, xindex_buffer *indices);
 		virtual bool set_material(const std::string &name);
-		virtual void render();
+		virtual void draw(xvertex_buffer *vertices, xindex_buffer *indices);
+		virtual void flush ();
 
 	private:
 		GLuint m_vertex_array;

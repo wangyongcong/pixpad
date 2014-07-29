@@ -72,38 +72,6 @@ namespace wyc
 
 	}
 
-	bool xgl_pipeline::commit(xvertex_buffer *vertices, xindex_buffer *indices)
-	{
-		if (!vertices)
-			return false;
-		if (!m_vertex_array) {
-			if (!new_hw_buffers())
-				return false;
-		}
-		glBindVertexArray(m_vertex_array);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
-		glBufferData(GL_ARRAY_BUFFER, vertices->size_in_bytes(), vertices->get_data(), GL_STATIC_DRAW);
-		// bind vetex attributes
-		size_t stride = vertices->stride();
-		unsigned count = vertices->attrib_count();
-		const xvertex_attrib* attrib = vertices->get_attribs();
-		m_attribs = attrib;
-		m_attrib_count = count;
-		for (unsigned i = 0; i < count; ++i, ++attrib)
-		{
-			glVertexAttribPointer(i, attrib->component, ms_gltype.at(attrib->type), GL_TRUE, stride, (GLvoid*)attrib->offset);
-			glEnableVertexAttribArray(i);
-		}
-		m_index_count = 0;
-		if (indices) {
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->size_in_bytes(), indices->get_data(), GL_STATIC_DRAW);
-			m_index_type = ms_gltype.at(indices->type());
-			m_index_count = indices->size();
-		}
-		return true;
-	}
-
 	bool xgl_pipeline::set_material(const std::string &name)
 	{
 		if (m_program) {
@@ -147,7 +115,38 @@ namespace wyc
 		return true;
 	}
 
-	void xgl_pipeline::render()
+	void xgl_pipeline::draw(xvertex_buffer *vertices, xindex_buffer *indices)
+	{
+		if (!vertices)
+			return;
+		if (!m_vertex_array) {
+			if (!new_hw_buffers())
+				return;
+		}
+		glBindVertexArray(m_vertex_array);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
+		glBufferData(GL_ARRAY_BUFFER, vertices->size_in_bytes(), vertices->get_data(), GL_STATIC_DRAW);
+		// bind vetex attributes
+		size_t stride = vertices->stride();
+		unsigned count = vertices->attrib_count();
+		const xvertex_attrib* attrib = vertices->get_attribs();
+		m_attribs = attrib;
+		m_attrib_count = count;
+		for (unsigned i = 0; i < count; ++i, ++attrib)
+		{
+			glVertexAttribPointer(i, attrib->component, ms_gltype.at(attrib->type), GL_TRUE, stride, (GLvoid*)attrib->offset);
+			glEnableVertexAttribArray(i);
+		}
+		m_index_count = 0;
+		if (indices) {
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->size_in_bytes(), indices->get_data(), GL_STATIC_DRAW);
+			m_index_type = ms_gltype.at(indices->type());
+			m_index_count = indices->size();
+		}
+	}
+
+	void xgl_pipeline::flush()
 	{
 		if (!m_program || !m_vertex_array || !m_index_count)
 			return;

@@ -20,14 +20,6 @@ namespace wyc
 				return false;
 			return true;
 		}
-		virtual void beg_render()
-		{
-			
-		}
-		virtual void end_render()
-		{
-
-		}
 		virtual xrender_buffer* get_buffer(BUFFER_TYPE t)
 		{
 			if (t == COLOR_BUFFER)
@@ -95,15 +87,6 @@ namespace wyc
 		glOrtho(0, width, 0, height, 1, 1000);
 	}
 
-	bool xsw_pipeline::commit(xvertex_buffer *vertices, xindex_buffer *indices)
-	{
-		glBindVertexArray(0);
-
-		m_vertices = vertices;
-		m_indices = indices;
-		return true;
-	}
-
 	bool xsw_pipeline::set_material(const std::string &name)
 	{
 		glUseProgram(0);
@@ -111,7 +94,15 @@ namespace wyc
 		return true;
 	}
 
-	void xsw_pipeline::render()
+	void xsw_pipeline::draw(xvertex_buffer *vertices, xindex_buffer *indices)
+	{
+		glBindVertexArray(0);
+
+		m_vertices = vertices;
+		m_indices = indices;
+	}
+
+	void xsw_pipeline::flush()
 	{
 		glBindTexture(GL_TEXTURE_RECTANGLE, m_texobj);
 		float w = (float)m_raster.width(), h = (float)m_raster.height();

@@ -15,9 +15,9 @@ namespace wyc
 		xsw_pipeline();
 		virtual ~xsw_pipeline();
 		virtual void set_viewport(unsigned width, unsigned height);
-		virtual bool commit(xvertex_buffer *vertices, xindex_buffer *indices);
 		virtual bool set_material(const std::string &name);
-		virtual void render();
+		virtual void draw(xvertex_buffer *vertices, xindex_buffer *indices);
+		virtual void flush();
 
 	private:
 		xframe_buffer *m_fbo;

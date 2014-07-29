@@ -13,10 +13,9 @@ namespace wyc
 		virtual ~xpipeline() {};
 		virtual void set_viewport(unsigned width, unsigned height) = 0;
 		// commit triangles to draw
-		virtual bool commit (xvertex_buffer *vertices, xindex_buffer *indices) = 0;
 		virtual bool set_material(const std::string &name) = 0;
-		// do render
-		virtual void render() = 0;
+		virtual void draw(xvertex_buffer *vertices, xindex_buffer *indices) = 0;
+		virtual void flush() = 0;
 		// set/get transform matrix
 		void set_transform(const xmat4f_t &transform);
 		const xmat4f_t& get_transform() const;

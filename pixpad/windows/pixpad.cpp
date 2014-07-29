@@ -73,9 +73,9 @@ namespace wyc
 		wyc::xpipeline *pipeline = this->pipelines[this->render_mode];
 		if (pipeline) {
 			auto model = this->models[this->model_id];
-			pipeline->commit(model.first, model.second);
 			pipeline->set_transform(this->transform);
 			pipeline->set_material(this->material);
+			pipeline->draw(model.first, model.second);
 		}
 	}
 
@@ -90,7 +90,7 @@ namespace wyc
 		wyc::xpipeline *pipeline = this->pipelines[this->render_mode];
 		if (pipeline) {
 			pipeline->set_transform(this->transform);
-			pipeline->render();
+			pipeline->flush();
 		}
 		wyc::gl_get_context()->swap_buffers();
 	}
@@ -194,9 +194,9 @@ namespace wyc
 		pipeline->set_perspective(45, float(width) / height, 1, 1000);
 
 		auto model = this->models[this->model_id];
-		pipeline->commit(model.first, model.second);
 		pipeline->set_transform(this->transform);
 		pipeline->set_material(this->material);
+		pipeline->draw(model.first, model.second);
 	}
 
 }; // end of namespace wyc

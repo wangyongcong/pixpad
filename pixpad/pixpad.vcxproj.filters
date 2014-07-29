@@ -20,6 +20,9 @@
     <Filter Include="windows">
       <UniqueIdentifier>{e3c611ce-33e1-489d-bfc5-7d0e6dee016d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="swrender">
+      <UniqueIdentifier>{174087dd-5fbc-4002-916f-84e729ac1040}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util\util.cpp">
@@ -38,9 +41,6 @@
       <Filter>painter</Filter>
     </ClCompile>
     <ClCompile Include="painter\xraster.cpp">
-      <Filter>painter</Filter>
-    </ClCompile>
-    <ClCompile Include="painter\xtnl.cpp">
       <Filter>painter</Filter>
     </ClCompile>
     <ClCompile Include="pipeline\swpipeline.cpp">
@@ -73,6 +73,9 @@
     <ClCompile Include="windows\pixpad.cpp">
       <Filter>windows</Filter>
     </ClCompile>
+    <ClCompile Include="swrender\raster.cpp">
+      <Filter>swrender</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="util\log.h">
@@ -88,9 +91,6 @@
       <Filter>painter</Filter>
     </ClInclude>
     <ClInclude Include="painter\xraster.h">
-      <Filter>painter</Filter>
-    </ClInclude>
-    <ClInclude Include="painter\xtnl.h">
       <Filter>painter</Filter>
     </ClInclude>
     <ClInclude Include="pipeline\framebuffer.h">
@@ -128,6 +128,9 @@
     </ClInclude>
     <ClInclude Include="windows\pixpad.h">
       <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="swrender\raster.h">
+      <Filter>swrender</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
