@@ -218,4 +218,3 @@ lib/elog*.lib
 baretail.exe
 baregrep.exe
 *.udm
-Qt/build-glview-*
