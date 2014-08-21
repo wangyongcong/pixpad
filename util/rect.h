@@ -100,8 +100,10 @@ struct xrect
 		xmin+=hs; xmax-=hs;
 		ymin+=vs; ymax-=vs;
 	}
-	// 用rect来分解,分解得到的矩形保存在szout中
-	// 返回分解得到的矩形个数,-1表示无交集,0表示被rect覆盖
+	// split this whit rect, the result sub rects are saved in szout[4] (at most 4)
+	// return: count of sub rects
+	// -1 means no intercection
+	//  0 means fully convered by rect
 	int split(const xrect &rect, xrect szout[4]) 
 	{
 		int ret=0;

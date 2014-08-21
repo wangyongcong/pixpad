@@ -1,36 +1,19 @@
 #ifndef __HEADER_WYC_XVECMATH
 #define __HEADER_WYC_XVECMATH
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// 名称：XMath Lib
-// 作者：Blackbird
-// 版本：1.02
-// 描述：提供3D图形运算的基本数学支持。包括三角运算，向量运算和矩阵运算。
-//
-/////////////////////////////////////////////////////////////////////////////
-
 #include <cassert>
 #include "mathex.h"
 
 #ifdef _MSC_VER
 #pragma warning (push)
-#pragma warning (disable:4201) //使用了非标准扩展 : 无名称的结构/联合
+#pragma warning (disable:4201) // anonymous struct/union
 #endif // _MSC_VER
 
-#define FAST_MATRIX4_INVERSE // 快速矩阵求逆
+#define FAST_MATRIX4_INVERSE // use fast matrix inverse algorithm
 
 namespace wyc
 {
 
-/////////////////////////////////////////////////////////////
-//
-// 向量
-//
-
-//
-// 通用向量模板
-//
 template<class T, int D>
 class xvector
 {
@@ -38,14 +21,8 @@ public:
 	typedef T element_t;
 	enum { DIMENSION = D };
 	
-	//
-	// 数据
-	//
 	T	elem[D];
 
-	//
-	// 构造函数
-	//
 	xvector() 
 	{
 		assert(D>1);
@@ -85,16 +62,11 @@ public:
 		return *this;
 	}
 
-	//
-	// 外部接口
-	//
-
-	// 元素置零
 	inline void zero()
 	{
 		memset(elem,0,sizeof(T)*D);
 	}
-	// 安全的元素存取
+	// safe element access
 	inline void set (unsigned i, T val)
 	{
 		if(i<D) elem[i]=val;
@@ -103,7 +75,7 @@ public:
 	{
 		if(i<D) val=elem[i];
 	}
-	// 快速元素存取
+	// fast element access
 	inline T operator () (unsigned i) const
 	{
 		assert(i<D);
@@ -124,7 +96,7 @@ public:
 		assert(i<D);
 		return elem[i];
 	}
-	// 一元运算符
+
 	inline xvector& operator += (const xvector &v)
 	{
 		return add(v);
@@ -137,7 +109,7 @@ public:
 	{
 		return scale(val);
 	}
-	// 向量取反
+
 	xvector& reverse()
 	{
 		for(int i=0; i<D; ++i)
@@ -150,7 +122,7 @@ public:
 			elem[i]=-v.elem[i];
 		return *this;
 	}
-	// 向量加
+
 	xvector& add (const xvector &v)
 	{
 		for(int i=0; i<D; ++i)
@@ -163,7 +135,7 @@ public:
 			elem[i]=v1.elem[i]+v2.elem[i];
 		return *this;
 	}
-	// 向量减
+
 	xvector& sub (const xvector &v)
 	{
 		for(int i=0; i<D; ++i)
@@ -176,7 +148,7 @@ public:
 			elem[i]=v1.elem[i]-v2.elem[i];
 		return *this;
 	}
-	// 标量积
+
 	xvector& scale (T val)
 	{
 		for(int i=0; i<D; ++i)
@@ -189,7 +161,7 @@ public:
 			elem[i]=v.elem[i]*val;
 		return *this;
 	}
-	// 点积
+
 	T dot (const xvector &v) const
 	{
 		T sum=0;
@@ -197,7 +169,7 @@ public:
 			sum+=elem[i]*v.elem[i];
 		return sum;
 	}
-	// 向量长度的平方
+
 	T length2 () const
 	{
 		T sum=0;
@@ -205,12 +177,12 @@ public:
 			sum+=elem[i]*elem[i];
 		return sum;
 	}
-	// 向量长度
+
 	inline T length () const
 	{
 		return (sqrt(length2()));
 	}
-	// 归一化为单位向量
+
 	void normalize ()
 	{
 		T len=length();
@@ -220,7 +192,7 @@ public:
 		for(int i=0; i<D; ++i)
 			elem[i]*=len;
 	}
-	// 比较
+
 	bool operator == (const xvector& v) const 
 	{
 		for(int i=0; i<D; ++i)
@@ -237,20 +209,13 @@ public:
 	}
 };
 
-/////////////////////////////////////////////////////////////
-//
-// 2D向量
-//
+
 template<class T>
 class xvector<T,2>
 {
 public:
 	typedef T element_t;
 	enum { DIMENSION = 2 };
-
-	//
-	// 数据
-	//
 	union
 	{
 		T	elem[2];
@@ -260,9 +225,6 @@ public:
 		};
 	};
 
-	//
-	// 构造函数
-	//
 	xvector() {}
 
 	xvector(T v1, T v2) : x(v1), y(v2) {}
@@ -299,9 +261,6 @@ public:
 		return *this;
 	}
 
-	//
-	// 外部接口
-	//
 	inline void zero()
 	{
 		x=y=0;
@@ -311,7 +270,6 @@ public:
 		x=vx;
 		y=vy;
 	}
-	// 快速元素存取
 	inline T operator () (unsigned i) const
 	{
 		assert(i<2);
@@ -332,7 +290,6 @@ public:
 		assert(i<2);
 		return elem[i];
 	}
-	// 向量运算
 	inline xvector& operator += (const xvector &v)
 	{
 		return add(v);
@@ -414,12 +371,11 @@ public:
 		x*=len;
 		y*=len;
 	}
-	// 2D向量差积
 	T cross (const xvector &v1) const
 	{
 		return x*v1.y-y*v1.x;
 	}
-	// this逆时针到v的夹角的余弦
+
 	inline T cos_of_angle(const xvector &v) const
 	{
 		return (this->dot(v)/(length()*v.length()));
@@ -434,20 +390,13 @@ public:
 	}
 };
 
-//////////////////////////////////////////////////////////////////////////
-//
-// 3D向量
-//
+
 template<class T>
 class xvector<T,3>
 {
 public:
 	typedef T element_t;
 	enum { DIMENSION = 3 };
-
-	//
-	// 数据
-	//
 	union
 	{
 		T	elem[3];
@@ -456,10 +405,6 @@ public:
 			T	x,y,z;
 		};
 	};
-
-	//
-	// 构造函数
-	//
 
 	xvector() {}
 
@@ -499,10 +444,6 @@ public:
 		return *this;
 	}
 
-	//
-	// 外部接口
-	//
-
 	inline void zero()
 	{
 		x=y=z=0;
@@ -513,7 +454,7 @@ public:
 		y=vy;
 		z=vz;
 	}
-	// 快速元素存取
+
 	inline T operator () (unsigned i) const
 	{
 		assert(i<3);
@@ -534,7 +475,7 @@ public:
 		assert(i<3);
 		return elem[i];
 	}
-	// 向量运算
+
 	inline xvector& operator += (const xvector &v)
 	{
 		return add(v);
@@ -625,7 +566,6 @@ public:
 		y*=len;
 		z*=len;
 	}
-	// 叉积，this = v1 cross v2
 	xvector& cross (const xvector &v1, const xvector &v2)
 	{
 		x=v1.y*v2.z-v1.z*v2.y;
@@ -633,7 +573,6 @@ public:
 		z=v1.x*v2.y-v1.y*v2.x;
 		return *this;
 	}
-	// this逆时针到v的夹角的余弦
 	inline T cos_of_angle(const xvector &v) const
 	{
 		return (this->dot(v)/(length()*v.length()));
@@ -648,20 +587,14 @@ public:
 	}
 };
 
-//////////////////////////////////////////////////////////////////////////
-//
-// 4D齐次向量(homogeneous vector)
-//
+
+// homogeneous vector
 template<class T>
 class xvector<T,4>
 {
 public:
 	typedef T element_t;
 	enum { DIMENSION = 4 };
-
-	//
-	// 数据
-	//
 	union
 	{
 		T	elem[4];
@@ -671,9 +604,6 @@ public:
 		};
 	};
 
-	//
-	// 构造函数
-	//
 	xvector() {}
 
 	xvector(T v1, T v2, T v3, T v4=1) : x(v1), y(v2), z(v3), w(v4) {}
@@ -710,10 +640,6 @@ public:
 		memcpy(elem,v.elem,sizeof(T)*(4<D2?4:D2));
 		return *this;
 	}
-
-	//
-	// 外部接口
-	//
 	inline void zero()
 	{
 		x=y=z=w=0;
@@ -725,7 +651,6 @@ public:
 		z=vz;
 		w=vw;
 	}
-	// 快速元素存取
 	inline T operator () (unsigned i) const
 	{
 		assert(i<4);
@@ -746,7 +671,6 @@ public:
 		assert(i<4);
 		return elem[i];
 	}
-	// 向量运算
 	inline xvector& operator += (const xvector &v)
 	{
 		return add(v);
@@ -856,7 +780,6 @@ public:
 		z*=w;
 		w=1;
 	}
-	// 执行3D叉积，w不变
 	xvector& cross (const xvector &v1, const xvector &v2)
 	{
 		x=v1.y*v2.z-v1.z*v2.y;
@@ -864,7 +787,6 @@ public:
 		z=v1.x*v2.y-v1.y*v2.x;
 		return *this;
 	}
-	// this逆时针到v的夹角的余弦
 	inline T cos_of_angle(const xvector &v) const
 	{
 		return (this->dot(v)/(length()*v.length()));
@@ -878,11 +800,6 @@ public:
 		return x!=v.x || y!=v.y || z!=v.z || w!=v.w;
 	}
 };
-
-///////////////////////////////////////////////////////////////////////////////
-//
-// 向量运算符重载
-// 
 
 template<class T, int D>
 xvector<T,D> operator - (const xvector<T,D> &v1)
@@ -930,14 +847,7 @@ T operator * (const xvector<T,D> &v1, const xvector<T,D> &v2)
 	return v1.dot(v2);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// 矩阵
-//
 
-//
-// 通用矩阵模板
-//
 template<class T, int R, int C>
 class xmatrix
 {
@@ -948,14 +858,8 @@ public:
 		COL = C,
 	};
 
-	//
-	// 数据
-	//
-	T	elem[R][C];	// 按行优先的次序存储矩阵元素
+	T	elem[R][C]; // row first
 
-	//
-	// 构造/析构函数
-	//
 	xmatrix() 
 	{
 		assert(R>0 && C>0);
@@ -971,16 +875,10 @@ public:
 		return *this;
 	}
 
-	//
-	// 外部接口
-	//
-
-	// 检测是否方阵
 	inline bool square() const
 	{
 		return (R==C);
 	}
-	// 设置为单位矩阵
 	void identity()
 	{
 		memset(&(elem[0][0]),0,sizeof(T)*R*C);
@@ -988,7 +886,6 @@ public:
 		for(int i=0; i<R; ++i)
 			elem[i][i]=1;
 	}
-	// 返回内部数据
 	inline T* data() 
 	{
 		return elem[0];
@@ -997,7 +894,6 @@ public:
 	{
 		return elem[0];
 	}
-	// 安全的存取操作
 	inline void set(unsigned r, unsigned c, T val)
 	{
 		if(r<R && c<C)
@@ -1008,8 +904,6 @@ public:
 		if(r<R && c<C)
 			val=elem[r][c];
 	}
-	// 以下的运算符重载使得存取元素更方便
-	// 由于不作任何检查，小心内存越界
 	inline T operator () (unsigned r, unsigned c) const
 	{
 		return elem[r][c];
@@ -1018,7 +912,6 @@ public:
 	{
 		return elem[r][c];
 	}
-	// 设置行/列向量
 	template<int D>
 	inline void set_row(unsigned r, const xvector<T,D> &v)
 	{
@@ -1043,9 +936,7 @@ public:
 		for(int i=0; i<R; ++i)
 			v[i]=elem[i][c];
 	}
-	//
-	// 矩阵的基本运算
-	//
+
 	inline xmatrix& operator += (const xmatrix &m)
 	{
 		return this->add(m);
@@ -1066,7 +957,7 @@ public:
 	{
 		return this->mul(m);
 	}
-	// 矩阵加
+
 	xmatrix& add (const xmatrix &m)
 	{
 		T *dst=elem[0];
@@ -1092,7 +983,6 @@ public:
 		}
 		return *this;
 	}
-	// 矩阵减
 	xmatrix& sub (const xmatrix &m)
 	{
 		T *dst=elem[0];
@@ -1118,7 +1008,6 @@ public:
 		}
 		return *this;
 	}
-	// 标量乘法
 	xmatrix& scale (T val)
 	{
 		T *dst=elem[0];
@@ -1141,7 +1030,6 @@ public:
 		}
 		return *this;
 	}
-	// 标量除法
 	xmatrix& div (T val)
 	{
 		T *dst=elem[0];
@@ -1164,7 +1052,6 @@ public:
 		}
 		return *this;
 	}
-	// 矩阵乘法
 	xmatrix& mul (const xmatrix<T,C,R> &m) 
 	{
 		T tmp[C], *dst;
@@ -1201,7 +1088,6 @@ public:
 		}
 		return *this;
 	}
-	// 转置
 	xmatrix& transpose() 
 	{
 		T *dst;
@@ -1224,21 +1110,16 @@ public:
 		}
 		return *this;
 	}
-	// 根据拉普拉斯展开式计算行列式
-	// 注意，只有方阵才能调用该函数
+	// Laplace algorithm
 	template<int D>
 	T _recursive_det() const {
-		// 递归展开
 		xmatrix<T, D - 1, D - 1> sub;
 		T v, r = 0;
 		for (unsigned i = 0; i<D; ++i)
 		{
-			// 填充子矩阵
 			_get_sub_matrix(sub, 0, i);
-			// 计算该子阵的代数余子式
 			v = (i % 2) ? (-elem[0][i]) : (elem[0][i]);
 			v *= sub.det();
-			// 将结果累加
 			r += v;
 		}
 		return r;
@@ -1265,7 +1146,7 @@ public:
 		assert(square());
 		return _recursive_det<R>();
 	}
-	// 基于Gauss-Jordan消元法计算m的逆阵
+	// Gauss-Jordan消元法计算m的逆阵
 	// 结果保存在this中，如果成功返回true，否则返回false
 	// 只有方阵才能调用该函数
 	bool inverse (const xmatrix &m)
@@ -1356,7 +1237,7 @@ public:
 		}
 		return true;
 	}
-	// 矩阵比较
+
 	bool operator == (const xmatrix &m) const
 	{
 		const T *iter1=elem[0], *iter2=m.elem[0];
@@ -1392,9 +1273,7 @@ public:
 		}
 		return *this;
 	}
-//
-// 内部接口
-//
+
 protected:
 	// 获取去除第rr行rc列后的子阵
 	void _get_sub_matrix (xmatrix<T,R-1,C-1> &m, int rr, int rc) const
@@ -1416,10 +1295,6 @@ protected:
 	}
 };
 
-//////////////////////////////////////////////////////////////////////////
-//
-// 2X2方阵
-//
 template<class T>
 class xmatrix<T,2,2>
 {
@@ -1430,7 +1305,6 @@ public:
 		COL = 2,
 	};
 
-	// 按行优先的次序存储矩阵元素
 	union
 	{
 		T	elem[2][2];
@@ -1442,7 +1316,6 @@ public:
 		};
 	};
 
-	// 构造/析构函数
 	xmatrix() {};
 
 	xmatrix(const xmatrix &m)
@@ -1457,10 +1330,6 @@ public:
 		return *this;
 	}
 
-	//
-	// 外部接口
-	//
-	// 检测是否方阵
 	inline bool square() const
 	{
 		return true;
@@ -1470,7 +1339,6 @@ public:
 		m00=m11=1;
 		m10=m01=0;
 	}
-	// 返回内部数据
 	inline T* data() 
 	{
 		return elem[0];
@@ -1479,7 +1347,6 @@ public:
 	{
 		return elem[0];
 	}
-	// 安全的存取操作
 	inline void set(unsigned r, unsigned c, T val)
 	{
 		if(r<2 && c<2)
@@ -1490,8 +1357,6 @@ public:
 		if(r<2 &&c<2)
 			val=elem[r][c];
 	}
-	// 以下的运算符重载使得存取元素更方便
-	// 由于不作任何检查，小心内存越界
 	inline T operator () (unsigned r, unsigned c) const
 	{
 		assert(r<2 && c<2);
@@ -1502,7 +1367,6 @@ public:
 		assert(r<2 && c<2);
 		return elem[r][c];
 	}
-	// 设置行/列向量
 	template<int D>
 	inline void set_row(unsigned r, const xvector<T,D> &v)
 	{
@@ -1527,9 +1391,7 @@ public:
 		assert(c<2);
 		v.set(elem[0][c],elem[1][c]);
 	}
-	//
-	// 矩阵的基本运算
-	//
+
 	inline xmatrix& operator += (const xmatrix &m)
 	{
 		return this->add(m);
@@ -1656,10 +1518,7 @@ public:
 	}
 };
 
-/////////////////////////////////////////////////////////////////////////////////////
-//
-// 3x3方阵
-//
+
 template<class T>
 class xmatrix<T,3,3>
 {
@@ -1670,7 +1529,6 @@ public:
 		COL = 3,
 	};
 
-	// 按行优先的次序存储矩阵元素
 	union
 	{
 		T	elem[3][3];
@@ -1683,7 +1541,6 @@ public:
 		};
 	};
 
-	// 构造/析构函数
 	xmatrix() {};
 
 	xmatrix(const xmatrix &m)
@@ -1733,21 +1590,15 @@ public:
 		return *this;
 	}
 
-	//
-	// 外部接口
-	//
-	// 检测是否方阵
 	inline bool square() const
 	{
 		return true;
 	}
-	// 构造单位矩阵
 	inline void identity ()
 	{
 		m00=m11=m22=1;
 		m01=m02=m10=m12=m20=m21=0;
 	}
-	// 返回内部数据
 	inline T* data() 
 	{
 		return elem[0];
@@ -1756,7 +1607,6 @@ public:
 	{
 		return elem[0];
 	}
-	// 安全的存取操作
 	inline void set(unsigned r, unsigned c, T val)
 	{
 		if(r<3 && c<3)
@@ -1767,8 +1617,6 @@ public:
 		if(r<3 && c<3)
 			val=elem[r][c];
 	}
-	// 以下的运算符重载使得存取元素更方便
-	// 由于不作任何检查，小心内存越界
 	inline T operator () (unsigned r, unsigned c) const
 	{
 		assert(r<3 && c<3);
@@ -1779,7 +1627,6 @@ public:
 		assert(r<3 && c<3);
 		return elem[r][c];
 	}
-	// 设置行/列向量
 	template<int D>
 	inline void set_row(unsigned r, const xvector<T,D> &v)
 	{
@@ -1822,9 +1669,7 @@ public:
 		assert(c<3);
 		v.set(elem[0][c],elem[1][c],elem[2][c]);
 	}
-	//
-	// 矩阵的基本运算
-	//
+
 	inline xmatrix& operator += (const xmatrix &m)
 	{
 		return this->add(m);
@@ -1963,7 +1808,7 @@ public:
 		T d=det();
 		if(fequal(d,0))
 			return false;
-		// 计算伴随矩阵
+		// adjoint matrix
 		T adj[9];
 		adj[0]=m.m11*m.m22-m.m12*m.m21;
 		adj[3]=m.m12*m.m20-m.m10*m.m22;
@@ -1974,7 +1819,7 @@ public:
 		adj[2]=m.m01*m.m12-m.m02*m.m11;
 		adj[5]=m.m02*m.m10-m.m00*m.m12;
 		adj[8]=m.m00*m.m11-m.m01*m.m10;
-		// 计算逆阵
+		// the inverse matrix
 		T *dst=elem[0];
 		T invdet=T(1)/d;
 		for(int i=0; i<9; ++i)
@@ -2006,10 +1851,7 @@ public:
 
 };
 
-/////////////////////////////////////////////////////////////////////////////////////
-//
-// 4x4方阵
-//
+
 template<class T>
 class xmatrix<T,4,4>
 {
@@ -2020,7 +1862,6 @@ public:
 		COL = 4,
 	};
 
-	// 按行优先的次序存储矩阵元素
 	union
 	{
 		T	elem[4][4];
@@ -2034,7 +1875,6 @@ public:
 		};
 	};
 
-	// 构造/析构函数
 	xmatrix() {};
 
 	xmatrix(const xmatrix &m)
@@ -2048,22 +1888,16 @@ public:
 		return *this;
 	}
 
-	//
-	// 外部接口
-	//
 
-	// 检测是否方阵
 	inline bool square() const
 	{
 		return true;
 	}
-	// 构造单位矩阵
 	inline void identity ()
 	{
 		memset(elem[0],0,sizeof(elem));
 		m00=m11=m22=m33=1;
 	}
-	// 返回内部数据
 	inline T* data() 
 	{
 		return elem[0];
@@ -2072,7 +1906,6 @@ public:
 	{
 		return elem[0];
 	}
-	// 安全的存取操作
 	inline void set(unsigned r, unsigned c, T val)
 	{
 		if(r<4 && c<4)
@@ -2083,8 +1916,6 @@ public:
 		if(r<4 && c<4)
 			val=elem[r][c];
 	}
-	// 以下的运算符重载使得存取元素更方便
-	// 由于不作任何检查，小心内存越界
 	inline T operator () (unsigned r, unsigned c) const
 	{
 		assert(r<4 && c<4);
@@ -2095,7 +1926,6 @@ public:
 		assert(r<4 && c<4);
 		return elem[r][c];
 	}
-	// 设置行/列向量
 	template<int D>
 	inline void set_row(unsigned r, const xvector<T,D> &v)
 	{
@@ -2155,9 +1985,7 @@ public:
 		assert(c<4);
 		v.set(elem[0][c],elem[1][c],elem[2][c],elem[3][c]);
 	}
-	//
-	// 矩阵的基本运算
-	//
+
 	inline xmatrix& operator += (const xmatrix &m)
 	{
 		return this->add(m);
@@ -2485,10 +2313,6 @@ private:
 	}
 };
 
-/////////////////////////////////////////////////////////////////////////////////////
-//
-// 矩阵运算符重载
-//
 template<typename T, int R, int C>
 inline xmatrix<T,R,C> operator + (const xmatrix<T,R,C> &m1, const xmatrix<T,R,C> &m2)
 {
@@ -2537,12 +2361,6 @@ inline xmatrix<T,R,C> operator / (const xmatrix<T,R,C> &m1, T val)
 	return ret;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
-//
-// 向量与矩阵之间的运算
-//
-
-// 向量与矩阵的乘法
 template<class T, int R, int C>
 void vec_mul_mat(const xvector<T,R> &v, const xmatrix<T,R,C> &m, xvector<T,C> &r)
 {
@@ -2585,7 +2403,6 @@ inline xvector<T,C> operator * (const xmatrix<T,R,C> &m, const xvector<T,C> &v)
 	return ret;
 }
 
-// 2D向量和矩阵相乘
 template<class T>
 xvector<T,2> operator * (const xvector<T,2> &v, const xmatrix<T,2,2> &m)
 {
@@ -2622,7 +2439,6 @@ xvector<T,2> operator * (const xmatrix<T,3,3> &m, const xvector<T,2> &v)
 	return r;
 }
 
-// 3D向量和矩阵相乘
 template<class T>
 xvector<T,3> operator * (const xvector<T,3> &v, const xmatrix<T,3,3> &m)
 {
@@ -2663,7 +2479,6 @@ xvector<T,3> operator * (const xmatrix<T,4,4> &m, const xvector<T,3> &v)
 	return r;
 }
 
-// 4D向量与矩阵相乘
 template<class T>
 void vec_mul_mat(const xvector<T,4> &v, const xmatrix<T,4,4> &m, xvector<T,4> &r)
 {
@@ -2698,17 +2513,10 @@ inline xvector<T,4> operator * (const xmatrix<T,4,4> &m, const xvector<T,4> &v)
 	return r;
 }
 
-///////////////////////////////////////////////////////////////////////////////////
-//
-// 四元数
-//
 
 template<class T>
 class xquaternion
 {
-//
-// 数据
-//
 public:
 	union
 	{
@@ -2723,15 +2531,12 @@ public:
 			T	w,x,y,z;
 		};
 	};
-//
-// 构造/析构函数
-//
+
 public:
 	xquaternion () {}
 
 	~xquaternion () {}
 
-	// COPY构造函数
 	xquaternion (const xquaternion<T> &q)
 	{
 		*this=q;
@@ -2760,13 +2565,7 @@ public:
 		return *this;
 	}
 
-//
-// 外部接口
-//
 public:
-	//
-	// 四元数基本运算
-	//
 	inline xquaternion& operator += (const xquaternion &q)
 	{
 		return add(q);
@@ -2775,7 +2574,6 @@ public:
 	{
 		return sub(q);
 	}
-	// 四元数加法
 	inline xquaternion& add (const xquaternion &q)
 	{
 		w += q.w;
@@ -2792,7 +2590,6 @@ public:
 		z = q1.z + q2.z;
 		return *this;
 	}
-	// 四元数减法
 	inline xquaternion& sub (const xquaternion &q)
 	{
 		w -= q.w;
@@ -2809,7 +2606,6 @@ public:
 		z = q1.z - q2.z;
 		return *this;
 	}
-	// 标量乘法
 	inline xquaternion& scale (T val)
 	{
 		w *= val;
@@ -2818,12 +2614,11 @@ public:
 		z *= val;
 		return *this;
 	}
-	// 点积
 	inline T dot (const xquaternion &q)
 	{
 		return (w*q.w + x*q.x + y*q.y + z*q.z);
 	}
-	// 四元数乘法，this=q1*q2
+	// this=q1*q2
 	xquaternion& mul (const xquaternion &q1, const xquaternion &q2)
 	{
 		//
@@ -2866,17 +2661,14 @@ public:
 		mul(tmp,q2);
 		return *this;
 	}
-	// 四元数的值
 	inline T magnitude () const
 	{
 		return (sqrt(magnitude2()));
 	}
-	// 值的平方
 	inline T magnitude2 () const
 	{
 		return (w*w + x*x + y*y + z*z);
 	}
-	// 将this设为它的共轭
 	inline xquaternion& conjugate ()
 	{
 		x = -x;
@@ -2884,7 +2676,6 @@ public:
 		z = -z;
 		return *this;
 	}
-	// 将this设为它的逆
 	xquaternion& inverse ()
 	{
 		T inv = magnitude();
@@ -2892,7 +2683,6 @@ public:
 		conjugate().scale(inv);
 		return *this;
 	}
-	// 单位四元数的逆
 	inline xquaternion& unit_inverse()
 	{
 		conjugate();
@@ -2960,10 +2750,6 @@ public:
 	}
 };
 
-///////////////////////////////////////////////////////////////////////////////////
-//
-// 四元数运算符重载
-//
 template<class T>
 inline xquaternion<T> operator + (const xquaternion<T> &q1, const xquaternion<T> &q2)
 {
@@ -2992,10 +2778,6 @@ inline xquaternion<T> operator / (const xquaternion<T> &q1, const xquaternion<T>
 	return q.differ(q1,q2);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
-//
-// 坐标转换函数
-//
 
 // 2D极坐标
 template<class T>
@@ -3014,6 +2796,7 @@ struct xcylin
 	T	z;			// Z坐标
 };
 
+
 // 3D球坐标
 template<class T>
 struct xspherical
@@ -3031,9 +2814,7 @@ struct xspherical
 	};
 };
 
-//
 // 2D笛卡尔坐标与极坐标之间的转换
-//
 template<class T>
 inline void to_cartesian  (const xpolar<T> &p, xvector<T,2> &v)
 {
@@ -3048,9 +2829,7 @@ inline void to_polar (const xvector<T,2> &v, xpolar<T> &p)
 	p.theta = atan2(v.y, v.x);
 }
 
-//
 // 3D笛卡尔坐标与柱面坐标之间的转换
-//
 template<class T>
 inline void to_cartesian (const xcylin<T> &c, xvector<T,3> &v)
 {
@@ -3067,9 +2846,7 @@ inline void to_cylin (const xvector<T,3> &v, xcylin<T> &c)
 	c.z = v.z;
 }
 
-//
 // 3D笛卡尔坐标与球坐标之间的转换
-//
 template<class T>
 void to_cartesian (const xspherical<T> &s, xvector<T,3> &v)
 {
@@ -3087,14 +2864,7 @@ void to_spherical (const  xvector<T,3> &v, xspherical<T> &s)
 	s.phi = asin(v.x/(s.r*cos(s.theta)));
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// 角度变换函数
-//
-
-//
 // 欧拉角，默认使用roll-pitch-yaw（Z-X-Y）的旋转顺序
-//
 template<class T>
 struct xeuler
 {
@@ -3112,9 +2882,7 @@ struct xeuler
 	};
 };
 
-//
 // 欧拉角和旋转矩阵之间的转换
-//
 template<class T, int D>
 void euler_to_matrix (const xeuler<T> &euler, xmatrix<T,D,D> &mat)
 {
@@ -3166,9 +2934,7 @@ void matrix_to_euler (const xmatrix<T,D,D> &mat, xeuler<T> &euler)
 	}
 }
 
-//
 // 四元数和旋转矩阵之间的转换
-//
 template<class T, int D>
 void quat_to_matrix (const xquaternion<T> &quat, xmatrix<T,D,D> &mat)
 {
@@ -3254,9 +3020,7 @@ void matrix_to_quat (const xmatrix<T,D,D> &mat, xquaternion<T> &quat)
 	}
 }
 
-//
 // 欧拉角和四元数之间的转换
-//
 template<class T>
 void euler_to_quat (const xeuler<T> &euler, xquaternion<T> &quat)
 {
@@ -3297,11 +3061,6 @@ void quat_to_euler (const xquaternion<T> &quat, xeuler<T> &euler)
 		euler.roll = atan2(T(quat.x*quat.y + quat.w*quat.z), T(0.5 - xx - quat.z*quat.z));
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////////////
-//
-// 常用变换矩阵(均为行优先矩阵)
-//
 
 // 2D平移矩阵
 template<class T, int D>
@@ -3392,10 +3151,6 @@ void matrix_zrotate3d(xmatrix<T,D,D> &matrix, T radian)
 	matrix(1,0)=-sina; matrix(1,1)=cosa;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////
-//
-// 类型定义
-//
 
 typedef xvector<int,2> xpt2i_t;
 typedef xvector<float,2> xpt2f_t;
@@ -3435,7 +3190,6 @@ typedef xeuler<int> xeuleri_t;
 typedef xeuler<float> xeulerf_t;
 typedef xeuler<double> xeulerd_t;
 
-//////////////////////////////////////////////////////////////
 
 } // namespace wyc
 

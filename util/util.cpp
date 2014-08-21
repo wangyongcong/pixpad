@@ -5,9 +5,9 @@ namespace wyc
 
 unsigned next_power2(unsigned val)
 {
-	// val可能是2的幂
+	// val maybe power of 2
 	--val;
-	// 将MSB右边的所有位全部置为1
+	// set the bits right of MSB to 1
 	val |= (val >>  1);
 	val |= (val >>  2);
 	val |= (val >>  4);
@@ -24,7 +24,7 @@ unsigned next_power2(unsigned val)
 
 uint32_t log2p2(uint32_t val)
 {
-	// 32位DeBruijn数列
+	// 32bit De Bruijn series
 	static const int ls_DeBruijn32[32] =
 	{
 		0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
@@ -49,4 +49,4 @@ bool wstr2str(std::string &dst, const std::wstring &src)
 	return true;
 }
 
-}; // end of namespace wyc
+} // end of namespace wyc

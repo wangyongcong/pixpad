@@ -28,14 +28,14 @@ inline bool is_power2(unsigned val)
 	return (val&(val-1))==0;
 }
 
-// 返回大于等于val的最小的2的幂
+// return the minimal a, which (2^a >= val)
 unsigned next_power2(unsigned val);
 
-// 返回2为底的对数,val必须为2的幂
+// return log2(val), if val = 2^a (a >= 0)
 uint32_t log2p2(uint32_t val);
 
 bool wstr2str(std::string &ret, const std::wstring &wstr);
 
-}; // end of namespace wyc
+} // end of namespace wyc
 
 #endif // WYC_HEADER_UTIL
