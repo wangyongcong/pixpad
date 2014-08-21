@@ -215,6 +215,7 @@ pip-log.txt
 .mr.developer.cfg
 lib/mathex*.lib
 lib/elog*.lib
+lib/libpixpad*.lib
 baretail.exe
 baregrep.exe
 *.udm
