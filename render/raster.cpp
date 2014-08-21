@@ -73,7 +73,6 @@ void sample_triangle(const xvec2f_t &center, const xvec2f_t verts[3], xsurface &
 			t1 += dt1;
 			sample_scan_line(y, center.x, x0, x1, surf);
 		}
-		assert(t0 <= 1 && t1 <= 1);
 		dy = y - p1->y;
 	}
 	else

@@ -46,7 +46,7 @@ set(render_hdr
 )
 
 aux_source_directory(test TEST_LIST)
-add_executable(${PROJECT_NAME}
+add_executable(${PROJECT_NAME}_test
 	${TEST_LIST}
 	${mathex_src}
 	${mathex_hdr}
@@ -56,3 +56,19 @@ add_executable(${PROJECT_NAME}
 	${render_hdr}
 )
 
+set(LIB_PIXPAD lib${PROJECT_NAME}_${CMAKE_BUILD_TYPE})
+add_library(${LIB_PIXPAD}
+	${TEST_LIST}
+	${mathex_src}
+	${mathex_hdr}
+	${util_src}
+	${util_hdr}
+	${render_src}
+	${render_hdr}
+)
+set_target_properties(${LIB_PIXPAD}
+	PROPERTIES
+	ARCHIVE_OUTPUT_DIRECTORY "${pixpad_SOURCE_DIR}/lib"
+	LIBRARY_OUTPUT_DIRECTORY "${pixpad_SOURCE_DIR}/lib"
+	RUNTIME_OUTPUT_DIRECTORY "${pixpad_SOURCE_DIR}/bin"
+)

@@ -3,6 +3,7 @@
 #include <QOpenGLContext>
 #include <QQmlEngine>
 #include "qglview.h"
+#include "render/raster.h"
 
 int main(int argc, char *argv[])
 {

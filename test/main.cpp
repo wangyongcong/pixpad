@@ -53,9 +53,31 @@ private:
 	unsigned m_count;
 };
 
+#include "raster.h"
+
+void test_triangle_sampler()
+{
+	using namespace wyc;
+	xsurface surf;
+	xvec2f_t center = {0.5f, 0.5f};
+	xvec2f_t verts[3];
+	float width = 64, height = 64, x, y;
+	for(int i=0; i<3; ++i)
+	{
+		x = width * float(rand()) / RAND_MAX;
+		y = height * float(rand()) / RAND_MAX;
+		verts[i].set(x, y);
+	}
+	sample_triangle(center, verts, surf);
+	printf("Surface detail:\n");
+	printf("(%f, %f), (%f, %f), (%f, %f)",
+		verts[0].x, verts[0].y, verts[1].x, verts[1].y, verts[2].x, verts[2].y);
+	surf.detail();
+}
+
 int main()
 {
-	cout << "Hello world" << endl;
+	test_triangle_sampler();
 	return 0;
 }
 
