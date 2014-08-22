@@ -137,7 +137,7 @@ inline bool almost_equal(FLOAT_T v1, FLOAT_T v2, FLOAT_T maxRelativeError)
 inline bool fequal (float v1, float v2) 
 {
 //	return fabs(v1-v2)<=std::numeric_limits<float>::epsilon();
-	return fabs(v1-v2)<=EPSILON_E6;
+	return fabs(v1-v2)<=EPSILON_E4;
 }
 
 inline bool fequal (double v1, double v2) 

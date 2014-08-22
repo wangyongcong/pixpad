@@ -2,6 +2,7 @@
 #include <atomic>
 
 #include "raster.h"
+#include "test_sampler.h"
 
 using namespace std;
 

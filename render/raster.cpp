@@ -49,7 +49,7 @@ void xsurface::verify(const xvec2f_t &center, const xvec2f_t verts[3]) const
 	float dx21 = p2->x - p1->x;
 	float dy21 = p2->y - p1->y;
 	float real_x, real_y, x0, x1;
-	for(size_t i = 0, cnt = m_frags.size(); i < cnt; ++i)
+	for(size_t i = 0, cnt = m_frags.size(); i < cnt; )
 	{
 		const fragment &iter = m_frags[i];
 		int cur_y = iter.y;
@@ -68,22 +68,19 @@ void xsurface::verify(const xvec2f_t &center, const xvec2f_t verts[3]) const
 		}
 		if(x0 > x1)
 			std::swap(x0, x1);
-		while(i < cnt)
-		{
-			const fragment &frag = m_frags[i];
-			if(frag.y != cur_y)
-				break;
-			real_x = frag.x + center.x;
-			if(real_x < x0)
-			{
-				assert(std::fabs(real_x - x0) < rel_err);
-			}
-			if(real_x >= x1)
-			{
-				assert(std::fabs(real_x - x1) < rel_err);
-			}
+		// make sure the previous sample is out of range
+		real_x = iter.x + center.x  - 1;
+		assert(real_x < x0 || std::fabs(real_x - x0) < rel_err);
+		// make sure the sample is within the triangle
+		do {
+			real_x = m_frags[i].x + center.x;
+			assert(real_x > x0 || std::fabs(real_x - x0) < rel_err);
+			assert(real_x < x1 || std::fabs(real_x - x1) < rel_err);
 			i += 1;
-		}
+		} while(i < cnt && m_frags[i].y == cur_y);
+		// make sure the next sample is out of range
+		real_x += 1;
+		assert(real_x > x1 || std::fabs(real_x - x1) < rel_err);
 	}
 }
 
