@@ -121,14 +121,12 @@ inline bool is_infinity(double f)
 	return (bits.ival&DBL_EXPONENT_MASK)==DBL_EXPONENT_MASK;
 }
 
-// 计算相对误差
 template<typename FLOAT_T>
 inline FLOAT_T relative_error(FLOAT_T v1, FLOAT_T v2)
 {
 	return fabs(v1)>fabs(v2) ? fabs((v1-v2)/v1) : fabs((v1-v2)/v2);
 }
 
-// 判断两数是否相等
 template<typename FLOAT_T>
 inline bool almost_equal(FLOAT_T v1, FLOAT_T v2, FLOAT_T maxRelativeError)
 {

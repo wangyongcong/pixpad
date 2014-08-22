@@ -16,10 +16,16 @@ include(deployment.pri)
 HEADERS += \
 	qglview.h
 
-unix|win32: LIBS += -L$$PWD/../lib/ -llibpixpad_Debug
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../lib/ -llibpixpad
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../lib/ -llibpixpadd
+else:unix: LIBS += -L$$PWD/../lib/ -llibpixpad
 
 INCLUDEPATH += $$PWD/../
 DEPENDPATH += $$PWD/../
 
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/../lib/libpixpad_Debug.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/../lib/liblibpixpad_Debug.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../lib/liblibpixpad.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../lib/liblibpixpadd.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../lib/libpixpad.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../lib/libpixpadd.lib
+else:unix: PRE_TARGETDEPS += $$PWD/../lib/liblibpixpad.a

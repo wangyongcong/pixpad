@@ -30,24 +30,8 @@ public:
 		if(x > m_maxx)
 			m_maxx = x;
 	}
-	void detail() const
-	{
-		int cur_line = -1;
-//		int xrange = m_maxx - m_minx;
-		std::vector<fragment>::const_reverse_iterator iter, end;
-		for(iter = m_frags.rbegin(), end = m_frags.rend(); iter != end; ++iter)
-		{
-			if(cur_line != iter->y)
-			{
-				// new line
-				cur_line = iter->y;
-				printf("\nLine %02d\t%02d", cur_line, iter->x);
-			}
-			else
-				printf(", %02d", iter->x);
-		}
-		printf("\n");
-	}
+	void detail() const;
+	void verify(const xvec2f_t &center, const xvec2f_t verts[3]) const;
 
 private:
 	struct fragment {

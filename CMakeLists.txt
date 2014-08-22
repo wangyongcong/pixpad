@@ -9,6 +9,15 @@ endif()
 
 message(STATUS "Compiler flags: " ${CMAKE_CXX_FLAGS})
 
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
+
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+	set(LIB_SUFFIX "d")
+else()
+	set(LIB_SUFFIX)
+endif()
+set(LIBRARY_OUTPUT_PATH  ${CMAKE_SOURCE_DIR}/lib)
+
 INCLUDE_DIRECTORIES(
 	${pixpad_SOURCE_DIR}
 	${pixpad_SOURCE_DIR}/mathex
@@ -45,18 +54,20 @@ set(render_hdr
 	render/raster.h
 )
 
-aux_source_directory(test TEST_LIST)
-add_executable(${PROJECT_NAME}_test
-	${TEST_LIST}
-	${mathex_src}
-	${mathex_hdr}
-	${util_src}
-	${util_hdr}
-	${render_src}
-	${render_hdr}
-)
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+	aux_source_directory(test TEST_LIST)
+	add_executable(${PROJECT_NAME}_test
+		${TEST_LIST}
+		${mathex_src}
+		${mathex_hdr}
+		${util_src}
+		${util_hdr}
+		${render_src}
+		${render_hdr}
+	)
+endif()
 
-set(LIB_PIXPAD lib${PROJECT_NAME}_${CMAKE_BUILD_TYPE})
+set(LIB_PIXPAD lib${PROJECT_NAME}${LIB_SUFFIX})
 add_library(${LIB_PIXPAD}
 	${TEST_LIST}
 	${mathex_src}
@@ -65,10 +76,4 @@ add_library(${LIB_PIXPAD}
 	${util_hdr}
 	${render_src}
 	${render_hdr}
-)
-set_target_properties(${LIB_PIXPAD}
-	PROPERTIES
-	ARCHIVE_OUTPUT_DIRECTORY "${pixpad_SOURCE_DIR}/lib"
-	LIBRARY_OUTPUT_DIRECTORY "${pixpad_SOURCE_DIR}/lib"
-	RUNTIME_OUTPUT_DIRECTORY "${pixpad_SOURCE_DIR}/bin"
 )
