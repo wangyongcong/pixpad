@@ -28,7 +28,6 @@ INCLUDE_DIRECTORIES(
 # setup lib mathex
 set(mathex_src
 	mathex/mathex.cpp
-	mathex/vecmath.cpp
 )
 set(mathex_hdr
 	mathex/mathex.h
