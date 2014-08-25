@@ -4,6 +4,8 @@
 namespace test
 {
 
+void test_triangle_sampler();
+
 } // end of namespace test
 
 #endif // HEADER_TEST_SAMPLER
