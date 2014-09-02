@@ -3,13 +3,15 @@
 
 #include <QQuickItem>
 #include <QTimer>
+#include <QOpenGLFunctions>
 
-class QGLView : public QQuickItem
+class QGLView : public QQuickItem, public QOpenGLFunctions
 {
 	Q_OBJECT
 public:
 	explicit QGLView(QQuickItem *parent = 0);
 	virtual ~QGLView();
+	virtual void render();
 
 signals:
 
@@ -24,8 +26,6 @@ protected:
 	virtual QSGNode* updatePaintNode(QSGNode * oldNode, UpdatePaintNodeData * updatePaintNodeData);
 
 private:
-	float m_bkcolor;
-	float m_step;
 	QTimer *m_updateTimer;
 };
 

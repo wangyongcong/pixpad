@@ -2,17 +2,25 @@
 #include <QQuickView>
 #include <QOpenGLContext>
 #include <QQmlEngine>
-#include "qglview.h"
+#include "qmeshview.h"
 #include "render/raster.h"
 
 int main(int argc, char *argv[])
 {
 	QGuiApplication app(argc, argv);
 
-	qmlRegisterType<QGLView>("OpenGLUnderQML", 1, 0, "OpenGLView");
+	const char *libName = "QMLOpenGL";
+	int major = 1;
+	int minor = 0;
+	qmlRegisterType<QGLView>(libName, major, minor, "GLView");
+	qmlRegisterType<QMeshView>(libName, major, minor, "MeshView");
 
 	QQuickView view;
 	view.setSource(QUrl(QStringLiteral("qrc:///main.qml")));
+
+	QObject *root = view.rootObject();
+	root->connect(root, SIGNAL(vertsChanged(int, int, int)), root, SLOT(onVertsChanged(int, int, int)));
+
 	view.resize(800, 600);
 	view.show();
 
