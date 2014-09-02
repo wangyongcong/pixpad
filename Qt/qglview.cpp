@@ -5,8 +5,6 @@
 QGLView::QGLView(QQuickItem *parent) :
 	QQuickItem(parent)
 {
-	m_bkcolor = 0;
-	m_step = 0.03f;
 	m_updateTimer = 0;
 	setFlag(QQuickItem::ItemHasContents, true);
 	connect(this, SIGNAL(windowChanged(QQuickWindow*)), this, SLOT(onWindowChanged(QQuickWindow*)));
@@ -56,6 +54,11 @@ void QGLView::onFrameEnd()
 {
 }
 
+void QGLView::render()
+{
+
+}
+
 QSGNode* QGLView::updatePaintNode(QSGNode * oldNode, UpdatePaintNodeData *)
 {
 	QSGSimpleRectNode *node = static_cast<QSGSimpleRectNode*>(oldNode);
@@ -64,21 +67,7 @@ QSGNode* QGLView::updatePaintNode(QSGNode * oldNode, UpdatePaintNodeData *)
 		node = new QSGSimpleRectNode;
 		node->setRect(this->boundingRect());
 	}
-	QColor c;
-	c.setRgbF(m_bkcolor, m_bkcolor, m_bkcolor);
-	node->setColor(c);
-	m_bkcolor += m_step;
-	if(m_bkcolor > 1)
-	{
-		m_step = -m_step;
-		m_bkcolor = 1 + m_step;
-	}
-	else if(m_bkcolor < 0)
-	{
-		m_step = -m_step;
-		m_bkcolor = m_step;
-	}
-//	qDebug("updatePaintNode: %f", m_bkcolor);
 	node->markDirty(QSGNode::DirtyGeometry);
 	return node;
 }
+

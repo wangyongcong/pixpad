@@ -3,7 +3,8 @@ TEMPLATE = app
 QT += qml quick
 
 SOURCES += main.cpp \
-	qglview.cpp
+	qglview.cpp \
+    qmeshview.cpp
 
 RESOURCES += \
     qml.qrc
@@ -15,7 +16,8 @@ QML_IMPORT_PATH =
 include(deployment.pri)
 
 HEADERS += \
-	qglview.h
+	qglview.h \
+    qmeshview.h
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../lib/ -llibpixpad
