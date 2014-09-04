@@ -18,9 +18,8 @@ MeshView {
 	height: 32
 	source: "res/button.png"
 	opacity: 0.1
-
-	onXChanged: glview.vertsChanged(0, this.x, this.y)
-	onYChanged: glview.vertsChanged(0, this.x, this.y)
+	onXChanged: glview.vertsChanged(0, this.x + this.width * 0.5, this.y + this.height * 0.5)
+	onYChanged: glview.vertsChanged(0, this.x + this.width * 0.5, this.y + this.height * 0.5)
 
 	MouseArea {
 		id: mouse0
@@ -46,8 +45,9 @@ MeshView {
 	 y: 291
 	 width: 32
 	 height: 32
-	 onXChanged: glview.vertsChanged(1, this.x, this.y)
-	 onYChanged: glview.vertsChanged(1, this.x, this.y)
+	 opacity: 0.1
+	 onXChanged: glview.vertsChanged(1, this.x + this.width * 0.5, this.y + this.height * 0.5)
+	 onYChanged: glview.vertsChanged(1, this.x + this.width * 0.5, this.y + this.height * 0.5)
 	 MouseArea {
 		 id: mouse1
 		 drag.maximumY: glview.height - pt1.height
@@ -57,6 +57,12 @@ MeshView {
 		 drag.axis: Drag.XAndYAxis
 		 drag.target: pt1
 		 anchors.fill: parent
+		 onPressed: {
+			 pt1.opacity = 0.5
+		 }
+		 onReleased: {
+			 pt1.opacity = 0.1
+		 }
 	 }
 	 source: "res/button.png"
  }
@@ -67,8 +73,9 @@ MeshView {
 	 y: 291
 	 width: 32
 	 height: 32
-	 onXChanged: glview.vertsChanged(2, this.x, this.y)
-	 onYChanged: glview.vertsChanged(2, this.x, this.y)
+	 opacity: 0.1
+	 onXChanged: glview.vertsChanged(2, this.x + this.width * 0.5, this.y + this.height * 0.5)
+	 onYChanged: glview.vertsChanged(2, this.x + this.width * 0.5, this.y + this.height * 0.5)
 	 MouseArea {
 		 id: mouse2
 		 drag.maximumY: glview.height - pt2.height
@@ -78,6 +85,12 @@ MeshView {
 		 drag.axis: Drag.XAndYAxis
 		 drag.target: pt2
 		 anchors.fill: parent
+		 onPressed: {
+			 pt2.opacity = 0.5
+		 }
+		 onReleased: {
+			 pt2.opacity = 0.1
+		 }
 	 }
 	 source: "res/button.png"
  }

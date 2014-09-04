@@ -9,11 +9,10 @@ int main(int argc, char *argv[])
 {
 	QGuiApplication app(argc, argv);
 
-	const char *libName = "QMLOpenGL";
-	int major = 1;
-	int minor = 0;
-	qmlRegisterType<QGLView>(libName, major, minor, "GLView");
-	qmlRegisterType<QMeshView>(libName, major, minor, "MeshView");
+	const int major = 1;
+	const int minor = 0;
+	qmlRegisterType<QGLView>("QMLOpenGL", major, minor, "GLView");
+	qmlRegisterType<QMeshView>("QMLOpenGL", major, minor, "MeshView");
 
 	QQuickView view;
 	view.setSource(QUrl(QStringLiteral("qrc:///main.qml")));
