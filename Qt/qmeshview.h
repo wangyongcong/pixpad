@@ -9,11 +9,13 @@ class QMeshView : public QGLView
 	Q_OBJECT
 public:
 	explicit QMeshView(QQuickItem *parent = 0);
-	virtual void render();
 
 signals:
 
 public slots:
+	void onSync();
+	void onRender();
+	void onFrameEnd();
 	void onVertsChanged(int idx, int x, int y);
 
 private:

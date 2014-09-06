@@ -11,7 +11,6 @@ class QGLView : public QQuickItem, public QOpenGLFunctions
 public:
 	explicit QGLView(QQuickItem *parent = 0);
 	virtual ~QGLView();
-	virtual void render();
 
 signals:
 
@@ -19,11 +18,12 @@ public slots:
 	void onWindowChanged(QQuickWindow *win);
 	void onSceneGraphInitialized();
 	void onSceneGraphInvalidated();
+	void onSync();
+	void onRender();
 	void onFrameEnd();
-	void onFrame();
 
 protected:
-	virtual QSGNode* updatePaintNode(QSGNode * oldNode, UpdatePaintNodeData * updatePaintNodeData);
+//	virtual QSGNode* updatePaintNode(QSGNode * oldNode, UpdatePaintNodeData * updatePaintNodeData);
 
 private:
 	QTimer *m_updateTimer;

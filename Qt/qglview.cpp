@@ -21,19 +21,32 @@ void QGLView::onWindowChanged(QQuickWindow *win)
 {
 	if(win)
 	{
-		m_updateTimer = new QTimer(this);
-		connect(m_updateTimer, SIGNAL(timeout()), this, SLOT(onFrame()));
-		m_updateTimer->setInterval(30);
-		m_updateTimer->start();
 		connect(win, SIGNAL(sceneGraphInitialized()), this, SLOT(onSceneGraphInitialized()), Qt::DirectConnection);
 		connect(win, SIGNAL(sceneGraphInvalidated()), this, SLOT(onSceneGraphInvalidated()), Qt::DirectConnection);
-		connect(win, SIGNAL(frameSwapped()), this, SLOT(onFrameEnd()));
+
+		connect(win, SIGNAL(beforeSynchronizing()), this, SLOT(onSync()), Qt::DirectConnection);
+		connect(win, SIGNAL(beforeRendering()), this, SLOT(onRender()), Qt::DirectConnection);
+		connect(win, SIGNAL(frameSwapped()), this, SLOT(onFrameEnd()), Qt::DirectConnection);
+
+		win->setClearBeforeRendering(false);
+	}
+	else
+	{
+		// no window, stop rendering
 	}
 }
 
 void QGLView::onSceneGraphInitialized()
 {
-
+	this->initializeOpenGLFunctions();
+//	if(!this->initializeOpenGLFunctions())
+//		qDebug("[ERROR] Can't init OpenGL functions");
+//	else
+//		qDebug("OpenGL functions init OK");
+	m_updateTimer = new QTimer(this);
+	connect(m_updateTimer, SIGNAL(timeout()), this, SLOT(update()));
+	m_updateTimer->setInterval(30);
+	m_updateTimer->start();
 }
 
 void QGLView::onSceneGraphInvalidated()
@@ -45,29 +58,28 @@ void QGLView::onSceneGraphInvalidated()
 	}
 }
 
-void QGLView::onFrame()
+void QGLView::onSync()
 {
-	this->update();
+}
+
+void QGLView::onRender()
+{
 }
 
 void QGLView::onFrameEnd()
 {
 }
 
-void QGLView::render()
-{
-
-}
-
-QSGNode* QGLView::updatePaintNode(QSGNode * oldNode, UpdatePaintNodeData *)
-{
-	QSGSimpleRectNode *node = static_cast<QSGSimpleRectNode*>(oldNode);
-	if(!node)
-	{
-		node = new QSGSimpleRectNode;
-		node->setRect(this->boundingRect());
-	}
-	node->markDirty(QSGNode::DirtyGeometry);
-	return node;
-}
+//QSGNode* QGLView::updatePaintNode(QSGNode * oldNode, UpdatePaintNodeData *)
+//{
+//	return oldNode;
+//	QSGSimpleRectNode *node = static_cast<QSGSimpleRectNode*>(oldNode);
+//	if(!node)
+//	{
+//		node = new QSGSimpleRectNode;
+//		node->setRect(this->boundingRect());
+//	}
+//	node->markDirty(QSGNode::DirtyGeometry);
+//	return node;
+//}
 
