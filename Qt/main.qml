@@ -31,7 +31,7 @@ MeshView {
 		drag.maximumX: glview.width - pt0.width
 		drag.maximumY: glview.height - pt0.height
 		onPressed: {
-			pt0.opacity = 0.5
+			pt0.opacity = 0.8
 		}
 		onReleased: {
 			pt0.opacity = 0.1
@@ -58,7 +58,7 @@ MeshView {
 		 drag.target: pt1
 		 anchors.fill: parent
 		 onPressed: {
-			 pt1.opacity = 0.5
+			 pt1.opacity = 0.8
 		 }
 		 onReleased: {
 			 pt1.opacity = 0.1
@@ -86,7 +86,7 @@ MeshView {
 		 drag.target: pt2
 		 anchors.fill: parent
 		 onPressed: {
-			 pt2.opacity = 0.5
+			 pt2.opacity = 0.8
 		 }
 		 onReleased: {
 			 pt2.opacity = 0.1

@@ -10,7 +10,6 @@ QMeshView::QMeshView(QQuickItem *parent) :
 
 void QMeshView::onSync()
 {
-
 }
 
 void QMeshView::onRender()
