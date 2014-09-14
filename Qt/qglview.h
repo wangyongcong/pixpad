@@ -22,9 +22,6 @@ public slots:
 	void onRender();
 	void onFrameEnd();
 
-protected:
-//	virtual QSGNode* updatePaintNode(QSGNode * oldNode, UpdatePaintNodeData * updatePaintNodeData);
-
 private:
 	QTimer *m_updateTimer;
 };

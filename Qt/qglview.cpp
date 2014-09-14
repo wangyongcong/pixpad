@@ -91,16 +91,4 @@ void QGLView::onFrameEnd()
 {
 }
 
-//QSGNode* QGLView::updatePaintNode(QSGNode * oldNode, UpdatePaintNodeData *)
-//{
-//	return oldNode;
-//	QSGSimpleRectNode *node = static_cast<QSGSimpleRectNode*>(oldNode);
-//	if(!node)
-//	{
-//		node = new QSGSimpleRectNode;
-//		node->setRect(this->boundingRect());
-//	}
-//	node->markDirty(QSGNode::DirtyGeometry);
-//	return node;
-//}
 

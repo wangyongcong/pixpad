@@ -1,4 +1,5 @@
 #include <QGuiApplication>
+#include <QScreen>
 #include <QQuickView>
 #include <QQmlEngine>
 #include "qmeshview.h"
@@ -15,12 +16,14 @@ int main(int argc, char *argv[])
 
 	QQuickView view;
 	view.setSource(QUrl(QStringLiteral("qrc:///main.qml")));
-
-	QObject *root = view.rootObject();
-	root->connect(root, SIGNAL(vertsChanged(int, int, int)), root, SLOT(onVertsChanged(int, int, int)));
-
-	view.resize(800, 600);
+	QScreen *screen = QGuiApplication::primaryScreen();
+	QSize sz = screen->size() / 2;
+	view.resize(sz);
+	view.setMinimumSize(sz);
+	view.setMaximumSize(sz);
 	view.show();
+
+//	QObject *root = view.rootObject();
 
 	return app.exec();
 }

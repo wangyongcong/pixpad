@@ -4,24 +4,42 @@
 QMeshView::QMeshView(QQuickItem *parent) :
 	QGLView(parent)
 {
-	for(int i=0; i<3; ++i)
+	m_view_w = 1;
+	m_view_h = 1;
+	for(int i=0; i<3; ++i) {
 		m_verts[i].zero();
+	}
+	m_verts_changed = false;
 }
 
 void QMeshView::onSync()
 {
+	if(!m_verts_changed)
+		return;
+	QQuickWindow *win = window();
+	QSize sz = win->size() * win->devicePixelRatio();
+	int w = sz.width();
+	int h = sz.height();
+	if(w == 0 || h == 0)
+		return;
+	float inv_w = 1.0f / w;
+	float inv_h = 1.0f / h;
+	for(int i = 0; i < 3; ++i)
+	{
+		m_verts[i].set(m_pt[i].x() * inv_w, 1.0f - m_pt[i].y() * inv_h);
+	}
 }
 
 void QMeshView::onRender()
 {
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//	glPushAttrib(GL_ALL_ATTRIB_BITS);
-//	glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS );
-	glUseProgram(0);
 	QQuickWindow *win = window();
 	QSize sz = win->size() * win->devicePixelRatio();
-	glViewport(0, 0, sz.width(), sz.height());
+	int w = sz.width();
+	int h = sz.height();
+	glUseProgram(0);
+	glViewport(0, 0, w, h);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
@@ -36,7 +54,6 @@ void QMeshView::onRender()
 		glVertex2f(m_verts[2].x, m_verts[2].y);
 	glEnd();
 	glPopAttrib();
-//	glPopClientAttrib();
 }
 
 void QMeshView::onFrameEnd()
@@ -44,17 +61,8 @@ void QMeshView::onFrameEnd()
 
 }
 
-void QMeshView::onVertsChanged(int idx, int x, int y)
+void QMeshView::geometryChanged(const QRectF & newGeometry, const QRectF & oldGeometry)
 {
-	if(idx >= 3)
-		return;
-	QQuickWindow *win = window();
-	if(!win)
-		return;
-	QSize sz = win->size() * win->devicePixelRatio();
-	int w = sz.width();
-	int h = sz.height();
-	m_verts[idx].set(float(x)/w, 1.0f - float(y)/h);
-	qDebug("verts[%d]: (%.2f, %.2f)", idx, m_verts[idx].x, m_verts[idx].y);
+	QGLView::geometryChanged(newGeometry, oldGeometry);
+	m_verts_changed = true;
 }
-

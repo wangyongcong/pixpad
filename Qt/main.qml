@@ -8,7 +8,13 @@ MeshView {
 	width: 800
 	height: 600
 	anchors.fill: parent
-	signal vertsChanged(int idx, int x, int y)
+
+	Component.onCompleted: {
+		console.log("Component.onCompleted")
+		glview.vert0 = Qt.point(pt0.x + pt0.width * 0.5, pt0.y + pt0.height * 0.5)
+		glview.vert1 = Qt.point(pt1.x + pt1.width * 0.5, pt1.y + pt1.height * 0.5)
+		glview.vert2 = Qt.point(pt2.x + pt2.width * 0.5, pt2.y + pt2.height * 0.5)
+	}
 
  Image {
 	id: pt0
@@ -18,8 +24,8 @@ MeshView {
 	height: 32
 	source: "res/button.png"
 	opacity: 0.1
-	onXChanged: glview.vertsChanged(0, this.x + this.width * 0.5, this.y + this.height * 0.5)
-	onYChanged: glview.vertsChanged(0, this.x + this.width * 0.5, this.y + this.height * 0.5)
+	onXChanged: glview.vert0 = Qt.point(this.x + this.width * 0.5, this.y + this.height * 0.5)
+	onYChanged: glview.vert0 = Qt.point(this.x + this.width * 0.5, this.y + this.height * 0.5)
 
 	MouseArea {
 		id: mouse0
@@ -46,8 +52,8 @@ MeshView {
 	 width: 32
 	 height: 32
 	 opacity: 0.1
-	 onXChanged: glview.vertsChanged(1, this.x + this.width * 0.5, this.y + this.height * 0.5)
-	 onYChanged: glview.vertsChanged(1, this.x + this.width * 0.5, this.y + this.height * 0.5)
+	 onXChanged: glview.vert1 = Qt.point(this.x + this.width * 0.5, this.y + this.height * 0.5)
+	 onYChanged: glview.vert1 = Qt.point(this.x + this.width * 0.5, this.y + this.height * 0.5)
 	 MouseArea {
 		 id: mouse1
 		 drag.maximumY: glview.height - pt1.height
@@ -74,8 +80,8 @@ MeshView {
 	 width: 32
 	 height: 32
 	 opacity: 0.1
-	 onXChanged: glview.vertsChanged(2, this.x + this.width * 0.5, this.y + this.height * 0.5)
-	 onYChanged: glview.vertsChanged(2, this.x + this.width * 0.5, this.y + this.height * 0.5)
+	 onXChanged: glview.vert2 = Qt.point(this.x + this.width * 0.5, this.y + this.height * 0.5)
+	 onYChanged: glview.vert2 = Qt.point(this.x + this.width * 0.5, this.y + this.height * 0.5)
 	 MouseArea {
 		 id: mouse2
 		 drag.maximumY: glview.height - pt2.height
