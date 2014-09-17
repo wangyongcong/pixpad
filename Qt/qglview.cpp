@@ -1,6 +1,7 @@
 #include <QQuickWindow>
 #include <QSGSimpleRectNode>
 #include <QOpenGLContext>
+#include <QFile>
 #include "qglview.h"
 
 QGLView::QGLView(QQuickItem *parent) :
@@ -91,4 +92,68 @@ void QGLView::onFrameEnd()
 {
 }
 
+void QGLView::glslError(GLuint shader)
+{
+	GLint ret;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &ret);
+	if (ret<1) {
+		qCritical("Shader compile error: Unknown");
+		return;
+	}
+	ret += 1;
+	char *info = new char[ret];
+	glGetShaderInfoLog(shader, ret, &ret, info);
+	qCritical("Shader compile error:\n%s", info);
+	delete[] info;
+}
 
+GLuint QGLView::glslLoadSource(GLenum shader_type, const char *src, size_t length)
+{
+	GLuint shader = glCreateShader(shader_type);
+	if (shader == 0) {
+		return 0;
+	}
+	const GLchar *src_list[1] = { src };
+	const GLint len_list[1] = { length };
+	glShaderSource(shader, 1, src_list, len_list);
+	glCompileShader(shader);
+	GLint ret;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &ret);
+	if (ret == GL_FALSE) {
+		glslError(shader);
+		glDeleteShader(shader);
+		return 0;
+	}
+	return shader;
+}
+
+GLuint QGLView::glslBuildShader(GLuint *shaders, size_t count)
+{
+	GLuint program = glCreateProgram();
+	for (size_t i = 0; i < count; ++i)
+		glAttachShader(program, shaders[i]);
+	glLinkProgram(program);
+	GLint ret;
+	glGetProgramiv(program, GL_LINK_STATUS, &ret);
+	if (ret == GL_FALSE) {
+		glslError(program);
+		glDeleteProgram(program);
+		return 0;
+	}
+	return program;
+}
+
+GLuint QGLView::glslLoadFile(GLenum shader_type, const QString &path)
+{
+	QFile file(path);
+	if(!file.exists()) {
+		qWarning("File not found: %s", qPrintable(path));
+		return 0;
+	}
+	if(!file.open(QIODevice::ReadOnly))
+		return 0;
+	QByteArray data = file.readAll();
+	file.close();
+	GLuint shader = glslLoadSource(shader_type, data.data(), data.size());
+	return shader;
+}

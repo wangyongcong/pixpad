@@ -22,6 +22,11 @@ public slots:
 	void onRender();
 	void onFrameEnd();
 
+protected:
+	void glslError(GLuint shader);
+	GLuint glslLoadSource(GLenum shader_type, const char *src, size_t length);
+	GLuint glslBuildShader(GLuint *shaders, size_t count);
+	GLuint glslLoadFile(GLenum shader_type, const QString &path);
 private:
 	QTimer *m_updateTimer;
 };

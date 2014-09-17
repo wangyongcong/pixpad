@@ -10,6 +10,7 @@ QMeshView::QMeshView(QQuickItem *parent) :
 		m_verts[i].zero();
 	}
 	m_verts_changed = false;
+	m_program = 0;
 }
 
 void QMeshView::onSync()
@@ -28,6 +29,33 @@ void QMeshView::onSync()
 	{
 		m_verts[i].set(m_pt[i].x() * inv_w, 1.0f - m_pt[i].y() * inv_h);
 	}
+}
+
+bool QMeshView::buildProgram()
+{
+	GLuint vs = glslLoadFile(GL_VERTEX_SHADER, "res/texquad.vs");
+	if(!vs) {
+		return false;
+	}
+	GLuint fs = glslLoadFile(GL_FRAGMENT_SHADER, "res/texquad.fs");
+	if(!fs) {
+		glDeleteShader(vs);
+		return false;
+	}
+	GLuint shaders[2] = {vs, fs};
+	m_program = glslBuildShader(shaders, 2);
+	glDeleteShader(vs);
+	glDeleteShader(fs);
+	return m_program != 0;
+}
+
+void QMeshView::onSceneGraphInitialized()
+{
+	QGLView::onSceneGraphInitialized();
+	if(!buildProgram())
+		qWarning("failed to build program");
+	else
+		qDebug("program ok");
 }
 
 void QMeshView::onRender()

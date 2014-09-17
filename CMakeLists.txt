@@ -28,12 +28,14 @@ INCLUDE_DIRECTORIES(
 # setup lib mathex
 set(mathex_src
 	mathex/mathex.cpp
+	mathex/transform.cpp
 )
 set(mathex_hdr
 	mathex/mathex.h
 	mathex/vecmath.h
 	mathex/arithmetic_helper.h
 	mathex/fixedp.h
+	mathex/transform.h
 )
 
 # setup lib util

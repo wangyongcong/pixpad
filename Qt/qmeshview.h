@@ -46,15 +46,18 @@ public slots:
 	void onSync();
 	void onRender();
 	void onFrameEnd();
+	void onSceneGraphInitialized();
 
 protected:
 	virtual void geometryChanged(const QRectF & newGeometry, const QRectF & oldGeometry);
+	bool buildProgram();
 
 private:
 	float m_view_w, m_view_h;
 	QPointF m_pt[3];
 	wyc::xvec2f_t m_verts[3];
 	bool m_verts_changed;
+	GLuint m_program;
 };
 
 #endif // QMESHVIEW_H
