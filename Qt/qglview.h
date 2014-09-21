@@ -16,11 +16,11 @@ signals:
 
 public slots:
 	void onWindowChanged(QQuickWindow *win);
-	void onSceneGraphInitialized();
-	void onSceneGraphInvalidated();
-	void onSync();
-	void onRender();
-	void onFrameEnd();
+	virtual void onSceneGraphInitialized();
+	virtual void onSceneGraphInvalidated();
+	virtual void onSync();
+	virtual void onRender();
+	virtual void onFrameEnd();
 
 protected:
 	void glslError(GLuint shader);

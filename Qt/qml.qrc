@@ -2,7 +2,7 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>res/button.png</file>
-        <file>res/texquad.vs</file>
-        <file>res/texquad.fs</file>
+        <file>res/texquad_vs.glsl</file>
+        <file>res/texquad_fs.glsl</file>
     </qresource>
 </RCC>

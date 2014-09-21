@@ -1,17 +1,17 @@
-#ifndef QMESHVIEW_H
-#define QMESHVIEW_H
+#ifndef QPIXPAD_H
+#define QPIXPAD_H
 
 #include "mathex/vecmath.h"
 #include "qglview.h"
 
-class QMeshView : public QGLView
+class QPixpad : public QGLView
 {
 	Q_OBJECT
 	Q_PROPERTY(QPointF vert0 READ vert0 WRITE setVert0)
 	Q_PROPERTY(QPointF vert1 READ vert1 WRITE setVert1)
 	Q_PROPERTY(QPointF vert2 READ vert2 WRITE setVert2)
 public:
-	explicit QMeshView(QQuickItem *parent = 0);
+	explicit QPixpad(QQuickItem *parent = 0);
 	const QPointF& vert0() const
 	{
 		return m_pt[0];
@@ -43,14 +43,14 @@ public:
 signals:
 
 public slots:
-	void onSync();
-	void onRender();
-	void onFrameEnd();
-	void onSceneGraphInitialized();
+	virtual void onSceneGraphInitialized();
+	virtual void onSceneGraphInvalidated();
+	virtual void onSync();
+	virtual void onRender();
+	virtual void onFrameEnd();
 
 protected:
 	virtual void geometryChanged(const QRectF & newGeometry, const QRectF & oldGeometry);
-	bool buildProgram();
 
 private:
 	float m_view_w, m_view_h;
@@ -58,6 +58,9 @@ private:
 	wyc::xvec2f_t m_verts[3];
 	bool m_verts_changed;
 	GLuint m_program;
+	GLuint m_vbo, m_ibo;
+	GLuint m_texture;
+	wyc::xmat4f_t m_mat_proj;
 };
 
-#endif // QMESHVIEW_H
+#endif // QPIXPAD_H

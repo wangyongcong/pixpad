@@ -2,7 +2,7 @@
 #include <QScreen>
 #include <QQuickView>
 #include <QQmlEngine>
-#include "qmeshview.h"
+#include "qpixpad.h"
 #include "render/raster.h"
 
 int main(int argc, char *argv[])
@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 	const int major = 1;
 	const int minor = 0;
 	qmlRegisterType<QGLView>("QMLOpenGL", major, minor, "GLView");
-	qmlRegisterType<QMeshView>("QMLOpenGL", major, minor, "MeshView");
+	qmlRegisterType<QPixpad>("QMLOpenGL", major, minor, "Pixpad");
 
 	QQuickView view;
 	view.setSource(QUrl(QStringLiteral("qrc:///main.qml")));

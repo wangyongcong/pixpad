@@ -127,7 +127,7 @@ void set_perspective(xmat4f_t &proj, float fov, float aspect, float fnear, float
 /// 设置UI投影矩阵(列矩阵)
 void set_ui_projection(xmat4f_t &proj, float screen_width, float screen_height, float z_range);
 
-}; // namespace wyc
+} // namespace wyc
 
 #endif // __HEADER_WYC_TRANSFORM
 

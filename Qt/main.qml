@@ -3,7 +3,7 @@ import QtQuick.Window 2.1
 import QtQuick.Controls 1.2
 import QMLOpenGL 1.0
 
-MeshView {
+Pixpad {
 	id: glview
 	width: 800
 	height: 600

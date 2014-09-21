@@ -8,7 +8,7 @@ QGLView::QGLView(QQuickItem *parent) :
 	QQuickItem(parent)
 {
 	setFlag(QQuickItem::ItemHasContents, true);
-	connect(this, SIGNAL(windowChanged(QQuickWindow*)), this, SLOT(onWindowChanged(QQuickWindow*)));
+	connect(this, SIGNAL(windowChanged(QQuickWindow*)), this, SLOT(onWindowChanged(QQuickWindow*)), Qt::DirectConnection);
 	// start frame update
 	m_updateTimer = new QTimer(this);
 	connect(m_updateTimer, SIGNAL(timeout()), this, SLOT(update()));
@@ -26,6 +26,7 @@ QGLView::~QGLView()
 
 void QGLView::onWindowChanged(QQuickWindow *win)
 {
+	qDebug("QGLView::onWindowChanged");
 	if(win)
 	{
 		connect(win, SIGNAL(sceneGraphInitialized()), this, SLOT(onSceneGraphInitialized()), Qt::DirectConnection);
@@ -36,6 +37,7 @@ void QGLView::onWindowChanged(QQuickWindow *win)
 		connect(win, SIGNAL(frameSwapped()), this, SLOT(onFrameEnd()), Qt::DirectConnection);
 
 		win->setClearBeforeRendering(false);
+
 
 		qDebug("Enter window");
 	}
@@ -49,14 +51,11 @@ void QGLView::onWindowChanged(QQuickWindow *win)
 void QGLView::onSceneGraphInitialized()
 {
 	this->initializeOpenGLFunctions();
-//	if(!this->initializeOpenGLFunctions())
-//		qDebug("[ERROR] Can't init OpenGL functions");
-//	else
-//		qDebug("OpenGL functions init OK");
-
+//	if(!this->initializeOpenGLFunctions()) {
+//		qFatal("Failed to initialize OpenGL functions");
+//	}
 	QQuickWindow *win = window();
-	if(!win)
-		return;
+	Q_ASSERT(win);
 	QOpenGLContext *glctx = win->openglContext();
 	if(glctx)
 	{

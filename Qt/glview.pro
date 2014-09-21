@@ -4,7 +4,7 @@ QT += qml quick
 
 SOURCES += main.cpp \
 	qglview.cpp \
-    qmeshview.cpp
+    qpixpad.cpp
 
 RESOURCES += \
     qml.qrc
@@ -17,7 +17,7 @@ include(deployment.pri)
 
 HEADERS += \
 	qglview.h \
-    qmeshview.h
+    qpixpad.h
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../lib/ -llibpixpad
