@@ -29,6 +29,7 @@ INCLUDE_DIRECTORIES(
 set(mathex_src
 	mathex/mathex.cpp
 	mathex/transform.cpp
+mathex/geometry.cpp
 )
 set(mathex_hdr
 	mathex/mathex.h
@@ -36,6 +37,7 @@ set(mathex_hdr
 	mathex/arithmetic_helper.h
 	mathex/fixedp.h
 	mathex/transform.h
+mathex/geometry.h
 )
 
 # setup lib util

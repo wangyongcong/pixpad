@@ -21,10 +21,10 @@ bool xtransform::update(xtransform *parent_trans, bool rebuild)
 	if(rebuild || m_flag&LOCAL_2_WORLD) {
 		rebuild_local2world();
 		m_flag|=WORLD_2_LOCAL;
-		if(parent_trans) 
+		if(parent_trans)
 			m_local2world=parent_trans->local2world()*m_local2world;
 		rebuild_world2local();
-		if(parent_trans) 
+		if(parent_trans)
 			m_world2local*=parent_trans->world2local();
 		return true;
 	}
@@ -37,7 +37,9 @@ void xtransform::rebuild_local2world()
 	m_local2world.set_col(1,m_up*m_scale.y);
 	m_local2world.set_col(2,m_forward*m_scale.z);
 	m_local2world.set_col(3,m_position);
-	m_local2world.set_row(3,xvec4f_t(0,0,0,1));
+	xvec4f_t vec;
+	vec.set(0, 0, 0, 1);
+	m_local2world.set_row(3,vec);
 	m_flag&=~LOCAL_2_WORLD;
 }
 
@@ -46,7 +48,9 @@ void xtransform::rebuild_world2local()
 	m_world2local.set_row(0,m_right*(1.0f/m_scale.x));
 	m_world2local.set_row(1,m_up*(1.0f/m_scale.y));
 	m_world2local.set_row(2,m_forward*(1.0f/m_scale.z));
-	m_world2local.set_row(3,xvec4f_t(0,0,0,1));
+	xvec4f_t vec;
+	vec.set(0,0,0,1);
+	m_world2local.set_row(3,vec);
 	xvec3f_t tpos=m_world2local*-m_position;
 	m_world2local.set_col(3,tpos);
 	m_flag&=~WORLD_2_LOCAL;
@@ -171,8 +175,11 @@ void set_ui_projection(xmat4f_t &proj, float screen_width, float screen_height, 
 	set_orthograph(proj,0,0,0,screen_width,screen_height,z_range*2);
 	wyc::xmat4f_t mat_ui;
 	mat_ui.identity();
-	mat_ui.set_row(1,wyc::xvec4f_t(0,-1,0,screen_height));
-	mat_ui.set_row(2,wyc::xvec4f_t(0,0,1,-z_range));
+	wyc::xvec4f_t vec;
+	vec.set(0,-1,0,screen_height);
+	mat_ui.set_row(1,vec);
+	vec.set(0,0,1,-z_range);
+	mat_ui.set_row(2,vec);
 	proj.mul(mat_ui);
 }
 

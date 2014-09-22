@@ -8,10 +8,6 @@
 namespace wyc
 {
 
-//
-// 常量和宏定义
-//
-
 #define XMATH_PI	(3.1415926535897932384626433832795)
 #define XMATH_2PI	(6.283185307179586476925286766559)		// 2*PI
 #define XMATH_HPI	(1.5707963267948966192313216916398)		// PI/2
@@ -21,12 +17,11 @@ namespace wyc
 // Napier's constant, its symbol (e) honors Euler
 #define XMATH_EULER	(2.71828182845904523536)
 
-// 极小值
-#define EPSILON_E4	(float)(1E-4) 
+#define EPSILON_E4	(float)(1E-4)
 #define EPSILON_E6	(float)(1E-6)
 #define EPSILON_E10	(double)(1E-10)
 
-#ifndef MIN 
+#ifndef MIN
 #define MIN(a,b)	((a)<(b)?(a):(b))
 #endif
 
@@ -44,28 +39,18 @@ namespace wyc
 
 #define FAST_DIV_255(n) (((n)+((n)>>8))>>8)
 
-// 角度和弧度之间的转换
-#define XMATH_PID180 (0.01745329251994329576923690768489)	// PI/180
-#define XMATH_180DPI (57.295779513082320876798154814105)	// 180/PI
+#define XMATH_PID180 (0.01745329251994329576923690768489)	// Pi/180
+#define XMATH_180DPI (57.295779513082320876798154814105)		// 180/Pi
 #define DEG_TO_RAD(ang) (float((ang)*XMATH_PID180))
 #define RAD_TO_DEG(rad) (float((rad)*XMATH_180DPI))
 
-///////////////////////////////////////////////////////////
-//
-// 三角函数
-//
-
-// 构建sin/cos查找表
+// sin/cos lookup table
 void build_sincos_table();
 
-// 快速sin/cos函数
+// fast sin/cos by table lookup
 float fast_sin(float ang);
 float fast_cos(float ang);
 
-////////////////////////////////////////////////////////////
-//
-// 浮点数辅助函数
-//
 typedef float  float32_t;
 typedef double float64_t;
 
@@ -91,19 +76,19 @@ union DOUBLEBITS
 	float64_t fval;
 };
 
-inline bool is_nan(float f) 
-{	
+inline bool is_nan(float f)
+{
 	FLOATBITS bits;
 	bits.fval=f;
-	return (bits.ival&FLT_EXPONENT_MASK)==FLT_EXPONENT_MASK 
+	return (bits.ival&FLT_EXPONENT_MASK)==FLT_EXPONENT_MASK
 		&& bits.ival&DBL_MANTISSA_MASK;
 }
 
-inline bool is_nan(double f) 
-{	
+inline bool is_nan(double f)
+{
 	DOUBLEBITS bits;
 	bits.fval=f;
-	return (bits.ival&DBL_EXPONENT_MASK)==DBL_EXPONENT_MASK 
+	return (bits.ival&DBL_EXPONENT_MASK)==DBL_EXPONENT_MASK
 		&& bits.ival&DBL_MANTISSA_MASK;
 }
 
@@ -114,8 +99,8 @@ inline bool is_infinity(float f)
 	return (bits.ival&FLT_EXPONENT_MASK)==FLT_EXPONENT_MASK;
 }
 
-inline bool is_infinity(double f) 
-{	
+inline bool is_infinity(double f)
+{
 	DOUBLEBITS bits;
 	bits.fval=f;
 	return (bits.ival&DBL_EXPONENT_MASK)==DBL_EXPONENT_MASK;
@@ -134,71 +119,62 @@ inline bool almost_equal(FLOAT_T v1, FLOAT_T v2, FLOAT_T maxRelativeError)
 	return fabs(v1-v2) <= (fabs(v1)>fabs(v2) ? fabs(v1) : fabs(v2)) * maxRelativeError;
 }
 
-inline bool fequal (float v1, float v2) 
+inline bool fequal (float v1, float v2)
 {
 //	return fabs(v1-v2)<=std::numeric_limits<float>::epsilon();
 	return fabs(v1-v2)<=EPSILON_E4;
 }
 
-inline bool fequal (double v1, double v2) 
+inline bool fequal (double v1, double v2)
 {
 //	return fabs(v1-v2)<=std::numeric_limits<double>::epsilon();
 	return fabs(v1-v2)<=EPSILON_E10;
 }
 
-//
-// 浮点数到整数的快速转换
-//
+// fast convertion from floating point to integer
 #define FTI_MAGIC 6755399441055744.0
 #define FTI_MAGIC_DELTA 0.499999999999
 
-// 四舍五入到整数,比C强制类型转换快15%,而且更加精确
-inline int32_t fast_round (float64_t dval) 
+// 15% faster than C-style convertion int(dval), and more precise
+inline int32_t fast_round (float64_t dval)
 {
 	dval += FTI_MAGIC;
 	return *(int32_t*)&dval;
 }
 
-// 截取到整数
-inline int32_t fast_floor (float64_t dval) 
+inline int32_t fast_floor (float64_t dval)
 {
 	return fast_round(dval-FTI_MAGIC_DELTA);
 }
 
-// 进位到整数
-inline int32_t fast_ceil (float64_t dval) 
+inline int32_t fast_ceil (float64_t dval)
 {
 	return fast_round(dval+FTI_MAGIC_DELTA);
 }
 
-// 绝对值
 inline float32_t fabs(float32_t a)
 {
 	*(int*)(&a)&=0x7FFFFFFF;
 	return a;
 }
 
-// 复制符号
+// return abs(a) * (b < 0 ? -1 : 1)
 inline float32_t copy_sign(float32_t a, float32_t b)
 {
 	*(uint32_t*)(&a) = ( (*(uint32_t*)(&a)) & 0x7FFFFFFF ) | ( (*(uint32_t*)(&b)) & 0x80000000 );
 	return a;
 }
 
-// 定位到[0,1]边界
+// clamp f to [0,1]
 void clamp(float32_t &f);
 
-// 正周期函数
 float32_t mod(float32_t a, float32_t b);
 
-
-//
-// 快速计算平方根和平方根的倒数，基于NR
-// Deprecated: 在MSVC下与std::sqrt()和1.0/std::sqrt()已无任何优势
-//
+// fast sqrt and invsqrt with Newton's method
+// relative error is about 0.177585%
 float32_t fast_sqrt(float32_t x);
 float32_t fast_invsqrt(float32_t x);
 
 } // namespace wyc
 
-#endif // end of WYC_HEADER_MATHEX 
+#endif // end of WYC_HEADER_MATHEX

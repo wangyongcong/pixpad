@@ -20,27 +20,13 @@ class xvector
 public:
 	typedef T element_t;
 	enum { DIMENSION = D };
-	
+
 	T	elem[D];
 
-	xvector() 
-	{
-		assert(D>1);
-	}
-	xvector(const xvector &v)
-	{
-		assert(D>1);
-		*this=v;
-	}
 	inline xvector& operator = (const xvector &v)
 	{
 		memcpy(elem,v.elem,sizeof(T)*D);
 		return *this;
-	}
-	xvector(T val) 
-	{
-		assert(D>1);
-		*this=v;
 	}
 	xvector& operator = (T val)
 	{
@@ -48,11 +34,6 @@ public:
 		while(i<D)
 			elem[i++]=val;
 		return *this;
-	}
-	template<int D2>
-	xvector(const xvector<T,D2> &v) {
-		assert(D>1);
-		*this=v;
 	}
 	template<int D2>
 	inline xvector& operator = (const xvector<T,D2> &v)
@@ -193,14 +174,14 @@ public:
 			elem[i]*=len;
 	}
 
-	bool operator == (const xvector& v) const 
+	bool operator == (const xvector& v) const
 	{
 		for(int i=0; i<D; ++i)
 			if(elem[i]!=v.elem[i])
 				return false;
 		return true;
 	}
-	bool operator != (const xvector& v) const 
+	bool operator != (const xvector& v) const
 	{
 		for(int i=0; i<D; ++i)
 			if(elem[i]!=v.elem[i])
@@ -225,32 +206,16 @@ public:
 		};
 	};
 
-	xvector() {}
-
-	xvector(T v1, T v2) : x(v1), y(v2) {}
-
-	xvector(const xvector &v)
-	{
-		*this=v;
-	}
 	inline xvector& operator = (const xvector &v)
 	{
 		x=v.x;
 		y=v.y;
 		return *this;
 	}
-	xvector(T val) 
-	{
-		x=y=val;
-	}
 	inline xvector& operator = (T val)
 	{
 		x=y=val;
 		return *this;
-	}
-	template<int D2>
-	xvector(const xvector<T,D2> &v) {
-		*this=v;
 	}
 	template<int D2>
 	inline xvector& operator = (const xvector<T,D2> &v)
@@ -380,11 +345,11 @@ public:
 	{
 		return (this->dot(v)/(length()*v.length()));
 	}
-	bool operator == (const xvector& v) const 
+	bool operator == (const xvector& v) const
 	{
 		return x==v.x && y==v.y;
 	}
-	bool operator != (const xvector& v) const 
+	bool operator != (const xvector& v) const
 	{
 		return x!=v.x || y!=v.y;
 	}
@@ -406,16 +371,6 @@ public:
 		};
 	};
 
-	xvector() {}
-
-	xvector(T v1, T v2, T v3) : x(v1), y(v2), z(v3) {}
-
-	xvector(const xvector &v)
-	{
-		x=v.x;
-		y=v.y;
-		z=v.z;
-	}
 	inline xvector& operator = (const xvector &v)
 	{
 		x=v.x;
@@ -423,18 +378,10 @@ public:
 		z=v.z;
 		return *this;
 	}
-	xvector(T val) 
-	{
-		x=y=z=val;
-	}
 	inline xvector& operator = (T val)
 	{
 		x=y=z=val;
 		return *this;
-	}
-	template<int D2>
-	xvector(const xvector<T,D2> &v) {
-		*this=v;
 	}
 	template<int D2>
 	xvector& operator = (const xvector<T,D2> &v)
@@ -577,11 +524,11 @@ public:
 	{
 		return (this->dot(v)/(length()*v.length()));
 	}
-	bool operator == (const xvector& v) const 
+	bool operator == (const xvector& v) const
 	{
 		return x==v.x && y==v.y && z==v.z;
 	}
-	bool operator != (const xvector& v) const 
+	bool operator != (const xvector& v) const
 	{
 		return x!=v.x || y!=v.y || z!=v.z;
 	}
@@ -604,14 +551,6 @@ public:
 		};
 	};
 
-	xvector() {}
-
-	xvector(T v1, T v2, T v3, T v4=1) : x(v1), y(v2), z(v3), w(v4) {}
-
-	xvector(const xvector &v)
-	{
-		*this=v;
-	}
 	inline xvector& operator = (const xvector &v)
 	{
 		x=v.x;
@@ -620,18 +559,10 @@ public:
 		w=v.w;
 		return *this;
 	}
-	xvector(T val) 
-	{
-		x=y=z=w=val;
-	}
 	inline xvector& operator = (T val)
 	{
 		x=y=z=w=val;
 		return *this;
-	}
-	template<int D2>
-	xvector(const xvector<T,D2> &v) {
-		*this=v;
 	}
 	template<int D2>
 	xvector& operator = (const xvector<T,D2> &v)
@@ -791,11 +722,11 @@ public:
 	{
 		return (this->dot(v)/(length()*v.length()));
 	}
-	bool operator == (const xvector& v) const 
+	bool operator == (const xvector& v) const
 	{
 		return x==v.x && y==v.y && z==v.z && w==v.w;
 	}
-	bool operator != (const xvector& v) const 
+	bool operator != (const xvector& v) const
 	{
 		return x!=v.x || y!=v.y || z!=v.z || w!=v.w;
 	}
@@ -860,15 +791,6 @@ public:
 
 	T	elem[R][C]; // row first
 
-	xmatrix() 
-	{
-		assert(R>0 && C>0);
-	};
-	xmatrix(const xmatrix &m)
-	{
-		assert(R>0 && C>0);
-		*this=m;
-	}
 	inline xmatrix& operator = (const xmatrix &m)
 	{
 		memcpy(elem[0],m.elem[0],sizeof(T)*R*C);
@@ -886,7 +808,7 @@ public:
 		for(int i=0; i<R; ++i)
 			elem[i][i]=1;
 	}
-	inline T* data() 
+	inline T* data()
 	{
 		return elem[0];
 	}
@@ -953,7 +875,7 @@ public:
 	{
 		return this->div(val);
 	}
-	inline xmatrix& operator *= (const xmatrix<T,C,R> &m) 
+	inline xmatrix& operator *= (const xmatrix<T,C,R> &m)
 	{
 		return this->mul(m);
 	}
@@ -1052,7 +974,7 @@ public:
 		}
 		return *this;
 	}
-	xmatrix& mul (const xmatrix<T,C,R> &m) 
+	xmatrix& mul (const xmatrix<T,C,R> &m)
 	{
 		T tmp[C], *dst;
 		int i, j, k;
@@ -1062,7 +984,7 @@ public:
 			for(j=0; j<C; ++j)
 			{
 				tmp[j]=0;
-				for(k=0; k<C; ++k) 
+				for(k=0; k<C; ++k)
 					tmp[j]+=dst[k]*m.elem[k][j];
 			}
 			memcpy(dst,tmp,sizeof(T)*C);
@@ -1088,7 +1010,7 @@ public:
 		}
 		return *this;
 	}
-	xmatrix& transpose() 
+	xmatrix& transpose()
 	{
 		T *dst;
 		for(int i=0; i<R; ++i)
@@ -1262,7 +1184,7 @@ public:
 	}
 
 	template<int R2, int C2>
-	xmatrix& copy (const xmatrix<T,R2,C2> &m) 
+	xmatrix& copy (const xmatrix<T,R2,C2> &m)
 	{
 		int r=std::min(R2,R);
 		int c=std::min(C2,C);
@@ -1310,18 +1232,11 @@ public:
 		T	elem[2][2];
 		struct
 		{
-			T 
+			T
 			m00, m01,
 			m10, m11;
 		};
 	};
-
-	xmatrix() {};
-
-	xmatrix(const xmatrix &m)
-	{
-		*this=m;
-	}
 
 	xmatrix& operator = (const xmatrix &m)
 	{
@@ -1339,7 +1254,7 @@ public:
 		m00=m11=1;
 		m10=m01=0;
 	}
-	inline T* data() 
+	inline T* data()
 	{
 		return elem[0];
 	}
@@ -1381,7 +1296,7 @@ public:
 		elem[0][c]=v[0];
 		elem[1][c]=v[1];
 	}
-	inline void get_row(unsigned r, xvector<T,2> &v) const 
+	inline void get_row(unsigned r, xvector<T,2> &v) const
 	{
 		assert(r<2);
 		v.set(elem[r][0],elem[r][1]);
@@ -1414,26 +1329,26 @@ public:
 	}
 	xmatrix& add (const xmatrix &m)
 	{
-		m00+=m.m00; m01+=m.m01; 
-		m10+=m.m10; m11+=m.m11; 
+		m00+=m.m00; m01+=m.m01;
+		m10+=m.m10; m11+=m.m11;
 		return *this;
 	}
 	xmatrix& add (const xmatrix &m1, const xmatrix &m2)
 	{
-		m00=m1.m00+m2.m00; m01=m1.m01+m2.m01; 
-		m10=m1.m10+m2.m10; m11=m1.m11+m2.m11; 
+		m00=m1.m00+m2.m00; m01=m1.m01+m2.m01;
+		m10=m1.m10+m2.m10; m11=m1.m11+m2.m11;
 		return *this;
 	}
 	xmatrix& sub (const xmatrix &m)
 	{
-		m00-=m.m00; m01-=m.m01; 
-		m10-=m.m10; m11-=m.m11; 
+		m00-=m.m00; m01-=m.m01;
+		m10-=m.m10; m11-=m.m11;
 		return *this;
 	}
 	xmatrix& sub (const xmatrix &m1, const xmatrix &m2)
 	{
-		m00=m1.m00-m2.m00; m01=m1.m01-m2.m01; 
-		m10=m1.m10-m2.m10; m11=m1.m11-m2.m11; 
+		m00=m1.m00-m2.m00; m01=m1.m01-m2.m01;
+		m10=m1.m10-m2.m10; m11=m1.m11-m2.m11;
 		return *this;
 	}
 	xmatrix& scale (T val)
@@ -1460,7 +1375,7 @@ public:
 		m10=m.m10/val; m11=m.m11/val;
 		return *this;
 	}
-	xmatrix& mul (const xmatrix &m) 
+	xmatrix& mul (const xmatrix &m)
 	{
 		T tmp0, tmp1;
 		tmp0=m00*m.m00+m01*m.m10;
@@ -1481,7 +1396,7 @@ public:
 		m11=m1.m10*m2.m01+m1.m11*m2.m11;
 		return *this;
 	}
-	inline xmatrix& transpose() 
+	inline xmatrix& transpose()
 	{
 		SWAP(m01,m10);
 		return *this;
@@ -1494,7 +1409,7 @@ public:
 	}
 	inline T det () const
 	{
-		return (m00*m11-m01*m10); 
+		return (m00*m11-m01*m10);
 	}
 	bool inverse (const xmatrix &m)
 	{
@@ -1508,12 +1423,12 @@ public:
 	}
 	bool operator == (const xmatrix &mat) const
 	{
-		return m00==mat.m00 && m01==mat.m01 
+		return m00==mat.m00 && m01==mat.m01
 			&& m10==mat.m10 && m11==mat.m11;
 	}
 	bool operator != (const xmatrix &mat) const
 	{
-		return m00!=mat.m00 || m01!=mat.m01 
+		return m00!=mat.m00 || m01!=mat.m01
 			|| m10!=mat.m10 || m11!=mat.m11;
 	}
 };
@@ -1534,29 +1449,12 @@ public:
 		T	elem[3][3];
 		struct
 		{
-			T 
+			T
 			m00, m01, m02,
 			m10, m11, m12,
 			m20, m21, m22;
 		};
 	};
-
-	xmatrix() {};
-
-	xmatrix(const xmatrix &m)
-	{
-		*this=m;
-	}
-
-	xmatrix(const xmatrix<T,2,2> &m)
-	{
-		*this=m;
-	}
-
-	xmatrix(const xmatrix<T,4,4> &m)
-	{
-		*this=m;
-	}
 
 	xmatrix& operator = (const xmatrix &m)
 	{
@@ -1599,7 +1497,7 @@ public:
 		m00=m11=m22=1;
 		m01=m02=m10=m12=m20=m21=0;
 	}
-	inline T* data() 
+	inline T* data()
 	{
 		return elem[0];
 	}
@@ -1658,7 +1556,7 @@ public:
 		elem[0][c]=v.x;
 		elem[1][c]=v.y;
 	}
-	inline void get_row(unsigned r, xvector<T,3> &v) const 
+	inline void get_row(unsigned r, xvector<T,3> &v) const
 	{
 		assert(r<3);
 		const T *row=elem[r];
@@ -1686,7 +1584,7 @@ public:
 	{
 		return this->div(val);
 	}
-	inline xmatrix& operator *= (const xmatrix &m) 
+	inline xmatrix& operator *= (const xmatrix &m)
 	{
 		return this->mul(m);
 	}
@@ -1725,7 +1623,7 @@ public:
 		m20*=val; m21*=val; m22*=val;
 		return *this;
 	}
-	xmatrix& scale (const xmatrix &m, T val) 
+	xmatrix& scale (const xmatrix &m, T val)
 	{
 		m00=m.m00*val; m01=m.m01*val; m02=m.m02*val;
 		m10=m.m10*val; m11=m.m11*val; m12=m.m12*val;
@@ -1737,7 +1635,7 @@ public:
 		T inv=T(1)/val;
 		return scale(inv);
 	}
-	inline xmatrix& div (const xmatrix &m, T val) 
+	inline xmatrix& div (const xmatrix &m, T val)
 	{
 		T inv=T(1)/val;
 		return scale(m,inv);
@@ -1778,10 +1676,10 @@ public:
 		m22=m1.m20*m2.m02+m1.m21*m2.m12+m1.m22*m2.m22;
 		return *this;
 	}
-	xmatrix& transpose() 
+	xmatrix& transpose()
 	{
-		SWAP(m01,m10); 
-		SWAP(m02,m20); 
+		SWAP(m01,m10);
+		SWAP(m02,m20);
 		SWAP(m12,m21);
 		return *this;
 	}
@@ -1867,7 +1765,7 @@ public:
 		T	elem[4][4];
 		struct
 		{
-			T 
+			T
 			m00, m01, m02, m03,
 			m10, m11, m12, m13,
 			m20, m21, m22, m23,
@@ -1875,20 +1773,11 @@ public:
 		};
 	};
 
-	xmatrix() {};
-
-	xmatrix(const xmatrix &m)
-	{
-		*this=m;
-	}
-
 	xmatrix& operator = (const xmatrix &m)
 	{
 		memcpy(elem[0],m.elem[0],sizeof(T)*16);
 		return *this;
 	}
-
-
 	inline bool square() const
 	{
 		return true;
@@ -1898,7 +1787,7 @@ public:
 		memset(elem[0],0,sizeof(elem));
 		m00=m11=m22=m33=1;
 	}
-	inline T* data() 
+	inline T* data()
 	{
 		return elem[0];
 	}
@@ -1974,7 +1863,7 @@ public:
 		elem[1][c]=v.y;
 		elem[2][c]=v.z;
 	}
-	inline void get_row(unsigned r, xvector<T,4> &v) const 
+	inline void get_row(unsigned r, xvector<T,4> &v) const
 	{
 		assert(r<4);
 		const T *row=elem[r];
@@ -2002,7 +1891,7 @@ public:
 	{
 		return this->div(val);
 	}
-	inline xmatrix& operator *= (const xmatrix &m) 
+	inline xmatrix& operator *= (const xmatrix &m)
 	{
 		return this->mul(m);
 	}
@@ -2046,7 +1935,7 @@ public:
 		m30*=val; m31*=val; m32*=val; m33*=val;
 		return *this;
 	}
-	xmatrix& scale (const xmatrix &m, T val) 
+	xmatrix& scale (const xmatrix &m, T val)
 	{
 		m00=m.m00*val; m01=m.m01*val; m02=m.m02*val; m03=m.m03*val;
 		m10=m.m10*val; m11=m.m11*val; m12=m.m12*val; m13=m.m13*val;
@@ -2059,7 +1948,7 @@ public:
 		T inv=T(1)/val;
 		return scale(inv);
 	}
-	inline xmatrix& div (const xmatrix &m, T val) 
+	inline xmatrix& div (const xmatrix &m, T val)
 	{
 		T inv=T(1)/val;
 		return scale(m,inv);
@@ -2121,9 +2010,9 @@ public:
 		m33=m1.m30*m2.m03+m1.m31*m2.m13+m1.m32*m2.m23+m1.m33*m2.m33;
 		return *this;
 	}
-	xmatrix& transpose() 
+	xmatrix& transpose()
 	{
-		SWAP(m01,m10); 
+		SWAP(m01,m10);
 		SWAP(m02,m20);
 		SWAP(m03,m30);
 		SWAP(m12,m21);
@@ -2226,7 +2115,7 @@ public:
 		{
 			m._get_sub_matrix(sub,i);
 			*iter=sub.det();
-			if(i&1) 
+			if(i&1)
 				*iter=-*iter;
 			d+=src[i]*(*iter);
 			++iter;
@@ -2247,7 +2136,7 @@ public:
 		iter=adj;
 		double invdet=1/d;
 		for(i=0; i<4; ++i) {
-			for(j=0; j<4; ++j) 
+			for(j=0; j<4; ++j)
 				elem[j][i]=T((*iter++)*invdet);
 		}
 		return true;
@@ -2631,7 +2520,7 @@ public:
 		y = q1.w*q2.y - q1.x*q2.z + q1.y*q2.w + q1.z*q2.x;
 		z = q1.w*q2.z + q1.x*q2.y - q1.y*q2.x + q1.z*q2.w;
 		*/
-		
+
 		// 通过提取公共因子的改进算法，9次乘法，27次加法
 
 		T a0 = (q1.z - q1.y) * (q2.y - q2.z);
@@ -2650,7 +2539,7 @@ public:
 		x = a1 + a9 - a8;
 		y = a2 + a9 - a7;
 		z = a3 + a9 - a6;
-		
+
 		return *this;
 	}
 	// 求q1到q2的角度变换，结果保存在this中
@@ -2713,7 +2602,7 @@ public:
 	void from_vec_ang (const xvector<T,3> &v, T angle, bool normalized = true)
 	{
 		angle /= 2;
-		T sina;		
+		T sina;
 		if(!normalized)
 		{
 			// 如果不是单位向量，先要将其规整为单位向量
@@ -2889,7 +2778,7 @@ void euler_to_matrix (const xeuler<T> &euler, xmatrix<T,D,D> &mat)
 	T sinr = sin(euler.roll);
 	T sinp = sin(euler.pitch);
 	T siny = sin(euler.yaw);
-	
+
 	T cosr = cos(euler.roll);
 	T cosp = cos(euler.pitch);
 	T cosy = cos(euler.yaw);
@@ -2920,7 +2809,7 @@ void matrix_to_euler (const xmatrix<T,D,D> &mat, xeuler<T> &euler)
 		euler.pitch = -PI_DIV_2;
 	else
 		euler.pitch = asin(-mat(2,1));
-	
+
 	if (M21>0.99999)
 	{
 		// gimbal lock
@@ -2954,7 +2843,7 @@ void quat_to_matrix (const xquaternion<T> &quat, xmatrix<T,D,D> &mat)
 	mat(0,0) = 1 - 2 * (yy+zz);
 	mat(1,1) = 1 - 2 * (xx+zz);
 	mat(2,2) = 1 - 2 * (xx+yy);
-	
+
 	mat(0,1) = 2 * (xy+zw);
 	mat(0,2) = 2 * (xz-yw);
 	mat(1,0) = 2 * (xy-zw);
@@ -3067,7 +2956,7 @@ template<class T, int D>
 inline void matrix_translate2d(xmatrix<T,D,D> &matrix, T dx, T dy)
 {
 	matrix.identity();
-	matrix(2,0)=dx; 
+	matrix(2,0)=dx;
 	matrix(2,1)=dy;
 }
 

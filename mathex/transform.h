@@ -11,8 +11,8 @@ class xtransform
 	xvec3f_t m_position;
 	xvec3f_t m_forward, m_up, m_right;
 	xvec3f_t m_scale;
-	xmat4f_t m_local2world; // 列矩阵
-	xmat4f_t m_world2local; // 列矩阵
+	xmat4f_t m_local2world;
+	xmat4f_t m_world2local;
 	enum {
 		TRANSLATE=0x11,
 		ROTATE=0x22,
@@ -23,7 +23,6 @@ class xtransform
 public:
 	xtransform();
 	bool update(xtransform *parent_trans=0, bool rebuild=false);
-	// 朝向
 	inline void set_orientation(const xvec3f_t &forward, const xvec3f_t &up, const xvec3f_t &right) {
 		m_forward=forward;
 		m_up=up;
@@ -40,7 +39,6 @@ public:
 	inline const xvec3f_t& right() const {
 		return m_right;
 	}
-	// 平移
 	inline void set_position(const xvec3f_t &pos) {
 		m_position=pos;
 		m_flag|=TRANSLATE;
@@ -70,12 +68,10 @@ public:
 		m_position+=m_right*d;
 		m_flag|=TRANSLATE;
 	}
-	// 旋转
 	void rotate(const xvec3f_t &axis, float angle);
 	void rotate_forward(float angle);
 	void rotate_up(float angle);
 	void rotate_right(float angle);
-	// 缩放
 	inline void scale(float x, float y, float z) {
 		m_scale.set(x,y,z);
 		m_flag|=ROTATE;
@@ -91,14 +87,12 @@ public:
 	inline const xvec3f_t& scaling () const {
 		return m_scale;
 	}
-	// 变换(列矩阵)
 	inline const xmat4f_t& local2world() const {
 		return m_local2world;
 	}
 	inline const xmat4f_t& world2local() const {
 		return m_world2local;
 	}
-	// 状态查询
 	inline bool need_update() const {
 		return 0!=(m_flag&LOCAL_2_WORLD);
 	}
@@ -113,18 +107,14 @@ private:
 	void rebuild_world2local();
 };
 
-/// 设置正交投影矩阵(列矩阵)
+// OpenGL orthograph matrix
 void set_orthograph(xmat4f_t &mat, float xmin, float ymin, float zmin, float xmax, float ymax, float zmax);
 
-/**	@brief 设置透视矩阵(列阵)
-	@param yfov 垂直视锥角
-	@param aspect 宽高比
-	@param fnear 近裁剪面离原点的距离，必须大于0
-	@param ffar 远裁剪面离原点的距离，必须大于fnear
-*/
-void set_perspective(xmat4f_t &proj, float fov, float aspect, float fnear, float ffar);
+// OpenGL perspective matrix
+// aspect is width/height
+void set_perspective(xmat4f_t &proj, float yfov, float aspect, float fnear, float ffar);
 
-/// 设置UI投影矩阵(列矩阵)
+// orthograph matrix for GUI
 void set_ui_projection(xmat4f_t &proj, float screen_width, float screen_height, float z_range);
 
 } // namespace wyc
