@@ -60,7 +60,7 @@ void xtransform::set_forward(const xvec3f_t &forward, const xvec3f_t &up)
 {
 	m_forward=forward;
 	m_up=up;
-	m_right.cross(m_up,m_forward);
+	m_right = m_up.cross(m_forward);
 	if(fequal(m_right.length2(),0.0f)) {
 		unsigned mind=0;
 		if(fabs(m_forward.x)>fabs(m_forward.y))
@@ -69,10 +69,10 @@ void xtransform::set_forward(const xvec3f_t &forward, const xvec3f_t &up)
 			mind=2;
 		m_right.zero();
 		m_right[mind]=1.0f;
-		m_up.cross(m_forward,m_right);
+		m_up = m_forward.cross(m_right);
 	}
 	else {
-		m_up.cross(m_forward,m_right);
+		m_up = m_forward.cross(m_right);
 		m_right.normalize();
 	}
 	m_forward.normalize();
