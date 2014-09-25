@@ -44,7 +44,7 @@ public:
 		m_flag|=TRANSLATE;
 	}
 	inline void set_position(float x, float y, float z) {
-		m_position.set(x,y,z);
+		m_position = { x, y, z };
 		m_flag|=TRANSLATE;
 	}
 	inline const xvec3f_t& position() const {
@@ -73,11 +73,11 @@ public:
 	void rotate_up(float angle);
 	void rotate_right(float angle);
 	inline void scale(float x, float y, float z) {
-		m_scale.set(x,y,z);
+		m_scale = { x, y, z };
 		m_flag|=ROTATE;
 	}
 	inline void scale(float s) {
-		m_scale.set(s,s,s);
+		m_scale = { s, s, s };
 		m_flag|=ROTATE;
 	}
 	inline void scale(const xvec3f_t &scale) {

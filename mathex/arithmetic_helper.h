@@ -30,8 +30,8 @@ template <typename T> struct arithmetic_operator_helper
 	{ T res(lhs); res*=rhs; return res; }
 	friend T operator/(T const& lhs, T const& rhs) 
 	{ T res(lhs); res/=rhs; return res; }
-	//	friend T operator+(T lhs, T const& rhs)
-	//	{ return lhs+=rhs; } //	!named return value optimization version
+//	friend T operator+(T lhs, T const& rhs)
+//	{ return lhs+=rhs; } //	!named return value optimization version
 
 //	arithmetic with other integral types
 	template <typename R> friend T operator+(R lhs, T const& rhs)

@@ -6,10 +6,10 @@ namespace wyc
 xtransform::xtransform()
 {
 	m_position.zero();
-	m_forward.set(0,0,1);
-	m_up.set(0,1,0);
-	m_right.set(1,0,0);
-	m_scale.set(1,1,1);
+	m_forward = { 0, 0, 1 };
+	m_up = { 0, 1, 0 };
+	m_right = { 1, 0, 0 };
+	m_scale = { 1, 1, 1 };
 	m_local2world.identity();
 	m_world2local.identity();
 	m_flag=0;
@@ -38,7 +38,7 @@ void xtransform::rebuild_local2world()
 	m_local2world.set_col(2,m_forward*m_scale.z);
 	m_local2world.set_col(3,m_position);
 	xvec4f_t vec;
-	vec.set(0, 0, 0, 1);
+	vec = { 0, 0, 0, 1 };
 	m_local2world.set_row(3,vec);
 	m_flag&=~LOCAL_2_WORLD;
 }
@@ -49,7 +49,7 @@ void xtransform::rebuild_world2local()
 	m_world2local.set_row(1,m_up*(1.0f/m_scale.y));
 	m_world2local.set_row(2,m_forward*(1.0f/m_scale.z));
 	xvec4f_t vec;
-	vec.set(0,0,0,1);
+	vec = { 0, 0, 0, 1 };
 	m_world2local.set_row(3,vec);
 	xvec3f_t tpos=m_world2local*-m_position;
 	m_world2local.set_col(3,tpos);
@@ -176,9 +176,9 @@ void set_ui_projection(xmat4f_t &proj, float screen_width, float screen_height, 
 	wyc::xmat4f_t mat_ui;
 	mat_ui.identity();
 	wyc::xvec4f_t vec;
-	vec.set(0,-1,0,screen_height);
+	vec = { 0, -1, 0, screen_height };
 	mat_ui.set_row(1,vec);
-	vec.set(0,0,1,-z_range);
+	vec = { 0, 0, 1, -z_range };
 	mat_ui.set_row(2,vec);
 	proj.mul(mat_ui);
 }

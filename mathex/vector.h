@@ -1,29 +1,84 @@
 #ifndef WYC_HEADER_VECTOR
 #define WYC_HEADER_VECTOR
 
-#include <initializer_list>
-
 namespace wyc
 {
+
+// implement arithmetic operators
+// T: vector type
+// E: vector element type
+#define vector_operator_helper(T, E) \
+		friend inline T operator+(const T &vec, E scalar)\
+		{\
+			T res(vec); res += scalar; return res;\
+		}\
+		friend inline T operator+(E scalar, const T &vec)\
+		{\
+			return vec + scalar;\
+		}\
+		friend inline T operator-(const T &vec, E scalar)\
+		{\
+			return vec + (-scalar);\
+		}\
+		friend inline T operator*(const T &vec, E scalar)\
+		{\
+			T res(vec); res *= scalar; return res;\
+		}\
+		friend inline T operator*(E scalar, const T &vec)\
+		{\
+			return vec * scalar;\
+		}\
+		friend inline T operator/(const T &vec, E scalar)\
+		{\
+			T res(vec); res /= scalar; return res;\
+		}\
+		friend inline T operator+(T const& lhs, T const& rhs)\
+		{\
+			T res(lhs); res += rhs; return res;\
+		}\
+		friend inline T operator-(T const& lhs, T const& rhs)\
+		{\
+			T res(lhs); res -= rhs; return res;\
+		}\
+		friend inline T operator*(T const& lhs, T const& rhs)\
+		{\
+			T res(lhs); res *= rhs; return res;\
+		}\
+		friend inline T operator/(T const& lhs, T const& rhs)\
+		{\
+			T res(lhs); res /= rhs; return res;\
+		}\
+		friend inline bool operator>=(T const& lhs, T const& rhs)\
+		{\
+			return !(lhs <  rhs);\
+		}\
+		friend inline bool operator<=(T const& lhs, T const& rhs)\
+		{\
+			return !(rhs <  lhs);\
+		}\
+		friend inline bool operator>(T const& lhs, T const& rhs)\
+		{\
+			return  (rhs <  lhs);\
+		}\
+
 	template<class T, int D>
 	struct xvector
 	{
-	public:
 		typedef T element_t;
 		enum { DIMENSION = D };
 
 		T _elem[D];
 
-		inline xvector& operator = (const xvector &v)
-		{
-			memcpy(_elem, v._elem, sizeof(T)*D);
-			return *this;
-		}
 		xvector& operator = (T val)
 		{
 			unsigned i = 0;
 			while (i<D)
 				_elem[i++] = val;
+			return *this;
+		}
+		inline xvector& operator = (const xvector &v)
+		{
+			memcpy(_elem, v._elem, sizeof(T)*D);
 			return *this;
 		}
 		template<int D2>
@@ -38,12 +93,6 @@ namespace wyc
 			}
 			else
 				memcpy(this->_elem, v._elem, sizeof(T)*D);
-			return *this;
-		}
-		xvector& operator = (std::initializer_list<T> init_list) {
-			int i = 0;
-			for (auto iter = init_list.begin(), end = init_list.end(); iter != end && i < DIMENSION; ++iter, ++i)
-				this->_elem[i] = *iter;
 			return *this;
 		}
 		inline void zero()
@@ -78,28 +127,38 @@ namespace wyc
 				_elem[i] -= v._elem[i];
 			return *this;
 		}
-		inline xvector& operator *= (T val)
-		{
-			for (int i = 0; i<D; ++i)
-				_elem[i] *= val;
-			return *this;
-		}
 		inline xvector& operator *= (const xvector &v)
 		{
 			for (int i = 0; i<D; ++i)
 				_elem[i] *= v._elem[i];
 			return *this;
 		}
-		inline xvector& operator /= (T val)
-		{
-			for (int i = 0; i<D; ++i)
-				_elem[i] /= val;
-			return *this;
-		}
 		inline xvector& operator /= (const xvector &v)
 		{
 			for (int i = 0; i<D; ++i)
 				_elem[i] /= v._elem[i];
+			return *this;
+		}
+		inline xvector& operator += (T scalar)
+		{
+			for (int i = 0; i<D; ++i)
+				_elem[i] += scalar;
+			return *this;
+		}
+		inline xvector& operator -= (T scalar)
+		{
+			return *this += -scalar;
+		}
+		inline xvector& operator *= (T scalar)
+		{
+			for (int i = 0; i<D; ++i)
+				_elem[i] *= scalar;
+			return *this;
+		}
+		inline xvector& operator /= (T scalar)
+		{
+			for (int i = 0; i<D; ++i)
+				_elem[i] /= scalar;
 			return *this;
 		}
 		xvector& reverse()
@@ -121,6 +180,12 @@ namespace wyc
 				sum += _elem[i] * v._elem[i];
 			return sum;
 		}
+		xvector cross(const xvector &v) const
+		{
+			xvector ret;
+			ret.zero();
+			return ret;
+		}
 		T length2() const
 		{
 			T sum = 0;
@@ -130,16 +195,14 @@ namespace wyc
 		}
 		inline T length() const
 		{
-			return (sqrt(length2()));
+			return sqrt(length2());
 		}
 		void normalize()
 		{
 			T len = length();
-			if (fequal(len, T(0)))
+			if (len == 0)
 				return;
-			len = T(1) / len;
-			for (int i = 0; i<D; ++i)
-				_elem[i] *= len;
+			*this /= len;
 		}
 		bool operator == (const xvector& v) const
 		{
@@ -155,23 +218,23 @@ namespace wyc
 					return true;
 			return false;
 		}
+		bool operator < (const xvector& v) const
+		{
+			for (int i = 0; i < D; ++i) 
+				if (!(_elem[i] < v._elem[i]))
+					return false;
+			return true;
+		}
+		vector_operator_helper(xvector, T)
 	};
 
 
 	template<class T>
 	struct xvector<T, 2>
 	{
-	public:
 		typedef T element_t;
 		enum { DIMENSION = 2 };
-		union
-		{
-			T	_elem[2];
-			struct
-			{
-				T	x, y;
-			};
-		};
+		T	x, y;
 		inline xvector& operator = (T val)
 		{
 			x = y = val;
@@ -198,12 +261,12 @@ namespace wyc
 		inline T operator [] (unsigned i) const
 		{
 			assert(i<2);
-			return _elem[i];
+			return (&x)[i];
 		}
 		inline T& operator [] (unsigned i)
 		{
 			assert(i<2);
-			return _elem[i];
+			return (&x)[i];
 		}
 		inline xvector operator - () const
 		{
@@ -224,28 +287,40 @@ namespace wyc
 			y -= v.y;
 			return *this;
 		}
-		inline xvector& operator *= (T val)
-		{
-			x *= val;
-			y *= val;
-			return *this;
-		}
 		inline xvector& operator *= (const xvector &v)
 		{
 			x *= v.x;
 			y *= v.y;
 			return *this;
 		}
-		inline xvector& operator /= (T val)
-		{
-			x /= val;
-			y /= val;
-			return *this;
-		}
 		inline xvector& operator /= (const xvector &v)
 		{
 			x /= v.x;
 			y /= v.y;
+			return *this;
+		}
+		inline xvector& operator += (T scalar)
+		{
+			x += scalar;
+			y += scalar;
+			return *this;
+		}
+		inline xvector& operator -= (T scalar)
+		{
+			x -= scalar;
+			y -= scalar;
+			return *this;
+		}
+		inline xvector& operator *= (T scalar)
+		{
+			x *= scalar;
+			y *= scalar;
+			return *this;
+		}
+		inline xvector& operator /= (T scalar)
+		{
+			x /= scalar;
+			y /= scalar;
 			return *this;
 		}
 		inline xvector& reverse()
@@ -274,16 +349,15 @@ namespace wyc
 		}
 		inline T length() const
 		{
-			return (sqrt(x*x + y*y));
+			return sqrt(x*x + y*y);
 		}
 		void normalize()
 		{
 			T len = length();
-			if (fequal(len, T(0)))
+			if (len == 0)
 				return;
-			len = T(1) / len;
-			x *= len;
-			y *= len;
+			x /= len;
+			y /= len;
 		}
 		bool operator == (const xvector& v) const
 		{
@@ -293,23 +367,20 @@ namespace wyc
 		{
 			return x != v.x || y != v.y;
 		}
+		inline bool operator < (const xvector& v) const
+		{
+			return x < v.x && y < v.y;
+		}
+		vector_operator_helper(xvector, T)
 	};
 
 
 	template<class T>
-	class xvector<T, 3>
+	struct xvector<T, 3>
 	{
-	public:
 		typedef T element_t;
 		enum { DIMENSION = 3 };
-		union
-		{
-			T	_elem[3];
-			struct
-			{
-				T	x, y, z;
-			};
-		};
+		T	x, y, z;
 		inline xvector& operator = (T val)
 		{
 			x = y = z = val;
@@ -327,8 +398,9 @@ namespace wyc
 		{
 			assert(DIMENSION != D2);
 			int cnt = DIMENSION < D2 ? DIMENSION : D2;
+			T *elem = &x;
 			for (int i = 0; i < cnt; ++i)
-				this->_elem[i] = v._elem[i]
+				elem[i] = v[i]
 			return *this;
 		}
 		template<>
@@ -349,21 +421,15 @@ namespace wyc
 		{
 			x = y = z = 0;
 		}
-		inline void set(T vx, T vy, T vz)
-		{
-			x = vx;
-			y = vy;
-			z = vz;
-		}
 		inline T operator [] (unsigned i) const
 		{
 			assert(i<3);
-			return _elem[i];
+			return (&x)[i];
 		}
 		inline T& operator [] (unsigned i)
 		{
 			assert(i<3);
-			return _elem[i];
+			return (&x)[i];
 		}
 
 		inline xvector operator - () const
@@ -388,13 +454,6 @@ namespace wyc
 			z -= v.z;
 			return *this;
 		}
-		inline xvector& operator *= (T val)
-		{
-			x *= val;
-			y *= val;
-			z *= val;
-			return *this;
-		}
 		inline xvector& operator *= (const xvector &v)
 		{
 			x *= v.x;
@@ -402,18 +461,39 @@ namespace wyc
 			z *= v.z;
 			return *this;
 		}
-		inline xvector& operator /= (T val)
-		{
-			x /= val;
-			y /= val;
-			z /= val;
-			return *this;
-		}
 		inline xvector& operator /= (const xvector &v)
 		{
 			x /= v.x;
 			y /= v.y;
 			z /= v.z;
+			return *this;
+		}
+		inline xvector& operator += (T scalar)
+		{
+			x += scalar;
+			y += scalar;
+			z += scalar;
+			return *this;
+		}
+		inline xvector& operator -= (T scalar)
+		{
+			x -= scalar;
+			y -= scalar;
+			z -= scalar;
+			return *this;
+		}
+		inline xvector& operator *= (T scalar)
+		{
+			x *= scalar;
+			y *= scalar;
+			z *= scalar;
+			return *this;
+		}
+		inline xvector& operator /= (T scalar)
+		{
+			x /= scalar;
+			y /= scalar;
+			z /= scalar;
 			return *this;
 		}
 		inline xvector& reverse()
@@ -453,38 +533,33 @@ namespace wyc
 		void normalize()
 		{
 			T len = length();
-			if (fequal(len, T(0)))
+			if (len == 0)
 				return;
-			len = T(1) / len;
-			x *= len;
-			y *= len;
-			z *= len;
+			x /= len;
+			y /= len;
+			z /= len;
 		}
-		bool operator == (const xvector& v) const
+		inline bool operator == (const xvector& v) const
 		{
 			return x == v.x && y == v.y && z == v.z;
 		}
-		bool operator != (const xvector& v) const
+		inline bool operator != (const xvector& v) const
 		{
 			return x != v.x || y != v.y || z != v.z;
 		}
+		inline bool operator < (const xvector& v) const
+		{
+			return x < v.x && y < v.y && z < v.z;
+		}
+		vector_operator_helper(xvector, T)
 	};
 
 	template<class T>
-	class xvector<T, 4>
+	struct xvector<T, 4>
 	{
-	public:
 		typedef T element_t;
 		enum { DIMENSION = 4 };
-		union
-		{
-			T	_elem[4];
-			struct
-			{
-				T	x, y, z, w;
-			};
-		};
-
+		T	x, y, z, w;
 		inline xvector& operator = (T val)
 		{
 			x = y = z = w = val;
@@ -503,8 +578,9 @@ namespace wyc
 		{
 			assert(DIMENSION != D2);
 			int cnt = DIMENSION < D2 ? DIMENSION : D2;
+			T *elem = &x
 			for (int i = 0; i < cnt; ++i)
-				this->_elem[i] = v._elem[i]
+				elem[i] = v[i]
 			return *this;
 		}
 		template<>
@@ -527,22 +603,15 @@ namespace wyc
 		{
 			x = y = z = w = 0;
 		}
-		inline void set(T vx, T vy, T vz, T vw = 1)
-		{
-			x = vx;
-			y = vy;
-			z = vz;
-			w = vw;
-		}
 		inline T operator [] (unsigned i) const
 		{
 			assert(i<4);
-			return _elem[i];
+			return (&x)[i];
 		}
 		inline T& operator [] (unsigned i)
 		{
 			assert(i<4);
-			return _elem[i];
+			return (&x)[i];
 		}
 		inline xvector operator - () const
 		{
@@ -569,14 +638,6 @@ namespace wyc
 			w -= v.w;
 			return *this;
 		}
-		inline xvector& operator *= (T val)
-		{
-			x *= val;
-			y *= val;
-			z *= val;
-			w *= val;
-			return *this;
-		}
 		inline xvector& operator *= (const xvector &v)
 		{
 			x *= v.x;
@@ -585,20 +646,44 @@ namespace wyc
 			w *= v.w;
 			return *this;
 		}
-		inline xvector& operator /= (T val)
-		{
-			x /= val;
-			y /= val;
-			z /= val;
-			w /= val;
-			return *this;
-		}
 		inline xvector& operator /= (const xvector &v)
 		{
 			x /= v.x;
 			y /= v.y;
 			z /= v.z;
 			w /= v.w;
+			return *this;
+		}
+		inline xvector& operator += (T scalar)
+		{
+			x += scalar;
+			y += scalar;
+			z += scalar;
+			w += scalar;
+			return *this;
+		}
+		inline xvector& operator -= (T scalar)
+		{
+			x -= scalar;
+			y -= scalar;
+			z -= scalar;
+			w -= scalar;
+			return *this;
+		}
+		inline xvector& operator *= (T scalar)
+		{
+			x *= scalar;
+			y *= scalar;
+			z *= scalar;
+			w *= scalar;
+			return *this;
+		}
+		inline xvector& operator /= (T scalar)
+		{
+			x /= scalar;
+			y /= scalar;
+			z /= scalar;
+			w /= scalar;
 			return *this;
 		}
 		inline xvector& reverse()
@@ -629,24 +714,32 @@ namespace wyc
 		{
 			return (x*v.x + y*v.y + z*v.z + w*v.w);
 		}
+		xvector cross(const xvector &v) const
+		{
+			xvector ret;
+			ret.x = y*v.z - z*v.y;
+			ret.y = z*v.x - x*v.z;
+			ret.z = x*v.y - y*v.x;
+			ret.w = 1;
+			return ret;
+		}
 		inline T length2() const
 		{
 			return (x*x + y*y + z*z + w*w);
 		}
 		inline T length() const
 		{
-			return (sqrt(x*x + y*y + z*z + w*w));
+			return sqrt(x*x + y*y + z*z + w*w);
 		}
 		void normalize()
 		{
 			T len = length();
-			if (fequal(len, T(0)))
+			if (len == 0)
 				return;
-			len = T(1) / len;
-			x *= len;
-			y *= len;
-			z *= len;
-			w *= len;
+			x /= len;
+			y /= len;
+			z /= len;
+			w /= len;
 		}
 		bool operator == (const xvector& v) const
 		{
@@ -656,71 +749,57 @@ namespace wyc
 		{
 			return x != v.x || y != v.y || z != v.z || w != v.w;
 		}
+		inline bool operator < (const xvector& v) const
+		{
+			return x < v.x && y < v.y && z < v.z && w < v.w;
+		}
+		vector_operator_helper(xvector, T)
 	};
 
-	template<class T, int D>
-	xvector<T, D> operator + (const xvector<T, D> &v1, const xvector<T, D> &v2)
-	{
-		xvector<T, D> r = v1;
-		r += v2;
-		return r;
-	}
 
-	template<class T, int D>
-	xvector<T, D> operator - (const xvector<T, D> &v1, const xvector<T, D> &v2)
+	template<typename T>
+	void vector_test()
 	{
-		xvector<T, D> r = v1;
-		r -= v2;
-		return r;
-	}
-
-	template<class T, int D>
-	xvector<T, D> operator * (const xvector<T, D> &v1, T val)
-	{
-		xvector<T, D> r = v1;
-		r *= val;
-		return r;
-	}
-
-	template<class T, int D>
-	xvector<T, D> operator * (T val, const xvector<T, D> &v1)
-	{
-		xvector<T, D> r = v1;
-		r *= val;
-		return r;
-	}
-
-	template<class T, int D>
-	xvector<T, D> operator * (const xvector<T, D> &v1, const xvector<T, D> &v2)
-	{
-		xvector<T, D> r = v1;
-		r *= v2;
-		return r;
-	}
-
-	template<class T, int D>
-	xvector<T, D> operator / (const xvector<T, D> &v1, T val)
-	{
-		xvector<T, D> r = v1;
-		r /= val;
-		return r;
-	}
-
-	template<class T, int D>
-	xvector<T, D> operator / (T val, const xvector<T, D> &v1)
-	{
-		xvector<T, D> r = v1;
-		r.reciprocal()
-		r *= val;
-		return r;
-	}
-
-	template<class T, int D>
-	xvector<T, D> operator / (const xvector<T, D> &v1, const xvector<T, D> &v2)
-	{
-		xvector<T, D> r = v1;
-		r /= v2;
-		return r;
+		typedef typename T::element_t elem_t;
+		const elem_t pi = elem_t(3.1415926), e = elem_t(2.718281828);
+		T v1;
+		v1.zero();
+		v1 = e;
+		v1 = { pi, e };
+		T v2 = { elem_t(1.414), elem_t(1.736) };
+		v1 += v2;
+		v1 -= v2;
+		v1 *= v2;
+		v1 /= v2;
+		T v3;
+		v3 = v1 + v2;
+		v3 = v1 - v2;
+		v3 = v1 * v2;
+		v3 = v2 / v2;
+		v1 += pi;
+		v1 -= pi;
+		v1 *= pi;
+		v1 /= pi;
+		v3 = v1 * pi;
+		v3 = v1 / pi;
+		v3 = pi * v1;
+		v2 += e;
+		v2.reverse();
+		v2.reciprocal();
+		elem_t len;
+		len = v2.length2();
+		len = v2.length();
+		if (len)
+			v2.normalize();
+		v1.dot(v2);
+		v1.cross(v2);
+		bool b;
+		b = v1 == v2;
+		b = v1 != v2;
+		b = v1 < v2;
+		b = v1 > v2;
+		b = v1 <= v2;
+		b = v1 >= v2;
 	}
 
 } // endof namespace wyc
