@@ -1,6 +1,8 @@
 #ifndef WYC_HEADER_VECTOR
 #define WYC_HEADER_VECTOR
 
+#include <limits>
+
 namespace wyc
 {
 
@@ -8,6 +10,10 @@ namespace wyc
 // T: vector type
 // E: vector element type
 #define vector_operator_helper(T, E) \
+		inline T fast_length() const\
+		{\
+			return sqrt(length2());\
+		}\
 		friend inline T operator+(const T &vec, E scalar)\
 		{\
 			T res(vec); res += scalar; return res;\
@@ -347,9 +353,22 @@ namespace wyc
 		{
 			return (x*x + y*y);
 		}
-		inline T length() const
+		T length() const
 		{
-			return sqrt(x*x + y*y);
+			T len = length2();
+			if (len > std::numeric_limits<T>::min() * 2)
+				return sqrt(len);
+			T absx = abs(x);
+			T absy = abs(y);
+			if (absy < absx)
+				len = absx;
+			else
+				len = absy;
+			if (len == 0)
+				return 0;
+			absx /= len;
+			absy /= len;
+			return len * sqrt(absx*absx + absy*absy);
 		}
 		void normalize()
 		{
@@ -526,9 +545,26 @@ namespace wyc
 		{
 			return (x*x + y*y + z*z);
 		}
-		inline T length() const
+		T length() const
 		{
-			return sqrt(x*x + y*y + z*z);
+			T len = length2();
+			if (len > std::numeric_limits<T>::min() * 2)
+				return sqrt(len);
+			T absx = abs(x);
+			T absy = abs(y);
+			T absz = abs(z);
+			if (absy < absx)
+				len = absx;
+			else
+				len = absy;
+			if (len < absz)
+				len = absz;
+			if (len == 0)
+				return 0;
+			absx /= len;
+			absy /= len;
+			absz /= len;
+			return len * sqrt(absx*absx + absy*absy + absz*absz);
 		}
 		void normalize()
 		{
@@ -727,9 +763,27 @@ namespace wyc
 		{
 			return (x*x + y*y + z*z + w*w);
 		}
-		inline T length() const
+		T length() const
 		{
-			return sqrt(x*x + y*y + z*z + w*w);
+			T len = length2();
+			if (len > std::numeric_limits<T>::min() * 2)
+				return sqrt(len);
+			T absx = abs(x);
+			T absy = abs(y);
+			T absz = abs(z);
+			T absw = abs(w);
+			len = absy < absx ? absx : absy;
+			if (len < absz)
+				len = absz;
+			if (len < absw)
+				len = absw;
+			if (len == 0)
+				return 0;
+			absx /= len;
+			absy /= len;
+			absz /= len;
+			absw /= len;
+			return len * sqrt(absx*absx + absy*absy + absz*absz + absw*absw);
 		}
 		void normalize()
 		{
