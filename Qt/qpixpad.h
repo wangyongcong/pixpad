@@ -1,7 +1,7 @@
 #ifndef QPIXPAD_H
 #define QPIXPAD_H
 
-#include "mathex/vecmath.h"
+#include "render/vecmath.h"
 #include "qglview.h"
 
 class QPixpad : public QGLView
@@ -28,7 +28,7 @@ public:
 	}
 	void setVert1(const QPointF &p)
 	{
-		m_pt[1 ] = p;
+		m_pt[1] = p;
 		m_verts_changed = true;
 	}
 	const QPointF& vert2() const
@@ -55,12 +55,12 @@ protected:
 private:
 	float m_view_w, m_view_h;
 	QPointF m_pt[3];
-	wyc::xvec2f_t m_verts[3];
+	vec2f_t m_verts[3];
 	bool m_verts_changed;
 	GLuint m_program;
 	GLuint m_vbo, m_ibo;
 	GLuint m_texture;
-	wyc::xmat4f_t m_mat_proj;
+	mat4f_t m_mat_proj;
 };
 
 #endif // QPIXPAD_H

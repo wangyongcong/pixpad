@@ -1,0 +1,62 @@
+set(OpenEXR_src
+)
+set(OpenEXR_hdr
+	3rd/include/OpenEXR/half.h
+	3rd/include/OpenEXR/halfExport.h
+	3rd/include/OpenEXR/halfFunction.h
+	3rd/include/OpenEXR/halfLimits.h
+	3rd/include/OpenEXR/Iex.h
+	3rd/include/OpenEXR/IexBaseExc.h
+	3rd/include/OpenEXR/IexErrnoExc.h
+	3rd/include/OpenEXR/IexExport.h
+	3rd/include/OpenEXR/IexForward.h
+	3rd/include/OpenEXR/IexMacros.h
+	3rd/include/OpenEXR/IexMathExc.h
+	3rd/include/OpenEXR/IexMathFloatExc.h
+	3rd/include/OpenEXR/IexMathFpu.h
+	3rd/include/OpenEXR/IexMathIeeeExc.h
+	3rd/include/OpenEXR/IexNamespace.h
+	3rd/include/OpenEXR/IexThrowErrnoExc.h
+	3rd/include/OpenEXR/IlmBaseConfig.h
+	3rd/include/OpenEXR/IlmThread.h
+	3rd/include/OpenEXR/IlmThreadExport.h
+	3rd/include/OpenEXR/IlmThreadForward.h
+	3rd/include/OpenEXR/IlmThreadMutex.h
+	3rd/include/OpenEXR/IlmThreadNamespace.h
+	3rd/include/OpenEXR/IlmThreadPool.h
+	3rd/include/OpenEXR/IlmThreadSemaphore.h
+	3rd/include/OpenEXR/ImathBox.h
+	3rd/include/OpenEXR/ImathBoxAlgo.h
+	3rd/include/OpenEXR/ImathColor.h
+	3rd/include/OpenEXR/ImathColorAlgo.h
+	3rd/include/OpenEXR/ImathEuler.h
+	3rd/include/OpenEXR/ImathExc.h
+	3rd/include/OpenEXR/ImathExport.h
+	3rd/include/OpenEXR/ImathForward.h
+	3rd/include/OpenEXR/ImathFrame.h
+	3rd/include/OpenEXR/ImathFrustum.h
+	3rd/include/OpenEXR/ImathFrustumTest.h
+	3rd/include/OpenEXR/ImathFun.h
+	3rd/include/OpenEXR/ImathGL.h
+	3rd/include/OpenEXR/ImathGLU.h
+	3rd/include/OpenEXR/ImathHalfLimits.h
+	3rd/include/OpenEXR/ImathInt64.h
+	3rd/include/OpenEXR/ImathInterval.h
+	3rd/include/OpenEXR/ImathLimits.h
+	3rd/include/OpenEXR/ImathLine.h
+	3rd/include/OpenEXR/ImathLineAlgo.h
+	3rd/include/OpenEXR/ImathMath.h
+	3rd/include/OpenEXR/ImathMatrix.h
+	3rd/include/OpenEXR/ImathMatrixAlgo.h
+	3rd/include/OpenEXR/ImathNamespace.h
+	3rd/include/OpenEXR/ImathPlane.h
+	3rd/include/OpenEXR/ImathPlatform.h
+	3rd/include/OpenEXR/ImathQuat.h
+	3rd/include/OpenEXR/ImathRandom.h
+	3rd/include/OpenEXR/ImathRoots.h
+	3rd/include/OpenEXR/ImathShear.h
+	3rd/include/OpenEXR/ImathSphere.h
+	3rd/include/OpenEXR/ImathVec.h
+	3rd/include/OpenEXR/ImathVecAlgo.h
+)
+source_group(OpenEXR FILES ${OpenEXR_hdr} ${OpenEXR_src})

@@ -1,6 +1,6 @@
+#include <cassert>
 #include <QQuickWindow>
 #include <QImage>
-#include "mathex/transform.h"
 #include "qpixpad.h"
 
 QPixpad::QPixpad(QQuickItem *parent) :
@@ -9,7 +9,7 @@ QPixpad::QPixpad(QQuickItem *parent) :
 	m_view_w = 1;
 	m_view_h = 1;
 	for(int i=0; i<3; ++i) {
-		m_verts[i].zero();
+		m_verts[i] = {0, 0};
 	}
 	m_verts_changed = false;
 	m_program = 0;
@@ -17,7 +17,6 @@ QPixpad::QPixpad(QQuickItem *parent) :
 	m_ibo = 0;
 	m_texture = 0;
 	wyc::set_orthograph(m_mat_proj, 0, 0, 0, 1, 1, 1);
-//	m_mat_proj.transpose();
 }
 
 void QPixpad::onSceneGraphInitialized()
@@ -108,11 +107,14 @@ void QPixpad::onSync()
 	int h = sz.height();
 	if(w == 0 || h == 0)
 		return;
-	float inv_w = 1.0f / w;
-	float inv_h = 1.0f / h;
+	w = 1.0f / w;
+	h = 1.0f / h;
+	float x, y;
 	for(int i = 0; i < 3; ++i)
 	{
-		m_verts[i].set(m_pt[i].x() * inv_w, 1.0f - m_pt[i].y() * inv_h);
+		x = float(m_pt[i].x());
+		y = float(m_pt[i].y());
+		m_verts[i] = {x * w, 1.0f - y * h};
 	}
 }
 
@@ -131,7 +133,7 @@ void QPixpad::onRender()
 	assert (glGetError() == GL_NO_ERROR);
 	GLint loc = glGetUniformLocation(m_program, "projection");
 	if(loc != -1)
-		glUniformMatrix4fv(loc, 1, GL_TRUE, m_mat_proj.data());
+		glUniformMatrix4fv(loc, 1, GL_TRUE, m_mat_proj.getValue());
 	assert (glGetError() == GL_NO_ERROR);
 	loc = glGetUniformLocation(m_program, "basemap");
 	if(loc != -1)

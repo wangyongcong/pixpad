@@ -4,10 +4,10 @@ QT += qml quick
 
 SOURCES += main.cpp \
 	qglview.cpp \
-    qpixpad.cpp
+	qpixpad.cpp
 
 RESOURCES += \
-    qml.qrc
+	qml.qrc
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
@@ -17,18 +17,22 @@ include(deployment.pri)
 
 HEADERS += \
 	qglview.h \
-    qpixpad.h
+	qpixpad.h
 
+unix|win32: LIBS += -L$$PWD/../3rd/lib/ -lImath-2_2
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../lib/ -llibpixpad
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../lib/ -llibpixpadd
-else:unix: LIBS += -L$$PWD/../lib/ -llibpixpad
+INCLUDEPATH += $$PWD/../3rd/include
+DEPENDPATH += $$PWD/../3rd/include
 
-INCLUDEPATH += $$PWD/../
-DEPENDPATH += $$PWD/../
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../lib/release/ -lpixpad
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../lib/debug/ -lpixpad
+else:unix: LIBS += -L$$PWD/../lib/ -lpixpad
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../lib/liblibpixpad.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../lib/liblibpixpadd.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../lib/libpixpad.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../lib/libpixpadd.lib
-else:unix: PRE_TARGETDEPS += $$PWD/../lib/liblibpixpad.a
+INCLUDEPATH += $$PWD/..
+DEPENDPATH += $$PWD/..
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../lib/release/libpixpad.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../lib/debug/libpixpad.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../lib/release/pixpad.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../lib/debug/pixpad.lib
+else:unix: PRE_TARGETDEPS += $$PWD/../lib/libpixpad.a
