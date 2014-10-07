@@ -73,7 +73,6 @@ namespace wyc
 		inline void advance(int v) {
 			m_cur = (T*)(((uint8_t*)m_cur) + v * m_pitch);
 		}
-
 	private:
 		xsurface &m_surf;
 		size_t m_pitch;
