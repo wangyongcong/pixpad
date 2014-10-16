@@ -14,6 +14,7 @@ namespace wyc
 		virtual void on_close();
 		virtual void on_render();
 		virtual void on_key_down(int keycode);
+		void on_paint();
 	private:
 		GLuint m_tex;
 		GLuint m_prog;

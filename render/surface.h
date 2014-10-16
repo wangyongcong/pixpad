@@ -127,18 +127,16 @@ namespace wyc
 	template<class T>
 	void xsurface::set_line(unsigned ln, const T& val) {
 		T* iter = (T*)(m_data + ln*m_pitch);
-		for (unsigned i = 0; i<m_row_len; ++i) {
-			*iter = val;
-			iter += 1;
+		for (unsigned i = 0; i < m_row_len; ++i) {
+			iter[i] = val;
 		}
 	}
 
 	template<class T>
 	void xsurface::set_line(unsigned ln, const T& val, unsigned begx, unsigned endx) {
 		T* iter = (T*)(m_data + ln*m_pitch);
-		for (unsigned i = begx; i <= endx; ++i) {
-			*iter = val;
-			iter += 1;
+		for (unsigned i = begx; i < endx; ++i) {
+			iter[i] = val;
 		}
 	}
 

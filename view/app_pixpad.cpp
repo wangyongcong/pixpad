@@ -72,17 +72,7 @@ namespace wyc
 		}
 		assert(glGetError() == GL_NO_ERROR);
 
-		IMATH_NAMESPACE::C3c c = { 0, 0, 0 };
-		m_surf.storage(w, h, sizeof(c));
-		m_surf.clear(c);
-		c = { 255, 0, 0 };
-		m_surf.set_line(0, c);
-		m_surf.set_line(h - 1, c);
-		for (size_t i = 0; i < h; ++i)
-		{
-			m_surf.set(0, i, c);
-			m_surf.set(w - 1, i, c);
-		}
+		on_paint();
 	}
 
 	void xapp_pixpad::on_close()
@@ -150,6 +140,33 @@ namespace wyc
 			::PostQuitMessage(0);
 			return;
 		}
+	}
+
+	void xapp_pixpad::on_paint()
+	{
+		size_t vw, vh;
+		get_viewport_size(vw, vh);
+		IMATH_NAMESPACE::C3c c = { 0, 0, 0 };
+		m_surf.storage(vw, vh, sizeof(c));
+		m_surf.clear(c);
+
+		unsigned lx, ly, rx, ry;
+		lx = vw >> 2;
+		rx = vw - lx;
+		ly = vh >> 2;
+		ry = vh - ly;
+		c = { 255, 255, 0 };
+		m_surf.set_line(ly, c, lx, rx);
+		m_surf.set_line(ry - 1, c, lx, rx);
+		for (size_t i = ly; i < ry; ++i)
+		{
+			m_surf.set(lx, i, c);
+			m_surf.set(rx - 1, i, c);
+		}
+
+		//std::vector<vec4f_t> planes;
+		//std::vector<vec3f_t> vertices;
+		
 	}
 
 } // namespace wyc

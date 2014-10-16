@@ -31,28 +31,33 @@ namespace wyc
 		};
 	}
 
-	void clip_polygons(const std::vector<vec4f_t> &planes, std::vector<vec3f_t> &vertices)
+	void clip_polygon_by_plane(const vec4f_t &plane, const std::vector<vec3f_t> &vertices, std::vector<vec3f_t> &out)
 	{
-		for (const auto &plane : planes)
+		vec3f_t prev = vertices.back();
+		float pdot = prev ^ plane;
+		out.reserve(vertices.size() + 1);
+		for (auto &vert : vertices)
 		{
-			float pdot = 0;
-			vec3f_t prev;
-			for (auto &vert : vertices)
+			float dot = vert ^ plane;
+			if (dot * pdot < 0)
 			{
-				float dot = vert ^ plane;
-				if (dot * pdot < 0)
-				{
-					float t = pdot / (pdot - dot);
-					vec3f_t intersect = prev + (vert - prev) * t;
-					prev = vert;
-					vert = intersect;
-				}
-				else
-				{
-					prev = vert;
-				}
-				pdot = dot;
+				float t = pdot / (pdot - dot);
+				out.push_back(prev + (vert - prev) * t);
 			}
+			if (dot > 0)
+				out.push_back(vert);
+			prev = vert;
+			pdot = dot;
+		}
+	}
+
+	void clip_polygon(const std::vector<vec4f_t> &planes, std::vector<vec3f_t> &vertices)
+	{
+		for (auto plane : planes)
+		{
+			std::vector<vec3f_t> tmp;
+			clip_polygon_by_plane(plane, vertices, tmp);
+			vertices = std::move(tmp);
 		}
 	}
 
