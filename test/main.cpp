@@ -1,5 +1,6 @@
 #include <iostream>
-#include <atomic>
+#include <conio.h>
+#include <thread>
 
 #include "test_sampler.h"
 
@@ -8,9 +9,12 @@ using namespace test;
 
 int main()
 {
-	printf("Testint triangle sampler...");
-	test_triangle_sampler();
-	printf("OK!\n");
+	test_polygon_clipping();
+	printf("Press any key to continue\n");
+	while (!::_kbhit())
+	{
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
 	return 0;
 }
 

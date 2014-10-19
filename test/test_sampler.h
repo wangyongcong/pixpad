@@ -3,8 +3,7 @@
 
 namespace test
 {
-
-void test_triangle_sampler();
+	void test_polygon_clipping();
 
 } // end of namespace test
 

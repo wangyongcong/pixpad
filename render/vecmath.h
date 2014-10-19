@@ -44,7 +44,7 @@ namespace wyc
 	// Clip polygons by planes
 	// planes: planes used to clip the polygon
 	// vertices: vertices of the polygon, when return, it will contain the result
-	void clip_polygons(const std::vector<vec4f_t> &planes, std::vector<vec3f_t> &vertices);
+	void clip_polygon(const std::vector<vec4f_t> &planes, std::vector<vec3f_t> &vertices);
 
 } // namespace wyc
 

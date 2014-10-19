@@ -58,6 +58,8 @@ namespace wyc
 			std::vector<vec3f_t> tmp;
 			clip_polygon_by_plane(plane, vertices, tmp);
 			vertices = std::move(tmp);
+			if (vertices.empty())
+				return;
 		}
 	}
 
