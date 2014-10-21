@@ -44,7 +44,7 @@ namespace wyc
 				float t = pdot / (pdot - dot);
 				out.push_back(prev + (vert - prev) * t);
 			}
-			if (dot > 0)
+			if (dot >= 0)
 				out.push_back(vert);
 			prev = vert;
 			pdot = dot;

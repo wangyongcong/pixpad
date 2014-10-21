@@ -13,9 +13,9 @@ namespace test
 		// left plane
 		planes.push_back(vec4f_t(1, 0, 0, 1));
 		// top plane
-		planes.push_back(vec4f_t(0, -1, 0, -1));
+		planes.push_back(vec4f_t(0, -1, 0, 1));
 		// right plane
-		planes.push_back(vec4f_t(-1, 0, 0, -1));
+		planes.push_back(vec4f_t(-1, 0, 0, 1));
 		// bottom plane
 		planes.push_back(vec4f_t(0, 1, 0, 1));
 

@@ -144,9 +144,10 @@ namespace wyc
 
 	void xapp_pixpad::on_paint()
 	{
+		typedef IMATH_NAMESPACE::C3c color_t;
 		size_t vw, vh;
 		get_viewport_size(vw, vh);
-		IMATH_NAMESPACE::C3c c = { 0, 0, 0 };
+		color_t c = { 0, 0, 0 };
 		m_surf.storage(vw, vh, sizeof(c));
 		m_surf.clear(c);
 
@@ -157,16 +158,53 @@ namespace wyc
 		ry = vh - ly;
 		c = { 255, 255, 0 };
 		m_surf.set_line(ly, c, lx, rx);
-		m_surf.set_line(ry - 1, c, lx, rx);
+		m_surf.set_line(ry-1, c, lx, rx);
 		for (size_t i = ly; i < ry; ++i)
 		{
 			m_surf.set(lx, i, c);
-			m_surf.set(rx - 1, i, c);
+			m_surf.set(rx-1, i, c);
 		}
 
-		//std::vector<vec4f_t> planes;
-		//std::vector<vec3f_t> vertices;
+		std::vector<vec4f_t> planes;
+		// left plane
+		planes.push_back(vec4f_t(1, 0, 0, 1));
+		// top plane
+		planes.push_back(vec4f_t(0, -1, 0, 1));
+		// right plane
+		planes.push_back(vec4f_t(-1, 0, 0, 1));
+		// bottom plane
+		planes.push_back(vec4f_t(0, 1, 0, 1));
+
+		std::vector<vec3f_t> vertices;
+		vertices.push_back(vec3f_t(-1.2f, 0, 0));
+		vertices.push_back(vec3f_t(0, 1.2f, 0));
+		vertices.push_back(vec3f_t(0, -1.2f, 0));
+		wyc::clip_polygon(planes, vertices);
 		
+		unsigned w = rx - lx, h = ry - ly;
+		for (auto &v : vertices)
+		{
+			v.x = lx + w * (v.x + 1) * 0.5f;
+			v.y = ly + h * (v.y + 1) * 0.5f;
+			assert(v.x >= lx && v.x <= rx);
+			assert(v.y >= ly && v.y <= ry);
+		}
+		if (vertices.size()>2)
+		{
+			xplotter<color_t> plot(m_surf, color_t(0, 255, 0));
+			auto v0 = vertices.back();
+			for (auto &v1 : vertices)
+			{
+				line_sampler(v0.x, v0.y, v1.x, v1.y, plot);
+				v0 = v1;
+			}
+			v0 = vertices.front();
+			for (size_t i = 2, end = vertices.size() - 1; i < end; ++i)
+			{
+				auto &v1 = vertices[i];
+				line_sampler(v0.x, v0.y, v1.x, v1.y, plot);
+			}
+		}
 	}
 
 } // namespace wyc

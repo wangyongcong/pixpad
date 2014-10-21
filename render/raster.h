@@ -70,7 +70,10 @@ namespace wyc
 		inline void operator += (int v) {
 			m_cur += v;
 		}
-		inline void advance(int v) {
+		inline void operator -= (int v) {
+			m_cur -= v;
+		}
+		inline void skip_row(int v) {
 			m_cur = (T*)(((uint8_t*)m_cur) + v * m_pitch);
 		}
 	private:
@@ -89,14 +92,14 @@ namespace wyc
 		}
 		int dx = x1 - x0;
 		int dy = y1 - y0;
-		int pitch;
+		int advance;
 		if (dy<0)
 		{
 			dy = -dy;
-			pitch = -1;
+			advance = -1;
 		}
 		else 
-			pitch = 1;
+			advance = 1;
 		plot(x0, y0);
 		if (dx >= dy)
 		{
@@ -108,7 +111,7 @@ namespace wyc
 				d += m;
 				if (d >= 0)
 				{
-					plot.advance(pitch);
+					plot.skip_row(advance);
 					d -= dx << 1;
 				}
 				plot();
@@ -120,7 +123,7 @@ namespace wyc
 			int d = -dy;
 			for (int i = 0; i<dy; ++i)
 			{
-				plot.advance(pitch);
+				plot.skip_row(advance);
 				d += m;
 				if (d >= 0)
 				{
@@ -130,8 +133,13 @@ namespace wyc
 				plot();
 			}
 		}
-
 	}
+
+	//template<typename T>
+	//void line_sampler(float x0, float y0, float x1, float y1, T &plot)
+	//{
+
+	//}
 
 } // end of namespace wyc
 
