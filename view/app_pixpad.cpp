@@ -9,11 +9,11 @@ namespace wyc
 {
 	void xapp_pixpad::on_start()
 	{
-		m_redraw = true;
 		m_tex = 0;
 		m_vbo = 0;
 		m_ibo = 0;
 		m_prog = 0;
+		m_rnd.init(clock());
 		size_t w, h;
 		get_viewport_size(w, h);
 		glClearColor(0, 0, 0, 0);
@@ -140,10 +140,15 @@ namespace wyc
 			::PostQuitMessage(0);
 			return;
 		}
+		if (keycode == VK_SPACE) {
+			on_paint();
+			return;
+		}
 	}
 
 	void xapp_pixpad::on_paint()
 	{
+		m_redraw = true;
 		typedef IMATH_NAMESPACE::C3c color_t;
 		size_t vw, vh;
 		get_viewport_size(vw, vh);
@@ -151,18 +156,23 @@ namespace wyc
 		m_surf.storage(vw, vh, sizeof(c));
 		m_surf.clear(c);
 
-		unsigned lx, ly, rx, ry;
+		size_t lx, ly, rx, ry;
 		lx = vw >> 2;
 		rx = vw - lx;
 		ly = vh >> 2;
 		ry = vh - ly;
+		float half_vw, half_vh;
+		half_vw = (rx - lx - 0.5f) * 0.5f;
+		half_vh = (ry - ly - 0.5f) * 0.5f;
+
+		// draw viewport frame
 		c = { 255, 255, 0 };
 		m_surf.set_line(ly, c, lx, rx);
-		m_surf.set_line(ry-1, c, lx, rx);
+		m_surf.set_line(ry - 1, c, lx, rx);
 		for (size_t i = ly; i < ry; ++i)
 		{
 			m_surf.set(lx, i, c);
-			m_surf.set(rx-1, i, c);
+			m_surf.set(rx - 1, i, c);
 		}
 
 		std::vector<vec4f_t> planes;
@@ -176,19 +186,31 @@ namespace wyc
 		planes.push_back(vec4f_t(0, 1, 0, 1));
 
 		std::vector<vec3f_t> vertices;
-		vertices.push_back(vec3f_t(-1.2f, 0, 0));
-		vertices.push_back(vec3f_t(0, 1.2f, 0));
-		vertices.push_back(vec3f_t(0, -1.2f, 0));
-		wyc::clip_polygon(planes, vertices);
+		for (int i = 0; i < 3; ++i)
+		{
+			float x = (float)m_rnd.nextf();
+			float y = (float)m_rnd.nextf();
+			// clamp to [-2, 2]
+			x = (x - 0.5f) * 4;
+			y = (y - 0.5f) * 4;
+			vertices.push_back(vec3f_t(x, y, 0));
+			info("v%d: (%f, %f)", i, x, y);
+		}
 		
-		unsigned w = rx - lx, h = ry - ly;
+		wyc::clip_polygon(planes, vertices);
+
+		// transfrom to screen space
 		for (auto &v : vertices)
 		{
-			v.x = lx + w * (v.x + 1) * 0.5f;
-			v.y = ly + h * (v.y + 1) * 0.5f;
-			assert(v.x >= lx && v.x <= rx);
-			assert(v.y >= ly && v.y <= ry);
+			float tmp;
+			tmp = IMATH_NAMESPACE::clamp(v.x, -1.0f, 1.0f);
+			v.x = lx + half_vw * (tmp + 1);
+			tmp = IMATH_NAMESPACE::clamp(v.y, -1.0f, 1.0f);
+			v.y = ly + half_vh * (tmp + 1);
+			assert(v.x >= lx && v.x < rx);
+			assert(v.y >= ly && v.y < ry);
 		}
+		
 		if (vertices.size()>2)
 		{
 			xplotter<color_t> plot(m_surf, color_t(0, 255, 0));
@@ -205,6 +227,11 @@ namespace wyc
 				line_sampler(v0.x, v0.y, v1.x, v1.y, plot);
 			}
 		}
+		else
+		{
+			warn("vertices left: %d", vertices.size());
+		}
+
 	}
 
 } // namespace wyc

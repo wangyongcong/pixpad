@@ -1,6 +1,8 @@
 #ifndef WYC_HEADER_APP_PIXPAD
 #define WYC_HEADER_APP_PIXPAD
 
+#include <OpenEXR/ImathRandom.h>
+
 #include "win_app.h"
 #include "glrender.h"
 #include "surface.h"
@@ -22,6 +24,7 @@ namespace wyc
 		GLuint m_ibo;
 		xsurface m_surf;
 		bool m_redraw;
+		IMATH_NAMESPACE::Rand32 m_rnd;
 	};
 
 } // namespace wyc
