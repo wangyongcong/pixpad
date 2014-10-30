@@ -29,11 +29,13 @@ set(render_src
 	render/vecmath.cpp
 	render/raster.cpp
 	render/surface.cpp
+	render/gen_mesh.cpp
 )
 set(render_hdr
 	render/vecmath.h
 	render/raster.h
 	render/surface.h
+	render/gen_mesh.h
 )
 
 set(LIB_PIXPAD ${PROJECT_NAME}${LIB_SUFFIX})

@@ -63,5 +63,150 @@ namespace wyc
 		}
 	}
 
+	void clip_polygon(std::vector<vec4f_t> &vertices)
+	{
+		std::vector<vec4f_t> out;
+		float pdot, dot, t;
+		vec4f_t prev;
+		// clipped by W=0
+		const float w_epsilon = 0.0001f;
+		prev = vertices.back();
+		pdot = prev.w - w_epsilon;
+		for (auto &vert : vertices)
+		{
+			dot = vert.w - w_epsilon;
+			if (pdot * dot < 0)
+			{
+				t = pdot / (pdot - dot);
+				out.push_back(prev + (vert - prev) * t);
+			}
+			if (dot >= 0)
+				out.push_back(vert);
+			prev = vert;
+			pdot = dot;
+		}
+		vertices.swap(out);
+		if (vertices.empty())
+			return;
+		out.clear();
+		// clipped by W=X
+		prev = vertices.back();
+		pdot = prev.w - prev.x;
+		for (auto &vert : vertices)
+		{
+			dot = vert.w - vert.x;
+			if (pdot * dot < 0)
+			{
+				t = pdot / (pdot - dot);
+				out.push_back(prev + (vert - prev)*t);
+			}
+			if (dot >= 0)
+				out.push_back(vert);
+			prev = vert;
+			pdot = dot;
+		}
+		vertices.swap(out);
+		if (vertices.empty())
+			return;
+		out.clear();
+		// clipped by W=-X
+		prev = vertices.back();
+		pdot = prev.w + prev.x;
+		for (auto &vert : vertices)
+		{
+			dot = vert.w + vert.x;
+			if (pdot * dot < 0)
+			{
+				t = pdot / (pdot - dot);
+				out.push_back(prev + (vert - prev)*t);
+			}
+			if (dot >= 0)
+				out.push_back(vert);
+			prev = vert;
+			pdot = dot;
+		}
+		vertices.swap(out);
+		if (vertices.empty())
+			return;
+		out.clear();
+		// clipped by W=Y
+		prev = vertices.back();
+		pdot = prev.w - prev.y;
+		for (auto &vert : vertices)
+		{
+			dot = vert.w - vert.y;
+			if (pdot * dot < 0)
+			{
+				t = pdot / (pdot - dot);
+				out.push_back(prev + (vert - prev)*t);
+			}
+			if (dot >= 0)
+				out.push_back(vert);
+			prev = vert;
+			pdot = dot;
+		}
+		vertices.swap(out);
+		if (vertices.empty())
+			return;
+		out.clear();
+		// clipped by W=-Y
+		prev = vertices.back();
+		pdot = prev.w + prev.y;
+		for (auto &vert : vertices)
+		{
+			dot = vert.w + vert.y;
+			if (pdot * dot < 0)
+			{
+				t = pdot / (pdot - dot);
+				out.push_back(prev + (vert - prev)*t);
+			}
+			if (dot >= 0)
+				out.push_back(vert);
+			prev = vert;
+			pdot = dot;
+		}
+		vertices.swap(out);
+		if (vertices.empty())
+			return;
+		out.clear();
+		// clipped by W=Z
+		prev = vertices.back();
+		pdot = prev.w - prev.z;
+		for (auto &vert : vertices)
+		{
+			dot = vert.w - vert.z;
+			if (pdot * dot < 0)
+			{
+				t = pdot / (pdot - dot);
+				out.push_back(prev + (vert - prev)*t);
+			}
+			if (dot >= 0)
+				out.push_back(vert);
+			prev = vert;
+			pdot = dot;
+		}
+		vertices.swap(out);
+		if (vertices.empty())
+			return;
+		out.clear();
+		// clipped by W=-Z
+		prev = vertices.back();
+		pdot = prev.w + prev.z;
+		for (auto &vert : vertices)
+		{
+			dot = vert.w + vert.z;
+			if (pdot * dot < 0)
+			{
+				t = pdot / (pdot - dot);
+				out.push_back(prev + (vert - prev)*t);
+			}
+			if (dot >= 0)
+				out.push_back(vert);
+			prev = vert;
+			pdot = dot;
+		}
+		vertices.swap(out);
+	}
+
 } // namespace wyc
 

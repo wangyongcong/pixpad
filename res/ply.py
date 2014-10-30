@@ -14,6 +14,7 @@ import struct
 # uint       unsigned integer          4
 # float      single-precision float    4
 # double     double-precision float    8
+
 PROPERTY_TYPE = {
 	"char": ("b", 1),
 	"uchar": ("B", 1),
@@ -34,11 +35,11 @@ class CElement(object):
 		self.props = []
 		self.format = ""
 		self.size = 0
-		self.is_list = False
+		self.list_format = None
 		self.data = None
 
 
-def read(path):
+def read(path, header_only = False):
 	try:
 		f = open(path, "rb")
 	except IOError:
@@ -97,9 +98,10 @@ def read(path):
 				size_type, elem_type = val[2], val[3]
 				fmt1, size1 = PROPERTY_TYPE[size_type]
 				fmt2, size2 = PROPERTY_TYPE[elem_type]
-				cur_elem.format = (prefix + fmt1, size1, "".join((prefix, "%d", fmt2)), size2)
-				cur_elem.is_list = True
-			elif prop_type in PROPERTY_TYPE and not cur_elem.is_list:
+				cur_elem.list_format = (prefix + fmt1, size1, "".join((prefix, "%d", fmt2)), size2)
+				cur_elem.format += fmt2
+				cur_elem.size = size2
+			elif prop_type in PROPERTY_TYPE and not cur_elem.list_format:
 				fmt, size = PROPERTY_TYPE[prop_type]
 				cur_elem.format += fmt
 				cur_elem.size += size
@@ -113,17 +115,22 @@ def read(path):
 			print "[ERROR] Too many headers"
 			return None
 		s = f.readline().rstrip()
+	if header_only:
+		f.close();
+		return None
+
+	ply = {}
 	for cur_elem in elements:
 		print cur_elem.name, "(%d)" % cur_elem.cnt
 		for prop_name, prop_type in cur_elem.props:
 			print "\t", prop_name, prop_type
-		if cur_elem.is_list:
-			fmt1, size1, fmt2, size2 = cur_elem.format
+		if cur_elem.list_format:
+			fmt1, size1, fmt2, size2 = cur_elem.list_format
 			s = f.read(size1)
 			cnt = struct.unpack(fmt1, s)[0]
 			fmt2 = fmt2 % cnt
 			size2 *= cnt
-			print "\ttData: '%s' (%d Bytes)" % (fmt2, size2)
+			print "\tData: '%s' (%d Bytes)" % (fmt2, size2)
 			s = f.read(size2)
 			if len(s) < size2:
 				f.close()
@@ -142,10 +149,87 @@ def read(path):
 					print "[ERROR] Bad data!"
 					return None
 				cur_elem.data.append(struct.unpack(cur_elem.format, s))
+		ply[cur_elem.name] = cur_elem
 	f.close()
 	print "EOF"
-	return elements
+	return ply
+
+
+def save_raw(path, ply_data):
+	print "save to", path
+	f = open(path, "wb")
+	vertex = ply_data.get("vertex", None)
+	inf = float("inf")
+	# x_min, y_min, z_min, x_max, y_max, z_max
+	bounding = [inf, inf, inf, -inf, -inf, -inf]
+	if vertex:
+		cnt = vertex.cnt
+		size= vertex.size
+		f.write(struct.pack("<II", cnt, size))
+		fmt = "<" + vertex.format[1:]
+		for v in vertex.data:
+			x, y, z = v[0], v[1], v[2]
+			if x < bounding[0]:
+				bounding[0] = x
+			if y < bounding[1]:
+				bounding[1] = y
+			if z < bounding[2]:
+				bounding[2] = z
+			if x > bounding[3]:
+				bounding[3] = x
+			if y > bounding[4]:
+				bounding[4] = y
+			if z > bounding[5]:
+				bounding[5] = z
+			f.write(struct.pack(fmt, *v))
+	else:
+		f.write(struct.pack("<II", 0, 0))
+	tristrips = ply_data.get("tristrips", None)
+	if tristrips:
+		cnt = len(tristrips.data)
+		size = tristrips.size
+		f.write(struct.pack("<II", cnt, tristrips.size))
+		fmt = "<" + tristrips.list_format[2][1:] % cnt
+		f.write(struct.pack(fmt, *tristrips.data))
+	else:
+		f.write(struct.pack("<II", 0, 0))
+	f.write(struct.pack("<ffffff", *bounding))
+	f.close()
+	print "bounding box:", bounding
+
+
+def main(argv):
+	doc = '''
+Usage: 
+    python ply.py *.ply
+Options:
+    --help: show help
+    --header: parse header only
+    --out: output raw data
+    '''
+	options = set()
+	for v in argv:
+		if v.startswith("--"):
+			options.add(v[2:])
+	if "help" in options:
+		print doc
+		return
+	try:
+		path = argv[1]
+	except:
+		print doc
+		return
+	if not os.path.isfile(path):
+		print "File not found:", path
+		return
+	is_header_only = "header" in options
+	ply_data = read(path, is_header_only)
+	if is_header_only:
+		return
+	if "out" in options and ply_data:
+		out = "".join((os.path.splitext(path)[0], ".mesh"))
+		save_raw(out, ply_data)
 
 
 if __name__ == "__main__":
-	read("torus.ply")
+	main(sys.argv)

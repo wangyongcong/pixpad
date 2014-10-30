@@ -5,6 +5,8 @@ namespace test
 {
 	void test_polygon_clipping();
 
+	void test_homogeneous_clipping();
+
 } // end of namespace test
 
 #endif // HEADER_TEST_SAMPLER

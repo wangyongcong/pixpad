@@ -9,7 +9,7 @@ using namespace test;
 
 int main()
 {
-	test_polygon_clipping();
+	test_homogeneous_clipping();
 	printf("Press any key to continue\n");
 	while (!::_kbhit())
 	{
