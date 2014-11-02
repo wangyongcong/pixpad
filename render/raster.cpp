@@ -1,5 +1,7 @@
 #include "raster.h"
 #include <cassert>
+#include <OpenEXR/ImathMath.h>
+#include "vector.h"
 
 namespace wyc
 {
@@ -26,10 +28,10 @@ namespace wyc
 		printf("\n");
 	}
 
-	void xsurface_test::verify(const vec2f_t &center, const vec2f_t verts[3]) const
+	void xsurface_test::verify(const vec2f &center, const vec2f verts[3]) const
 	{
 		const float rel_err = 0.0005f;
-		const vec2f_t *p0, *p1, *p2;
+		const vec2f *p0, *p1, *p2;
 		if (verts[0].y > verts[1].y) {
 			p0 = verts + 1;
 			p1 = verts;
@@ -106,9 +108,9 @@ namespace wyc
 		}
 	}
 
-	void sample_triangle(const vec2f_t &center, const vec2f_t verts[3], xsurface_test &surf)
+	void sample_triangle(const vec2f &center, const vec2f verts[3], xsurface_test &surf)
 	{
-		const vec2f_t *p0, *p1, *p2;
+		const vec2f *p0, *p1, *p2;
 		if (verts[0].y > verts[1].y) {
 			p0 = verts + 1;
 			p1 = verts;

@@ -1,18 +1,21 @@
+#include <cassert>
 #include "vecmath.h"
+#include "vector.h"
+#include "matrix.h"
 
 namespace wyc
 {
-	void set_orthograph(mat4f_t &proj, float l, float b, float n, float r, float t, float f)
+	void set_orthograph(mat4f &proj, float l, float b, float n, float r, float t, float f)
 	{
 		proj = {
-			2.0f/(r-l),	0,			0,			(r+l)/(l-r),
-			0,			2.0f/(t-b),	0,			(t+b)/(b-t),
-			0,			0,			2.0f/(n-f), (f+n)/(n-f),
+			2/(r-l),	0,			0,			(r+l)/(l-r),
+			0,			2/(t-b),	0,			(t+b)/(b-t),
+			0,			0,			2/(n-f),	(f+n)/(n-f),
 			0,			0,			0,			1
 		};
 	}
 
-	void set_perspective(mat4f_t &proj, float fov, float aspect, float n, float f)
+	void set_perspective(mat4f &proj, float fov, float aspect, float n, float f)
 	{
 		n = std::abs(n);
 		f = std::abs(f);
@@ -31,19 +34,16 @@ namespace wyc
 		};
 	}
 
-	void clip_polygon_by_plane(const vec4f_t &plane, const std::vector<vec3f_t> &vertices, std::vector<vec3f_t> &out)
+	void clip_polygon_by_plane(const vec4f &plane, const std::vector<vec3f> &vertices, std::vector<vec3f> &out)
 	{
-		vec3f_t prev = vertices.back();
+		vec3f prev = vertices.back();
 		float pdot = prev ^ plane;
 		out.reserve(vertices.size() + 1);
 		for (auto &vert : vertices)
 		{
 			float dot = vert ^ plane;
 			if (dot * pdot < 0)
-			{
-				float t = pdot / (pdot - dot);
-				out.push_back(prev + (vert - prev) * t);
-			}
+				out.push_back(intersect(prev, pdot, vert, dot));
 			if (dot >= 0)
 				out.push_back(vert);
 			prev = vert;
@@ -51,11 +51,11 @@ namespace wyc
 		}
 	}
 
-	void clip_polygon(const std::vector<vec4f_t> &planes, std::vector<vec3f_t> &vertices)
+	void clip_polygon(const std::vector<vec4f> &planes, std::vector<vec3f> &vertices)
 	{
 		for (auto plane : planes)
 		{
-			std::vector<vec3f_t> tmp;
+			std::vector<vec3f> tmp;
 			clip_polygon_by_plane(plane, vertices, tmp);
 			vertices = std::move(tmp);
 			if (vertices.empty())
@@ -63,11 +63,29 @@ namespace wyc
 		}
 	}
 
-	void clip_polygon(std::vector<vec4f_t> &vertices)
+	void _clip_comp(std::vector<vec4f> *vertices, std::vector<vec4f> *out, int i)
 	{
-		std::vector<vec4f_t> out;
-		float pdot, dot, t;
-		vec4f_t prev;
+		vec4f prev = vertices->back();
+		float pdot = prev.w - prev[i], dot;
+		for (auto &vert : *vertices)
+		{
+			dot = vert.w - vert[i];
+			if (pdot * dot < 0)
+			{
+				out->push_back(intersect(prev, pdot, vert, dot));
+			}
+			if (dot >= 0)
+				out->push_back(vert);
+			prev = vert;
+			pdot = dot;
+		}
+	}
+
+	void clip_polygon(std::vector<vec4f> &vertices)
+	{
+		std::vector<vec4f> out;
+		float pdot, dot;
+		vec4f prev;
 		// clipped by W=0
 		const float w_epsilon = 0.0001f;
 		prev = vertices.back();
@@ -77,8 +95,7 @@ namespace wyc
 			dot = vert.w - w_epsilon;
 			if (pdot * dot < 0)
 			{
-				t = pdot / (pdot - dot);
-				out.push_back(prev + (vert - prev) * t);
+				out.push_back(intersect(prev, pdot, vert, dot));
 			}
 			if (dot >= 0)
 				out.push_back(vert);
@@ -89,6 +106,10 @@ namespace wyc
 		if (vertices.empty())
 			return;
 		out.clear();
+		//for (int i = 0; i < 3; ++i)
+		//{
+		//	_clip_comp(&vertices, &out, i);
+		//}
 		// clipped by W=X
 		prev = vertices.back();
 		pdot = prev.w - prev.x;
@@ -97,8 +118,7 @@ namespace wyc
 			dot = vert.w - vert.x;
 			if (pdot * dot < 0)
 			{
-				t = pdot / (pdot - dot);
-				out.push_back(prev + (vert - prev)*t);
+				out.push_back(intersect(prev, pdot, vert, dot));
 			}
 			if (dot >= 0)
 				out.push_back(vert);
@@ -117,8 +137,7 @@ namespace wyc
 			dot = vert.w + vert.x;
 			if (pdot * dot < 0)
 			{
-				t = pdot / (pdot - dot);
-				out.push_back(prev + (vert - prev)*t);
+				out.push_back(intersect(prev, pdot, vert, dot));
 			}
 			if (dot >= 0)
 				out.push_back(vert);
@@ -137,8 +156,7 @@ namespace wyc
 			dot = vert.w - vert.y;
 			if (pdot * dot < 0)
 			{
-				t = pdot / (pdot - dot);
-				out.push_back(prev + (vert - prev)*t);
+				out.push_back(intersect(prev, pdot, vert, dot));
 			}
 			if (dot >= 0)
 				out.push_back(vert);
@@ -157,8 +175,7 @@ namespace wyc
 			dot = vert.w + vert.y;
 			if (pdot * dot < 0)
 			{
-				t = pdot / (pdot - dot);
-				out.push_back(prev + (vert - prev)*t);
+				out.push_back(intersect(prev, pdot, vert, dot));
 			}
 			if (dot >= 0)
 				out.push_back(vert);
@@ -177,8 +194,7 @@ namespace wyc
 			dot = vert.w - vert.z;
 			if (pdot * dot < 0)
 			{
-				t = pdot / (pdot - dot);
-				out.push_back(prev + (vert - prev)*t);
+				out.push_back(intersect(prev, pdot, vert, dot));
 			}
 			if (dot >= 0)
 				out.push_back(vert);
@@ -197,8 +213,7 @@ namespace wyc
 			dot = vert.w + vert.z;
 			if (pdot * dot < 0)
 			{
-				t = pdot / (pdot - dot);
-				out.push_back(prev + (vert - prev)*t);
+				out.push_back(intersect(prev, pdot, vert, dot));
 			}
 			if (dot >= 0)
 				out.push_back(vert);

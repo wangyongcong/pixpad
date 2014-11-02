@@ -33,6 +33,8 @@ set(render_src
 )
 set(render_hdr
 	render/vecmath.h
+	render/vector.h
+	render/matrix.h
 	render/raster.h
 	render/surface.h
 	render/gen_mesh.h

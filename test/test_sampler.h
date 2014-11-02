@@ -3,6 +3,8 @@
 
 namespace test
 {
+	void test_matrix();
+
 	void test_polygon_clipping();
 
 	void test_homogeneous_clipping();

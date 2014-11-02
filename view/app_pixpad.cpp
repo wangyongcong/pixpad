@@ -1,9 +1,15 @@
 #include "stdafx.h"
+
+#include <ctime>
+#include <OpenEXR/ImathFun.h>
+#include <OpenEXR/ImathColor.h>
+
 #include "app_pixpad.h"
 #include "log.h"
 #include "vecmath.h"
+#include "vector.h"
+#include "matrix.h"
 #include "raster.h"
-#include <OpenEXR/ImathColor.h>
 
 namespace wyc
 {
@@ -105,9 +111,9 @@ namespace wyc
 		glUseProgram(m_prog);
 		GLint loc = glGetUniformLocation(m_prog, "proj");
 		if (loc != -1) {
-			mat4f_t proj;
+			mat4f proj;
 			set_orthograph(proj, 0, 0, 0, 1, 1, 1);
-			glUniformMatrix4fv(loc, 1, GL_TRUE, proj.getValue());
+			glUniformMatrix4fv(loc, 1, GL_TRUE, proj.data());
 		}
 		assert(glGetError() == GL_NO_ERROR);
 		loc = glGetUniformLocation(m_prog, "basemap");
@@ -175,17 +181,17 @@ namespace wyc
 			m_surf.set(rx - 1, i, c);
 		}
 
-		std::vector<vec4f_t> planes;
+		std::vector<vec4f> planes;
 		// left plane
-		planes.push_back(vec4f_t(1, 0, 0, 1));
+		planes.push_back({ 1, 0, 0, 1 });
 		// top plane
-		planes.push_back(vec4f_t(0, -1, 0, 1));
+		planes.push_back({ 0, -1, 0, 1 });
 		// right plane
-		planes.push_back(vec4f_t(-1, 0, 0, 1));
+		planes.push_back({ -1, 0, 0, 1 });
 		// bottom plane
-		planes.push_back(vec4f_t(0, 1, 0, 1));
+		planes.push_back({ 0, 1, 0, 1 });
 
-		std::vector<vec3f_t> vertices;
+		std::vector<vec3f> vertices;
 		for (int i = 0; i < 3; ++i)
 		{
 			float x = (float)m_rnd.nextf();
@@ -193,7 +199,7 @@ namespace wyc
 			// clamp to [-2, 2]
 			x = (x - 0.5f) * 4;
 			y = (y - 0.5f) * 4;
-			vertices.push_back(vec3f_t(x, y, 0));
+			vertices.push_back({ x, y, 0 });
 			info("v%d: (%f, %f)", i, x, y);
 		}
 		

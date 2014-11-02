@@ -1,8 +1,9 @@
 #include "gen_mesh.h"
+#include "vector.h"
 
 using namespace wyc;
 
-void box(float s, std::vector<vec3f_t> &vertices, std::vector<unsigned short> &faces)
+void box(float s, std::vector<vec3f> &vertices, std::vector<unsigned short> &faces)
 {
 	s *= 0.5f;
 	// top [0 3]  bottom [5 8]

@@ -6,7 +6,7 @@
 
 namespace wyc
 {
-	void box(float size, std::vector<vec3f_t> &vertices, std::vector<unsigned short> &faces);
+	void box(float size, std::vector<vec3f> &vertices, std::vector<unsigned short> &faces);
 }
 
 #endif // WYC_HEADER_GEN_MESH

@@ -32,7 +32,7 @@ namespace wyc
 				m_maxx = x;
 		}
 		void detail() const;
-		void verify(const vec2f_t &center, const vec2f_t verts[3]) const;
+		void verify(const vec2f &center, const vec2f verts[3]) const;
 
 	private:
 		struct fragment {
@@ -47,7 +47,7 @@ namespace wyc
 
 	void sample_scan_line(float y, float cx, float x0, float x1, xsurface_test &surf);
 
-	void sample_triangle(const vec2f_t &center, const vec2f_t verts[3], xsurface_test &surf);
+	void sample_triangle(const vec2f &center, const vec2f verts[3], xsurface_test &surf);
 
 	template<typename T>
 	class xplotter
