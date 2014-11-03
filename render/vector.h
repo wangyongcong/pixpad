@@ -600,6 +600,7 @@ namespace wyc
 		typedef T scalar_t;
 		enum { DIMENSION = 4 };
 		T	x, y, z, w;
+
 		inline xvector& operator = (T val)
 		{
 			x = y = z = w = val;
@@ -630,6 +631,7 @@ namespace wyc
 			y = v.y;
 			z = 0;
 			w = 1;
+			return *this;
 		}
 		template<>
 		xvector& operator = (const xvector<T, 3> &v)
@@ -638,6 +640,7 @@ namespace wyc
 			y = v.y;
 			z = v.z;
 			w = 1;
+			return *this;
 		}
 		inline void zero()
 		{

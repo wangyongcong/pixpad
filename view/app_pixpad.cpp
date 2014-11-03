@@ -10,6 +10,7 @@
 #include "vector.h"
 #include "matrix.h"
 #include "raster.h"
+#include "gen_mesh.h"
 
 namespace wyc
 {
@@ -155,7 +156,7 @@ namespace wyc
 	void xapp_pixpad::on_paint()
 	{
 		m_redraw = true;
-		typedef IMATH_NAMESPACE::C3c color_t;
+		typedef Imath::C3c color_t;
 		size_t vw, vh;
 		get_viewport_size(vw, vh);
 		color_t c = { 0, 0, 0 };
@@ -167,9 +168,6 @@ namespace wyc
 		rx = vw - lx;
 		ly = vh >> 2;
 		ry = vh - ly;
-		float half_vw, half_vh;
-		half_vw = (rx - lx - 0.5f) * 0.5f;
-		half_vh = (ry - ly - 0.5f) * 0.5f;
 
 		// draw viewport frame
 		c = { 255, 255, 0 };
@@ -180,7 +178,11 @@ namespace wyc
 			m_surf.set(lx, i, c);
 			m_surf.set(rx - 1, i, c);
 		}
-
+		draw_cube(lx, ly, rx, ry);
+	}
+	
+	void xapp_pixpad::random_triangle(int lx, int ly, int rx, int ry)
+	{
 		std::vector<vec4f> planes;
 		// left plane
 		planes.push_back({ 1, 0, 0, 1 });
@@ -202,24 +204,26 @@ namespace wyc
 			vertices.push_back({ x, y, 0 });
 			info("v%d: (%f, %f)", i, x, y);
 		}
-		
 		wyc::clip_polygon(planes, vertices);
 
 		// transfrom to screen space
+		float half_vw, half_vh;
+		half_vw = (rx - lx - 0.5f) * 0.5f;
+		half_vh = (ry - ly - 0.5f) * 0.5f;
 		for (auto &v : vertices)
 		{
 			float tmp;
-			tmp = IMATH_NAMESPACE::clamp(v.x, -1.0f, 1.0f);
+			tmp = Imath::clamp(v.x, -1.0f, 1.0f);
 			v.x = lx + half_vw * (tmp + 1);
-			tmp = IMATH_NAMESPACE::clamp(v.y, -1.0f, 1.0f);
+			tmp = Imath::clamp(v.y, -1.0f, 1.0f);
 			v.y = ly + half_vh * (tmp + 1);
 			assert(v.x >= lx && v.x < rx);
 			assert(v.y >= ly && v.y < ry);
 		}
-		
+
 		if (vertices.size()>2)
 		{
-			xplotter<color_t> plot(m_surf, color_t(0, 255, 0));
+			xplotter<Imath::C3c> plot(m_surf, Imath::C3c(0, 255, 0));
 			auto v0 = vertices.back();
 			for (auto &v1 : vertices)
 			{
@@ -237,7 +241,71 @@ namespace wyc
 		{
 			warn("vertices left: %d", vertices.size());
 		}
+	}
+
+	void xapp_pixpad::draw_cube(int lx, int ly, int rx, int ry)
+	{
+		std::vector<vec3f> vertices;
+		std::vector<unsigned short> faces;
+		wyc::box(0.4f, vertices, faces);
+
+		mat4f proj;
+		wyc::set_perspective(proj, 45, 4.f / 3, 1, 100);
+
+		float half_vw, half_vh;
+		half_vw = (rx - lx - 0.5f) * 0.5f;
+		half_vh = (ry - ly - 0.5f) * 0.5f;
+
+		std::vector<vec4f> verts_cache;
+		verts_cache.reserve(9);
+		vec4f v;
+		for (int i = 2, cnt = faces.size(); i < cnt; i += 3)
+		{
+			// projection
+			v = proj * vertices[faces[i - 2]];
+			verts_cache.push_back(v);
+			v = proj * vertices[faces[i - 1]];
+			verts_cache.push_back(v);
+			v = proj * vertices[faces[i]];
+			verts_cache.push_back(v);
+			// clipping
+			wyc::clip_polygon_homo(verts_cache);
+			if (verts_cache.empty())
+				continue;
+			// viewport transform
+			for (auto &v : verts_cache)
+			{
+				v /= v.w;
+				float tmp;
+				tmp = Imath::clamp(v.x, -1.0f, 1.0f);
+				v.x = lx + half_vw * (tmp + 1);
+				tmp = Imath::clamp(v.y, -1.0f, 1.0f);
+				v.y = ly + half_vh * (tmp + 1);
+				assert(v.x >= lx && v.x < rx);
+				assert(v.y >= ly && v.y < ry);
+			}
+			// draw
+			draw_triangles(verts_cache);
+		}
 
 	}
+
+	void xapp_pixpad::draw_triangles(const std::vector<vec4f> &vertices)
+	{
+		xplotter<Imath::C3c> plot(m_surf, Imath::C3c(0, 255, 0));
+		auto v0 = vertices.back();
+		for (auto &v1 : vertices)
+		{
+			line_sampler(v0.x, v0.y, v1.x, v1.y, plot);
+			v0 = v1;
+		}
+		v0 = vertices.front();
+		for (size_t i = 2, end = vertices.size() - 1; i < end; ++i)
+		{
+			auto &v1 = vertices[i];
+			line_sampler(v0.x, v0.y, v1.x, v1.y, plot);
+		}
+	}
+
 
 } // namespace wyc

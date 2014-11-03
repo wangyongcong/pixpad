@@ -1556,22 +1556,24 @@ namespace wyc
 	}
 
 	template<class T>
-	xvector<T, 3> operator * (const xvector<T, 3> &v, const xmatrix<T, 4, 4> &m)
+	xvector<T, 4> operator * (const xvector<T, 3> &v, const xmatrix<T, 4, 4> &m)
 	{
-		xvector<T, 3> r;
-		r.x = v.x*m.m00 + v.y*m.m10 + v.z*m.m20;
-		r.y = v.x*m.m01 + v.y*m.m11 + v.z*m.m21;
-		r.z = v.x*m.m02 + v.y*m.m12 + v.z*m.m22;
+		xvector<T, 4> r;
+		r.x = v.x*m.m00 + v.y*m.m10 + v.z*m.m20 + m.m30;
+		r.y = v.x*m.m01 + v.y*m.m11 + v.z*m.m21 + m.m31;
+		r.z = v.x*m.m02 + v.y*m.m12 + v.z*m.m22 + m.m32;
+		r.w = v.x*m.m03 + v.y*m.m13 + v.z*m.m23 + m.m33;
 		return r;
 	}
 
 	template<class T>
-	xvector<T, 3> operator * (const xmatrix<T, 4, 4> &m, const xvector<T, 3> &v)
+	xvector<T, 4> operator * (const xmatrix<T, 4, 4> &m, const xvector<T, 3> &v)
 	{
-		xvector<T, 3> r;
-		r.x = v.x*m.m00 + v.y*m.m01 + v.z*m.m02;
-		r.y = v.x*m.m10 + v.y*m.m11 + v.z*m.m12;
-		r.z = v.x*m.m20 + v.y*m.m21 + v.z*m.m22;
+		xvector<T, 4> r;
+		r.x = v.x*m.m00 + v.y*m.m01 + v.z*m.m02 + m.m03;
+		r.y = v.x*m.m10 + v.y*m.m11 + v.z*m.m12 + m.m13;
+		r.z = v.x*m.m20 + v.y*m.m21 + v.z*m.m22 + m.m23;
+		r.w = v.x*m.m30 + v.y*m.m31 + v.z*m.m32 + m.m33;
 		return r;
 	}
 

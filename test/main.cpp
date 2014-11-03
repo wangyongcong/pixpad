@@ -8,9 +8,9 @@ using namespace test;
 
 int main()
 {
-	test_vector();
+//	test_vector();
 //	test_matrix();
-//	test_homogeneous_clipping();
+	test_homogeneous_clipping();
 	printf("Press any key to continue\n");
 	while (!::_kbhit())
 	{

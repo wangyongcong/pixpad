@@ -53,7 +53,7 @@ namespace wyc
 	void clip_polygon(const std::vector<vec4f> &planes, std::vector<vec3f> &vertices);
 
 	// Clip polygon in homogeneous clip space
-	void clip_polygon(std::vector<vec4f> &vertices);
+	void clip_polygon_homo(std::vector<vec4f> &vertices);
 
 } // namespace wyc
 

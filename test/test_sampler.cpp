@@ -120,7 +120,7 @@ namespace test
 			vertices.push_back(fail_cases[i - 2]);
 			vertices.push_back(fail_cases[i - 1]);
 			vertices.push_back(fail_cases[i]);
-			wyc::clip_polygon(vertices);
+			wyc::clip_polygon_homo(vertices);
 			normalize(vertices);
 			check_clipping_strict(vertices);
 		}
@@ -145,7 +145,7 @@ namespace test
 				printf("v%d=(%ff, %ff, %ff, %ff) ", i, v.x, v.y, v.z, v.w);
 			}
 			printf("\n");
-			wyc::clip_polygon(vertices);
+			wyc::clip_polygon_homo(vertices);
 			normalize(vertices);
 			check_clipping_strict(vertices);
 		}

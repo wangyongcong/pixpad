@@ -71,9 +71,7 @@ namespace wyc
 		{
 			dot = vert.w - vert[i];
 			if (pdot * dot < 0)
-			{
 				out->push_back(intersect(prev, pdot, vert, dot));
-			}
 			if (dot >= 0)
 				out->push_back(vert);
 			prev = vert;
@@ -81,9 +79,27 @@ namespace wyc
 		}
 	}
 
-	void clip_polygon(std::vector<vec4f> &vertices)
+	void _clip_comp_neg(std::vector<vec4f> *vertices, std::vector<vec4f> *out, int i)
+	{
+		vec4f prev = vertices->back();
+		float pdot = prev.w + prev[i], dot;
+		for (auto &vert : *vertices)
+		{
+			dot = vert.w + vert[i];
+			if (pdot * dot < 0)
+				out->push_back(intersect(prev, pdot, vert, dot));
+			if (dot >= 0)
+				out->push_back(vert);
+			prev = vert;
+			pdot = dot;
+		}
+	}
+
+	void clip_polygon_homo(std::vector<vec4f> &vertices)
 	{
 		std::vector<vec4f> out;
+		// clipped by 6 planes may result 6 more vertices at most
+		out.reserve(vertices.size() + 6);
 		float pdot, dot;
 		vec4f prev;
 		// clipped by W=0
@@ -94,9 +110,7 @@ namespace wyc
 		{
 			dot = vert.w - w_epsilon;
 			if (pdot * dot < 0)
-			{
 				out.push_back(intersect(prev, pdot, vert, dot));
-			}
 			if (dot >= 0)
 				out.push_back(vert);
 			prev = vert;
@@ -106,121 +120,24 @@ namespace wyc
 		if (vertices.empty())
 			return;
 		out.clear();
-		//for (int i = 0; i < 3; ++i)
-		//{
-		//	_clip_comp(&vertices, &out, i);
-		//}
-		// clipped by W=X
-		prev = vertices.back();
-		pdot = prev.w - prev.x;
-		for (auto &vert : vertices)
+		// clipped by positive plane: W=X, W=Y, W=Z
+		for (int i = 0; i < 3; ++i)
 		{
-			dot = vert.w - vert.x;
-			if (pdot * dot < 0)
-			{
-				out.push_back(intersect(prev, pdot, vert, dot));
-			}
-			if (dot >= 0)
-				out.push_back(vert);
-			prev = vert;
-			pdot = dot;
+			_clip_comp(&vertices, &out, i);
+			vertices.swap(out);
+			if (vertices.empty())
+				return;
+			out.clear();
 		}
-		vertices.swap(out);
-		if (vertices.empty())
-			return;
-		out.clear();
-		// clipped by W=-X
-		prev = vertices.back();
-		pdot = prev.w + prev.x;
-		for (auto &vert : vertices)
+		// clipped by negative plane: W=-X, W=-Y, W=-Z
+		for (int i = 0; i < 3; ++i)
 		{
-			dot = vert.w + vert.x;
-			if (pdot * dot < 0)
-			{
-				out.push_back(intersect(prev, pdot, vert, dot));
-			}
-			if (dot >= 0)
-				out.push_back(vert);
-			prev = vert;
-			pdot = dot;
+			_clip_comp_neg(&vertices, &out, i);
+			vertices.swap(out);
+			if (vertices.empty())
+				return;
+			out.clear();
 		}
-		vertices.swap(out);
-		if (vertices.empty())
-			return;
-		out.clear();
-		// clipped by W=Y
-		prev = vertices.back();
-		pdot = prev.w - prev.y;
-		for (auto &vert : vertices)
-		{
-			dot = vert.w - vert.y;
-			if (pdot * dot < 0)
-			{
-				out.push_back(intersect(prev, pdot, vert, dot));
-			}
-			if (dot >= 0)
-				out.push_back(vert);
-			prev = vert;
-			pdot = dot;
-		}
-		vertices.swap(out);
-		if (vertices.empty())
-			return;
-		out.clear();
-		// clipped by W=-Y
-		prev = vertices.back();
-		pdot = prev.w + prev.y;
-		for (auto &vert : vertices)
-		{
-			dot = vert.w + vert.y;
-			if (pdot * dot < 0)
-			{
-				out.push_back(intersect(prev, pdot, vert, dot));
-			}
-			if (dot >= 0)
-				out.push_back(vert);
-			prev = vert;
-			pdot = dot;
-		}
-		vertices.swap(out);
-		if (vertices.empty())
-			return;
-		out.clear();
-		// clipped by W=Z
-		prev = vertices.back();
-		pdot = prev.w - prev.z;
-		for (auto &vert : vertices)
-		{
-			dot = vert.w - vert.z;
-			if (pdot * dot < 0)
-			{
-				out.push_back(intersect(prev, pdot, vert, dot));
-			}
-			if (dot >= 0)
-				out.push_back(vert);
-			prev = vert;
-			pdot = dot;
-		}
-		vertices.swap(out);
-		if (vertices.empty())
-			return;
-		out.clear();
-		// clipped by W=-Z
-		prev = vertices.back();
-		pdot = prev.w + prev.z;
-		for (auto &vert : vertices)
-		{
-			dot = vert.w + vert.z;
-			if (pdot * dot < 0)
-			{
-				out.push_back(intersect(prev, pdot, vert, dot));
-			}
-			if (dot >= 0)
-				out.push_back(vert);
-			prev = vert;
-			pdot = dot;
-		}
-		vertices.swap(out);
 	}
 
 } // namespace wyc

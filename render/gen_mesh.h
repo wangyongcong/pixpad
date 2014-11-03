@@ -2,7 +2,7 @@
 #define WYC_HEADER_GEN_MESH
 
 #include <vector>
-#include "vecmath.h"
+#include "mathfwd.h"
 
 namespace wyc
 {
