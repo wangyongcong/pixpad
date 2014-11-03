@@ -4,12 +4,12 @@
 
 #include "test_sampler.h"
 
-using namespace std;
 using namespace test;
 
 int main()
 {
-	test_matrix();
+	test_vector();
+//	test_matrix();
 //	test_homogeneous_clipping();
 	printf("Press any key to continue\n");
 	while (!::_kbhit())

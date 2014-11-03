@@ -52,6 +52,8 @@ set(test_src
 	test/main.cpp
 	test/test_sampler.h
 	test/test_sampler.cpp
+	render/test_matrix.cpp
+	render/test_vector.cpp
 )
 set(TEST ${PROJECT_NAME}_test)
 add_executable(${TEST}

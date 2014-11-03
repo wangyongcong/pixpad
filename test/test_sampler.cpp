@@ -7,7 +7,6 @@
 #include "vecmath.h"
 #include "vector.h"
 #include "matrix.h"
-#include "test_sampler.h"
 
 using namespace wyc;
 
@@ -150,22 +149,6 @@ namespace test
 			normalize(vertices);
 			check_clipping_strict(vertices);
 		}
-	}
-
-	void test_matrix()
-	{
-		printf("testing matrix22...");
-		wyc::test_matrix22<float>();
-		printf("Ok\n");
-		printf("testing matrix33...");
-		wyc::test_matrix33<float>();
-		printf("Ok\n");
-		printf("testing matrix44...");
-		wyc::test_matrix44<float>();
-		printf("Ok\n");
-		printf("testing matrix55...");
-		wyc::test_matrix55<float>();
-		printf("Ok\n");
 	}
 
 } // namespace test

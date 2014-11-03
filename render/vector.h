@@ -827,52 +827,6 @@ namespace wyc
 	}
 
 
-
-	template<typename T>
-	void vector_test()
-	{
-		typedef typename T::scalar_t scalar_t;
-		const scalar_t pi = scalar_t(3.1415926), e = scalar_t(2.718281828);
-		T v1;
-		v1.zero();
-		v1 = e;
-		v1 = { pi, e };
-		T v2 = { scalar_t(1.414), scalar_t(1.736) };
-		v1 += v2;
-		v1 -= v2;
-		v1 *= v2;
-		v1 /= v2;
-		T v3;
-		v3 = v1 + v2;
-		v3 = v1 - v2;
-		v3 = v1 * v2;
-		v3 = v2 / v2;
-		v1 += pi;
-		v1 -= pi;
-		v1 *= pi;
-		v1 /= pi;
-		v3 = v1 * pi;
-		v3 = v1 / pi;
-		v3 = pi * v1;
-		v2 += e;
-		v2.reverse();
-		v2.reciprocal();
-		scalar_t len;
-		len = v2.length2();
-		len = v2.length();
-		if (len)
-			v2.normalize();
-		v1.dot(v2);
-		v1.cross(v2);
-		bool b;
-		b = v1 == v2;
-		b = v1 != v2;
-		b = v1 < v2;
-		b = v1 > v2;
-		b = v1 <= v2;
-		b = v1 >= v2;
-	}
-
 } // endof namespace wyc
 
 #endif // WYC_HEADER_VECTOR
