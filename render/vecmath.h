@@ -46,6 +46,33 @@ namespace wyc
 	// aspect: width/height
 	// near_plane/far_plane: distance of near plane and far plane
 	void set_perspective(mat4f &proj, float yfov, float aspect, float near_plane, float far_plane);
+
+	//
+	// 2D homogeneous transform matrix
+	//
+	// translate (x, y)
+	void set_translate(mat3f &m, float x, float y);
+	// scale (sx, sy)
+	void set_scale(mat3f &m, float sx, float sy);
+	// rotate radian counter-clockwise
+	void set_rotate(mat3f &m, float radian);
+
+	//
+	// 3D homogeneous transform matrix
+	//
+	// translate (x, y, z)
+	void set_translate(mat4f &m, float x, float y, float z);
+	// scale (sx, sy, sz)
+	void set_scale(mat4f &m, float sx, float sy, float sz);
+	// rotate radian counter-clockwise around the normalized vector N
+	void set_rotate(mat4f &m, const vec3f &n, float radian);
+	// rotate radian counter-clockwise around +X axis (1, 0, 0)
+	void set_rotate_x(mat4f &m, float radian);
+	// rotate radian counter-clockwise around +Y axis (0, 1, 0)
+	void set_rotate_y(mat4f &m, float radian);
+	// rotate radian counter-clockwise around +Z axis (0, 0, 1)
+	void set_rotate_z(mat4f &m, float radian);
+
 	
 	// Clip polygon by planes
 	// planes: planes used to clip the polygon

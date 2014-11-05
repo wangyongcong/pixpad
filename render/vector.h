@@ -432,6 +432,7 @@ namespace wyc
 			x = v.x;
 			y = v.y;
 			z = 0;
+			return *this;
 		}
 		template<>
 		xvector& operator = (const xvector<T, 4> &v)
@@ -439,6 +440,7 @@ namespace wyc
 			x = v.x;
 			y = v.y;
 			z = v.z;
+			return *this;
 		}
 		inline void zero()
 		{

@@ -249,8 +249,24 @@ namespace wyc
 		std::vector<unsigned short> faces;
 		wyc::box(0.4f, vertices, faces);
 
-		mat4f proj;
+		mat4f proj, m1, m2;
 		wyc::set_perspective(proj, 45, 4.f / 3, 1, 100);
+		// rotate
+		wyc::set_rotate_x(m1, wyc::deg2rad(45.f));
+		wyc::set_rotate_y(m2, wyc::deg2rad(30.f));
+		m1 *= m2;
+		// tranlate
+		//m1[0][3] = 0.f;
+		//m1[1][3] = 0.f;
+		m1[2][3] = -1.5f;
+		// finally the MVP matrix
+		proj *= m1;
+
+		// viewing vector 
+		vec3f camera_pos = { 0, 0, 0 };
+		// translate to object space
+		if (m2.inverse_of(m1)) 
+			camera_pos = m2 * camera_pos;
 
 		float half_vw, half_vh;
 		half_vw = (rx - lx - 0.5f) * 0.5f;
@@ -258,16 +274,26 @@ namespace wyc
 
 		std::vector<vec4f> verts_cache;
 		verts_cache.reserve(9);
-		vec4f v;
-		for (int i = 2, cnt = faces.size(); i < cnt; i += 3)
+		vec3f v0, v1, v2, n, view;
+		int beg = 0, end = faces.size();
+		for (int i = beg + 2; i < end; i += 3)
 		{
 			// projection
-			v = proj * vertices[faces[i - 2]];
-			verts_cache.push_back(v);
-			v = proj * vertices[faces[i - 1]];
-			verts_cache.push_back(v);
-			v = proj * vertices[faces[i]];
-			verts_cache.push_back(v);
+			v0 = vertices[faces[i - 2]];
+			v1 = vertices[faces[i - 1]];
+			v2 = vertices[faces[i]];
+			// backface culling
+			n = v1 - v0;
+			n = n.cross(v2 - v0);
+			n.normalize();
+			view = camera_pos - v0;
+			view.normalize();
+			if ((n ^ view) < 0)
+				continue;
+			// MVP transform
+			verts_cache.push_back(proj * v0);
+			verts_cache.push_back(proj * v1);
+			verts_cache.push_back(proj * v2);
 			// clipping
 			wyc::clip_polygon_homo(verts_cache);
 			if (verts_cache.empty())
@@ -286,6 +312,8 @@ namespace wyc
 			}
 			// draw
 			draw_triangles(verts_cache);
+			// clear cache
+			verts_cache.clear();
 		}
 
 	}
