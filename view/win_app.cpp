@@ -27,6 +27,7 @@ namespace wyc
 
 	bool xwin_app::initialize(const std::wstring &app_name, HINSTANCE hInstance, size_t win_width , size_t win_height, LPTSTR cmd_line)
 	{
+		/*
 		std::string app_dir;
 		wchar_t path[MAX_PATH];
 		unsigned len = ::GetModuleFileName(NULL, path, MAX_PATH);
@@ -36,13 +37,13 @@ namespace wyc
 				pend[1] = 0;
 			::SetCurrentDirectory(path);
 			wstr2str(app_dir, path);
-		}
+		}*/
 		if (!g_log)
 		{
 			std::string mbs_name;
 			wstr2str(mbs_name, app_name);
 			g_log = new wyc::xlogger();
-			g_log->create(mbs_name.c_str(), app_dir.c_str(), 0, wyc::LOG_DEBUG);
+			g_log->create(mbs_name.c_str());
 			debug("starting...");
 		}
 		if (!xwin_app::instance)

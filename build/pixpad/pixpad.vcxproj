@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{E3C3171A-F98B-4856-B3C8-64DD91FE78C3}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>pixpad</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\3rd\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>mkdir ..\..\lib\$(ConfigurationName)
+copy /Y $(TargetPath) ..\..\lib\$(ConfigurationName)</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\render\gen_mesh.cpp" />
+    <ClCompile Include="..\..\render\raster.cpp" />
+    <ClCompile Include="..\..\render\surface.cpp" />
+    <ClCompile Include="..\..\render\test_matrix.cpp" />
+    <ClCompile Include="..\..\render\test_vector.cpp" />
+    <ClCompile Include="..\..\render\vecmath.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\3rd\include\OpenEXR\half.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\halfExport.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\halfFunction.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\halfLimits.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\Iex.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexBaseExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexErrnoExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexExport.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexForward.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMacros.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathFloatExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathFpu.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathIeeeExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexNamespace.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexThrowErrnoExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmBaseConfig.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThread.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadExport.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadForward.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadMutex.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadNamespace.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadPool.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadSemaphore.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathBox.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathBoxAlgo.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathColor.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathColorAlgo.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathEuler.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathExport.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathForward.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFrame.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFrustum.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFrustumTest.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFun.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathGL.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathGLU.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathHalfLimits.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathInt64.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathInterval.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathLimits.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathLine.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathLineAlgo.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathMath.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathMatrix.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathMatrixAlgo.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathNamespace.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathPlane.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathPlatform.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathQuat.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathRandom.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathRoots.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathShear.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathSphere.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVec.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVecAlgo.h" />
+    <ClInclude Include="..\..\render\gen_mesh.h" />
+    <ClInclude Include="..\..\render\mathfwd.h" />
+    <ClInclude Include="..\..\render\matrix.h" />
+    <ClInclude Include="..\..\render\raster.h" />
+    <ClInclude Include="..\..\render\surface.h" />
+    <ClInclude Include="..\..\render\vecmath.h" />
+    <ClInclude Include="..\..\render\vector.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\render\texquad_fs.glsl" />
+    <None Include="..\..\render\texquad_vs.glsl" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

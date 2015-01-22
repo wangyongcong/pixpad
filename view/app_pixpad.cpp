@@ -258,7 +258,7 @@ namespace wyc
 		// tranlate
 		//m1[0][3] = 0.f;
 		//m1[1][3] = 0.f;
-		m1[2][3] = -1.5f;
+		m1[2][3] = -1.4f;
 		// finally the MVP matrix
 		proj *= m1;
 

@@ -78,7 +78,13 @@ void xlogger::_write(LOG_LEVEL lvl, const char* record, size_t size)
 	timeb rawtime;	
 	ftime(&rawtime);
 	rawtime.time = std::time(NULL);
+#ifdef WIN32
+	tm _tm;
+	tm *t = &_tm;
+	localtime_s(t, &rawtime.time);
+#else
 	tm *t = std::localtime(&rawtime.time);
+#endif
 	size += 35; // timestamp(25) and level tag name(7)
 	if (m_cur_size + size >= m_rotate_size)
 	{
