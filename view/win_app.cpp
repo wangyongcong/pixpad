@@ -1,9 +1,11 @@
 #include "stdafx.h"
+#include "resource.h"
 #include <locale>
 #include "log.h"
 #include "win_app.h"
 #include "util.h"
 #include "glrender.h"
+
 
 // Global logger
 wyc::xlogger *g_log = nullptr;
@@ -60,8 +62,8 @@ namespace wyc
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
 		wcex.hInstance = hInstance;
-		wcex.hIcon = LoadIcon(hInstance, L"favicon32.ico");
-		wcex.hIconSm = LoadIcon(wcex.hInstance, L"favicon16.ico");
+		wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON2));
+		wcex.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 		wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
 		wcex.hbrBackground = HBRUSH(COLOR_WINDOW + 1);
 		wcex.lpszMenuName = NULL;

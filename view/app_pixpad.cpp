@@ -227,14 +227,14 @@ namespace wyc
 			auto v0 = vertices.back();
 			for (auto &v1 : vertices)
 			{
-				line_sampler(v0.x, v0.y, v1.x, v1.y, plot);
+				draw_line(v0, v1, plot);
 				v0 = v1;
 			}
 			v0 = vertices.front();
 			for (size_t i = 2, end = vertices.size() - 1; i < end; ++i)
 			{
 				auto &v1 = vertices[i];
-				line_sampler(v0.x, v0.y, v1.x, v1.y, plot);
+				draw_line(v0, v1, plot);
 			}
 		}
 		else
@@ -324,14 +324,14 @@ namespace wyc
 		auto v0 = vertices.back();
 		for (auto &v1 : vertices)
 		{
-			line_sampler(v0.x, v0.y, v1.x, v1.y, plot);
+			draw_line(v0, v1, plot);
 			v0 = v1;
 		}
 		v0 = vertices.front();
 		for (size_t i = 2, end = vertices.size() - 1; i < end; ++i)
 		{
 			auto &v1 = vertices[i];
-			line_sampler(v0.x, v0.y, v1.x, v1.y, plot);
+			draw_line(v0, v1, plot);
 		}
 	}
 

@@ -82,8 +82,6 @@ copy /Y $(TargetPath) ..\..\lib\$(ConfigurationName)</Command>
     <ClCompile Include="..\..\render\gen_mesh.cpp" />
     <ClCompile Include="..\..\render\raster.cpp" />
     <ClCompile Include="..\..\render\surface.cpp" />
-    <ClCompile Include="..\..\render\test_matrix.cpp" />
-    <ClCompile Include="..\..\render\test_vector.cpp" />
     <ClCompile Include="..\..\render\vecmath.cpp" />
   </ItemGroup>
   <ItemGroup>

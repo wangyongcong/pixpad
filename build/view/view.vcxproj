@@ -51,7 +51,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\3rd\include;..\..\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\..\3rd\include;..\..\render;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -96,10 +96,10 @@
     <ClInclude Include="..\..\view\targetver.h" />
     <ClInclude Include="..\..\view\util.h" />
     <ClInclude Include="..\..\view\win_app.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\view\favicon16.ico" />
-    <Image Include="..\..\view\favicon32.ico" />
+    <ResourceCompile Include="view.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

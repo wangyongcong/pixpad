@@ -62,13 +62,13 @@
     <ClInclude Include="..\..\view\win_app.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\view\favicon16.ico">
+    <ResourceCompile Include="view.rc">
       <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\..\view\favicon32.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

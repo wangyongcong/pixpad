@@ -84,8 +84,13 @@ namespace wyc
 	};
 
 	template<typename T>
-	void line_sampler(unsigned x0, unsigned y0, unsigned x1, unsigned y1, T &plot)
+	void draw_line(const vec2f &v0, const vec2f &v1, T &plot)
 	{
+		int x0, y0, x1, y1;
+		x0 = int(v0.x);
+		y0 = int(v0.y);
+		x1 = int(v1.x);
+		y1 = int(v1.y);
 		if (x0>x1) {
 			std::swap(x0, x1);
 			std::swap(y0, y1);
@@ -135,11 +140,23 @@ namespace wyc
 		}
 	}
 
-	//template<typename T>
-	//void line_sampler(float x0, float y0, float x1, float y1, T &plot)
-	//{
+	template<typename T>
+	inline void draw_line(const vec3f &v0, const vec3f &v1, T &plot)
+	{
+		draw_line(*(vec2f*)&v0, *(vec2f*)&v1, plot);
+	}
 
-	//}
+	template<typename T>
+	inline void draw_line(const vec4f &v0, const vec4f &v1, T &plot)
+	{
+		draw_line(*(vec2f*)&v0, *(vec2f*)&v1, plot);
+	}
+
+	template<typename T>
+	void fill_triangle(const vec2f &center, const vec2f verts[3], T &plot)
+	{
+
+	}
 
 } // end of namespace wyc
 
