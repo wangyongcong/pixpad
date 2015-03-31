@@ -142,6 +142,7 @@ copy /Y $(TargetPath) ..\..\lib\$(ConfigurationName)</Command>
     <ClInclude Include="..\..\3rd\include\OpenEXR\ImathSphere.h" />
     <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVec.h" />
     <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVecAlgo.h" />
+    <ClInclude Include="..\..\render\floatmath.h" />
     <ClInclude Include="..\..\render\gen_mesh.h" />
     <ClInclude Include="..\..\render\mathfwd.h" />
     <ClInclude Include="..\..\render\matrix.h" />
@@ -149,6 +150,8 @@ copy /Y $(TargetPath) ..\..\lib\$(ConfigurationName)</Command>
     <ClInclude Include="..\..\render\surface.h" />
     <ClInclude Include="..\..\render\vecmath.h" />
     <ClInclude Include="..\..\render\vector.h" />
+    <ClInclude Include="..\..\render\xs_config.h" />
+    <ClInclude Include="..\..\render\xs_float.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\render\texquad_fs.glsl" />

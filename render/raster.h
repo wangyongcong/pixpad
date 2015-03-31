@@ -1,11 +1,11 @@
-#ifndef WYC_HEADER_RASTER
-#define WYC_HEADER_RASTER
+#pragma once
 
 #include <algorithm>
 #include <vector>
 #include <float.h>
 #include "surface.h"
 #include "vecmath.h"
+#include "floatmath.h"
 
 namespace wyc
 {
@@ -87,10 +87,10 @@ namespace wyc
 	void draw_line(const vec2f &v0, const vec2f &v1, T &plot)
 	{
 		int x0, y0, x1, y1;
-		x0 = int(v0.x);
-		y0 = int(v0.y);
-		x1 = int(v1.x);
-		y1 = int(v1.y);
+		x0 = fast_round(v0.x);
+		y0 = fast_round(v0.y);
+		x1 = fast_round(v1.x);
+		y1 = fast_round(v1.y);
 		if (x0>x1) {
 			std::swap(x0, x1);
 			std::swap(y0, y1);
@@ -160,4 +160,3 @@ namespace wyc
 
 } // end of namespace wyc
 
-#endif // WYC_HEADER_RASTER
