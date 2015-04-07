@@ -2,6 +2,7 @@
 #include "vecmath.h"
 #include "vector.h"
 #include "matrix.h"
+#include "floatmath.h"
 
 namespace wyc
 {
@@ -111,6 +112,17 @@ namespace wyc
 		m[0][0] = m[1][1] = std::cos(radian);
 		m[0][1] = -sina;
 		m[1][0] =  sina;
+	}
+
+	template<class VEC>
+	inline VEC intersect(const VEC &p1, typename VEC::scalar_t d1, const VEC &p2, typename VEC::scalar_t d2)
+	{
+		typename VEC::scalar_t t = d1 / (d1 - d2);
+		if (d1 < 0)
+			t = fast_ceil(t * 1000) * 0.001f;
+		else
+			t = fast_floor(t * 1000) * 0.001f;
+		return p1 + (p2 - p1) * t;
 	}
 
 	void clip_polygon_by_plane(const vec4f &plane, const std::vector<vec3f> &vertices, std::vector<vec3f> &out)

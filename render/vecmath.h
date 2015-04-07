@@ -26,17 +26,6 @@ namespace wyc
 		return T(angle * M_PI / 180.0);
 	}
 
-	template<class VEC>
-	inline VEC intersect(const VEC &p1, typename VEC::scalar_t d1, const VEC &p2, typename VEC::scalar_t d2)
-	{
-		typename VEC::scalar_t t = d1 / (d1 - d2);
-		if (d1 < 0)
-			t = std::ceil(t * 1000) * 0.001f;
-		else
-			t = std::floor(t * 1000) * 0.001f;
-		return p1 + (p2 - p1) * t;
-	}
-
 	// OpenGL orthograph matrix
 	void set_orthograph(mat4f &proj, float left_plane, float bottom_plane, float near_plane, 
 		float right_plane, float top_plane, float far_plane);
