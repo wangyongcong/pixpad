@@ -46,8 +46,8 @@ int32 xs_CeilToInt        (real64 val, real64 dme =  _xs_doublemagicroundeps);
 int32 xs_RoundToInt       (real64 val);
 
 //int32 versions
-int32 xs_CRoundToInt      (int32 val)   {return val;}
-int32 xs_ToInt            (int32 val)   {return val;}
+finline int32 xs_CRoundToInt      (int32 val)   {return val;}
+finline int32 xs_ToInt            (int32 val)   {return val;}
 
 
 

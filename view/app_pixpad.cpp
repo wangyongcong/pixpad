@@ -6,11 +6,11 @@
 
 #include "app_pixpad.h"
 #include "log.h"
-#include "vecmath.h"
-#include "vector.h"
-#include "matrix.h"
-#include "raster.h"
-#include "gen_mesh.h"
+#include "math/vecmath.h"
+#include "math/vector.h"
+#include "math/matrix.h"
+#include "raster/raster.h"
+#include "raster/gen_mesh.h"
 
 namespace wyc
 {

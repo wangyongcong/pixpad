@@ -1,11 +1,12 @@
-#pragma once
+#ifndef WYC_HEADER_RASTER
+#define WYC_HEADER_RASTER
 
 #include <algorithm>
 #include <vector>
 #include <float.h>
 #include "surface.h"
-#include "vecmath.h"
-#include "floatmath.h"
+#include "math/vecmath.h"
+#include "math/floatmath.h"
 
 namespace wyc
 {
@@ -160,3 +161,4 @@ namespace wyc
 
 } // end of namespace wyc
 
+#endif // WYC_HEADER_RASTER

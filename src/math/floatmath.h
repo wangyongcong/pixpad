@@ -1,4 +1,5 @@
-#pragma once
+#ifndef WYC_HEADER_FLOATMATH
+#define WYC_HEADER_FLOATMATH
 
 #include "xs_config.h"
 #include "xs_float.h"
@@ -11,3 +12,5 @@
 #define fast_floor xs_FloorToInt
 // fast ceil float to int
 #define fast_ceil xs_CeilToInt
+
+#endif // WYC_HEADER_FLOATMATH

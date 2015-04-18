@@ -6,8 +6,8 @@
 
 #include "win_app.h"
 #include "glrender.h"
-#include "surface.h"
-#include "mathfwd.h"
+#include "raster/surface.h"
+#include "math/mathfwd.h"
 
 namespace wyc
 {

@@ -47,14 +47,14 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\3rd\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src;..\..\3rd\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir ..\..\lib\$(ConfigurationName)
+      <Command>if not exist ..\..\lib\$(ConfigurationName) mkdir ..\..\lib\$(ConfigurationName)
 copy /Y $(TargetPath) ..\..\lib\$(ConfigurationName)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -77,12 +77,6 @@ copy /Y $(TargetPath) ..\..\lib\$(ConfigurationName)</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\render\gen_mesh.cpp" />
-    <ClCompile Include="..\..\render\raster.cpp" />
-    <ClCompile Include="..\..\render\surface.cpp" />
-    <ClCompile Include="..\..\render\vecmath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\3rd\include\OpenEXR\half.h" />
@@ -142,20 +136,23 @@ copy /Y $(TargetPath) ..\..\lib\$(ConfigurationName)</Command>
     <ClInclude Include="..\..\3rd\include\OpenEXR\ImathSphere.h" />
     <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVec.h" />
     <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVecAlgo.h" />
-    <ClInclude Include="..\..\render\floatmath.h" />
-    <ClInclude Include="..\..\render\gen_mesh.h" />
-    <ClInclude Include="..\..\render\mathfwd.h" />
-    <ClInclude Include="..\..\render\matrix.h" />
-    <ClInclude Include="..\..\render\raster.h" />
-    <ClInclude Include="..\..\render\surface.h" />
-    <ClInclude Include="..\..\render\vecmath.h" />
-    <ClInclude Include="..\..\render\vector.h" />
-    <ClInclude Include="..\..\render\xs_config.h" />
-    <ClInclude Include="..\..\render\xs_float.h" />
+    <ClInclude Include="..\..\src\math\floatmath.h" />
+    <ClInclude Include="..\..\src\math\mathfwd.h" />
+    <ClInclude Include="..\..\src\math\matrix.h" />
+    <ClInclude Include="..\..\src\math\vecmath.h" />
+    <ClInclude Include="..\..\src\math\vector.h" />
+    <ClInclude Include="..\..\src\math\xs_config.h" />
+    <ClInclude Include="..\..\src\math\xs_float.h" />
+    <ClInclude Include="..\..\src\raster\gen_mesh.h" />
+    <ClInclude Include="..\..\src\raster\raster.h" />
+    <ClInclude Include="..\..\src\raster\rs_line.h" />
+    <ClInclude Include="..\..\src\raster\surface.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\render\texquad_fs.glsl" />
-    <None Include="..\..\render\texquad_vs.glsl" />
+    <ClCompile Include="..\..\src\math\vecmath.cpp" />
+    <ClCompile Include="..\..\src\raster\gen_mesh.cpp" />
+    <ClCompile Include="..\..\src\raster\raster.cpp" />
+    <ClCompile Include="..\..\src\raster\surface.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

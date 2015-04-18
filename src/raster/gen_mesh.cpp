@@ -1,5 +1,5 @@
 #include "gen_mesh.h"
-#include "vector.h"
+#include "math/vector.h"
 
 namespace wyc
 {

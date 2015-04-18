@@ -3,10 +3,10 @@
 #include <initializer_list>
 #include <OpenEXR/ImathRandom.h>
 
-#include "raster.h"
-#include "vecmath.h"
-#include "vector.h"
-#include "matrix.h"
+#include "raster/raster.h"
+#include "math/vecmath.h"
+#include "math/vector.h"
+#include "math/matrix.h"
 
 using namespace wyc;
 

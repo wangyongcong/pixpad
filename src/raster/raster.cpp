@@ -1,7 +1,7 @@
 #include "raster.h"
 #include <cassert>
 #include <OpenEXR/ImathMath.h>
-#include "vector.h"
+#include "math/vector.h"
 
 namespace wyc
 {
