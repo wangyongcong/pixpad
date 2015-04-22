@@ -224,6 +224,9 @@
     <ClInclude Include="..\..\src\raster\surface.h">
       <Filter>raster</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\raster\rs_triangle.h">
+      <Filter>raster</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\math\vecmath.cpp">

@@ -146,6 +146,7 @@ copy /Y $(TargetPath) ..\..\lib\$(ConfigurationName)</Command>
     <ClInclude Include="..\..\src\raster\gen_mesh.h" />
     <ClInclude Include="..\..\src\raster\raster.h" />
     <ClInclude Include="..\..\src\raster\rs_line.h" />
+    <ClInclude Include="..\..\src\raster\rs_triangle.h" />
     <ClInclude Include="..\..\src\raster\surface.h" />
   </ItemGroup>
   <ItemGroup>
