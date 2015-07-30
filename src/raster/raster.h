@@ -93,7 +93,7 @@ namespace wyc
 		y0 = fast_round(v0.y);
 		x1 = fast_round(v1.x);
 		y1 = fast_round(v1.y);
-		line_bresenham(plot, x0, y0, x1, y1);
+		line_bresenham(plot, v0, v1);
 	}
 
 	template<typename T>

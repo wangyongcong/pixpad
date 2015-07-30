@@ -1,9 +1,14 @@
 #pragma once
 
+#include "math/vector.h"
+
+namespace wyc
+{
+
 // line rasterization algorithms
 
 template<typename PLOTTER>
-void line_bresenham(PLOTTER &plot, int x0, int y0, int x1, int y1)
+void line_bresenham(PLOTTER &plot, const vec2f &v0, const vec2f &v1)
 {
 	int x0, y0, x1, y1;
 	x0 = fast_round(v0.x);
@@ -58,3 +63,5 @@ void line_bresenham(PLOTTER &plot, int x0, int y0, int x1, int y1)
 		}
 	}
 }
+
+} // namespace wyc

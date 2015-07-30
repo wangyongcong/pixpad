@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include <locale>
+#include <clocale>
 #include "app_pixpad.h"
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
@@ -8,7 +8,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	UNREFERENCED_PARAMETER(lpCmdLine);
 	
 	using namespace wyc;
-	setlocale(LC_ALL, "chs");
+	//std::setlocale(LC_ALL, "chs");
 	std::wstring app_name = L"Pixpad";
 	xwin_app::instance = new xapp_pixpad();
 	if (!xwin_app::initialize(app_name, hInstance, 800, 600, lpCmdLine))
