@@ -60,7 +60,7 @@
       <AdditionalDependencies>OpenGL32.lib;glew32mx.lib;Half.lib;Imath-2_2.lib;Iex-2_2.lib;IexMath-2_2.lib;pixpad.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(TargetPath) $(SolutionDir)..\bin\$(Configuration)\</Command>
+      <Command>xcopy $(TargetPath) $(SolutionDir)..\bin\$(Configuration)\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
