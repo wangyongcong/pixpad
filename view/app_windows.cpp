@@ -2,7 +2,7 @@
 #include "resource.h"
 #include <locale>
 #include "log.h"
-#include "win_app.h"
+#include "app_windows.h"
 #include "util.h"
 #include "glrender.h"
 
@@ -18,16 +18,30 @@ void CALLBACK TimerFlushLog(HWND hwnd, UINT umsg, UINT_PTR id, DWORD time)
 		g_log->flush();
 }
 
-// Windows procedure
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK WindowProcess(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	PAINTSTRUCT ps;
+	HDC hdc;
+	switch (message)
+	{
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+		// TODO: custom GUI paint 
+		EndPaint(hWnd, &ps);
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+	return 0;
+}
 
 namespace wyc
 {
 
-	// Application singleton
-	xwin_app *xwin_app::instance = nullptr;
-
-	bool xwin_app::initialize(const std::wstring &app_name, HINSTANCE hInstance, size_t win_width , size_t win_height, LPTSTR cmd_line)
+	application* windows_app::create_instance(const std::wstring &app_name, HINSTANCE hInstance, size_t win_width , size_t win_height, LPTSTR cmd_line)
 	{
 		/*
 		std::string app_dir;
@@ -44,21 +58,17 @@ namespace wyc
 		{
 			std::string mbs_name;
 			wstr2str(mbs_name, app_name);
-			g_log = new wyc::xlogger();
-			g_log->create(mbs_name.c_str());
+			g_log = new wyc::debug_logger();
 			debug("starting...");
 		}
-		if (!xwin_app::instance)
-		{
-			return false;
-		}
+
 		std::wstring wnd_cls = app_name;
 		wnd_cls += L"MainWindow";
 		// register main window class
 		WNDCLASSEX wcex;
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = WndProc;
+		wcex.lpfnWndProc = WindowProcess;
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
 		wcex.hInstance = hInstance;
@@ -75,12 +85,14 @@ namespace wyc
 			CW_USEDEFAULT, 0, win_width, win_height, NULL, NULL, hInstance, NULL);
 		if (!hMainWnd)
 		{
-			return false;
+			return nullptr;
 		}
-		xwin_app::instance->m_hinst = hInstance;
-		xwin_app::instance->m_hwnd_main = hMainWnd;
 
-		// Set timer for log flushing 
+		windows_app * instance = new windows_app;
+		instance->m_hinst = hInstance;
+		instance->m_hwnd_main = hMainWnd;
+
+		// set timer for log flushing 
 		SetTimer(hMainWnd, ID_TIMER_LOG, 500, &TimerFlushLog);
 
 		// create OpenGL window
@@ -94,16 +106,18 @@ namespace wyc
 		DestroyWindow(hTmpWnd);
 		if (!pixel_format)
 		{
-			return false;
+			delete instance;
+			return nullptr;
 		}
 		// Create the real target window
 		HWND hTargetWnd = wyc::gl_create_window(hInstance, hMainWnd, 0, 0, client_w, client_h);
 		if (!wyc::gl_create_context(hTargetWnd, pixel_format))
 		{
-			return false;
+			delete instance;
+			return nullptr;
 		}
-		xwin_app::instance->m_view_w = client_w;
-		xwin_app::instance->m_view_h = client_h;
+		instance->m_view_w = client_w;
+		instance->m_view_h = client_h;
 		// Do not response user input
 		EnableWindow(hTargetWnd, FALSE);
 		ShowWindow(hTargetWnd, SW_NORMAL);
@@ -117,30 +131,15 @@ namespace wyc
 		info("OpenGL %s (GLSL %s)", version, glsl_version);
 		info("GLEW version %s", glewGetString(GLEW_VERSION));
 
-		xwin_app::instance->on_start();
+		instance->on_start();
 
 		ShowWindow(hMainWnd, SW_NORMAL);
 		UpdateWindow(hMainWnd);
 
-		return true;
+		return instance;
 	}
 
-	void xwin_app::destroy()
-	{
-		if (xwin_app::instance)
-		{
-			delete xwin_app::instance;
-			xwin_app::instance = nullptr;
-		}
-		if (g_log)
-		{
-			g_log->flush();
-			delete g_log;
-			g_log = nullptr;
-		}
-	}
-
-	void xwin_app::run()
+	void windows_app::start()
 	{
 		HACCEL hAccelTable = NULL;
 		MSG msg;
@@ -156,13 +155,55 @@ namespace wyc
 					TranslateMessage(&msg);
 					DispatchMessage(&msg);
 				}
+				on_event(&msg);
 			}
-			else
-			{
-				this->on_render();
-				Sleep(1);
-			}
+			update();
+			render();
+		}
+		close();
+	}
+
+	void windows_app::close()
+	{
+		OutputDebugString(L"windows application is closing...\n");
+		if (g_log)
+		{
+			g_log->flush();
+			delete g_log;
+			g_log = nullptr;
 		}
 	}
+
+	void windows_app::on_event(void * ev)
+	{
+		MSG *msg = (MSG*)ev;
+		switch (msg->message)
+		{
+		case WM_SIZE:
+			if (msg->wParam == SIZE_RESTORED) 
+			{
+				on_resize(LOWORD(msg->wParam), HIWORD(msg->lParam));
+			}
+			break;
+		case WM_LBUTTONDOWN:
+			SetCapture(get_hwnd());
+			on_mouse_button_down(MOUSE_BUTTON_LEFT, LOWORD(msg->lParam), HIWORD(msg->lParam));
+			break;
+		case WM_LBUTTONUP:
+			on_mouse_button_up(MOUSE_BUTTON_LEFT, LOWORD(msg->lParam), HIWORD(msg->lParam));
+			ReleaseCapture();
+			break;
+		case WM_MOUSEMOVE:
+			on_mouse_move(LOWORD(msg->lParam), HIWORD(msg->lParam));
+			break;
+		case WM_MOUSEWHEEL:
+			break;
+		case WM_KEYDOWN:
+			on_key_down(msg->wParam);
+			break;
+		}
+	}
+
+
 
 }; // end of namespace wyc

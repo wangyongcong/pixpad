@@ -11,7 +11,7 @@
 
 namespace wyc
 {
-	class xapp_pixpad : public xwin_app
+	class xapp_pixpad : public windows_app
 	{
 	public:
 		virtual void on_start();

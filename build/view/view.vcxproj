@@ -60,7 +60,7 @@
       <AdditionalDependencies>OpenGL32.lib;glew32mx.lib;Half.lib;Imath-2_2.lib;Iex-2_2.lib;IexMath-2_2.lib;pixpad.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(TargetPath) $(SolutionDir)..\bin\$(Configuration)\</Command>
+      <Command>xcopy /Y $(TargetPath) $(SolutionDir)..\bin\$(Configuration)\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -82,23 +82,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\view\app_pixpad.cpp" />
     <ClCompile Include="..\..\view\glrender.cpp" />
     <ClCompile Include="..\..\view\logger.cpp" />
     <ClCompile Include="..\..\view\stdafx.cpp" />
     <ClCompile Include="..\..\view\util.cpp" />
-    <ClCompile Include="..\..\view\win_app.cpp" />
+    <ClCompile Include="..\..\view\app_windows.cpp" />
     <ClCompile Include="..\..\view\wmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\view\app_pixpad.h" />
+    <ClInclude Include="..\..\view\application.h" />
     <ClInclude Include="..\..\view\glrender.h" />
     <ClInclude Include="..\..\view\log.h" />
     <ClInclude Include="..\..\view\logger.h" />
     <ClInclude Include="..\..\view\stdafx.h" />
     <ClInclude Include="..\..\view\targetver.h" />
     <ClInclude Include="..\..\view\util.h" />
-    <ClInclude Include="..\..\view\win_app.h" />
+    <ClInclude Include="..\..\view\app_windows.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

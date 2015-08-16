@@ -1,8 +1,13 @@
 #include <algorithm>
-#include <ctime>
 #include <cassert>
-#include <sys/timeb.h>
+#include <chrono>
 #include "logger.h"
+
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#define TEXT_BUFF_SIZE 255
 
 namespace wyc
 {
@@ -15,24 +20,49 @@ const char* s_log_lvl_tag[wyc::LOG_LEVEL_COUNT] = {
 	"FATAL",
 };
 
-xlogger::xlogger()
+xlogger::xlogger(LOG_LEVEL lvl)
 {
-	m_hfile = NULL;
-	m_cur_size = 0;
-	m_rotate_size = DEFAULT_ROTATE_SIZE;
-	m_rotate_cnt = 0;
-	m_level = LOG_DEBUG;
+	m_level = lvl;
+	m_buff = new char[TEXT_BUFF_SIZE+2];
 }
 
 xlogger::~xlogger()
 {
-	if (m_hfile) {
+	delete[] m_buff;
+	m_buff = 0;
+}
+
+void xlogger::format_write(LOG_LEVEL lvl, const char *fmt, va_list args)
+{
+	auto now = std::chrono::system_clock::now();
+	int cnt = 0;
+	cnt += ::sprintf_s(m_buff, TEXT_BUFF_SIZE, "[%s] ", s_log_lvl_tag[m_level]);
+	cnt += ::vsprintf_s(m_buff + cnt, TEXT_BUFF_SIZE - cnt, fmt, args);
+	m_buff[cnt++] = '\n';
+	m_buff[cnt] = 0;
+	write(m_buff, cnt);
+}
+
+
+file_logger::file_logger(const char* log_name, const char* save_path, size_t rotate_size, LOG_LEVEL lvl) : xlogger(lvl)
+{
+	m_hfile = 0;
+	m_cur_size = 0;
+	m_rotate_size = DEFAULT_ROTATE_SIZE;
+	m_rotate_cnt = 0;
+	create(log_name, save_path, rotate_size);
+}
+
+file_logger::~file_logger()
+{
+	if (m_hfile)
+	{
 		fclose(m_hfile);
 		m_hfile = 0;
 	}
 }
 
-bool xlogger::create(const char* log_name, const char* save_path, size_t rotate_size, LOG_LEVEL lvl)
+bool file_logger::create(const char* log_name, const char* save_path, size_t rotate_size)
 {
 	if (!save_path || 0 == save_path[0])
 		m_path = ".\\logs\\";
@@ -68,65 +98,58 @@ bool xlogger::create(const char* log_name, const char* save_path, size_t rotate_
 	else
 		m_rotate_size = rotate_size;
 	m_rotate_cnt = 0;
-	m_level = lvl;
 	return true;
 }
 
-void xlogger::_write(LOG_LEVEL lvl, const char* record, size_t size)
+void file_logger::rotate()
 {
-	assert(m_hfile);
-	timeb rawtime;	
-	ftime(&rawtime);
-	rawtime.time = std::time(NULL);
-#ifdef WIN32
-	tm _tm;
-	tm *t = &_tm;
-	localtime_s(t, &rawtime.time);
-#else
-	tm *t = std::localtime(&rawtime.time);
-#endif
-	size += 35; // timestamp(25) and level tag name(7)
-	if (m_cur_size + size >= m_rotate_size)
-	{
-		// rotate
-		fclose(m_hfile);
-		m_hfile = 0;
-		m_rotate_cnt += 1;
-		std::string bak_file = m_path;
-		bak_file += m_logname;
-		bak_file += std::to_string(m_rotate_cnt);
-		bak_file += ".log";
-		if (std::rename(m_curfile.c_str(), bak_file.c_str())) {
-			// failed to rename	
-			std::remove(bak_file.c_str());
-			// try again
-			if (std::rename(m_curfile.c_str(), bak_file.c_str()))
-			{
-				// failed
-			}	
+	// rotate
+	fclose(m_hfile);
+	m_hfile = 0;
+	m_rotate_cnt += 1;
+	std::string bak_file = m_path;
+	bak_file += m_logname;
+	bak_file += std::to_string(m_rotate_cnt);
+	bak_file += ".log";
+	if (std::rename(m_curfile.c_str(), bak_file.c_str())) {
+		// failed to rename	
+		std::remove(bak_file.c_str());
+		// try again
+		if (std::rename(m_curfile.c_str(), bak_file.c_str()))
+		{
+			// failed
 		}
-		m_cur_size = 0;
-		m_hfile = _fsopen(m_curfile.c_str(), "w", _SH_DENYWR);
-		if (!m_hfile)
-			return;
 	}
-	m_cur_size += size;
-	fprintf(m_hfile, "[%04d-%02d-%02d %02d:%02d:%02d.%03d] [%s] %s\n",
-		t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, rawtime.millitm,
-		s_log_lvl_tag[lvl], record);
+	m_cur_size = 0;
+	m_hfile = _fsopen(m_curfile.c_str(), "w", _SH_DENYWR);
+	if (!m_hfile)
+		return;
+
 }
 
-void xlogger::_write(LOG_LEVEL lvl, const char *fmt, va_list args)
+void file_logger::write(const char* record, size_t size)
 {
-	assert(m_hfile);
-	char buff[256];
-	int sz = 255;
-	int cnt = ::vsprintf_s(buff, sz, fmt, args);
-	if (cnt < 0) 
+	if (!m_hfile)
 		return;
-	assert(cnt <= sz);
-	buff[cnt] = 0;
-	_write(lvl, buff, cnt);
+	if (m_cur_size + size >= m_rotate_size)
+		rotate();
+	m_cur_size += size;
+	fprintf(m_hfile, record);
+}
+
+void file_logger::flush()
+{
+	if (m_hfile)
+		fflush(m_hfile);
+}
+
+void debug_logger::write(const char * record, size_t size)
+{
+#ifdef WIN32
+	OutputDebugStringA(record);
+#else
+	printf(record);
+#endif
 }
 
 }; // end of namesapce wyc

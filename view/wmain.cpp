@@ -1,6 +1,13 @@
 #include "stdafx.h"
 #include <clocale>
-#include "app_pixpad.h"
+#include "app_windows.h"
+
+wyc::application *g_application = nullptr;
+
+wyc::application* wyc::application::get_instance()
+{
+	return g_application;
+}
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
@@ -8,54 +15,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	UNREFERENCED_PARAMETER(lpCmdLine);
 	
 	using namespace wyc;
-	//std::setlocale(LC_ALL, "chs");
-	std::wstring app_name = L"Pixpad";
-	xwin_app::instance = new xapp_pixpad();
-	if (!xwin_app::initialize(app_name, hInstance, 800, 600, lpCmdLine))
+	std::wstring application_name = L"Pixpad";
+	g_application = windows_app::create_instance(application_name, hInstance, 1280, 720, lpCmdLine);
+	if (!g_application)
 		return 1;
-	xwin_app::instance->run();
-	xwin_app::destroy();
+	g_application->start();
 	return 0;
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	using namespace wyc;
-	PAINTSTRUCT ps;
-	HDC hdc;
-	switch (message)
-	{
-	case WM_PAINT:
-		hdc = BeginPaint(hWnd, &ps);
-		// TODO: custom GUI paint 
-		EndPaint(hWnd, &ps);
-		break;
-	case WM_SIZE:
-		if (wParam == SIZE_RESTORED) {
-			xwin_app::instance->on_resize(LOWORD(lParam), HIWORD(lParam));
-		}
-		break;
-	case WM_LBUTTONDOWN:
-		SetCapture(xwin_app::instance->get_hwnd());
-		xwin_app::instance->on_mouse_button_down(MOUSE_BUTTON_LEFT, LOWORD(lParam), HIWORD(lParam));
-		break;
-	case WM_LBUTTONUP:
-		xwin_app::instance->on_mouse_button_up(MOUSE_BUTTON_LEFT, LOWORD(lParam), HIWORD(lParam));
-		ReleaseCapture();
-		break;
-	case WM_MOUSEMOVE:
-		xwin_app::instance->on_mouse_move(LOWORD(lParam), HIWORD(lParam));
-		break;
-	case WM_MOUSEWHEEL:
-		break;
-	case WM_KEYDOWN:
-		xwin_app::instance->on_key_down(wParam);
-		break;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
-	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
-	}
-	return 0;
-}

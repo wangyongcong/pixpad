@@ -1,4 +1,5 @@
 #include <string>
+#include "application.h"
 
 namespace wyc
 {
@@ -10,18 +11,23 @@ namespace wyc
 		MOUSE_BUTTON_MIDDLE,
 	};
 
-	class xwin_app
+	class windows_app : public application
 	{
 	public:
-		static xwin_app *instance;
-		static bool initialize(const std::wstring &app_name, HINSTANCE hInstance, size_t width=0, size_t height=0, LPTSTR cmd_line=nullptr);
-		static void destroy();
-		virtual ~xwin_app() {}
-		void run();
+		static application* create_instance(const std::wstring &application_name, HINSTANCE hInstance, size_t width=0, size_t height=0, LPTSTR cmd_line=nullptr);
+
+		// application interface
+		virtual void start();
+		virtual void close();
+		virtual void update() {}
+		virtual void render() {}
+		virtual void on_event(void *ev);
 		virtual void on_start() {}
 		virtual void on_close() {}
 		virtual void on_render() {}
 		virtual bool on_command(int cmd_id, int cmd_event) { return false; }
+		
+		// windows input handlers
 		virtual void on_resize(unsigned width, unsigned height) {}
 		virtual void on_mouse_button_down(MOUSE_BUTTON button, int x, int y) {}
 		virtual void on_mouse_button_up(MOUSE_BUTTON button, int x, int y) {}
@@ -30,19 +36,19 @@ namespace wyc
 		virtual void on_key_down(int keycode) {}
 		virtual void on_key_up(int keycode) {}
 
-		HINSTANCE get_hinst() const
+		inline HINSTANCE get_hinst() const
 		{
 			return m_hinst;
 		}
-		HWND get_hwnd() const
+		inline HWND get_hwnd() const
 		{
 			return m_hwnd_main;
 		}
-		const std::wstring& app_name() const
+		inline const std::wstring& application_name() const
 		{
 			return m_app_name;
 		}
-		void get_viewport_size(size_t &width, size_t &height) const
+		inline void get_viewport_size(size_t &width, size_t &height) const
 		{
 			width = m_view_w;
 			height = m_view_h;
