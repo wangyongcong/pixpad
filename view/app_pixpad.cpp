@@ -11,11 +11,14 @@
 #include "math/matrix.h"
 #include "raster/raster.h"
 #include "raster/gen_mesh.h"
+#include "util.h"
 
 namespace wyc
 {
 	void xapp_pixpad::on_start()
 	{
+		create_view(2);
+		return;
 		m_tex = 0;
 		m_vbo = 0;
 		m_ibo = 0;
@@ -101,8 +104,9 @@ namespace wyc
 		m_surf.release();
 	}
 
-	void xapp_pixpad::on_render()
+	void xapp_pixpad::render()
 	{
+		return;
 		if (!m_redraw)
 			return;
 		m_redraw = false;
@@ -139,6 +143,10 @@ namespace wyc
 		glUseProgram(0);
 
 		gl_get_context()->swap_buffers();
+	}
+
+	void xapp_pixpad::update()
+	{
 	}
 
 	void xapp_pixpad::on_key_down(int keycode)
@@ -332,6 +340,38 @@ namespace wyc
 		{
 			auto &v1 = vertices[i];
 			draw_line(v0, v1, plot);
+		}
+	}
+
+	void xapp_pixpad::create_view(unsigned view_count)
+	{
+		view_count = next_power2(view_count);
+		unsigned n = log2p2(view_count);
+		unsigned row, col;
+		row = 1 << (n / 2);
+		if (0 == (n & 1))
+		{
+			col = row;
+		}
+		else
+		{
+			col = row << 1;
+		}
+		debug("create %d x %d views", row, col);
+		unsigned view_w, view_h;
+		view_w = m_view_w / col;
+		view_h = m_view_h / row;
+		unsigned client_w = view_w * col, client_h = view_h * row;
+		if (client_w != m_view_w || client_h != m_view_h)
+		{
+			resize(client_w, client_h);
+		}
+		for (unsigned r = 0; r < row; ++r)
+		{
+			for (unsigned c = 0; c < col; ++c)
+			{
+
+			}
 		}
 	}
 

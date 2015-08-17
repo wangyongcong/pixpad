@@ -14,13 +14,13 @@ namespace wyc
 	class windows_app : public application
 	{
 	public:
-		static application* create_instance(const std::wstring &application_name, HINSTANCE hInstance, size_t width=0, size_t height=0, LPTSTR cmd_line=nullptr);
-
+		bool initialize(const std::wstring &application_name, HINSTANCE hInstance, size_t width=0, size_t height=0, LPTSTR cmd_line=nullptr);
 		// application interface
 		virtual void start();
 		virtual void close();
 		virtual void update() {}
 		virtual void render() {}
+		virtual void resize(unsigned view_w, unsigned view_h);
 		virtual void on_event(void *ev);
 		virtual void on_start() {}
 		virtual void on_close() {}
@@ -28,7 +28,7 @@ namespace wyc
 		virtual bool on_command(int cmd_id, int cmd_event) { return false; }
 		
 		// windows input handlers
-		virtual void on_resize(unsigned width, unsigned height) {}
+		virtual void on_resize(unsigned width, unsigned height);
 		virtual void on_mouse_button_down(MOUSE_BUTTON button, int x, int y) {}
 		virtual void on_mouse_button_up(MOUSE_BUTTON button, int x, int y) {}
 		virtual void on_mouse_move(int x, int y) {}

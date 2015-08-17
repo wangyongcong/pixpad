@@ -4,7 +4,7 @@
 #include <vector>
 #include <OpenEXR/ImathRandom.h>
 
-#include "win_app.h"
+#include "app_windows.h"
 #include "glrender.h"
 #include "raster/surface.h"
 #include "math/mathfwd.h"
@@ -16,13 +16,16 @@ namespace wyc
 	public:
 		virtual void on_start();
 		virtual void on_close();
-		virtual void on_render();
+		virtual void render();
+		virtual void update();
 		virtual void on_key_down(int keycode);
 		void on_paint();
 		void random_triangle(int lx, int ly, int rx, int ry);
 		void draw_cube(int lx, int ly, int rx, int ry);
 		void draw_triangles(const std::vector<vec4f> &vertices);
 	private:
+		void create_view(unsigned view_count);
+
 		GLuint m_tex;
 		GLuint m_prog;
 		GLuint m_vbo;

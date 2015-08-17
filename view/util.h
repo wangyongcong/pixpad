@@ -28,7 +28,7 @@ inline bool is_power2(unsigned val)
 	return (val&(val-1))==0;
 }
 
-// return the minimal a, which (2^a >= val)
+// return the minimal r, which (r = 2^a and r >= val)
 unsigned next_power2(unsigned val);
 
 // return log2(val), if val = 2^a (a >= 0)

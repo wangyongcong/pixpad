@@ -82,6 +82,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\view\app_pixpad.cpp" />
     <ClCompile Include="..\..\view\glrender.cpp" />
     <ClCompile Include="..\..\view\logger.cpp" />
     <ClCompile Include="..\..\view\stdafx.cpp" />
@@ -91,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\view\application.h" />
+    <ClInclude Include="..\..\view\app_pixpad.h" />
     <ClInclude Include="..\..\view\glrender.h" />
     <ClInclude Include="..\..\view\log.h" />
     <ClInclude Include="..\..\view\logger.h" />

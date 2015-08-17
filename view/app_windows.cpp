@@ -41,7 +41,7 @@ LRESULT CALLBACK WindowProcess(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 namespace wyc
 {
 
-	application* windows_app::create_instance(const std::wstring &app_name, HINSTANCE hInstance, size_t win_width , size_t win_height, LPTSTR cmd_line)
+	bool windows_app::initialize(const std::wstring &app_name, HINSTANCE hInstance, size_t win_width , size_t win_height, LPTSTR cmd_line)
 	{
 		/*
 		std::string app_dir;
@@ -85,58 +85,55 @@ namespace wyc
 			CW_USEDEFAULT, 0, win_width, win_height, NULL, NULL, hInstance, NULL);
 		if (!hMainWnd)
 		{
-			return nullptr;
+			return false;
 		}
 
-		windows_app * instance = new windows_app;
-		instance->m_hinst = hInstance;
-		instance->m_hwnd_main = hMainWnd;
+		this->m_hinst = hInstance;
+		this->m_hwnd_main = hMainWnd;
 
-		// set timer for log flushing 
-		SetTimer(hMainWnd, ID_TIMER_LOG, 500, &TimerFlushLog);
+		//// set timer for log flushing 
+		//SetTimer(hMainWnd, ID_TIMER_LOG, 500, &TimerFlushLog);
 
 		// create OpenGL window
 		RECT rectClient;
 		GetClientRect(hMainWnd, &rectClient);
 		int client_w = rectClient.right - rectClient.left;
 		int client_h = rectClient.bottom - rectClient.top;
-		// Create a temporary window to initialize driver
-		HWND hTmpWnd = wyc::gl_create_window(hInstance, hMainWnd, 0, 0, client_w, client_h);
-		int pixel_format = wyc::gl_detect_drivers(hTmpWnd);
-		DestroyWindow(hTmpWnd);
-		if (!pixel_format)
-		{
-			delete instance;
-			return nullptr;
-		}
-		// Create the real target window
-		HWND hTargetWnd = wyc::gl_create_window(hInstance, hMainWnd, 0, 0, client_w, client_h);
-		if (!wyc::gl_create_context(hTargetWnd, pixel_format))
-		{
-			delete instance;
-			return nullptr;
-		}
-		instance->m_view_w = client_w;
-		instance->m_view_h = client_h;
-		// Do not response user input
-		EnableWindow(hTargetWnd, FALSE);
-		ShowWindow(hTargetWnd, SW_NORMAL);
+		this->m_view_w = client_w;
+		this->m_view_h = client_h;
+		//// Create a temporary window to initialize driver
+		//HWND hTmpWnd = wyc::gl_create_window(hInstance, hMainWnd, 0, 0, client_w, client_h);
+		//int pixel_format = wyc::gl_detect_drivers(hTmpWnd);
+		//DestroyWindow(hTmpWnd);
+		//if (!pixel_format)
+		//{
+		//	return false;
+		//}
+		//// Create the real target window
+		//HWND hTargetWnd = wyc::gl_create_window(hInstance, hMainWnd, 0, 0, client_w, client_h);
+		//if (!wyc::gl_create_context(hTargetWnd, pixel_format))
+		//{
+		//	return false;
+		//}
+		//// Do not response user input
+		//EnableWindow(hTargetWnd, FALSE);
+		//ShowWindow(hTargetWnd, SW_NORMAL);
 
-		// Show OpenGL infomation
-		const char *version = (const char*)glGetString(GL_VERSION);
-		const char *glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-		const char *vendor = (const char*)glGetString(GL_VENDOR);
-		const char *device = (const char*)glGetString(GL_RENDERER);
-		info("%s %s", vendor, device);
-		info("OpenGL %s (GLSL %s)", version, glsl_version);
-		info("GLEW version %s", glewGetString(GLEW_VERSION));
+		//// Show OpenGL infomation
+		//const char *version = (const char*)glGetString(GL_VERSION);
+		//const char *glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+		//const char *vendor = (const char*)glGetString(GL_VENDOR);
+		//const char *device = (const char*)glGetString(GL_RENDERER);
+		//info("%s %s", vendor, device);
+		//info("OpenGL %s (GLSL %s)", version, glsl_version);
+		//info("GLEW version %s", glewGetString(GLEW_VERSION));
 
-		instance->on_start();
+		this->on_start();
 
 		ShowWindow(hMainWnd, SW_NORMAL);
 		UpdateWindow(hMainWnd);
 
-		return instance;
+		return true;
 	}
 
 	void windows_app::start()
@@ -174,16 +171,40 @@ namespace wyc
 		}
 	}
 
+	void windows_app::resize(unsigned view_w, unsigned view_h)
+	{
+		if (!m_hwnd_main)
+			return;
+		RECT cur_client_rect;
+		GetClientRect(m_hwnd_main, &cur_client_rect);
+		cur_client_rect.right = cur_client_rect.left + view_w;
+		cur_client_rect.bottom = cur_client_rect.top + view_h;
+		long style = GetWindowLong(m_hwnd_main, GWL_STYLE);
+		long exstyle = GetWindowLong(m_hwnd_main, GWL_EXSTYLE);
+		if (!AdjustWindowRectEx(&cur_client_rect, style, FALSE, exstyle))
+		{
+			error("Can't adjust window client rect!");
+		}
+		if (SetWindowPos(m_hwnd_main, HWND_TOP, 0, 0, cur_client_rect.right - cur_client_rect.left,
+			cur_client_rect.bottom - cur_client_rect.top, SWP_NOMOVE))
+		{
+			m_view_w = view_w;
+			m_view_h = view_h;
+			debug("resize window: (%d, %d)", view_w, view_h);
+		}
+		else
+		{
+			error("Can't set window size!");
+		}
+	}
+
 	void windows_app::on_event(void * ev)
 	{
 		MSG *msg = (MSG*)ev;
 		switch (msg->message)
 		{
 		case WM_SIZE:
-			if (msg->wParam == SIZE_RESTORED) 
-			{
-				on_resize(LOWORD(msg->wParam), HIWORD(msg->lParam));
-			}
+			on_resize(LOWORD(msg->wParam), HIWORD(msg->lParam));
 			break;
 		case WM_LBUTTONDOWN:
 			SetCapture(get_hwnd());
@@ -202,6 +223,11 @@ namespace wyc
 			on_key_down(msg->wParam);
 			break;
 		}
+	}
+
+	void windows_app::on_resize(unsigned width, unsigned height)
+	{
+		debug("on_resize: (%d, %d)", width, height);
 	}
 
 

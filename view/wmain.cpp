@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include <clocale>
-#include "app_windows.h"
+#include "app_pixpad.h"
 
 wyc::application *g_application = nullptr;
 
@@ -16,9 +16,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	
 	using namespace wyc;
 	std::wstring application_name = L"Pixpad";
-	g_application = windows_app::create_instance(application_name, hInstance, 1280, 720, lpCmdLine);
-	if (!g_application)
+	xapp_pixpad *app = new xapp_pixpad();
+	if (!app->initialize(application_name, hInstance, 1279, 720, lpCmdLine))
 		return 1;
+	g_application = app;
 	g_application->start();
 	return 0;
 }
