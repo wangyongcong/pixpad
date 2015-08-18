@@ -96,10 +96,13 @@
     <ClInclude Include="..\..\view\glrender.h" />
     <ClInclude Include="..\..\view\log.h" />
     <ClInclude Include="..\..\view\logger.h" />
+    <ClInclude Include="..\..\view\platform_config.h" />
+    <ClInclude Include="..\..\view\renderer.h" />
     <ClInclude Include="..\..\view\stdafx.h" />
     <ClInclude Include="..\..\view\targetver.h" />
     <ClInclude Include="..\..\view\util.h" />
     <ClInclude Include="..\..\view\app_windows.h" />
+    <ClInclude Include="..\..\view\view_base.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

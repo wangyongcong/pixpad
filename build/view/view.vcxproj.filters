@@ -68,6 +68,15 @@
     <ClInclude Include="..\..\view\app_pixpad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\view\view_base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\view\renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\view\platform_config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="view.rc">

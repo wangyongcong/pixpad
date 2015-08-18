@@ -12,6 +12,7 @@
 #include "raster/raster.h"
 #include "raster/gen_mesh.h"
 #include "util.h"
+#include "view_base.h"
 
 namespace wyc
 {
@@ -366,12 +367,25 @@ namespace wyc
 		{
 			resize(client_w, client_h);
 		}
+		int x = 0, y = 0;
 		for (unsigned r = 0; r < row; ++r)
 		{
 			for (unsigned c = 0; c < col; ++c)
 			{
-
 			}
+		}
+	}
+
+	void xapp_pixpad::create_view_window(int x, int y, unsigned w, unsigned h)
+	{
+		HWND hwnd_view = wyc::gl_create_window(m_hinst, m_hwnd_main, x, y, w, h);
+		if (!hwnd_view)
+		{
+			error("Create view failed!");
+		}
+		else
+		{
+			debug("Create view OK!");
 		}
 	}
 

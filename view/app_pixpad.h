@@ -25,6 +25,7 @@ namespace wyc
 		void draw_triangles(const std::vector<vec4f> &vertices);
 	private:
 		void create_view(unsigned view_count);
+		void create_view_window(int x, int y, unsigned w, unsigned h);
 
 		GLuint m_tex;
 		GLuint m_prog;
