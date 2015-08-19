@@ -26,17 +26,26 @@ class xlogger
 public:
 	xlogger(LOG_LEVEL lvl = LOG_DEBUG);
 	virtual ~xlogger();
-	virtual void write(const char* record, size_t size) 
+	virtual void write(const char* record, size_t size)
 	{
 		printf(record);
 	}
 	virtual void flush() {}
+
 	void debug(const char *fmt, ...);
-	void info (const char *fmt, ...);
-	void warn (const char *fmt, ...);
+	void info(const char *fmt, ...);
+	void warn(const char *fmt, ...);
 	void error(const char *fmt, ...);
 	void fatal(const char *fmt, ...);
-	LOG_LEVEL get_level() const;
+
+	LOG_LEVEL get_level() const
+	{
+		return m_level;
+	}
+	void set_level(LOG_LEVEL lv)
+	{
+		m_level = lv;
+	}
 
 protected:
 	LOG_LEVEL m_level;

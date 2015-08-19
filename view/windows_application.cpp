@@ -2,7 +2,7 @@
 #include "resource.h"
 #include <locale>
 #include "log.h"
-#include "app_windows.h"
+#include "windows_application.h"
 #include "util.h"
 #include "glrender.h"
 
@@ -41,7 +41,7 @@ LRESULT CALLBACK WindowProcess(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 namespace wyc
 {
 
-	bool windows_app::initialize(const std::wstring &app_name, HINSTANCE hInstance, size_t win_width , size_t win_height, LPTSTR cmd_line)
+	bool windows_application::initialize(const std::wstring &app_name, game* game_inst, HINSTANCE hInstance, size_t win_width , size_t win_height, LPTSTR cmd_line)
 	{
 		/*
 		std::string app_dir;
@@ -128,7 +128,8 @@ namespace wyc
 		//info("OpenGL %s (GLSL %s)", version, glsl_version);
 		//info("GLEW version %s", glewGetString(GLEW_VERSION));
 
-		this->on_start();
+		this->m_game = game_inst;
+		m_game->on_start();
 
 		ShowWindow(hMainWnd, SW_NORMAL);
 		UpdateWindow(hMainWnd);
@@ -136,7 +137,7 @@ namespace wyc
 		return true;
 	}
 
-	void windows_app::start()
+	void windows_application::start()
 	{
 		HACCEL hAccelTable = NULL;
 		MSG msg;
@@ -145,7 +146,7 @@ namespace wyc
 			if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 			{
 				if (msg.message == WM_QUIT) {
-					on_close();
+					m_game->on_close();
 					break;
 				}
 				if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) {
@@ -154,13 +155,13 @@ namespace wyc
 				}
 				on_event(&msg);
 			}
-			update();
-			render();
+			m_game->on_update();
+			m_game->on_render();
 		}
 		close();
 	}
 
-	void windows_app::close()
+	void windows_application::close()
 	{
 		OutputDebugString(L"windows application is closing...\n");
 		if (g_log)
@@ -171,7 +172,7 @@ namespace wyc
 		}
 	}
 
-	void windows_app::resize(unsigned view_w, unsigned view_h)
+	void windows_application::resize(unsigned view_w, unsigned view_h)
 	{
 		if (!m_hwnd_main)
 			return;
@@ -198,38 +199,32 @@ namespace wyc
 		}
 	}
 
-	void windows_app::on_event(void * ev)
+	void windows_application::on_event(void * ev)
 	{
 		MSG *msg = (MSG*)ev;
 		switch (msg->message)
 		{
 		case WM_SIZE:
-			on_resize(LOWORD(msg->wParam), HIWORD(msg->lParam));
+			m_game->on_resize(LOWORD(msg->wParam), HIWORD(msg->lParam));
 			break;
 		case WM_LBUTTONDOWN:
 			SetCapture(get_hwnd());
-			on_mouse_button_down(MOUSE_BUTTON_LEFT, LOWORD(msg->lParam), HIWORD(msg->lParam));
+			m_game->on_mouse_button_down(MOUSE_BUTTON_LEFT, LOWORD(msg->lParam), HIWORD(msg->lParam));
 			break;
 		case WM_LBUTTONUP:
-			on_mouse_button_up(MOUSE_BUTTON_LEFT, LOWORD(msg->lParam), HIWORD(msg->lParam));
+			m_game->on_mouse_button_up(MOUSE_BUTTON_LEFT, LOWORD(msg->lParam), HIWORD(msg->lParam));
 			ReleaseCapture();
 			break;
 		case WM_MOUSEMOVE:
-			on_mouse_move(LOWORD(msg->lParam), HIWORD(msg->lParam));
+			m_game->on_mouse_move(LOWORD(msg->lParam), HIWORD(msg->lParam));
 			break;
 		case WM_MOUSEWHEEL:
 			break;
 		case WM_KEYDOWN:
-			on_key_down(msg->wParam);
+			m_game->on_key_down(msg->wParam);
 			break;
 		}
 	}
-
-	void windows_app::on_resize(unsigned width, unsigned height)
-	{
-		debug("on_resize: (%d, %d)", width, height);
-	}
-
 
 
 }; // end of namespace wyc

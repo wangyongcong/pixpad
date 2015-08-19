@@ -1,10 +1,12 @@
 #include "stdafx.h"
+#include "game_pixpad.h"
 
 #include <ctime>
 #include <OpenEXR/ImathFun.h>
 #include <OpenEXR/ImathColor.h>
 
-#include "app_pixpad.h"
+#include "application.h"
+#include "game_config.h"
 #include "log.h"
 #include "math/vecmath.h"
 #include "math/vector.h"
@@ -12,13 +14,16 @@
 #include "raster/raster.h"
 #include "raster/gen_mesh.h"
 #include "util.h"
-#include "view_base.h"
 
 namespace wyc
 {
-	void xapp_pixpad::on_start()
+	game_pixpad::game_pixpad() : m_game_name(L"Game Pixpad")
 	{
-		create_view(2);
+	}
+
+	void game_pixpad::on_start()
+	{
+		create_views();
 		return;
 		m_tex = 0;
 		m_vbo = 0;
@@ -26,7 +31,7 @@ namespace wyc
 		m_prog = 0;
 		m_rnd.init(clock());
 		size_t w, h;
-		get_viewport_size(w, h);
+		application::get_instance()->get_window_size(w, h);
 		glClearColor(0, 0, 0, 0);
 		glGenTextures(1, &m_tex);
 		if (m_tex == 0)
@@ -86,7 +91,7 @@ namespace wyc
 		on_paint();
 	}
 
-	void xapp_pixpad::on_close()
+	void game_pixpad::on_close()
 	{
 		info("shutting down...");
 		if (m_tex) {
@@ -105,7 +110,7 @@ namespace wyc
 		m_surf.release();
 	}
 
-	void xapp_pixpad::render()
+	void game_pixpad::on_render()
 	{
 		return;
 		if (!m_redraw)
@@ -131,7 +136,7 @@ namespace wyc
 		glBindTexture(GL_TEXTURE_2D, m_tex);
 		// upload texture data
 		size_t w, h;
-		get_viewport_size(w, h);
+		application::get_instance()->get_window_size(w, h);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, m_surf.get_buffer());
 		// draw primitives
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
@@ -146,11 +151,11 @@ namespace wyc
 		gl_get_context()->swap_buffers();
 	}
 
-	void xapp_pixpad::update()
+	void game_pixpad::on_update()
 	{
 	}
 
-	void xapp_pixpad::on_key_down(int keycode)
+	void game_pixpad::on_key_down(int keycode)
 	{
 		if (keycode == VK_ESCAPE) {
 			::PostQuitMessage(0);
@@ -162,12 +167,12 @@ namespace wyc
 		}
 	}
 
-	void xapp_pixpad::on_paint()
+	void game_pixpad::on_paint()
 	{
 		m_redraw = true;
 		typedef Imath::C3c color_t;
 		size_t vw, vh;
-		get_viewport_size(vw, vh);
+		application::get_instance()->get_window_size(vw, vh);
 		color_t c = { 0, 0, 0 };
 		m_surf.storage(vw, vh, sizeof(c));
 		m_surf.clear(c);
@@ -190,7 +195,7 @@ namespace wyc
 		draw_cube(lx, ly, rx, ry);
 	}
 	
-	void xapp_pixpad::random_triangle(int lx, int ly, int rx, int ry)
+	void game_pixpad::random_triangle(int lx, int ly, int rx, int ry)
 	{
 		std::vector<vec4f> planes;
 		// left plane
@@ -252,7 +257,7 @@ namespace wyc
 		}
 	}
 
-	void xapp_pixpad::draw_cube(int lx, int ly, int rx, int ry)
+	void game_pixpad::draw_cube(int lx, int ly, int rx, int ry)
 	{
 		std::vector<vec3f> vertices;
 		std::vector<unsigned short> faces;
@@ -327,7 +332,7 @@ namespace wyc
 
 	}
 
-	void xapp_pixpad::draw_triangles(const std::vector<vec4f> &vertices)
+	void game_pixpad::draw_triangles(const std::vector<vec4f> &vertices)
 	{
 		xplotter<Imath::C3c> plot(m_surf, Imath::C3c(0, 255, 0));
 		auto v0 = vertices.back();
@@ -344,9 +349,9 @@ namespace wyc
 		}
 	}
 
-	void xapp_pixpad::create_view(unsigned view_count)
+	void game_pixpad::create_views()
 	{
-		view_count = next_power2(view_count);
+		unsigned view_count = next_power2(c_view_count);
 		unsigned n = log2p2(view_count);
 		unsigned row, col;
 		row = 1 << (n / 2);
@@ -359,35 +364,37 @@ namespace wyc
 			col = row << 1;
 		}
 		debug("create %d x %d views", row, col);
+		application *app_inst = application::get_instance();
+		size_t window_w, window_h;
+		app_inst->get_window_size(window_w, window_h);
 		unsigned view_w, view_h;
-		view_w = m_view_w / col;
-		view_h = m_view_h / row;
+		view_w = window_w / col;
+		view_h = window_h / row;
 		unsigned client_w = view_w * col, client_h = view_h * row;
-		if (client_w != m_view_w || client_h != m_view_h)
+		if (client_w != window_w || client_h != window_h)
 		{
-			resize(client_w, client_h);
+			app_inst->resize(client_w, client_h);
 		}
+		
 		int x = 0, y = 0;
+		unsigned view_idx = 0;
 		for (unsigned r = 0; r < row; ++r)
 		{
 			for (unsigned c = 0; c < col; ++c)
 			{
+				if (view_idx >= c_view_count)
+					break;
+				switch (c_view_list[view_idx])
+				{
+				case VIEW_SOFT:
+					break;
+				case VIEW_OPEN_GL:
+					break;
+				default:
+					break;
+				}
 			}
 		}
 	}
-
-	void xapp_pixpad::create_view_window(int x, int y, unsigned w, unsigned h)
-	{
-		HWND hwnd_view = wyc::gl_create_window(m_hinst, m_hwnd_main, x, y, w, h);
-		if (!hwnd_view)
-		{
-			error("Create view failed!");
-		}
-		else
-		{
-			debug("Create view OK!");
-		}
-	}
-
 
 } // namespace wyc

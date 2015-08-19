@@ -82,27 +82,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\view\app_pixpad.cpp" />
+    <ClCompile Include="..\..\view\game_pixpad.cpp" />
+    <ClCompile Include="..\..\view\game.cpp" />
     <ClCompile Include="..\..\view\glrender.cpp" />
     <ClCompile Include="..\..\view\logger.cpp" />
     <ClCompile Include="..\..\view\stdafx.cpp" />
     <ClCompile Include="..\..\view\util.cpp" />
-    <ClCompile Include="..\..\view\app_windows.cpp" />
+    <ClCompile Include="..\..\view\render_view.cpp" />
+    <ClCompile Include="..\..\view\windows_application.cpp" />
+    <ClCompile Include="..\..\view\windows_view.cpp" />
     <ClCompile Include="..\..\view\wmain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\view\application.h" />
-    <ClInclude Include="..\..\view\app_pixpad.h" />
+    <ClInclude Include="..\..\view\game_config.h" />
+    <ClInclude Include="..\..\view\game_pixpad.h" />
+    <ClInclude Include="..\..\view\game.h" />
     <ClInclude Include="..\..\view\glrender.h" />
+    <ClInclude Include="..\..\view\input_event.h" />
     <ClInclude Include="..\..\view\log.h" />
     <ClInclude Include="..\..\view\logger.h" />
-    <ClInclude Include="..\..\view\platform_config.h" />
+    <ClInclude Include="..\..\view\min_windows.h" />
+    <ClInclude Include="..\..\view\platform.h" />
     <ClInclude Include="..\..\view\renderer.h" />
     <ClInclude Include="..\..\view\stdafx.h" />
     <ClInclude Include="..\..\view\targetver.h" />
     <ClInclude Include="..\..\view\util.h" />
-    <ClInclude Include="..\..\view\app_windows.h" />
-    <ClInclude Include="..\..\view\view_base.h" />
+    <ClInclude Include="..\..\view\render_view.h" />
+    <ClInclude Include="..\..\view\windows_application.h" />
+    <ClInclude Include="..\..\view\windows_view.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

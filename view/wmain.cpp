@@ -1,12 +1,15 @@
 #include "stdafx.h"
-#include <clocale>
-#include "app_pixpad.h"
+#include "windows_application.h"
+#include "game_pixpad.h"
 
-wyc::application *g_application = nullptr;
-
-wyc::application* wyc::application::get_instance()
+namespace wyc
 {
-	return g_application;
+	application *g_application = nullptr;
+
+	application* application::get_instance()
+	{
+		return g_application;
+	}
 }
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
@@ -16,10 +19,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	
 	using namespace wyc;
 	std::wstring application_name = L"Pixpad";
-	xapp_pixpad *app = new xapp_pixpad();
-	if (!app->initialize(application_name, hInstance, 1279, 720, lpCmdLine))
-		return 1;
+	windows_application *app = new windows_application();
 	g_application = app;
+	if (!app->initialize(application_name, new game_pixpad(), hInstance, 1279, 720, lpCmdLine))
+		return 1;
 	g_application->start();
 	return 0;
 }
