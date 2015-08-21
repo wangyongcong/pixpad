@@ -5,7 +5,6 @@
 #include <OpenEXR/ImathRandom.h>
 
 #include "game.h"
-#include "glutil.h"
 #include "raster/surface.h"
 #include "math/mathfwd.h"
 #include "view_base.h"
@@ -35,22 +34,22 @@ namespace wyc
 			return m_game_name;
 		}
 
-		void on_paint();
-		void random_triangle(int lx, int ly, int rx, int ry);
-		void draw_cube(int lx, int ly, int rx, int ry);
-		void draw_triangles(const std::vector<vec4f> &vertices);
+		//void on_paint();
+		//void random_triangle(int lx, int ly, int rx, int ry);
+		//void draw_cube(int lx, int ly, int rx, int ry);
+		//void draw_triangles(const std::vector<vec4f> &vertices);
 	private:
 		void create_views();
 
 		const std::wstring &m_game_name;
 		std::vector<view_base*> m_views;
 
-		GLuint m_tex = 0;
-		GLuint m_prog = 0;
-		GLuint m_vbo = 0;
-		GLuint m_ibo = 0;
-		xsurface m_surf;
-		bool m_redraw = false;
+		//GLuint m_tex = 0;
+		//GLuint m_prog = 0;
+		//GLuint m_vbo = 0;
+		//GLuint m_ibo = 0;
+		//xsurface m_surf;
+		//bool m_redraw = false;
 		Imath::Rand32 m_rnd;
 	};
 

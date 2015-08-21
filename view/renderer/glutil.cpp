@@ -2,6 +2,7 @@
 #include <cassert>
 #include <ctime>
 #include <fstream>
+#include <limits>
 #include "log.h"
 #include "glutil.h"
 
@@ -310,7 +311,8 @@ GLuint glsl_load_source(GLenum shader_type, const char *src, size_t length)
 		return 0;
 	}
 	const GLchar *src_list[1] = { src };
-	const GLint len_list[1] = { length };
+	assert(length <= unsigned(std::numeric_limits<int>::max()));
+	const GLint len_list[1] = { int(length) };
 	glShaderSource(shader, 1, src_list, len_list);
 	glCompileShader(shader);
 	GLint ret;
