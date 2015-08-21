@@ -41,6 +41,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\..\view;..\..\view\game;..\..\view\renderer;..\..\view\windows;..\..\src;..\..\3rd\include;$(ProjectDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -51,7 +52,6 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\src;..\..\3rd\include;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -82,39 +82,37 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\view\game_pixpad.cpp" />
-    <ClCompile Include="..\..\view\game.cpp" />
-    <ClCompile Include="..\..\view\glrender.cpp" />
-    <ClCompile Include="..\..\view\logger.cpp" />
-    <ClCompile Include="..\..\view\stdafx.cpp" />
-    <ClCompile Include="..\..\view\util.cpp" />
-    <ClCompile Include="..\..\view\render_view.cpp" />
-    <ClCompile Include="..\..\view\windows_application.cpp" />
-    <ClCompile Include="..\..\view\windows_view.cpp" />
-    <ClCompile Include="..\..\view\wmain.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\view\application.h" />
-    <ClInclude Include="..\..\view\game_config.h" />
-    <ClInclude Include="..\..\view\game_pixpad.h" />
-    <ClInclude Include="..\..\view\game.h" />
-    <ClInclude Include="..\..\view\glrender.h" />
-    <ClInclude Include="..\..\view\input_event.h" />
-    <ClInclude Include="..\..\view\log.h" />
-    <ClInclude Include="..\..\view\logger.h" />
-    <ClInclude Include="..\..\view\min_windows.h" />
-    <ClInclude Include="..\..\view\platform.h" />
-    <ClInclude Include="..\..\view\renderer.h" />
-    <ClInclude Include="..\..\view\stdafx.h" />
-    <ClInclude Include="..\..\view\targetver.h" />
-    <ClInclude Include="..\..\view\util.h" />
-    <ClInclude Include="..\..\view\render_view.h" />
-    <ClInclude Include="..\..\view\windows_application.h" />
-    <ClInclude Include="..\..\view\windows_view.h" />
-    <ClInclude Include="resource.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="view.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\view\game\application.h" />
+    <ClInclude Include="..\..\view\game\game.h" />
+    <ClInclude Include="..\..\view\game\game_config.h" />
+    <ClInclude Include="..\..\view\game\game_pixpad.h" />
+    <ClInclude Include="..\..\view\game\input_event.h" />
+    <ClInclude Include="..\..\view\game\log.h" />
+    <ClInclude Include="..\..\view\game\logger.h" />
+    <ClInclude Include="..\..\view\game\platform.h" />
+    <ClInclude Include="..\..\view\game\renderer.h" />
+    <ClInclude Include="..\..\view\game\util.h" />
+    <ClInclude Include="..\..\view\game\view_base.h" />
+    <ClInclude Include="..\..\view\renderer\glutil.h" />
+    <ClInclude Include="..\..\view\windows\min_windows.h" />
+    <ClInclude Include="..\..\view\windows\stdafx.h" />
+    <ClInclude Include="..\..\view\windows\targetver.h" />
+    <ClInclude Include="..\..\view\windows\view_ogl3.h" />
+    <ClInclude Include="..\..\view\windows\windows_application.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\view\game\game_pixpad.cpp" />
+    <ClCompile Include="..\..\view\game\logger.cpp" />
+    <ClCompile Include="..\..\view\game\util.cpp" />
+    <ClCompile Include="..\..\view\game\view_base.cpp" />
+    <ClCompile Include="..\..\view\renderer\glutil.cpp" />
+    <ClCompile Include="..\..\view\windows\stdafx.cpp" />
+    <ClCompile Include="..\..\view\windows\view_ogl3.cpp" />
+    <ClCompile Include="..\..\view\windows\windows_application.cpp" />
+    <ClCompile Include="..\..\view\windows\wmain.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

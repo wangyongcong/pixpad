@@ -25,70 +25,70 @@ namespace wyc
 	{
 		create_views();
 		return;
-		m_tex = 0;
-		m_vbo = 0;
-		m_ibo = 0;
-		m_prog = 0;
-		m_rnd.init(clock());
-		size_t w, h;
-		application::get_instance()->get_window_size(w, h);
-		glClearColor(0, 0, 0, 0);
-		glGenTextures(1, &m_tex);
-		if (m_tex == 0)
-		{
-			error("failed to alloc texture");
-			return;
-		}
-		glBindTexture(GL_TEXTURE_2D, m_tex);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-		
-		GLuint buffs[2];
-		glGenBuffers(2, buffs);
-		m_vbo = buffs[0];
-		m_ibo = buffs[1];
-		if (!m_vbo || !m_ibo)
-		{
-			error("Failed to alloc buffers");
-			return;
-		}
-		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-		float verts[] = {
-			0, 0,
-			1, 0,
-			1, 1,
-			0, 1,
-		};
-		glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-		GLshort indices[] {
-			0, 1, 3,
-			1, 2, 3,
-		};
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+		//m_tex = 0;
+		//m_vbo = 0;
+		//m_ibo = 0;
+		//m_prog = 0;
+		//m_rnd.init(clock());
+		//size_t w, h;
+		//application::get_instance()->get_window_size(w, h);
+		//glClearColor(0, 0, 0, 0);
+		//glGenTextures(1, &m_tex);
+		//if (m_tex == 0)
+		//{
+		//	error("failed to alloc texture");
+		//	return;
+		//}
+		//glBindTexture(GL_TEXTURE_2D, m_tex);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		//
+		//GLuint buffs[2];
+		//glGenBuffers(2, buffs);
+		//m_vbo = buffs[0];
+		//m_ibo = buffs[1];
+		//if (!m_vbo || !m_ibo)
+		//{
+		//	error("Failed to alloc buffers");
+		//	return;
+		//}
+		//glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+		//float verts[] = {
+		//	0, 0,
+		//	1, 0,
+		//	1, 1,
+		//	0, 1,
+		//};
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+		//GLshort indices[] {
+		//	0, 1, 3,
+		//	1, 2, 3,
+		//};
+		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-		GLuint shaders[2] = { 0, 0 };
-		shaders[0] = glsl_load_file(GL_VERTEX_SHADER, "texquad_vs.glsl");
-		shaders[1] = glsl_load_file(GL_FRAGMENT_SHADER, "texquad_fs.glsl");
-		if (shaders[0] == 0 || shaders[1] == 0)
-		{
-			error("failed to load shader");
-			return;
-		}
-		m_prog = glsl_build_shader(shaders, 2);
-		glDeleteShader(shaders[0]);
-		glDeleteShader(shaders[1]);
-		if (!m_prog)
-		{
-			error("failed to build shader program");
-			return;
-		}
-		assert(glGetError() == GL_NO_ERROR);
+		//GLuint shaders[2] = { 0, 0 };
+		//shaders[0] = glsl_load_file(GL_VERTEX_SHADER, "texquad_vs.glsl");
+		//shaders[1] = glsl_load_file(GL_FRAGMENT_SHADER, "texquad_fs.glsl");
+		//if (shaders[0] == 0 || shaders[1] == 0)
+		//{
+		//	error("failed to load shader");
+		//	return;
+		//}
+		//m_prog = glsl_build_shader(shaders, 2);
+		//glDeleteShader(shaders[0]);
+		//glDeleteShader(shaders[1]);
+		//if (!m_prog)
+		//{
+		//	error("failed to build shader program");
+		//	return;
+		//}
+		//assert(glGetError() == GL_NO_ERROR);
 
-		on_paint();
+		//on_paint();
 	}
 
 	void game_pixpad::on_close()
@@ -112,43 +112,47 @@ namespace wyc
 
 	void game_pixpad::on_render()
 	{
-		return;
-		if (!m_redraw)
-			return;
-		m_redraw = false;
-		if (!m_prog)
-			return;
-		//glClear(GL_COLOR_BUFFER_BIT);
-		glUseProgram(m_prog);
-		GLint loc = glGetUniformLocation(m_prog, "proj");
-		if (loc != -1) {
-			mat4f proj;
-			set_orthograph(proj, 0, 0, 0, 1, 1, 1);
-			glUniformMatrix4fv(loc, 1, GL_TRUE, proj.data());
+		for (auto ptr_view : m_views)
+		{
+			ptr_view->on_render();
 		}
-		assert(glGetError() == GL_NO_ERROR);
-		loc = glGetUniformLocation(m_prog, "basemap");
-		if (loc != -1)
-			glUniform1i(loc, 0);
-		assert(glGetError() == GL_NO_ERROR);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-		glBindTexture(GL_TEXTURE_2D, m_tex);
-		// upload texture data
-		size_t w, h;
-		application::get_instance()->get_window_size(w, h);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, m_surf.get_buffer());
-		// draw primitives
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-		// restore state
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glUseProgram(0);
+			
+		//if (!m_redraw)
+		//	return;
+		//m_redraw = false;
+		//if (!m_prog)
+		//	return;
+		////glClear(GL_COLOR_BUFFER_BIT);
+		//glUseProgram(m_prog);
+		//GLint loc = glGetUniformLocation(m_prog, "proj");
+		//if (loc != -1) {
+		//	mat4f proj;
+		//	set_orthograph(proj, 0, 0, 0, 1, 1, 1);
+		//	glUniformMatrix4fv(loc, 1, GL_TRUE, proj.data());
+		//}
+		//assert(glGetError() == GL_NO_ERROR);
+		//loc = glGetUniformLocation(m_prog, "basemap");
+		//if (loc != -1)
+		//	glUniform1i(loc, 0);
+		//assert(glGetError() == GL_NO_ERROR);
+		//glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+		//glBindTexture(GL_TEXTURE_2D, m_tex);
+		//// upload texture data
+		//size_t w, h;
+		//application::get_instance()->get_window_size(w, h);
+		//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, m_surf.get_buffer());
+		//// draw primitives
+		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		//glEnableVertexAttribArray(0);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+		//// restore state
+		//glBindTexture(GL_TEXTURE_2D, 0);
+		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		//glBindBuffer(GL_ARRAY_BUFFER, 0);
+		//glUseProgram(0);
 
-		gl_get_context()->swap_buffers();
+		//gl_get_context()->swap_buffers();
 	}
 
 	void game_pixpad::on_update()
@@ -378,21 +382,16 @@ namespace wyc
 		
 		int x = 0, y = 0;
 		unsigned view_idx = 0;
+		view_base *ptr_view;
 		for (unsigned r = 0; r < row; ++r)
 		{
 			for (unsigned c = 0; c < col; ++c)
 			{
 				if (view_idx >= c_view_count)
 					break;
-				switch (c_view_list[view_idx])
-				{
-				case VIEW_SOFT:
-					break;
-				case VIEW_OPEN_GL:
-					break;
-				default:
-					break;
-				}
+				ptr_view = view_base::create_view(c_view_list[view_idx], x, y, view_w, view_h);
+				if(ptr_view)
+					m_views.push_back(ptr_view);
 			}
 		}
 	}

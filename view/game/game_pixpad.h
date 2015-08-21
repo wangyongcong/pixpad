@@ -5,9 +5,10 @@
 #include <OpenEXR/ImathRandom.h>
 
 #include "game.h"
-#include "glrender.h"
+#include "glutil.h"
 #include "raster/surface.h"
 #include "math/mathfwd.h"
+#include "view_base.h"
 
 namespace wyc
 {
@@ -42,6 +43,8 @@ namespace wyc
 		void create_views();
 
 		const std::wstring &m_game_name;
+		std::vector<view_base*> m_views;
+
 		GLuint m_tex = 0;
 		GLuint m_prog = 0;
 		GLuint m_vbo = 0;

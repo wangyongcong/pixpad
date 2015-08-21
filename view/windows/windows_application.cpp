@@ -4,8 +4,6 @@
 #include "log.h"
 #include "windows_application.h"
 #include "util.h"
-#include "glrender.h"
-
 
 // Global logger
 wyc::xlogger *g_log = nullptr;
@@ -101,32 +99,6 @@ namespace wyc
 		int client_h = rectClient.bottom - rectClient.top;
 		this->m_view_w = client_w;
 		this->m_view_h = client_h;
-		//// Create a temporary window to initialize driver
-		//HWND hTmpWnd = wyc::gl_create_window(hInstance, hMainWnd, 0, 0, client_w, client_h);
-		//int pixel_format = wyc::gl_detect_drivers(hTmpWnd);
-		//DestroyWindow(hTmpWnd);
-		//if (!pixel_format)
-		//{
-		//	return false;
-		//}
-		//// Create the real target window
-		//HWND hTargetWnd = wyc::gl_create_window(hInstance, hMainWnd, 0, 0, client_w, client_h);
-		//if (!wyc::gl_create_context(hTargetWnd, pixel_format))
-		//{
-		//	return false;
-		//}
-		//// Do not response user input
-		//EnableWindow(hTargetWnd, FALSE);
-		//ShowWindow(hTargetWnd, SW_NORMAL);
-
-		//// Show OpenGL infomation
-		//const char *version = (const char*)glGetString(GL_VERSION);
-		//const char *glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-		//const char *vendor = (const char*)glGetString(GL_VENDOR);
-		//const char *device = (const char*)glGetString(GL_RENDERER);
-		//info("%s %s", vendor, device);
-		//info("OpenGL %s (GLSL %s)", version, glsl_version);
-		//info("GLEW version %s", glewGetString(GLEW_VERSION));
 
 		this->m_game = game_inst;
 		m_game->on_start();
@@ -208,7 +180,7 @@ namespace wyc
 			m_game->on_resize(LOWORD(msg->wParam), HIWORD(msg->lParam));
 			break;
 		case WM_LBUTTONDOWN:
-			SetCapture(get_hwnd());
+			SetCapture(os_window());
 			m_game->on_mouse_button_down(MOUSE_BUTTON_LEFT, LOWORD(msg->lParam), HIWORD(msg->lParam));
 			break;
 		case WM_LBUTTONUP:

@@ -16,11 +16,11 @@ namespace wyc
 		virtual void on_event(void *ev);
 		virtual bool on_command(int cmd_id, int cmd_event) { return false; }
 		
-		inline HINSTANCE get_hinst() const
+		inline HINSTANCE os_instance() const
 		{
 			return m_hinst;
 		}
-		inline HWND get_hwnd() const
+		inline HWND os_window() const
 		{
 			return m_hwnd_main;
 		}

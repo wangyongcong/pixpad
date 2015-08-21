@@ -3,7 +3,7 @@
 #include <ctime>
 #include <fstream>
 #include "log.h"
-#include "glrender.h"
+#include "glutil.h"
 
 namespace wyc
 {
