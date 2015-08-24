@@ -2,12 +2,14 @@
 
 #include "view_base.h"
 
-const wyc::view_type c_view_list[] = 
+constexpr const unsigned char c_view_count = 2;
+
+const wyc::view_type c_view_list[c_view_count] =
 {
+	wyc::VIEW_SPARROW,
 	wyc::VIEW_OPENGL3,
 };
 
-constexpr const unsigned char c_view_count = sizeof(c_view_count);
 
 
 

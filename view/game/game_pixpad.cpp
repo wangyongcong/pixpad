@@ -2,6 +2,8 @@
 #include "game_pixpad.h"
 
 #include <ctime>
+#include <thread>
+
 #include <OpenEXR/ImathFun.h>
 #include <OpenEXR/ImathColor.h>
 
@@ -23,6 +25,8 @@ namespace wyc
 
 	void game_pixpad::on_start()
 	{
+		unsigned core_count = std::thread::hardware_concurrency();
+		debug("max thread count: %d", core_count);
 		create_views();
 		return;
 		//m_tex = 0;
@@ -378,16 +382,19 @@ namespace wyc
 		int x = 0, y = 0;
 		unsigned view_idx = 0;
 		view_base *ptr_view;
-		for (unsigned r = 0; r < row; ++r)
+		for (unsigned r = 0; r < row && view_idx < c_view_count; ++r)
 		{
-			for (unsigned c = 0; c < col; ++c)
+			for (unsigned c = 0; c < col && view_idx < c_view_count; ++c, ++view_idx)
 			{
-				if (view_idx >= c_view_count)
-					break;
 				ptr_view = view_base::create_view(c_view_list[view_idx], x, y, view_w, view_h);
-				if(ptr_view)
+				if (ptr_view) 
+				{
 					m_views.push_back(ptr_view);
+				}
+				x += view_w;
 			}
+			x = 0;
+			y += view_h;
 		}
 	}
 

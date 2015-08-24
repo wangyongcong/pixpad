@@ -1,18 +1,15 @@
 #pragma once
-
-#include <string>
 #include "view_base.h"
 
 namespace wyc
 {
-	class view_ogl3 : public view_base
+	class view_sparrow : public view_base
 	{
 	public:
-		view_ogl3();
-		~view_ogl3() {}
+		virtual ~view_sparrow() {}
 		virtual bool create(HWND parent, int x, int y, unsigned w, unsigned h);
-		virtual void set_text(const wchar_t *text);
 		virtual void on_render();
+		virtual void set_text(const wchar_t *text) {}
 	protected:
 		HWND m_hwnd;
 	};

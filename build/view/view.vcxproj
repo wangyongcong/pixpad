@@ -101,6 +101,7 @@
     <ClInclude Include="..\..\view\windows\stdafx.h" />
     <ClInclude Include="..\..\view\windows\targetver.h" />
     <ClInclude Include="..\..\view\windows\view_ogl3.h" />
+    <ClInclude Include="..\..\view\windows\view_sparrow.h" />
     <ClInclude Include="..\..\view\windows\windows_application.h" />
   </ItemGroup>
   <ItemGroup>
@@ -111,6 +112,7 @@
     <ClCompile Include="..\..\view\renderer\glutil.cpp" />
     <ClCompile Include="..\..\view\windows\stdafx.cpp" />
     <ClCompile Include="..\..\view\windows\view_ogl3.cpp" />
+    <ClCompile Include="..\..\view\windows\view_sparrow.cpp" />
     <ClCompile Include="..\..\view\windows\windows_application.cpp" />
     <ClCompile Include="..\..\view\windows\wmain.cpp" />
   </ItemGroup>

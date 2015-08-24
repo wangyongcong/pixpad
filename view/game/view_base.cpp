@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "view_base.h"
+#include "view_sparrow.h"
 #include "view_ogl3.h"
 
 namespace wyc
@@ -17,7 +18,8 @@ namespace wyc
 		switch (type)
 		{
 		case VIEW_SPARROW:
-			ptr_view = new view_ogl3();
+			ptr_view = new view_sparrow();
+			((view_sparrow*)ptr_view)->create(NULL, x, y, w, h);
 			break;
 		case VIEW_OPENGL3: {
 			ptr_view = new view_ogl3();
