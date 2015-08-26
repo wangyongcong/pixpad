@@ -12,9 +12,9 @@ namespace wyc
 		// application event handler
 		virtual void on_start() = 0;
 		virtual void on_close() = 0;
-		virtual void on_render() = 0;
 		virtual void on_update() = 0;
 		virtual void on_resize(unsigned width, unsigned height) = 0;
+		virtual bool is_exit() = 0;
 
 		// input event handler
 		virtual void on_mouse_button_down(MOUSE_BUTTON button, int x, int y) = 0;

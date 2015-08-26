@@ -10,11 +10,12 @@ namespace wyc
 	public:
 		view_ogl3();
 		~view_ogl3() {}
-		virtual bool create(HWND parent, int x, int y, unsigned w, unsigned h);
+		virtual bool initialize(int x, int y, unsigned w, unsigned h);
 		virtual void set_text(const wchar_t *text);
 		virtual void on_render();
 	protected:
 		HWND m_hwnd;
+		int m_pixel_fmt;
 	};
 
 } // namespace wyc

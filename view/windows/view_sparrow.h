@@ -7,11 +7,12 @@ namespace wyc
 	{
 	public:
 		virtual ~view_sparrow() {}
-		virtual bool create(HWND parent, int x, int y, unsigned w, unsigned h);
+		virtual bool initialize(int x, int y, unsigned w, unsigned h);
 		virtual void on_render();
 		virtual void set_text(const wchar_t *text) {}
 	protected:
 		HWND m_hwnd;
+		int m_pixel_fmt;
 	};
 
 } // namespace wyc

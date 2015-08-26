@@ -2,6 +2,9 @@
 #define WYC_HEADER_APP_PIXPAD
 
 #include <vector>
+#include <atomic>
+#include <thread>
+
 #include <OpenEXR/ImathRandom.h>
 
 #include "game.h"
@@ -17,9 +20,9 @@ namespace wyc
 		game_pixpad();
 		virtual void on_start();
 		virtual void on_close();
-		virtual void on_render();
 		virtual void on_update();
 		virtual void on_resize(unsigned width, unsigned height) {};
+		virtual bool is_exit();
 
 		// input event handler
 		virtual void on_mouse_button_down(MOUSE_BUTTON button, int x, int y) {};
@@ -42,7 +45,8 @@ namespace wyc
 		void create_views();
 
 		const std::wstring &m_game_name;
-		std::vector<view_base*> m_views;
+		std::vector<std::thread*> m_thread_pool;
+		std::atomic_bool m_signal_exit;
 
 		//GLuint m_tex = 0;
 		//GLuint m_prog = 0;

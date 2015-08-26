@@ -1,4 +1,5 @@
 #include "stdafx.h"
+
 #include "view_base.h"
 #include "view_sparrow.h"
 #include "view_ogl3.h"
@@ -12,23 +13,26 @@ namespace wyc
 		L"OpenGL3",
 	};
 
-	view_base * view_base::create_view(view_type type, int x, int y, unsigned w, unsigned h)
+	std::shared_ptr<view_base> view_base::create_view(view_type type, int x, int y, unsigned w, unsigned h)
 	{
-		view_base *ptr_view = nullptr;
+		std::shared_ptr<view_base> ptr_view = nullptr;
 		switch (type)
 		{
 		case VIEW_SPARROW:
-			ptr_view = new view_sparrow();
-			((view_sparrow*)ptr_view)->create(NULL, x, y, w, h);
+			ptr_view = std::shared_ptr<view_base>(new view_sparrow);
 			break;
 		case VIEW_OPENGL3: {
-			ptr_view = new view_ogl3();
-			((view_ogl3*)ptr_view)->create(NULL, x, y, w, h);
+			ptr_view = std::shared_ptr<view_base>(new view_ogl3);
 			break;
 		}
 		default:
-			ptr_view = new view_ogl3();
+			ptr_view = std::shared_ptr<view_base>(new view_ogl3);
 			break;
+		}
+		if (!ptr_view->initialize(x, y, w, h))
+		{
+			ptr_view = nullptr;
+			return 0;
 		}
 		ptr_view->set_text(view_name[type]);
 		return ptr_view;

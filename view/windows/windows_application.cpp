@@ -128,7 +128,6 @@ namespace wyc
 				on_event(&msg);
 			}
 			m_game->on_update();
-			m_game->on_render();
 		}
 		close();
 	}

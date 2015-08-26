@@ -15,6 +15,9 @@
     <Filter Include="Renderer">
       <UniqueIdentifier>{f6a19482-6ba4-419c-b1ae-e8e653d16645}</UniqueIdentifier>
     </Filter>
+    <Filter Include="thread">
+      <UniqueIdentifier>{f2a4fce1-5f25-4e1f-9d52-def609f2f956}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="view.rc">
@@ -75,6 +78,15 @@
     </ClInclude>
     <ClInclude Include="..\..\view\windows\view_sparrow.h">
       <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\view\thread\readerwriterqueue.h">
+      <Filter>thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\view\thread\atomicops.h">
+      <Filter>thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\view\thread\spscqueue.h">
+      <Filter>thread</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

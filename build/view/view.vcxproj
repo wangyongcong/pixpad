@@ -97,6 +97,9 @@
     <ClInclude Include="..\..\view\game\util.h" />
     <ClInclude Include="..\..\view\game\view_base.h" />
     <ClInclude Include="..\..\view\renderer\glutil.h" />
+    <ClInclude Include="..\..\view\thread\atomicops.h" />
+    <ClInclude Include="..\..\view\thread\readerwriterqueue.h" />
+    <ClInclude Include="..\..\view\thread\spscqueue.h" />
     <ClInclude Include="..\..\view\windows\min_windows.h" />
     <ClInclude Include="..\..\view\windows\stdafx.h" />
     <ClInclude Include="..\..\view\windows\targetver.h" />

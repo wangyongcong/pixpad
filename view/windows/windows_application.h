@@ -15,7 +15,11 @@ namespace wyc
 		virtual void resize(unsigned view_w, unsigned view_h);
 		virtual void on_event(void *ev);
 		virtual bool on_command(int cmd_id, int cmd_event) { return false; }
-		
+		virtual bool is_exit() const 
+		{ 
+			return m_game ? m_game->is_exit() : true;
+		}
+
 		inline HINSTANCE os_instance() const
 		{
 			return m_hinst;

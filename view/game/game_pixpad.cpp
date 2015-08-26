@@ -2,6 +2,8 @@
 #include "game_pixpad.h"
 
 #include <ctime>
+#include <memory>
+#include <functional>
 #include <thread>
 
 #include <OpenEXR/ImathFun.h>
@@ -19,7 +21,7 @@
 
 namespace wyc
 {
-	game_pixpad::game_pixpad() : m_game_name(L"Game Pixpad")
+	game_pixpad::game_pixpad() : m_game_name(L"Game Pixpad"), m_signal_exit(false)
 	{
 	}
 
@@ -97,6 +99,11 @@ namespace wyc
 
 	void game_pixpad::on_close()
 	{
+		m_signal_exit.store(true, std::memory_order_release);
+		for (auto pthread : m_thread_pool)
+		{
+			pthread->join();
+		}
 		//if (m_tex) {
 		//	glDeleteTextures(1, &m_tex);
 		//	m_tex = 0;
@@ -113,53 +120,55 @@ namespace wyc
 		//m_surf.release();
 	}
 
-	void game_pixpad::on_render()
-	{
-		for (auto ptr_view : m_views)
-		{
-			ptr_view->on_render();
-		}
-			
-		//if (!m_redraw)
-		//	return;
-		//m_redraw = false;
-		//if (!m_prog)
-		//	return;
-		////glClear(GL_COLOR_BUFFER_BIT);
-		//glUseProgram(m_prog);
-		//GLint loc = glGetUniformLocation(m_prog, "proj");
-		//if (loc != -1) {
-		//	mat4f proj;
-		//	set_orthograph(proj, 0, 0, 0, 1, 1, 1);
-		//	glUniformMatrix4fv(loc, 1, GL_TRUE, proj.data());
-		//}
-		//assert(glGetError() == GL_NO_ERROR);
-		//loc = glGetUniformLocation(m_prog, "basemap");
-		//if (loc != -1)
-		//	glUniform1i(loc, 0);
-		//assert(glGetError() == GL_NO_ERROR);
-		//glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-		//glBindTexture(GL_TEXTURE_2D, m_tex);
-		//// upload texture data
-		//size_t w, h;
-		//application::get_instance()->get_window_size(w, h);
-		//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, m_surf.get_buffer());
-		//// draw primitives
-		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-		//glEnableVertexAttribArray(0);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-		//// restore state
-		//glBindTexture(GL_TEXTURE_2D, 0);
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		//glBindBuffer(GL_ARRAY_BUFFER, 0);
-		//glUseProgram(0);
+	//void game_pixpad::on_render()
+	//{
+	//		
+	//	if (!m_redraw)
+	//		return;
+	//	m_redraw = false;
+	//	if (!m_prog)
+	//		return;
+	//	//glClear(GL_COLOR_BUFFER_BIT);
+	//	glUseProgram(m_prog);
+	//	GLint loc = glGetUniformLocation(m_prog, "proj");
+	//	if (loc != -1) {
+	//		mat4f proj;
+	//		set_orthograph(proj, 0, 0, 0, 1, 1, 1);
+	//		glUniformMatrix4fv(loc, 1, GL_TRUE, proj.data());
+	//	}
+	//	assert(glGetError() == GL_NO_ERROR);
+	//	loc = glGetUniformLocation(m_prog, "basemap");
+	//	if (loc != -1)
+	//		glUniform1i(loc, 0);
+	//	assert(glGetError() == GL_NO_ERROR);
+	//	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+	//	glBindTexture(GL_TEXTURE_2D, m_tex);
+	//	// upload texture data
+	//	size_t w, h;
+	//	application::get_instance()->get_window_size(w, h);
+	//	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, m_surf.get_buffer());
+	//	// draw primitives
+	//	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	//	glEnableVertexAttribArray(0);
+	//	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+	//	// restore state
+	//	glBindTexture(GL_TEXTURE_2D, 0);
+	//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//	glUseProgram(0);
 
-		//gl_get_context()->swap_buffers();
-	}
+	//	gl_get_context()->swap_buffers();
+	//}
 
 	void game_pixpad::on_update()
 	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
+
+	bool game_pixpad::is_exit()
+	{
+		return m_signal_exit.load(std::memory_order_consume);
 	}
 
 	void game_pixpad::on_key_down(int keycode)
@@ -381,15 +390,16 @@ namespace wyc
 		
 		int x = 0, y = 0;
 		unsigned view_idx = 0;
-		view_base *ptr_view;
 		for (unsigned r = 0; r < row && view_idx < c_view_count; ++r)
 		{
 			for (unsigned c = 0; c < col && view_idx < c_view_count; ++c, ++view_idx)
 			{
-				ptr_view = view_base::create_view(c_view_list[view_idx], x, y, view_w, view_h);
+				auto ptr_view = view_base::create_view(c_view_list[view_idx], x, y, view_w, view_h);
+				auto func = std::bind(&view_base::on_render, ptr_view);
 				if (ptr_view) 
 				{
-					m_views.push_back(ptr_view);
+					std::thread *pthread = new std::thread(func);
+					m_thread_pool.push_back(pthread);
 				}
 				x += view_w;
 			}

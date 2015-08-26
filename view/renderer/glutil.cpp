@@ -101,6 +101,9 @@ HWND gl_create_window(HINSTANCE hInstance, HWND hParent, int x, int y, unsigned 
 
 int gl_detect_drivers(HWND hWnd, const char *profile)
 {
+	static int s_pixel_format = 0;
+	if (s_pixel_format)
+		return s_pixel_format;
 	if (NULL == hWnd)
 		return 0;
 	HDC hDC = ::GetDC(hWnd);
@@ -176,6 +179,7 @@ EXIT:
 	wglMakeCurrent(hDC, NULL);
 	wglDeleteContext(hRC);
 	ReleaseDC(hWnd, hDC);
+	s_pixel_format = pixel_fmt;
 	return pixel_fmt;
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 namespace wyc
 {
@@ -15,8 +16,9 @@ namespace wyc
 	class view_base
 	{
 	public:
-		static view_base* create_view(view_type type, int x, int y, unsigned w, unsigned h);
+		static std::shared_ptr<view_base> create_view(view_type type, int x, int y, unsigned w, unsigned h);
 		virtual ~view_base() {}
+		virtual bool initialize(int x, int y, unsigned w, unsigned h) = 0;
 		virtual void set_text(const wchar_t *text) = 0;
 		virtual void on_render() = 0;
 	};
