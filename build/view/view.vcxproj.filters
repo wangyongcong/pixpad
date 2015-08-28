@@ -79,15 +79,6 @@
     <ClInclude Include="..\..\view\windows\view_sparrow.h">
       <Filter>Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\view\thread\readerwriterqueue.h">
-      <Filter>thread</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\view\thread\atomicops.h">
-      <Filter>thread</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\view\thread\spscqueue.h">
-      <Filter>thread</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">

@@ -5,11 +5,6 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pixpad", "pixpad\pixpad.vcxproj", "{E3C3171A-F98B-4856-B3C8-64DD91FE78C3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pixpad-test", "pixpad-test\pixpad-test.vcxproj", "{5681DEFF-1FEB-47F6-A055-C05057C569C0}"
-	ProjectSection(ProjectDependencies) = postProject
-		{E3C3171A-F98B-4856-B3C8-64DD91FE78C3} = {E3C3171A-F98B-4856-B3C8-64DD91FE78C3}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "view", "view\view.vcxproj", "{3046A5C3-94CA-4CBA-98A9-281DBCCB0DF0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E3C3171A-F98B-4856-B3C8-64DD91FE78C3} = {E3C3171A-F98B-4856-B3C8-64DD91FE78C3}
@@ -25,10 +20,6 @@ Global
 		{E3C3171A-F98B-4856-B3C8-64DD91FE78C3}.Debug|Win32.Build.0 = Debug|Win32
 		{E3C3171A-F98B-4856-B3C8-64DD91FE78C3}.Release|Win32.ActiveCfg = Release|Win32
 		{E3C3171A-F98B-4856-B3C8-64DD91FE78C3}.Release|Win32.Build.0 = Release|Win32
-		{5681DEFF-1FEB-47F6-A055-C05057C569C0}.Debug|Win32.ActiveCfg = Debug|Win32
-		{5681DEFF-1FEB-47F6-A055-C05057C569C0}.Debug|Win32.Build.0 = Debug|Win32
-		{5681DEFF-1FEB-47F6-A055-C05057C569C0}.Release|Win32.ActiveCfg = Release|Win32
-		{5681DEFF-1FEB-47F6-A055-C05057C569C0}.Release|Win32.Build.0 = Release|Win32
 		{3046A5C3-94CA-4CBA-98A9-281DBCCB0DF0}.Debug|Win32.ActiveCfg = Debug|Win32
 		{3046A5C3-94CA-4CBA-98A9-281DBCCB0DF0}.Debug|Win32.Build.0 = Debug|Win32
 		{3046A5C3-94CA-4CBA-98A9-281DBCCB0DF0}.Release|Win32.ActiveCfg = Release|Win32
