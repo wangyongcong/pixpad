@@ -171,3 +171,7 @@ private:
 }
 
 #endif
+
+#include "unitest.h"
+UNIT_TEST(folly_queue)
+

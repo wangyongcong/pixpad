@@ -4,10 +4,13 @@
 #include <atomic>
 #include <vector>
 
+#include "platform_info.h"
+
 #define DISALLOW_COPY_MOVE_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&) = delete;           \
-  TypeName(const TypeName&&) = delete;          \
-  void operator=(const TypeName&) = delete
+	TypeName(const TypeName&) = delete;			\
+	void operator=(const TypeName&) = delete;	\
+	TypeName(TypeName&&) = delete;				\
+	void operator=(TypeName&&) = delete
 
 namespace wyc
 {
@@ -56,7 +59,58 @@ namespace wyc
 			return true;
 		}
 
-		bool dequeue(std::vector<T> &ret)
+		bool try_dequeue(T &ret)
+		{
+			auto write_pos = m_write_pos.load(std::memory_order_acquire);
+			auto read_pos = m_read_pos.load(std::memory_order_relaxed);
+			if (read_pos == write_pos)
+			{
+				// queue is empty
+				return false;
+			}
+			auto i = read_pos & m_mask;
+			ret = std::move(m_buffer[i]);
+			m_buffer[i].~T();
+			m_read_pos.store(read_pos + 1, std::memory_order_release);
+			return true;
+		}
+
+		class enqueue_cursor
+		{
+		public:
+			enqueue_cursor(ring_queue *q, unsigned long beg, unsigned long end)
+				: m_queue(q)
+				, m_beg(beg)
+				, m_end(end)
+			{
+			}
+			enqueue_cursor(const enqueue_cursor& other) = default;
+			enqueue_cursor& operator = (const enqueue_cursor& other) = default;
+			enqueue_cursor(enqueue_cursor&& other) = default;
+			enqueue_cursor& operator = (enqueue_cursor&& other) = default;
+			inline operator bool() const {
+				return m_beg != m_end;
+			}
+			template<class ...Args>
+			inline void set(Args&&... args)
+			{
+				assert(m_beg != m_end);
+				new (&m_queue->m_buffer[m_beg & m_queue->m_mask]) T(std::forward<Args>(args)...);
+				m_queue->publish(++m_beg);
+			}
+		private:
+			ring_queue * m_queue;
+			unsigned long m_beg, m_end;
+		};
+
+		enqueue_cursor batch_enqueue()
+		{
+			auto beg = m_write_pos.load(std::memory_order_relaxed);
+			auto end = m_read_pos.load(std::memory_order_acquire) + m_size;
+			return enqueue_cursor(this, beg, end);
+		}
+
+		bool batch_dequeue(std::vector<T> &ret)
 		{
 			auto write_pos = m_write_pos.load(std::memory_order_acquire);
 			auto read_pos = m_read_pos.load(std::memory_order_relaxed);
@@ -69,22 +123,37 @@ namespace wyc
 			{
 				auto i = read_pos & m_mask;
 				ret.push_back(std::move(m_buffer[i]));
-				if (!std::is_trivially_destructible<T>::value)
-				{
-					m_buffer[i].~T();
-				}
+				m_buffer[i].~T();
 				++read_pos;
 			}
 			m_read_pos.store(read_pos, std::memory_order_release);
 			return true;
 		}
 
+		void check_alignment()
+		{
+			std::cout << this << std::endl;
+			std::cout << &(this->m_buffer) << "; " << offsetof(ring_queue, m_buffer) << std::endl;
+			std::cout << &(this->m_write_pos) << "; " << offsetof(ring_queue, m_write_pos) << std::endl;
+			std::cout << &(this->m_read_pos) << "; " << offsetof(ring_queue, m_read_pos) << std::endl;
+		}
+
 	private:
-		size_t m_size, m_mask;
+		friend class enqueue_cursor;
+		inline void publish(unsigned long pos)
+		{
+			m_write_pos.store(pos, std::memory_order_release);
+		}
+
 		T * const m_buffer;
-		
+		size_t m_size, m_mask;
+
+		char _cache_line_padding1[CACHE_LINE_SIZE - sizeof(size_t) * 2 - sizeof(T*)];
+
 		// producer
 		std::atomic<unsigned long> m_write_pos;
+
+		char _cache_line_padding2[CACHE_LINE_SIZE - sizeof(decltype(m_write_pos))];
 
 		// consumer
 		std::atomic<unsigned long> m_read_pos;
@@ -96,5 +165,4 @@ namespace wyc
 } // namespace wyc
 
 #include "unitest.h"
-
 UNIT_TEST(ring_queue)

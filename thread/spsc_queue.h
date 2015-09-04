@@ -162,3 +162,6 @@ private:
 };
 
 } // namespace dmitry
+
+#include "unitest.h"
+UNIT_TEST(spsc_queue)

@@ -45,21 +45,10 @@
 #include <cassert>
 
 #ifdef _MSC_VER
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
-
-inline size_t os_get_pagesize()
-{
-	SYSTEM_INFO si;
-	GetSystemInfo(&si);
-	return si.dwPageSize;
-}
-
+#include "platform_info.h"
 inline size_t getpagesize()
 {
-	static const size_t ls_pagesize = os_get_pagesize();
-	return ls_pagesize;
+	return wyc::page_size();
 }
 
 inline void* align_alloc(size_t alignment, size_t size)
