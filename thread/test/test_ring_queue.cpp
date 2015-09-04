@@ -16,7 +16,9 @@ void test()
 
 	wyc::ring_queue<message> queue(QUEUE_SIZE);
 
+#ifdef _DEBUG
 	queue.check_alignment();
+#endif
 
 	bool start = false;
 

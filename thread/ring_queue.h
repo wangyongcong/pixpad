@@ -130,13 +130,15 @@ namespace wyc
 			return true;
 		}
 
+#ifdef _DEBUG
 		void check_alignment()
 		{
-			std::cout << this << std::endl;
-			std::cout << &(this->m_buffer) << "; " << offsetof(ring_queue, m_buffer) << std::endl;
-			std::cout << &(this->m_write_pos) << "; " << offsetof(ring_queue, m_write_pos) << std::endl;
-			std::cout << &(this->m_read_pos) << "; " << offsetof(ring_queue, m_read_pos) << std::endl;
+			std::cout << "this: " << this << std::endl;
+			std::cout << "  m_buffer: " << &(this->m_buffer) << " offset=" << offsetof(ring_queue, m_buffer) << std::endl;
+			std::cout << "  m_write_pos: " << &(this->m_write_pos) << " offset=" << offsetof(ring_queue, m_write_pos) << std::endl;
+			std::cout << "  m_read_pos: " << &(this->m_read_pos) << " offset=" << offsetof(ring_queue, m_read_pos) << std::endl;
 		}
+#endif
 
 	private:
 		friend class enqueue_cursor;
