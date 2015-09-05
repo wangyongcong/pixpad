@@ -48,7 +48,7 @@ namespace wyc
 	void view_sparrow::on_render()
 	{
 		auto thread_id = std::this_thread::get_id();
-		debug("start render on thread[%d], sparrow view", thread_id);
+		debug("start render on thread[0x%x], sparrow view", thread_id);
 
 		if (!wyc::gl_create_context(m_hwnd, m_pixel_fmt))
 		{
@@ -61,6 +61,6 @@ namespace wyc
 			std::this_thread::sleep_for(std::chrono::microseconds(30));
 		}
 
-		debug("exit thread[%d]", thread_id);
+		debug("exit thread[0x%x]", thread_id);
 	}
 } // namespace wyc

@@ -78,7 +78,7 @@ namespace wyc
 		class enqueue_cursor
 		{
 		public:
-			enqueue_cursor(ring_queue *q, unsigned long beg, unsigned long end)
+			enqueue_cursor(ring_queue *q, size_t beg, size_t end)
 				: m_queue(q)
 				, m_beg(beg)
 				, m_end(end)
@@ -100,7 +100,7 @@ namespace wyc
 			}
 		private:
 			ring_queue * m_queue;
-			unsigned long m_beg, m_end;
+			size_t m_beg, m_end;
 		};
 
 		enqueue_cursor batch_enqueue()
@@ -142,7 +142,7 @@ namespace wyc
 
 	private:
 		friend class enqueue_cursor;
-		inline void publish(unsigned long pos)
+		inline void publish(size_t pos)
 		{
 			m_write_pos.store(pos, std::memory_order_release);
 		}
@@ -153,12 +153,12 @@ namespace wyc
 		char _cache_line_padding1[CACHE_LINE_SIZE - sizeof(size_t) * 2 - sizeof(T*)];
 
 		// producer
-		std::atomic<unsigned long> m_write_pos;
+		std::atomic<size_t> m_write_pos;
 
 		char _cache_line_padding2[CACHE_LINE_SIZE - sizeof(decltype(m_write_pos))];
 
 		// consumer
-		std::atomic<unsigned long> m_read_pos;
+		std::atomic<size_t> m_read_pos;
 
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(ring_queue);

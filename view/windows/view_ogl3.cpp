@@ -60,7 +60,7 @@ namespace wyc
 	void view_ogl3::on_render()
 	{
 		auto thread_id = std::this_thread::get_id();
-		debug("start render on thread[%d], ogl3 view", thread_id);
+		debug("start render on thread[0x%x], ogl3 view", thread_id);
 
 		if (!wyc::gl_create_context(m_hwnd, m_pixel_fmt))
 		{
@@ -85,7 +85,7 @@ namespace wyc
 			std::this_thread::sleep_for(std::chrono::microseconds(1));
 		}
 
-		debug("exit thread[%d]", thread_id);
+		debug("exit thread[0x%x]", thread_id);
 	}
 
 } // namespace wyc

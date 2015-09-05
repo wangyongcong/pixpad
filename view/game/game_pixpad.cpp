@@ -99,10 +99,10 @@ namespace wyc
 
 	void game_pixpad::on_close()
 	{
-		m_signal_exit.store(true, std::memory_order_release);
-		for (auto pthread : m_thread_pool)
+		m_signal_exit.store(true, std::memory_order_relaxed);
+		for (auto &pthread : m_thread_pool)
 		{
-			pthread->join();
+			pthread.join();
 		}
 		//if (m_tex) {
 		//	glDeleteTextures(1, &m_tex);
@@ -398,8 +398,7 @@ namespace wyc
 				auto func = std::bind(&view_base::on_render, ptr_view);
 				if (ptr_view) 
 				{
-					std::thread *pthread = new std::thread(func);
-					m_thread_pool.push_back(pthread);
+					m_thread_pool.push_back(std::thread(func));
 				}
 				x += view_w;
 			}

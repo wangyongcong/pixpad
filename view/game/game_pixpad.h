@@ -45,7 +45,7 @@ namespace wyc
 		void create_views();
 
 		const std::wstring &m_game_name;
-		std::vector<std::thread*> m_thread_pool;
+		std::vector<std::thread> m_thread_pool;
 		std::atomic_bool m_signal_exit;
 
 		//GLuint m_tex = 0;

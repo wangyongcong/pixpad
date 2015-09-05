@@ -41,10 +41,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\view;..\..\view\game;..\..\view\renderer;..\..\view\windows;..\..\src;..\..\3rd\include;$(ProjectDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>..\..\view\windows;..\..\view\renderer;..\..\view\game;..\..\view;..\..\thread;..\..\src;..\..\3rd\include;$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\..\view\windows;..\..\view\renderer;..\..\view\game;..\..\view;..\..\thread;..\..\src;..\..\3rd\include;$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -56,7 +57,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\3rd\lib;..\..\lib\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\3rd\lib;..\..\lib\debug</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenGL32.lib;glew32mx.lib;Half.lib;Imath-2_2.lib;Iex-2_2.lib;IexMath-2_2.lib;pixpad.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -79,7 +80,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>..\..\3rd\lib;..\..\lib\release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenGL32.lib;glew32mx.lib;Half.lib;Imath-2_2.lib;Iex-2_2.lib;IexMath-2_2.lib;pixpad.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y $(TargetPath) $(SolutionDir)..\bin\$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ResourceCompile Include="view.rc" />
