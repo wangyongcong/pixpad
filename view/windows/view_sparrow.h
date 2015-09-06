@@ -12,7 +12,7 @@ namespace wyc
 		virtual void set_text(const wchar_t *text) {}
 	protected:
 		HWND m_hwnd;
-		int m_pixel_fmt;
+		ID2D1Factory *m_d2d_factory;
 	};
 
 } // namespace wyc

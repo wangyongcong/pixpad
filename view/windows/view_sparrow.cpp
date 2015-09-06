@@ -19,28 +19,31 @@ namespace wyc
 
 		HINSTANCE os_instance = app_inst->os_instance();
 		HWND main_wnd = app_inst->os_window();
-		int pixel_format = wyc::gl_detect_drivers(NULL);
-		if (!pixel_format)
+
+		ID2D1Factory *ptr_factory = nullptr;
+		D2D1_FACTORY_OPTIONS options;
+		options.debugLevel = D2D1_DEBUG_LEVEL_NONE;
+		HRESULT result = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, options, &ptr_factory);
+		if (result != S_OK)
 		{
-			// driver is not ready, create a temporary window to initialize driver
-			HWND tmp_wnd = wyc::gl_create_window(os_instance, main_wnd, 0, 0, w, h);
-			pixel_format = wyc::gl_detect_drivers(tmp_wnd);
-			DestroyWindow(tmp_wnd);
-			if (!pixel_format)
-			{
-				return false;
-			}
+			error("Failed to initialize Direct2D factory.");
+			return false;
 		}
-
-		// create the real target window
-		HWND target_wnd = wyc::gl_create_window(os_instance, main_wnd, 0, 0, w, h);
-		// do not response user input
-		EnableWindow(target_wnd, FALSE);
-		ShowWindow(target_wnd, SW_NORMAL);
-
-		// set member
-		m_hwnd = target_wnd;
-		m_pixel_fmt = pixel_format;
+		ID2D1HwndRenderTarget *ptr_render_target = nullptr;
+		D2D1_RENDER_TARGET_PROPERTIES render_property = {
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE),
+			0, 0, // dpiX and dpiY
+			D2D1_RENDER_TARGET_USAGE_NONE,
+			D2D1_FEATURE_LEVEL_DEFAULT
+		};
+		D2D1_HWND_RENDER_TARGET_PROPERTIES window_property;
+		result = ptr_factory->CreateHwndRenderTarget(render_property, window_property, &ptr_render_target);
+		if (result != S_OK)
+		{
+			error("Failed to create Direct2D render target.");
+			return false;
+		}
 
 		return true;
 	}
@@ -50,11 +53,6 @@ namespace wyc
 		auto thread_id = std::this_thread::get_id();
 		debug("start render on thread[0x%x], sparrow view", thread_id);
 
-		if (!wyc::gl_create_context(m_hwnd, m_pixel_fmt))
-		{
-			debug("failed to create renderer");
-			return;
-		}
 
 		while (!application::get_instance()->is_exit())
 		{

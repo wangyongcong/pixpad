@@ -9,6 +9,9 @@
 
 #include "min_windows.h"
 
+// Direct2D
+#include <d2d1.h>
+
 // C 运行时头文件
 #include <stdlib.h>
 #include <malloc.h>
