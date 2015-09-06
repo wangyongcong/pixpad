@@ -50,6 +50,8 @@ namespace wyc
 		m_hwnd = target_wnd;
 		m_pixel_fmt = pixel_format;
 
+		debug("OpenGL view at (%d, %d, %d, %d)", x, y, x + w, y + h);
+
 		return true;
 	}
 

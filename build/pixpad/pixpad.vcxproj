@@ -59,7 +59,7 @@
     </Link>
     <PostBuildEvent>
       <Command>if not exist ..\..\lib\$(ConfigurationName) mkdir ..\..\lib\$(ConfigurationName)
-xcopy $(TargetPath) ..\..\lib\$(ConfigurationName)\$(TargetFileName)</Command>
+xcopy /Y $(TargetPath) ..\..\lib\$(ConfigurationName)\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

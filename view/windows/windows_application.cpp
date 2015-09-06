@@ -77,10 +77,24 @@ namespace wyc
 		wcex.lpszMenuName = NULL;
 		wcex.lpszClassName = wnd_cls.c_str();
 		RegisterClassEx(&wcex);
+		DWORD style = (WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN) & ~WS_THICKFRAME;
+		RECT client_rect;
 		if (win_width == 0 || win_height == 0)
+		{
 			win_width = CW_USEDEFAULT;
-		HWND hMainWnd = CreateWindow(wnd_cls.c_str(), app_name.c_str(), (WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN) & ~WS_THICKFRAME,
-			CW_USEDEFAULT, 0, win_width, win_height, NULL, NULL, hInstance, NULL);
+			win_height = CW_USEDEFAULT;
+		}
+		else
+		{
+			client_rect = {
+				0, 0, int(win_width), int(win_height)
+			};
+			AdjustWindowRect(&client_rect, style, FALSE);
+			win_width = client_rect.right - client_rect.left;
+			win_height = client_rect.bottom - client_rect.top;
+		}
+		HWND hMainWnd = CreateWindow(wnd_cls.c_str(), app_name.c_str(), style,
+			CW_USEDEFAULT, CW_USEDEFAULT, win_width, win_height, NULL, NULL, hInstance, NULL);
 		if (!hMainWnd)
 		{
 			return false;
@@ -93,10 +107,9 @@ namespace wyc
 		//SetTimer(hMainWnd, ID_TIMER_LOG, 500, &TimerFlushLog);
 
 		// create OpenGL window
-		RECT rectClient;
-		GetClientRect(hMainWnd, &rectClient);
-		int client_w = rectClient.right - rectClient.left;
-		int client_h = rectClient.bottom - rectClient.top;
+		GetClientRect(hMainWnd, &client_rect);
+		int client_w = client_rect.right - client_rect.left;
+		int client_h = client_rect.bottom - client_rect.top;
 		this->m_view_w = client_w;
 		this->m_view_h = client_h;
 

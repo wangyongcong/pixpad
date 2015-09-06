@@ -71,6 +71,8 @@ namespace wyc
 		m_d2d_factory = ptr_factory;
 		m_d2d_rt = ptr_render_target;
 
+		debug("Sparrow view at (%d, %d, %d, %d)", x, y, x + w, y + h);
+
 		return true;
 	}
 
@@ -78,7 +80,6 @@ namespace wyc
 	{
 		auto thread_id = std::this_thread::get_id();
 		debug("start render on thread[0x%x], sparrow view", thread_id);
-
 
 		while (!application::get_instance()->is_exit())
 		{
