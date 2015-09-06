@@ -41,7 +41,7 @@ namespace wyc
 		}
 
 		// create the real target window
-		HWND target_wnd = wyc::gl_create_window(os_instance, main_wnd, 0, 0, w, h);
+		HWND target_wnd = wyc::gl_create_window(os_instance, main_wnd, x, y, w, h);
 		// do not response user input
 		EnableWindow(target_wnd, FALSE);
 		ShowWindow(target_wnd, SW_NORMAL);
@@ -79,10 +79,10 @@ namespace wyc
 
 		while (!application::get_instance()->is_exit())
 		{
-			glClearColor(0, 0, 0, 1.0f);
+			glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			gl_get_context()->swap_buffers();
-			std::this_thread::sleep_for(std::chrono::microseconds(1));
+			std::this_thread::sleep_for(std::chrono::microseconds(30));
 		}
 
 		debug("exit thread[0x%x]", thread_id);

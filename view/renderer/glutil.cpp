@@ -67,6 +67,10 @@ void gl_check_error(const char *tag)
 {
 	GLenum err = glGetError();
 	if (err != GL_NO_ERROR) {
+		if (!tag)
+		{
+			tag = "";
+		}
 		error("OpenGL error: (code = %d) %s", err, tag);
 	}
 }

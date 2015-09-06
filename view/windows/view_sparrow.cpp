@@ -9,6 +9,24 @@
 
 namespace wyc
 {
+	view_sparrow::view_sparrow() : m_d2d_factory(nullptr), m_d2d_rt(nullptr)
+	{
+	}
+
+	view_sparrow::~view_sparrow()
+	{
+		if (m_d2d_rt)
+		{
+			m_d2d_rt->Release();
+			m_d2d_rt = nullptr;
+		}
+		if (m_d2d_factory)
+		{
+			m_d2d_factory->Release();
+			m_d2d_factory = nullptr;
+		}
+	}
+
 	bool view_sparrow::initialize(int x, int y, unsigned w, unsigned h)
 	{
 		windows_application* app_inst = dynamic_cast<windows_application*>(application::get_instance());
@@ -37,13 +55,21 @@ namespace wyc
 			D2D1_RENDER_TARGET_USAGE_NONE,
 			D2D1_FEATURE_LEVEL_DEFAULT
 		};
-		D2D1_HWND_RENDER_TARGET_PROPERTIES window_property;
+		RECT client_rect;
+		GetClientRect(main_wnd, &client_rect);
+		D2D1_HWND_RENDER_TARGET_PROPERTIES window_property = {
+			main_wnd,
+			D2D1::SizeU(client_rect.right - client_rect.left, client_rect.bottom - client_rect.top),
+			D2D1_PRESENT_OPTIONS_RETAIN_CONTENTS,
+		};
 		result = ptr_factory->CreateHwndRenderTarget(render_property, window_property, &ptr_render_target);
 		if (result != S_OK)
 		{
 			error("Failed to create Direct2D render target.");
 			return false;
 		}
+		m_d2d_factory = ptr_factory;
+		m_d2d_rt = ptr_render_target;
 
 		return true;
 	}
@@ -56,6 +82,8 @@ namespace wyc
 
 		while (!application::get_instance()->is_exit())
 		{
+			m_d2d_rt->BeginDraw();
+			m_d2d_rt->EndDraw();
 			std::this_thread::sleep_for(std::chrono::microseconds(30));
 		}
 
