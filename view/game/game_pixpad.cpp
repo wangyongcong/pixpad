@@ -12,11 +12,6 @@
 #include "application.h"
 #include "game_config.h"
 #include "log.h"
-#include "math/vecmath.h"
-#include "math/vector.h"
-#include "math/matrix.h"
-#include "raster/raster.h"
-#include "raster/gen_mesh.h"
 #include "util.h"
 
 namespace wyc
@@ -387,7 +382,9 @@ namespace wyc
 		{
 			app_inst->resize(client_w, client_h);
 		}
-		
+
+		static_assert(c_view_count <= sizeof(c_view_list) / sizeof(wyc::view_type), "Invalid view count.");
+
 		int x = 0, y = 0;
 		unsigned view_idx = 0;
 		for (unsigned r = 0; r < row && view_idx < c_view_count; ++r)

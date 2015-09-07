@@ -41,11 +41,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\view\windows;..\..\view\renderer;..\..\view\game;..\..\view;..\..\thread;..\..\src;..\..\3rd\include;$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>..\..\view\windows;..\..\view\game;..\..\view;..\..\renderer;..\..\thread;..\..\3rd\include;$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\view\windows;..\..\view\renderer;..\..\view\game;..\..\view;..\..\thread;..\..\src;..\..\3rd\include;$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>..\..\view\windows;..\..\view\game;..\..\view;..\..\renderer;..\..\thread;..\..\3rd\include;$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -58,7 +58,6 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\..\3rd\lib;..\..\lib\debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>OpenGL32.lib;glew32mx.lib;Half.lib;Imath-2_2.lib;Iex-2_2.lib;IexMath-2_2.lib;pixpad.lib;d2d1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y $(TargetPath) $(SolutionDir)..\bin\$(Configuration)\</Command>
@@ -81,7 +80,6 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>..\..\3rd\lib;..\..\lib\release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>OpenGL32.lib;glew32mx.lib;Half.lib;Imath-2_2.lib;Iex-2_2.lib;IexMath-2_2.lib;pixpad.lib;d2d1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y $(TargetPath) $(SolutionDir)..\bin\$(Configuration)\</Command>
@@ -91,6 +89,69 @@
     <ResourceCompile Include="view.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\3rd\include\OpenEXR\half.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\halfExport.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\halfFunction.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\halfLimits.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\Iex.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexBaseExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexErrnoExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexExport.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexForward.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMacros.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathFloatExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathFpu.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathIeeeExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexNamespace.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IexThrowErrnoExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmBaseConfig.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThread.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadExport.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadForward.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadMutex.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadNamespace.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadPool.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadSemaphore.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathBox.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathBoxAlgo.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathColor.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathColorAlgo.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathEuler.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathExc.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathExport.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathForward.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFrame.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFrustum.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFrustumTest.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFun.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathGL.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathGLU.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathHalfLimits.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathInt64.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathInterval.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathLimits.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathLine.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathLineAlgo.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathMath.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathMatrix.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathMatrixAlgo.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathNamespace.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathPlane.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathPlatform.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathQuat.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathRandom.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathRoots.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathShear.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathSphere.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVec.h" />
+    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVecAlgo.h" />
+    <ClInclude Include="..\..\renderer\ogl\glutil.h" />
+    <ClInclude Include="..\..\renderer\renderer.h" />
+    <ClInclude Include="..\..\renderer\render_target.h" />
+    <ClInclude Include="..\..\renderer\sparrow\spr_renderer.h" />
+    <ClInclude Include="..\..\renderer\sparrow\spr_render_target.h" />
+    <ClInclude Include="..\..\renderer\sparrow\surface.h" />
     <ClInclude Include="..\..\view\game\application.h" />
     <ClInclude Include="..\..\view\game\game.h" />
     <ClInclude Include="..\..\view\game\game_config.h" />
@@ -99,10 +160,8 @@
     <ClInclude Include="..\..\view\game\log.h" />
     <ClInclude Include="..\..\view\game\logger.h" />
     <ClInclude Include="..\..\view\game\platform.h" />
-    <ClInclude Include="..\..\view\game\renderer.h" />
     <ClInclude Include="..\..\view\game\util.h" />
     <ClInclude Include="..\..\view\game\view_base.h" />
-    <ClInclude Include="..\..\view\renderer\glutil.h" />
     <ClInclude Include="..\..\view\windows\min_windows.h" />
     <ClInclude Include="..\..\view\windows\stdafx.h" />
     <ClInclude Include="..\..\view\windows\targetver.h" />
@@ -111,11 +170,14 @@
     <ClInclude Include="..\..\view\windows\windows_application.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\renderer\ogl\glutil.cpp" />
+    <ClCompile Include="..\..\renderer\sparrow\spr_renderer.cpp" />
+    <ClCompile Include="..\..\renderer\sparrow\spr_render_target.cpp" />
+    <ClCompile Include="..\..\renderer\sparrow\surface.cpp" />
     <ClCompile Include="..\..\view\game\game_pixpad.cpp" />
     <ClCompile Include="..\..\view\game\logger.cpp" />
     <ClCompile Include="..\..\view\game\util.cpp" />
     <ClCompile Include="..\..\view\game\view_base.cpp" />
-    <ClCompile Include="..\..\view\renderer\glutil.cpp" />
     <ClCompile Include="..\..\view\windows\stdafx.cpp" />
     <ClCompile Include="..\..\view\windows\view_ogl3.cpp" />
     <ClCompile Include="..\..\view\windows\view_sparrow.cpp" />

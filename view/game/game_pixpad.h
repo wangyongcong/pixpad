@@ -8,8 +8,6 @@
 #include <OpenEXR/ImathRandom.h>
 
 #include "game.h"
-#include "raster/surface.h"
-#include "math/mathfwd.h"
 #include "view_base.h"
 
 namespace wyc

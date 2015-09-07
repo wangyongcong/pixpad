@@ -2,6 +2,8 @@
 #define WYC_HEADER_SURFACE
 
 #include <cstdint>
+#include <cassert>
+#include "util.h"
 
 namespace wyc
 {
@@ -9,8 +11,6 @@ namespace wyc
 	{
 	public:
 		xsurface();
-		xsurface(const xsurface &buffer) = delete;
-		xsurface& operator = (const xsurface &buffer) = delete;
 		~xsurface();
 		bool storage(unsigned w, unsigned h, unsigned fragment_size, unsigned char alignment = 4);
 		void release();
@@ -48,6 +48,8 @@ namespace wyc
 		template<class T>
 		void move_block(unsigned dstx, unsigned dsty, unsigned srcx, unsigned srcy, unsigned w, unsigned h);
 	protected:
+		DISALLOW_COPY_MOVE_AND_ASSIGN(xsurface);
+
 		enum BUFFER_INFO
 		{
 			BI_ELEMENT_SIZE = 0xFFFF,
@@ -55,6 +57,7 @@ namespace wyc
 			BI_ALIGNMENT_SHIFT = 16,
 			BI_SHARED = 0x100000
 		};
+
 		uint8_t *m_data;
 		unsigned m_info;
 		unsigned m_pitch;

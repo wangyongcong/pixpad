@@ -18,3 +18,11 @@
 #include <memory.h>
 #include <tchar.h>
 #include <cassert>
+
+#pragma comment(lib, "OpenGL32.lib")
+#pragma comment(lib, "glew32mx.lib")
+#pragma comment(lib, "Half.lib")
+#pragma comment(lib, "Imath-2_2.lib")
+#pragma comment(lib, "Iex-2_2.lib")
+#pragma comment(lib, "IexMath-2_2.lib")
+#pragma comment(lib, "d2d1.lib")

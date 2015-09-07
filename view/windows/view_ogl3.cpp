@@ -4,7 +4,7 @@
 #include <thread>
 
 #include "log.h"
-#include "glutil.h"
+#include "ogl/glutil.h"
 #include "windows_application.h"
 
 

@@ -7,6 +7,12 @@
 namespace wyc
 {
 
+#define DISALLOW_COPY_MOVE_AND_ASSIGN(TypeName) \
+	TypeName(const TypeName&) = delete;			\
+	void operator=(const TypeName&) = delete;	\
+	TypeName(TypeName&&) = delete;				\
+	void operator=(TypeName&&) = delete
+
 typedef float float32_t;
 
 inline bool have_state(unsigned st, unsigned flag) {
