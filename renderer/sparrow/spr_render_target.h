@@ -19,9 +19,9 @@ namespace wyc
 		}
 
 	private:
-		DISALLOW_COPY_MOVE_AND_ASSIGN(spr_render_target);
+		DISALLOW_COPY_MOVE_AND_ASSIGN(spr_render_target)
 
 		xsurface m_color_buffer;
 	};
 
-} // namespace
+} // namespace wyc

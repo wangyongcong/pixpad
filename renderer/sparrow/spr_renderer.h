@@ -16,7 +16,7 @@ namespace wyc
 		virtual void clear(const Imath::C3f &c);
 
 	private:
-		DISALLOW_COPY_MOVE_AND_ASSIGN(spr_renderer);
+		DISALLOW_COPY_MOVE_AND_ASSIGN(spr_renderer)
 
 		std::shared_ptr<spr_render_target> m_rt;
 	};
