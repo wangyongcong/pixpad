@@ -17,6 +17,8 @@ namespace wyc
 		ID2D1Factory *m_d2d_factory;
 		ID2D1HwndRenderTarget *m_d2d_rt;
 		ID2D1Bitmap *m_bitmap;
+		std::shared_ptr<spr_renderer> m_renderer;
+		std::shared_ptr<spr_render_target> m_target;
 	};
 
 } // namespace wyc

@@ -16,6 +16,7 @@ namespace wyc
 
 	spr_renderer::~spr_renderer()
 	{
+		m_rt = nullptr;
 	}
 
 	void spr_renderer::set_render_target(std::shared_ptr<render_target> rt)

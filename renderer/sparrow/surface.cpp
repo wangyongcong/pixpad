@@ -24,7 +24,7 @@ namespace wyc
 		if (m_data) release();
 		size_t pitch = (w * fragment_size + alignment - 1) / alignment * alignment;
 		size_t required_bytes = pitch*h;
-		if (required_bytes<1)
+		if (required_bytes < 1)
 			return false;
 		m_data = new uint8_t[required_bytes];
 		if (m_data == 0)
@@ -40,7 +40,7 @@ namespace wyc
 	{
 		if (!m_data)
 			return;
-		if (is_owner()) 
+		if (is_owner())
 			delete[] m_data;
 		m_data = 0;
 		m_info = 0;
@@ -84,15 +84,15 @@ namespace wyc
 
 	void xsurface::clear(const uint8_t *pdata, unsigned size) {
 		unsigned cnt;
-		if (size>m_pitch)
+		if (size > m_pitch)
 			size = m_pitch;
 		else
 			cnt = m_pitch / size;
 		uint8_t *pbuff = m_data;
-		for (unsigned y = 0; y<m_row; ++y) {
+		for (unsigned y = 0; y < m_row; ++y) {
 			uint8_t *pline = pbuff;
 			pbuff += m_pitch;
-			for (unsigned i = 0; i<cnt; ++i) {
+			for (unsigned i = 0; i < cnt; ++i) {
 				memcpy(pline, pdata, size);
 				pline += size;
 			}

@@ -22,6 +22,7 @@ namespace wyc
 		DISALLOW_COPY_MOVE_AND_ASSIGN(spr_render_target)
 
 		xsurface m_color_buffer;
+		spr_pixel_format m_color_fmt;
 	};
 
 } // namespace wyc

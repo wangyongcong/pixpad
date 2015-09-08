@@ -148,10 +148,10 @@ namespace wyc
 	{
 		assert(sizeof(T) == this->fragment_size());
 		uint8_t *pline = m_data;
-		for (unsigned y = 0; y<m_row; ++y) {
+		for (unsigned y = 0; y < m_row; ++y) {
 			T* iter = (T*)pline;
 			pline += m_pitch;
-			for (unsigned i = 0; i<m_row_len; ++i) {
+			for (unsigned i = 0; i < m_row_len; ++i) {
 				*iter = val;
 				iter += 1;
 			}
@@ -186,9 +186,9 @@ namespace wyc
 			psrc += (srcx + w - 1)*sizeof(T);
 			pdst += (dstx + w - 1)*sizeof(T);
 		}
-		while (h>0) {
+		while (h > 0) {
 			src_iter = (T*)psrc, dst_iter = (T*)pdst;
-			for (unsigned i = 0; i<w; ++i) {
+			for (unsigned i = 0; i < w; ++i) {
 				*dst_iter = *src_iter;
 				src_iter += xoff;
 				dst_iter += xoff;

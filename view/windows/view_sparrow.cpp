@@ -11,7 +11,12 @@
 
 namespace wyc
 {
-	view_sparrow::view_sparrow() : m_hwnd(NULL), m_d2d_factory(nullptr), m_d2d_rt(nullptr)
+	view_sparrow::view_sparrow() : 
+		m_hwnd(NULL), 
+		m_d2d_factory(nullptr), 
+		m_d2d_rt(nullptr), 
+		m_bitmap(nullptr), 
+		m_renderer(nullptr)
 	{
 	}
 
@@ -21,6 +26,8 @@ namespace wyc
 		SAFE_RELEASE(m_d2d_rt);
 		SAFE_RELEASE(m_d2d_factory);
 		SAFE_RELEASE(m_bitmap);
+		m_renderer = nullptr;
+		m_target = nullptr;
 	}
 
 	bool view_sparrow::initialize(int x, int y, unsigned w, unsigned h)
@@ -71,7 +78,8 @@ namespace wyc
 		}
 		ID2D1HwndRenderTarget *ptr_render_target = nullptr;
 		D2D1_PIXEL_FORMAT pixel_fmt = {
-			DXGI_FORMAT_B8G8R8A8_UNORM,
+			//DXGI_FORMAT_B8G8R8A8_UNORM,  // hardware or software
+			DXGI_FORMAT_R8G8B8A8_UNORM,  // hardware only
 			D2D1_ALPHA_MODE_IGNORE
 		};
 		D2D1_RENDER_TARGET_PROPERTIES render_property = {
@@ -99,12 +107,27 @@ namespace wyc
 		m_d2d_factory = ptr_factory;
 		m_d2d_rt = ptr_render_target;
 
-		result = ptr_render_target->CreateBitmap({ w, h }, 0, 0, { pixel_fmt , 0, 0 }, &m_bitmap);
+		D2D1_PIXEL_FORMAT bitmap_fmt = {
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			D2D1_ALPHA_MODE_IGNORE
+		};
+		result = ptr_render_target->CreateBitmap({ w, h }, 0, 0, { bitmap_fmt , 0, 0 }, &m_bitmap);
 		if (result != S_OK)
 		{
 			error("Failed to create D2D bitmap.");
 			return false;
 		}
+
+		m_target = std::make_shared<spr_render_target>();
+		if (!m_target->create(w, h, SPR_COLOR_B8G8R8A8 | SPR_DEPTH_16))
+		{
+			m_target = nullptr;
+			error("Failed to create sparrow render target.");
+			return false;
+		}
+		m_renderer = std::make_shared<spr_renderer>();
+		m_renderer->set_render_target(m_target);
+		m_renderer->clear({ 0.0f, 1.0f, 0.0f });
 
 		// do not response user input
 		EnableWindow(target_wnd, FALSE);
@@ -120,10 +143,26 @@ namespace wyc
 		auto thread_id = std::this_thread::get_id();
 		debug("start render on thread[0x%x], sparrow view", thread_id);
 
+		auto bitmap_size = m_bitmap->GetSize();
+		xsurface &color_buffer = m_target->get_color_buffer();
+		D2D1_RECT_U src_rect = {
+			// left, top, right, bottom
+			0, 0, color_buffer.row_length(), color_buffer.row()
+		};
+		D2D1_RECT_F dst_rect = {
+			0.0f, 0.0f, 100, 100 // bitmap_size.width, bitmap_size.height
+		};
+		size_t pitch = color_buffer.pitch();
+		HRESULT result;
+		result = m_bitmap->CopyFromMemory(&src_rect, color_buffer.get_buffer(), pitch);
 		while (!application::get_instance()->is_exit())
 		{
 			m_d2d_rt->BeginDraw();
-			m_d2d_rt->EndDraw();
+			m_d2d_rt->Clear(D2D1::ColorF(D2D1::ColorF::White));
+			m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
+			result = m_d2d_rt->EndDraw();
+			if (result != S_OK)
+				break;
 			std::this_thread::sleep_for(std::chrono::microseconds(30));
 		}
 
