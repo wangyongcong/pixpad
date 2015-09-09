@@ -38,7 +38,7 @@ namespace wyc
 		CHECK_RENDER_TARGET(m_rt)
 
 		xsurface& surf = m_rt->get_color_buffer();
-		uint32_t v = Imath::rgb2packed<uint32_t>(c);
+		uint32_t v = Imath::rgb2packed(c);
 		surf.clear(v);
 	}
 

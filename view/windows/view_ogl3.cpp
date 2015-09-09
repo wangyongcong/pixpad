@@ -50,6 +50,9 @@ namespace wyc
 		m_hwnd = target_wnd;
 		m_pixel_fmt = pixel_format;
 
+		m_view_pos.setValue(x, y);
+		m_view_size.setValue(int(w), int(h));
+
 		debug("OpenGL view at (%d, %d, %d, %d)", x, y, x + w, y + h);
 
 		return true;
@@ -88,6 +91,18 @@ namespace wyc
 		}
 
 		debug("exit thread[0x%x]", thread_id);
+	}
+
+	void view_ogl3::get_position(int & x, int & y)
+	{
+		x = m_view_pos.x;
+		y = m_view_pos.y;
+	}
+
+	void view_ogl3::get_size(unsigned & width, unsigned & height)
+	{
+		width = unsigned(m_view_size.x);
+		height = unsigned(m_view_size.y);
 	}
 
 } // namespace wyc

@@ -21,6 +21,8 @@ namespace wyc
 		virtual bool initialize(int x, int y, unsigned w, unsigned h) = 0;
 		virtual void set_text(const wchar_t *text) = 0;
 		virtual void on_render() = 0;
+		virtual void get_position(int &x, int &y) = 0;
+		virtual void get_size(unsigned &width, unsigned &height) = 0;
 	};
 
 

@@ -78,8 +78,8 @@ namespace wyc
 		}
 		ID2D1HwndRenderTarget *ptr_render_target = nullptr;
 		D2D1_PIXEL_FORMAT pixel_fmt = {
-			//DXGI_FORMAT_B8G8R8A8_UNORM,  // hardware or software
-			DXGI_FORMAT_R8G8B8A8_UNORM,  // hardware only
+			DXGI_FORMAT_B8G8R8A8_UNORM,  // hardware or software
+			//DXGI_FORMAT_R8G8B8A8_UNORM,  // hardware only
 			D2D1_ALPHA_MODE_IGNORE
 		};
 		D2D1_RENDER_TARGET_PROPERTIES render_property = {
@@ -127,7 +127,10 @@ namespace wyc
 		}
 		m_renderer = std::make_shared<spr_renderer>();
 		m_renderer->set_render_target(m_target);
-		m_renderer->clear({ 0.0f, 1.0f, 0.0f });
+		m_renderer->clear({ 1.0f, 0.0f, 0.0f });
+
+		m_view_pos.setValue(x, y);
+		m_view_size.setValue(int(w), int(h));
 
 		// do not response user input
 		EnableWindow(target_wnd, FALSE);
@@ -143,29 +146,47 @@ namespace wyc
 		auto thread_id = std::this_thread::get_id();
 		debug("start render on thread[0x%x], sparrow view", thread_id);
 
-		auto bitmap_size = m_bitmap->GetSize();
-		xsurface &color_buffer = m_target->get_color_buffer();
 		D2D1_RECT_U src_rect = {
-			// left, top, right, bottom
-			0, 0, color_buffer.row_length(), color_buffer.row()
+			0, 0, unsigned(m_view_size.x), unsigned(m_view_size.y)
 		};
 		D2D1_RECT_F dst_rect = {
-			0.0f, 0.0f, 100, 100 // bitmap_size.width, bitmap_size.height
+			0.0f, 0.0f, float(m_view_size.x), float(m_view_size.y)
 		};
+		xsurface &color_buffer = m_target->get_color_buffer();
 		size_t pitch = color_buffer.pitch();
 		HRESULT result;
 		result = m_bitmap->CopyFromMemory(&src_rect, color_buffer.get_buffer(), pitch);
+		m_d2d_rt->BeginDraw();
+		m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
+		result = m_d2d_rt->EndDraw();
 		while (!application::get_instance()->is_exit())
 		{
-			m_d2d_rt->BeginDraw();
-			m_d2d_rt->Clear(D2D1::ColorF(D2D1::ColorF::White));
-			m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
-			result = m_d2d_rt->EndDraw();
-			if (result != S_OK)
-				break;
+			//m_d2d_rt->BeginDraw();
+			//m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
+			//result = m_d2d_rt->EndDraw();
+			//if (result != S_OK)
+			//{
+			//	warn("D2D end draw error!");
+			//}
 			std::this_thread::sleep_for(std::chrono::microseconds(30));
 		}
 
 		debug("exit thread[0x%x]", thread_id);
+	}
+
+	void view_sparrow::set_text(const wchar_t * text)
+	{
+	}
+
+	void view_sparrow::get_position(int & x, int & y)
+	{
+		x = m_view_pos.x; 
+		y = m_view_pos.y;
+	}
+
+	void view_sparrow::get_size(unsigned & width, unsigned & height)
+	{
+		width = unsigned(m_view_size.x);
+		height = unsigned(m_view_size.y);
 	}
 } // namespace wyc
