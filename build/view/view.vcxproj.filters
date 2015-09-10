@@ -30,6 +30,9 @@
     <Filter Include="3rd\IlmBase">
       <UniqueIdentifier>{65e2f53d-7c69-4695-8217-49d592122c00}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer\Base">
+      <UniqueIdentifier>{ccac6db9-f2bb-4ef5-84dd-8f77101a848e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="view.rc">
@@ -87,12 +90,6 @@
     </ClInclude>
     <ClInclude Include="..\..\renderer\ogl\glutil.h">
       <Filter>Renderer\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\renderer\renderer.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\renderer\render_target.h">
-      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\3rd\include\OpenEXR\half.h">
       <Filter>3rd\IlmBase</Filter>
@@ -273,6 +270,24 @@
     </ClInclude>
     <ClInclude Include="..\..\renderer\sparrow\spr_renderer.h">
       <Filter>Renderer\Sparrow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\render_target.h">
+      <Filter>Renderer\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\renderer.h">
+      <Filter>Renderer\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\render_queue.h">
+      <Filter>Renderer\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thread\ring_queue.h">
+      <Filter>Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\render_command.h">
+      <Filter>Renderer\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thread\spsc_queue.h">
+      <Filter>Thread</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

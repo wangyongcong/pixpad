@@ -174,8 +174,8 @@ namespace wyc
 		// create render target
 		ID2D1HwndRenderTarget *ptr_render_target = nullptr;
 		D2D1_PIXEL_FORMAT pixel_fmt = {
-			DXGI_FORMAT_B8G8R8A8_UNORM,  // hardware or software
-										 //DXGI_FORMAT_R8G8B8A8_UNORM,  // hardware only
+			// hardware or software (or DXGI_FORMAT_R8G8B8A8_UNORM, which is hardware only)
+			DXGI_FORMAT_B8G8R8A8_UNORM,  
 			D2D1_ALPHA_MODE_IGNORE
 		};
 		D2D1_RENDER_TARGET_PROPERTIES render_property = {

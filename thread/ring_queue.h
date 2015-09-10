@@ -6,6 +6,10 @@
 
 #include "platform_info.h"
 
+#ifdef DISALLOW_COPY_MOVE_AND_ASSIGN
+#undef DISALLOW_COPY_MOVE_AND_ASSIGN
+#endif 
+
 #define DISALLOW_COPY_MOVE_AND_ASSIGN(TypeName) \
 	TypeName(const TypeName&) = delete;			\
 	void operator=(const TypeName&) = delete;	\
