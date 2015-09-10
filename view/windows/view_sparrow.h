@@ -16,6 +16,9 @@ namespace wyc
 		virtual void get_size(unsigned &width, unsigned &height) override;
 
 	protected:
+		bool rebuild_resource();
+		void discard_resource();
+
 		HWND m_hwnd;
 		ID2D1Factory *m_d2d_factory;
 		ID2D1HwndRenderTarget *m_d2d_rt;

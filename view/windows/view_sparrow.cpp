@@ -23,9 +23,8 @@ namespace wyc
 	view_sparrow::~view_sparrow()
 	{
 		m_hwnd = NULL;
-		SAFE_RELEASE(m_d2d_rt);
+		discard_resource();
 		SAFE_RELEASE(m_d2d_factory);
-		SAFE_RELEASE(m_bitmap);
 		m_renderer = nullptr;
 		m_target = nullptr;
 	}
@@ -76,48 +75,16 @@ namespace wyc
 			error("Failed to initialize Direct2D factory.");
 			return false;
 		}
-		ID2D1HwndRenderTarget *ptr_render_target = nullptr;
-		D2D1_PIXEL_FORMAT pixel_fmt = {
-			DXGI_FORMAT_B8G8R8A8_UNORM,  // hardware or software
-			//DXGI_FORMAT_R8G8B8A8_UNORM,  // hardware only
-			D2D1_ALPHA_MODE_IGNORE
-		};
-		D2D1_RENDER_TARGET_PROPERTIES render_property = {
-			D2D1_RENDER_TARGET_TYPE_DEFAULT,
-			pixel_fmt,
-			0, 0, // dpiX and dpiY
-			D2D1_RENDER_TARGET_USAGE_NONE,
-			D2D1_FEATURE_LEVEL_DEFAULT
-		};
-		RECT client_rect;
-		GetClientRect(target_wnd, &client_rect);
-		D2D1_HWND_RENDER_TARGET_PROPERTIES window_property = {
-			target_wnd,
-			D2D1::SizeU(client_rect.right - client_rect.left, client_rect.bottom - client_rect.top),
-			D2D1_PRESENT_OPTIONS_RETAIN_CONTENTS,
-		};
-		result = ptr_factory->CreateHwndRenderTarget(render_property, window_property, &ptr_render_target);
-		if (result != S_OK)
-		{
-			error("Failed to create Direct2D render target.");
-			return false;
-		}
 
 		m_hwnd = target_wnd;
 		m_d2d_factory = ptr_factory;
-		m_d2d_rt = ptr_render_target;
 
-		D2D1_PIXEL_FORMAT bitmap_fmt = {
-			DXGI_FORMAT_R8G8B8A8_UNORM,
-			D2D1_ALPHA_MODE_IGNORE
-		};
-		result = ptr_render_target->CreateBitmap({ w, h }, 0, 0, { bitmap_fmt , 0, 0 }, &m_bitmap);
-		if (result != S_OK)
+		if (!rebuild_resource())
 		{
-			error("Failed to create D2D bitmap.");
+			error("Failed to create graphic resource.");
 			return false;
 		}
-
+		
 		m_target = std::make_shared<spr_render_target>();
 		if (!m_target->create(w, h, SPR_COLOR_B8G8R8A8 | SPR_DEPTH_16))
 		{
@@ -127,7 +94,7 @@ namespace wyc
 		}
 		m_renderer = std::make_shared<spr_renderer>();
 		m_renderer->set_render_target(m_target);
-		m_renderer->clear({ 1.0f, 0.0f, 0.0f });
+		m_renderer->clear({ 0.4f, 0.4f, 0.4f });
 
 		m_view_pos.setValue(x, y);
 		m_view_size.setValue(int(w), int(h));
@@ -156,18 +123,26 @@ namespace wyc
 		size_t pitch = color_buffer.pitch();
 		HRESULT result;
 		result = m_bitmap->CopyFromMemory(&src_rect, color_buffer.get_buffer(), pitch);
-		m_d2d_rt->BeginDraw();
-		m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
-		result = m_d2d_rt->EndDraw();
+		bool refresh = true;
 		while (!application::get_instance()->is_exit())
 		{
-			//m_d2d_rt->BeginDraw();
-			//m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
-			//result = m_d2d_rt->EndDraw();
-			//if (result != S_OK)
-			//{
-			//	warn("D2D end draw error!");
-			//}
+			m_d2d_rt->BeginDraw();
+			if (refresh)
+			{
+				m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
+				refresh = false;
+			}
+			result = m_d2d_rt->EndDraw();
+			if (result == D2DERR_RECREATE_TARGET)
+			{
+				warn("Render target lost!");
+				rebuild_resource();
+				refresh = true;
+			}
+			else if (result != S_OK)
+			{
+				warn("D2D end draw error!");
+			}
 			std::this_thread::sleep_for(std::chrono::microseconds(30));
 		}
 
@@ -189,4 +164,63 @@ namespace wyc
 		width = unsigned(m_view_size.x);
 		height = unsigned(m_view_size.y);
 	}
+
+	bool view_sparrow::rebuild_resource()
+	{
+		if (!m_d2d_factory)
+			return false;
+		discard_resource();
+
+		// create render target
+		ID2D1HwndRenderTarget *ptr_render_target = nullptr;
+		D2D1_PIXEL_FORMAT pixel_fmt = {
+			DXGI_FORMAT_B8G8R8A8_UNORM,  // hardware or software
+										 //DXGI_FORMAT_R8G8B8A8_UNORM,  // hardware only
+			D2D1_ALPHA_MODE_IGNORE
+		};
+		D2D1_RENDER_TARGET_PROPERTIES render_property = {
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			pixel_fmt,
+			0, 0, // dpiX and dpiY
+			D2D1_RENDER_TARGET_USAGE_NONE,
+			D2D1_FEATURE_LEVEL_DEFAULT
+		};
+		RECT client_rect;
+		GetClientRect(m_hwnd, &client_rect);
+		unsigned w = client_rect.right - client_rect.left;
+		unsigned h = client_rect.bottom - client_rect.top;
+		D2D1_HWND_RENDER_TARGET_PROPERTIES window_property = {
+			m_hwnd,
+			D2D1::SizeU(w, h),
+			D2D1_PRESENT_OPTIONS_RETAIN_CONTENTS,
+		};
+		HRESULT result = m_d2d_factory->CreateHwndRenderTarget(render_property, window_property, &ptr_render_target);
+		if (result != S_OK)
+		{
+			error("Failed to create Direct2D render target.");
+			return false;
+		}
+
+		// create bitmap
+		D2D1_PIXEL_FORMAT bitmap_fmt = {
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			D2D1_ALPHA_MODE_IGNORE
+		};
+		result = ptr_render_target->CreateBitmap({ w, h }, 0, 0, { bitmap_fmt , 0, 0 }, &m_bitmap);
+		if (result != S_OK)
+		{
+			error("Failed to create D2D bitmap.");
+			return false;
+		}
+
+		m_d2d_rt = ptr_render_target;
+		return true;
+	}
+
+	void view_sparrow::discard_resource()
+	{
+		SAFE_RELEASE(m_d2d_rt);
+		SAFE_RELEASE(m_bitmap);
+	}
+
 } // namespace wyc
