@@ -7,13 +7,16 @@
 
 namespace wyc
 {
+	typedef uint64_t command_id;
+
+	class renderer;
 	struct render_command;
-	typedef std::function<bool(render_command*)> command_handler;
+	typedef std::function<bool(renderer*, render_command*)> command_handler;
 
 	struct render_command
 	{
-		uint64_t id;
-		render_command *next;
+		command_id id = 0;
+		render_command *next = nullptr;
 		command_handler handler;
 	};
 

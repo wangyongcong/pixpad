@@ -10,8 +10,9 @@
 
 namespace wyc
 {
-	spr_renderer::spr_renderer() : m_rt(nullptr)
+	spr_renderer::spr_renderer() : m_rt(nullptr), m_cmd_queue(1024)
 	{
+		this->new_command<cmd_clear>(0);
 	}
 
 	spr_renderer::~spr_renderer()

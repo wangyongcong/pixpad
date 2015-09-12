@@ -14,7 +14,7 @@
 	TypeName(const TypeName&) = delete;			\
 	void operator=(const TypeName&) = delete;	\
 	TypeName(TypeName&&) = delete;				\
-	void operator=(TypeName&&) = delete
+	void operator=(TypeName&&) = delete;
 
 namespace wyc
 {
