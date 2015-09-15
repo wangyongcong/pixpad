@@ -330,5 +330,8 @@
     <ClCompile Include="..\..\renderer\sparrow\spw_renderer.cpp">
       <Filter>Renderer\Sparrow</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\renderer\render_command.cpp">
+      <Filter>Renderer\Base</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
