@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <vector>
 
 #include "OpenEXR/ImathColor.h"
 
@@ -12,7 +13,7 @@ namespace wyc
 	class command_allocator
 	{
 	public:
-		command_allocator(size_t max_size, size_t capacity);
+		command_allocator(size_t min_size, size_t max_size, size_t chunk_size, size_t chunk_align);
 		~command_allocator();
 		// Allocate raw memory
 		void* alloc(size_t sz);
@@ -23,15 +24,18 @@ namespace wyc
 	private:
 		DISALLOW_COPY_MOVE_AND_ASSIGN(command_allocator)
 
-		struct chunk
+		struct chunk_t
 		{
-			chunk * next;
-			void * memory;
-			size_t count;
-			size_t freed;
+			chunk_t * next = nullptr;
+			void * memory = nullptr;
+			size_t used = 0;
+			size_t capacity = 0;
 		};
-		std::vector<chunk> m_chunks;
+		std::vector<chunk_t> m_chunks;
 		size_t m_max_size;
+		size_t m_chunk_align;
+		size_t m_chunk_mask;
+		size_t m_chunk_size;
 	};
 
 
@@ -39,7 +43,7 @@ namespace wyc
 
 	class renderer;
 	struct render_command;
-	typedef std::function<bool(renderer*, render_command*)> command_handler;
+	using command_handler = bool(*) (renderer*, render_command*);
 
 	struct render_command
 	{
