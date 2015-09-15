@@ -262,13 +262,7 @@
     <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVecAlgo.h">
       <Filter>3rd\IlmBase</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\renderer\sparrow\spr_render_target.h">
-      <Filter>Renderer\Sparrow</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\renderer\sparrow\surface.h">
-      <Filter>Renderer\Sparrow</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\renderer\sparrow\spr_renderer.h">
       <Filter>Renderer\Sparrow</Filter>
     </ClInclude>
     <ClInclude Include="..\..\renderer\render_target.h">
@@ -288,6 +282,12 @@
     </ClInclude>
     <ClInclude Include="..\..\thread\spsc_queue.h">
       <Filter>Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\sparrow\spw_renderer.h">
+      <Filter>Renderer\Sparrow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\sparrow\swp_render_target.h">
+      <Filter>Renderer\Sparrow</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -324,10 +324,10 @@
     <ClCompile Include="..\..\renderer\sparrow\surface.cpp">
       <Filter>Renderer\Sparrow</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderer\sparrow\spr_render_target.cpp">
+    <ClCompile Include="..\..\renderer\sparrow\spw_render_target.cpp">
       <Filter>Renderer\Sparrow</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderer\sparrow\spr_renderer.cpp">
+    <ClCompile Include="..\..\renderer\sparrow\spw_renderer.cpp">
       <Filter>Renderer\Sparrow</Filter>
     </ClCompile>
   </ItemGroup>

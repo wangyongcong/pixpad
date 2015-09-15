@@ -6,11 +6,11 @@
 
 namespace wyc
 {
-	class spr_render_target : public render_target
+	class spw_render_target : public render_target
 	{
 	public:
-		spr_render_target();
-		virtual ~spr_render_target() override;
+		spw_render_target();
+		virtual ~spw_render_target() override;
 		virtual bool create(unsigned width, unsigned height, unsigned format) override;
 
 		inline xsurface& get_color_buffer()
@@ -19,7 +19,7 @@ namespace wyc
 		}
 
 	private:
-		DISALLOW_COPY_MOVE_AND_ASSIGN(spr_render_target)
+		DISALLOW_COPY_MOVE_AND_ASSIGN(spw_render_target)
 
 		xsurface m_color_buffer;
 		spr_pixel_format m_color_fmt;

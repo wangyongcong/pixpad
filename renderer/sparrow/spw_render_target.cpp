@@ -1,16 +1,16 @@
-#include "spr_render_target.h"
+#include "spw_render_target.h"
 
 namespace wyc
 {
-	spr_render_target::spr_render_target()
+	spw_render_target::spw_render_target()
 	{
 	}
 
-	spr_render_target::~spr_render_target()
+	spw_render_target::~spw_render_target()
 	{
 	}
 
-	bool spr_render_target::create(unsigned width, unsigned height, unsigned format)
+	bool spw_render_target::create(unsigned width, unsigned height, unsigned format)
 	{
 		m_color_buffer.release();
 		unsigned frag_size = 0, alignment = 0;

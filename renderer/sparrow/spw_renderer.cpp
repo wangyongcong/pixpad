@@ -1,4 +1,4 @@
-#include "spr_renderer.h"
+#include "spw_renderer.h"
 
 #include "OpenEXR/ImathColorAlgo.h"
 
@@ -10,31 +10,31 @@
 
 namespace wyc
 {
-	spr_renderer::spr_renderer() : m_rt(nullptr), m_cmd_queue(1024)
+	spw_renderer::spw_renderer() : m_rt(nullptr), m_cmd_queue(1024)
 	{
-		this->new_command<cmd_clear>(0);
+		this->new_command<cmd_clear>();
 	}
 
-	spr_renderer::~spr_renderer()
+	spw_renderer::~spw_renderer()
 	{
 		m_rt = nullptr;
 	}
 
-	void spr_renderer::set_render_target(std::shared_ptr<render_target> rt)
+	void spw_renderer::set_render_target(std::shared_ptr<render_target> rt)
 	{
-		m_rt = std::dynamic_pointer_cast<spr_render_target>(rt);
+		m_rt = std::dynamic_pointer_cast<spw_render_target>(rt);
 		if (!m_rt)
 		{
 			throw std::exception("Expect wyc::spr_render_target.");
 		}
 	}
 
-	std::shared_ptr<render_target> spr_renderer::get_render_target()
+	std::shared_ptr<render_target> spw_renderer::get_render_target()
 	{
 		return m_rt;
 	}
 
-	void spr_renderer::clear(const Imath::C3f & c)
+	void spw_renderer::clear(const Imath::C3f & c)
 	{
 		CHECK_RENDER_TARGET(m_rt)
 

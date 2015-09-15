@@ -151,9 +151,9 @@
     <ClInclude Include="..\..\renderer\render_command.h" />
     <ClInclude Include="..\..\renderer\render_queue.h" />
     <ClInclude Include="..\..\renderer\render_target.h" />
-    <ClInclude Include="..\..\renderer\sparrow\spr_renderer.h" />
-    <ClInclude Include="..\..\renderer\sparrow\spr_render_target.h" />
+    <ClInclude Include="..\..\renderer\sparrow\spw_renderer.h" />
     <ClInclude Include="..\..\renderer\sparrow\surface.h" />
+    <ClInclude Include="..\..\renderer\sparrow\swp_render_target.h" />
     <ClInclude Include="..\..\thread\ring_queue.h" />
     <ClInclude Include="..\..\thread\spsc_queue.h" />
     <ClInclude Include="..\..\view\game\application.h" />
@@ -175,8 +175,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\renderer\ogl\glutil.cpp" />
-    <ClCompile Include="..\..\renderer\sparrow\spr_renderer.cpp" />
-    <ClCompile Include="..\..\renderer\sparrow\spr_render_target.cpp" />
+    <ClCompile Include="..\..\renderer\sparrow\spw_renderer.cpp" />
+    <ClCompile Include="..\..\renderer\sparrow\spw_render_target.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\surface.cpp" />
     <ClCompile Include="..\..\view\game\game_pixpad.cpp" />
     <ClCompile Include="..\..\view\game\logger.cpp" />
