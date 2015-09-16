@@ -114,7 +114,7 @@ namespace wyc
 			return enqueue_cursor(this, beg, end);
 		}
 
-		bool batch_dequeue(std::vector<T> &ret)
+		bool batch_dequeue(std::vector<T> &ret, size_t max_count=256)
 		{
 			auto write_pos = m_write_pos.load(std::memory_order_acquire);
 			auto read_pos = m_read_pos.load(std::memory_order_relaxed);
@@ -123,7 +123,7 @@ namespace wyc
 				// queue is empty
 				return false;
 			}
-			while (read_pos != write_pos)
+			while (read_pos != write_pos && ret.size() < max_count)
 			{
 				auto i = read_pos & m_mask;
 				ret.push_back(std::move(m_buffer[i]));
