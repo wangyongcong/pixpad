@@ -165,7 +165,7 @@ namespace wyc
 		std::atomic<size_t> m_read_pos;
 
 
-		DISALLOW_COPY_MOVE_AND_ASSIGN(ring_queue);
+		DISALLOW_COPY_MOVE_AND_ASSIGN(ring_queue)
 	};
 
 } // namespace wyc

@@ -4,100 +4,88 @@
 #include <algorithm>
 
 #include "unitest.h"
+#include "log.h"
 
 namespace wyc
 {
 
-	command_allocator::command_allocator(size_t chunk_size, size_t granularity) :
-		m_raw_mem(nullptr),
-		m_free(nullptr)
+	command_allocator::command_allocator(size_t chunk_size, unsigned short granularity)
 	{
 		constexpr size_t align = 8;
 		constexpr size_t align_mask = ~(align - 1);
 		granularity = (granularity + align - 1) & align_mask;
-		assert(granularity > 0 && (granularity & (granularity - 1)) == 0);
+		assert(granularity > 1);
 		m_grain = granularity;
-		m_grain_mask = ~(granularity - 1);
-		m_chunk_size = (chunk_size + granularity - 1) & m_grain_mask;
-		assert(granularity <= m_chunk_size);
-		unsigned cnt_chunk = m_chunk_size / granularity;
-		m_chunks.resize(cnt_chunk);
-		size_t cap = granularity;
-		for (auto &chk : m_chunks)
-		{
-			chk.capacity = m_chunk_size / cap;
-			cap += granularity;
-		}
+		unsigned slot_cnt = (chunk_size + granularity - 1) / granularity;
+		m_head_size = (sizeof(chunk_t) + granularity - 1) / granularity;
+		assert(m_head_size < slot_cnt);
+		m_capacity = slot_cnt - m_head_size;
+		m_chunk_size = slot_cnt * granularity;
+		m_chunk_count = 0;
+		m_root = nullptr;
+		new_chunk();
+		debug("grain: %d, capacity: %d, chunk size: %d", m_grain, m_capacity, m_chunk_size);
 	}
 
 	command_allocator::~command_allocator()
 	{
-		release_chunks();
+		clear();
 	}
 
 	void * command_allocator::alloc(size_t sz)
 	{
-		sz = (sz + m_grain - 1) & m_grain_mask;
-		unsigned idx = sz / m_grain - 1;
-		if (idx >= m_chunks.size())
-		{
+		unsigned slot_cnt = (sz + m_grain - 1) / m_grain;
+		if (slot_cnt > m_capacity)
 			return nullptr;
-		}
-		auto ptr_chunk = &m_chunks[idx];
-		if (!ptr_chunk->memory || ptr_chunk->used == ptr_chunk->capacity)
+		if (m_root->used + slot_cnt > m_capacity)
 		{
-			if (!new_chunk(ptr_chunk))
+			if (!new_chunk())
 				return nullptr;
 		}
-		uint8_t *slot = ptr_chunk->memory + ptr_chunk->used * sz;
-		assert(slot + sz <= ptr_chunk->memory + m_chunk_size);
-		ptr_chunk->used += 1;
-		return slot;
+		uint8_t *ptr_raw = reinterpret_cast<uint8_t*>(m_root);
+		ptr_raw += m_root->used * m_grain;
+		m_root->used += slot_cnt;
+		debug("size: %d (%d), %d/%d", sz, slot_cnt, m_root->used, m_capacity);
+		return ptr_raw;
 	}
 
 	void command_allocator::reset()
 	{
-		m_free = m_raw_mem;
-		for (auto &chk : m_chunks)
+		chunk_t *ptr = m_root;
+		while (ptr)
 		{
-			chk.used = 0;
-			chk.memory = nullptr;
+			ptr->used = m_head_size;
+			ptr = ptr->next;
 		}
 	}
 
 	void command_allocator::clear()
 	{
-		reset();
-		release_chunks();
-	}
-
-	bool command_allocator::new_chunk(chunk_t * ptr_chunk)
-	{
-		if (m_free)
+		chunk_t *ptr;
+		while (m_root)
 		{
-			ptr_chunk->memory = reinterpret_cast<uint8_t*>(m_free);
-			m_free = m_free->next;
-			ptr_chunk->used = 0;
-			return true;
-		}
-		note_t *ptr_raw = static_cast<note_t*>(malloc(m_chunk_size));
-		ptr_raw->next = m_raw_mem;
-		m_raw_mem = ptr_raw;
-		ptr_chunk->memory = reinterpret_cast<uint8_t*>(ptr_raw);
-		ptr_chunk->used = 0;
-		return true;
-	}
-
-	void command_allocator::release_chunks()
-	{
-		m_free = m_raw_mem;
-		while (m_free)
-		{
-			auto ptr = m_free;
-			m_free = m_free->next;
+			ptr = m_root;
+			m_root = m_root->next;
 			free(ptr);
+#ifdef _DEBUG
+			m_chunk_count -= 1;
+#endif
 		}
-		m_raw_mem = nullptr;
+		assert(0 == m_chunk_count);
+		m_chunk_count = 0;
+	}
+
+	command_allocator::chunk_t* command_allocator::new_chunk()
+	{
+		chunk_t* ptr = static_cast<chunk_t*>(malloc(m_chunk_size));
+		if (!ptr)
+			return nullptr;
+		ptr->used = m_head_size;
+		ptr->next = m_root;
+		m_root = ptr;
+		m_chunk_count += 1;
+		debug("new chunk %d", m_chunk_count);
+		return ptr;
 	}
 
 } // namespace wyc
@@ -106,13 +94,15 @@ UNIT_TEST_BEG(render_command)
 
 void test()
 {
-	wyc::command_allocator allocator(1024, sizeof(wyc::render_command));
+	wyc::command_allocator allocator(4096, sizeof(wyc::render_command));
 	uint8_t sz_list[] = {
 		16, 24, 48, 60, 72, 84, 96
 	};
+	unsigned count = 200;
 	std::vector<uint8_t*> box;
+	box.reserve(count);
 	constexpr unsigned cnt = sizeof(sz_list) / sizeof(uint8_t);
-	for (unsigned i = 0; i < 1024; ++i)
+	for (unsigned i = 0; i < count; ++i)
 	{
 		uint8_t sz = sz_list[i % cnt];
 		uint8_t *ptr = static_cast<uint8_t*>(allocator.alloc(sz));
@@ -128,6 +118,7 @@ void test()
 		}
 	}
 	allocator.reset();
+	allocator.clear();
 }
 
 UNIT_TEST_END

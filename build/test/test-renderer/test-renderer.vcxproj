@@ -71,14 +71,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)..\..\renderer;$(SolutionDir)..\..\common;$(SolutionDir)..\..\3rd\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\renderer;$(SolutionDir)..\..\view\game;$(SolutionDir)..\..\common;$(SolutionDir)..\..\3rd\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)..\..\renderer;$(SolutionDir)..\..\common;$(SolutionDir)..\..\3rd\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\renderer;$(SolutionDir)..\..\view\game;$(SolutionDir)..\..\common;$(SolutionDir)..\..\3rd\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -148,10 +148,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\common\logger.cpp" />
+    <ClCompile Include="..\..\..\common\util.cpp" />
     <ClCompile Include="..\..\..\renderer\render_command.cpp" />
     <ClCompile Include="..\..\..\renderer\test\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\common\log.h" />
+    <ClInclude Include="..\..\..\common\logger.h" />
+    <ClInclude Include="..\..\..\common\unitest.h" />
+    <ClInclude Include="..\..\..\common\util.h" />
     <ClInclude Include="..\..\..\renderer\render_command.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

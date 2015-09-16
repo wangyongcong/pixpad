@@ -1,6 +1,6 @@
 #pragma once
 #include "view_base.h"
-#include "sparrow/spr_renderer.h"
+#include "sparrow/spw_renderer.h"
 
 namespace wyc
 {
@@ -23,8 +23,8 @@ namespace wyc
 		ID2D1Factory *m_d2d_factory;
 		ID2D1HwndRenderTarget *m_d2d_rt;
 		ID2D1Bitmap *m_bitmap;
-		std::shared_ptr<spr_renderer> m_renderer;
-		std::shared_ptr<spr_render_target> m_target;
+		std::shared_ptr<spw_renderer> m_renderer;
+		std::shared_ptr<spw_render_target> m_target;
 		Imath::V2i m_view_pos;
 		Imath::V2i m_view_size;
 	};

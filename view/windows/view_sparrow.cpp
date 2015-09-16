@@ -85,14 +85,14 @@ namespace wyc
 			return false;
 		}
 		
-		m_target = std::make_shared<spr_render_target>();
+		m_target = std::make_shared<spw_render_target>();
 		if (!m_target->create(w, h, SPR_COLOR_B8G8R8A8 | SPR_DEPTH_16))
 		{
 			m_target = nullptr;
 			error("Failed to create sparrow render target.");
 			return false;
 		}
-		m_renderer = std::make_shared<spr_renderer>();
+		m_renderer = std::make_shared<spw_renderer>();
 		m_renderer->set_render_target(m_target);
 		m_renderer->clear({ 0.4f, 0.4f, 0.4f });
 

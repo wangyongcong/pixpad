@@ -58,12 +58,6 @@
     <ClInclude Include="..\..\view\game\input_event.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\view\game\log.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\view\game\logger.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\view\game\platform.h">
       <Filter>Game</Filter>
     </ClInclude>
@@ -265,13 +259,7 @@
     <ClInclude Include="..\..\renderer\sparrow\surface.h">
       <Filter>Renderer\Sparrow</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\renderer\render_target.h">
-      <Filter>Renderer\Base</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\renderer\renderer.h">
-      <Filter>Renderer\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\renderer\render_queue.h">
       <Filter>Renderer\Base</Filter>
     </ClInclude>
     <ClInclude Include="..\..\thread\ring_queue.h">
@@ -292,12 +280,18 @@
     <ClInclude Include="..\..\common\util.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\log.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\logger.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thread\platform_info.h">
+      <Filter>Thread</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\view\game\logger.cpp">
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\view\game\view_base.cpp">
@@ -335,6 +329,12 @@
     </ClCompile>
     <ClCompile Include="..\..\common\util.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\logger.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thread\platform_info.cpp">
+      <Filter>Thread</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -13,10 +13,25 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{42d7b9dc-1b3d-4bae-9f14-c4da4efa168a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\renderer\render_command.h">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\common\log.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\common\logger.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\common\unitest.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\common\util.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -25,6 +40,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\renderer\test\main.cpp">
       <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\common\logger.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\common\util.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

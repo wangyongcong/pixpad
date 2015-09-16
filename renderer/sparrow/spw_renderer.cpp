@@ -2,6 +2,8 @@
 
 #include "OpenEXR/ImathColorAlgo.h"
 
+#include "platform_info.h"
+
 #ifdef _DEBUG
 #define CHECK_RENDER_TARGET(rt) if(!(rt)) {throw std::exception("Render target is not available.");}
 #else
@@ -10,9 +12,14 @@
 
 namespace wyc
 {
-	spw_renderer::spw_renderer() : m_rt(nullptr), m_cmd_queue(1024)
+	spw_renderer::spw_renderer() : 
+		m_rt(nullptr), 
+		m_cmd_queue(1024), 
+		m_cmd_alloc(page_size(), 16)
 	{
-		this->new_command<cmd_clear>();
+		//cmd_clear *cmd = this->new_command<cmd_clear>();
+		//cmd->clear_color = {1.0f, 0.0f, 0.0f};
+		//enqueue(cmd);
 	}
 
 	spw_renderer::~spw_renderer()

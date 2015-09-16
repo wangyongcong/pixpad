@@ -2,7 +2,8 @@
 
 #include "renderer.h"
 #include "spw_render_target.h"
-#include "render_queue.h"
+#include "ring_queue.h"
+#include "render_command.h"
 #include "util.h"
 
 namespace wyc
@@ -16,14 +17,18 @@ namespace wyc
 		virtual std::shared_ptr<render_target> get_render_target() override;
 		virtual void clear(const Imath::C3f &c) override;
 		
-		template<class Command>
-		Command* new_command();
+		// producer thread
+		template<class Command, class ...Args>
+		Command* new_command(Args&& ...args);
+		bool enqueue(render_command *cmd);
 
+		// render thread
 	private:
 		DISALLOW_COPY_MOVE_AND_ASSIGN(spw_renderer)
 
 		std::shared_ptr<spw_render_target> m_rt;
-		render_queue<spw_renderer> m_cmd_queue;
+		ring_queue<render_command*> m_cmd_queue;
+		command_allocator m_cmd_alloc;
 	};
 
 	template<class Command>
@@ -42,13 +47,20 @@ namespace wyc
 		return true;
 	}
 
-	template<class Command>
-	inline Command * spw_renderer::new_command()
+	template<class Command, class ...Args>
+	inline Command * spw_renderer::new_command(Args&& ...args)
 	{
-		Command* cmd = new Command;
-		cmd->id = id;
-		cmd->handler = &spr_process<Command>;
+		void *ptr = m_cmd_alloc.alloc(sizeof(Command));
+		if (!ptr)
+			return nullptr;
+		Command *cmd = new(ptr) Command(std::forward<Args>(args)...);
+		cmd->handler = &spw_handler<Command>;
 		return cmd;
+	}
+
+	inline bool spw_renderer::enqueue(render_command *cmd)
+	{
+		return m_cmd_queue.enqueue(cmd);
 	}
 
 } // namespace wyc
