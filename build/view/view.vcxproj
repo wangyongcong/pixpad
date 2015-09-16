@@ -41,11 +41,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\view\windows;..\..\view\game;..\..\view;..\..\renderer;..\..\thread;..\..\3rd\include;$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>..\..\view\windows;..\..\view\game;..\..\view;..\..\renderer;..\..\thread;..\..\common;..\..\3rd\include;$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\view\windows;..\..\view\game;..\..\view;..\..\renderer;..\..\thread;..\..\3rd\include;$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>..\..\view\windows;..\..\view\game;..\..\view;..\..\renderer;..\..\thread;..\..\common;..\..\3rd\include;$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -146,6 +146,8 @@
     <ClInclude Include="..\..\3rd\include\OpenEXR\ImathSphere.h" />
     <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVec.h" />
     <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVecAlgo.h" />
+    <ClInclude Include="..\..\common\unitest.h" />
+    <ClInclude Include="..\..\common\util.h" />
     <ClInclude Include="..\..\renderer\ogl\glutil.h" />
     <ClInclude Include="..\..\renderer\renderer.h" />
     <ClInclude Include="..\..\renderer\render_command.h" />
@@ -155,7 +157,6 @@
     <ClInclude Include="..\..\renderer\sparrow\surface.h" />
     <ClInclude Include="..\..\renderer\sparrow\swp_render_target.h" />
     <ClInclude Include="..\..\thread\ring_queue.h" />
-    <ClInclude Include="..\..\thread\spsc_queue.h" />
     <ClInclude Include="..\..\view\game\application.h" />
     <ClInclude Include="..\..\view\game\game.h" />
     <ClInclude Include="..\..\view\game\game_config.h" />
@@ -164,7 +165,6 @@
     <ClInclude Include="..\..\view\game\log.h" />
     <ClInclude Include="..\..\view\game\logger.h" />
     <ClInclude Include="..\..\view\game\platform.h" />
-    <ClInclude Include="..\..\view\game\util.h" />
     <ClInclude Include="..\..\view\game\view_base.h" />
     <ClInclude Include="..\..\view\windows\min_windows.h" />
     <ClInclude Include="..\..\view\windows\stdafx.h" />
@@ -174,6 +174,7 @@
     <ClInclude Include="..\..\view\windows\windows_application.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\util.cpp" />
     <ClCompile Include="..\..\renderer\ogl\glutil.cpp" />
     <ClCompile Include="..\..\renderer\render_command.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_renderer.cpp" />
@@ -181,7 +182,6 @@
     <ClCompile Include="..\..\renderer\sparrow\surface.cpp" />
     <ClCompile Include="..\..\view\game\game_pixpad.cpp" />
     <ClCompile Include="..\..\view\game\logger.cpp" />
-    <ClCompile Include="..\..\view\game\util.cpp" />
     <ClCompile Include="..\..\view\game\view_base.cpp" />
     <ClCompile Include="..\..\view\windows\stdafx.cpp" />
     <ClCompile Include="..\..\view\windows\view_ogl3.cpp" />

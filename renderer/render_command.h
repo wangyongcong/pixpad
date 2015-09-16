@@ -13,29 +13,36 @@ namespace wyc
 	class command_allocator
 	{
 	public:
-		command_allocator(size_t min_size, size_t max_size, size_t chunk_size, size_t chunk_align);
+		command_allocator(size_t chunk_size, size_t granularity);
 		~command_allocator();
 		// Allocate raw memory
 		void* alloc(size_t sz);
-		// Free memory
-		void free(void *ptr, size_t sz);
 		// Recycle all allocated memory 
+		void reset();
+		// Release physical memory
 		void clear();
 	private:
 		DISALLOW_COPY_MOVE_AND_ASSIGN(command_allocator)
 
 		struct chunk_t
 		{
-			chunk_t * next = nullptr;
-			void * memory = nullptr;
-			size_t used = 0;
-			size_t capacity = 0;
+			uint8_t * memory = nullptr;
+			unsigned used = 0;
+			unsigned capacity = 0;
+		};
+		struct note_t
+		{
+			note_t *next;
 		};
 		std::vector<chunk_t> m_chunks;
-		size_t m_max_size;
-		size_t m_chunk_align;
-		size_t m_chunk_mask;
+		note_t *m_raw_mem;
+		note_t *m_free;
 		size_t m_chunk_size;
+		size_t m_grain;
+		size_t m_grain_mask;
+
+		bool new_chunk(chunk_t *ptr_chunk);
+		void release_chunks();
 	};
 
 
@@ -59,3 +66,6 @@ namespace wyc
 	};
 
 }  // namespace wyc
+
+#include "unitest.h"
+UNIT_TEST(render_command)

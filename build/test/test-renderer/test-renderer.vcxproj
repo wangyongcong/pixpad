@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A9A9C42E-1FCE-4D18-9931-01525C375D27}</ProjectGuid>
+    <ProjectGuid>{9EE4FFDC-C71C-463F-93EE-60CCCBDCF4B1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>testthread</RootNamespace>
+    <RootNamespace>testrenderer</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -71,19 +71,17 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)..\..\thread;$(SolutionDir)..\..\common;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\renderer;$(SolutionDir)..\..\common;$(SolutionDir)..\..\3rd\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\..\common;..\..\..\thread;..\..\..\thread\test;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)..\..\thread;$(SolutionDir)..\..\common;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\renderer;$(SolutionDir)..\..\common;$(SolutionDir)..\..\3rd\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\..\common;..\..\..\thread;..\..\..\thread\test;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -150,24 +148,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\thread\platform_info.cpp" />
-    <ClCompile Include="..\..\..\thread\test\test_folly_queue.cpp" />
-    <ClCompile Include="..\..\..\thread\test\test_mpmc_queue.cpp" />
-    <ClCompile Include="..\..\..\thread\test\test_ring_queue.cpp" />
-    <ClCompile Include="..\..\..\thread\test\test_spsc_queue.cpp" />
-    <ClInclude Include="..\..\..\thread\atomicops.h" />
-    <ClInclude Include="..\..\..\thread\folly_queue.h" />
-    <ClInclude Include="..\..\..\thread\lockfree_rb_q.h" />
-    <ClInclude Include="..\..\..\thread\mpmc_queue.h" />
-    <ClInclude Include="..\..\..\thread\platform_info.h" />
-    <ClInclude Include="..\..\..\thread\readerwriterqueue.h" />
-    <ClInclude Include="..\..\..\thread\ring_queue.h" />
-    <ClInclude Include="..\..\..\thread\spsc_queue.h" />
-    <ClCompile Include="..\..\..\thread\test\test_lockfree_rb_q.cpp" />
-    <ClInclude Include="..\..\..\thread\test\common.h" />
+    <ClCompile Include="..\..\..\renderer\render_command.cpp" />
+    <ClCompile Include="..\..\..\renderer\test\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\thread\test\main.cpp" />
+    <ClInclude Include="..\..\..\renderer\render_command.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
