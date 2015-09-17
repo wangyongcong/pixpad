@@ -94,7 +94,6 @@ namespace wyc
 		}
 		m_renderer = std::make_shared<spw_renderer>();
 		m_renderer->set_render_target(m_target);
-		m_renderer->clear({ 0.4f, 0.4f, 0.4f });
 
 		m_view_pos.setValue(x, y);
 		m_view_size.setValue(int(w), int(h));
@@ -113,37 +112,13 @@ namespace wyc
 		auto thread_id = std::this_thread::get_id();
 		debug("start render on thread[0x%x], sparrow view", thread_id);
 
-		D2D1_RECT_U src_rect = {
-			0, 0, unsigned(m_view_size.x), unsigned(m_view_size.y)
-		};
-		D2D1_RECT_F dst_rect = {
-			0.0f, 0.0f, float(m_view_size.x), float(m_view_size.y)
-		};
-		xsurface &color_buffer = m_target->get_color_buffer();
-		size_t pitch = color_buffer.pitch();
-		HRESULT result;
-		result = m_bitmap->CopyFromMemory(&src_rect, color_buffer.get_buffer(), pitch);
-		bool refresh = true;
+		m_renderer->spw_present = [=] {this->present(); };
+		
 		while (!application::get_instance()->is_exit())
 		{
-			m_d2d_rt->BeginDraw();
-			if (refresh)
-			{
-				m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
-				refresh = false;
-			}
-			result = m_d2d_rt->EndDraw();
-			if (result == D2DERR_RECREATE_TARGET)
-			{
-				warn("Render target lost!");
-				rebuild_resource();
-				refresh = true;
-			}
-			else if (result != S_OK)
-			{
-				warn("D2D end draw error!");
-			}
-			std::this_thread::sleep_for(std::chrono::microseconds(30));
+			m_renderer->process();
+
+			std::this_thread::sleep_for(std::chrono::microseconds(1));
 		}
 
 		debug("exit thread[0x%x]", thread_id);
@@ -221,6 +196,32 @@ namespace wyc
 	{
 		SAFE_RELEASE(m_d2d_rt);
 		SAFE_RELEASE(m_bitmap);
+	}
+
+	void view_sparrow::present()
+	{
+		D2D1_RECT_U src_rect = {
+			0, 0, unsigned(m_view_size.x), unsigned(m_view_size.y)
+		};
+		D2D1_RECT_F dst_rect = {
+			0.0f, 0.0f, float(m_view_size.x), float(m_view_size.y)
+		};
+		xsurface &color_buffer = m_target->get_color_buffer();
+		size_t pitch = color_buffer.pitch();
+		HRESULT result;
+		result = m_bitmap->CopyFromMemory(&src_rect, color_buffer.get_buffer(), pitch);
+		m_d2d_rt->BeginDraw();
+		m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
+		result = m_d2d_rt->EndDraw();
+		if (result == D2DERR_RECREATE_TARGET)
+		{
+			warn("Render target lost!");
+			rebuild_resource();
+		}
+		else if (result != S_OK)
+		{
+			warn("D2D end draw error: %d", result);
+		}
 	}
 
 } // namespace wyc

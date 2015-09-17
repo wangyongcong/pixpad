@@ -45,20 +45,44 @@ namespace wyc
 	typedef uint64_t command_id;
 
 	class renderer;
-	struct render_command;
-	using command_handler = bool(*) (renderer*, render_command*);
 
 	struct render_command
 	{
+		using handler_t = bool(*) (renderer*, render_command*);
 		command_id id = 0;
 		render_command *next = nullptr;
-		command_handler handler;
+
+		inline void set_tid(unsigned short tid)
+		{
+			this->id |= tid & 0x3FF;
+		}
+		inline unsigned short get_tid() const
+		{
+			return this->id & 0x3FFF;
+		}
 	};
 
-	struct cmd_clear : public render_command
+	enum CMD_TYPE
 	{
+		CMD_PRESENT = 1,
+		CMD_CLEAR,
+
+		CMD_COUNT
+	};
+
+#define RENDER_CMD(cmd_name) struct cmd_name : public render_command
+#define CMD_TID(id) static const CMD_TYPE tid = id
+
+	RENDER_CMD(cmd_present)
+	{
+		CMD_TID(CMD_PRESENT);
+	};
+
+	RENDER_CMD(cmd_clear)
+	{
+		CMD_TID(CMD_CLEAR);
 		unsigned type = 0;
-		Imath::C3f clear_color;
+		Imath::C3f color;
 	};
 
 }  // namespace wyc

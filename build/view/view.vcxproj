@@ -153,9 +153,11 @@
     <ClInclude Include="..\..\renderer\ogl\glutil.h" />
     <ClInclude Include="..\..\renderer\renderer.h" />
     <ClInclude Include="..\..\renderer\render_command.h" />
+    <ClInclude Include="..\..\renderer\render_target.h" />
+    <ClInclude Include="..\..\renderer\sparrow\spw_command.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_renderer.h" />
+    <ClInclude Include="..\..\renderer\sparrow\spw_render_target.h" />
     <ClInclude Include="..\..\renderer\sparrow\surface.h" />
-    <ClInclude Include="..\..\renderer\sparrow\swp_render_target.h" />
     <ClInclude Include="..\..\thread\platform_info.h" />
     <ClInclude Include="..\..\thread\ring_queue.h" />
     <ClInclude Include="..\..\view\game\application.h" />

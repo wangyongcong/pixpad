@@ -1,8 +1,7 @@
 #include "spw_renderer.h"
-
-#include "OpenEXR/ImathColorAlgo.h"
-
 #include "platform_info.h"
+#include "log.h"
+#include "spw_command.h"
 
 #ifdef _DEBUG
 #define CHECK_RENDER_TARGET(rt) if(!(rt)) {throw std::exception("Render target is not available.");}
@@ -12,14 +11,20 @@
 
 namespace wyc
 {
+
+#define GET_HANDLER(cmd_type) &spw_handler<cmd_type>
+
+	static render_command::handler_t spw_cmd_map[CMD_COUNT] = {
+		GET_HANDLER(cmd_present),
+		GET_HANDLER(cmd_clear),
+	};
+
 	spw_renderer::spw_renderer() : 
 		m_rt(nullptr), 
 		m_cmd_queue(1024), 
 		m_cmd_alloc(page_size(), 16)
 	{
-		//cmd_clear *cmd = this->new_command<cmd_clear>();
-		//cmd->clear_color = {1.0f, 0.0f, 0.0f};
-		//enqueue(cmd);
+		m_cmd_buffer.reserve(128);
 	}
 
 	spw_renderer::~spw_renderer()
@@ -41,13 +46,21 @@ namespace wyc
 		return m_rt;
 	}
 
-	void spw_renderer::clear(const Imath::C3f & c)
+	void spw_renderer::process()
 	{
-		CHECK_RENDER_TARGET(m_rt)
+		if (m_cmd_queue.batch_dequeue(m_cmd_buffer))
+		{
+			for (auto cmd : m_cmd_buffer)
+			{
+				spw_cmd_map[cmd->get_tid()](this, cmd);
+			}
+			m_cmd_buffer.clear();
+		}
+	}
 
-		xsurface& surf = m_rt->get_color_buffer();
-		uint32_t v = Imath::rgb2packed(c);
-		surf.clear(v);
+	void spw_renderer::present()
+	{
+		spw_present();
 	}
 
 } // namespace wyc

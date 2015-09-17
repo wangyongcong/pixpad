@@ -271,9 +271,6 @@
     <ClInclude Include="..\..\renderer\sparrow\spw_renderer.h">
       <Filter>Renderer\Sparrow</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\renderer\sparrow\swp_render_target.h">
-      <Filter>Renderer\Sparrow</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\unitest.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -288,6 +285,15 @@
     </ClInclude>
     <ClInclude Include="..\..\thread\platform_info.h">
       <Filter>Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\sparrow\spw_command.h">
+      <Filter>Renderer\Sparrow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\sparrow\spw_render_target.h">
+      <Filter>Renderer\Sparrow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\render_target.h">
+      <Filter>Renderer\Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

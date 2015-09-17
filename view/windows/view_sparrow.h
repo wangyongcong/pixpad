@@ -18,6 +18,7 @@ namespace wyc
 	protected:
 		bool rebuild_resource();
 		void discard_resource();
+		void present();
 
 		HWND m_hwnd;
 		ID2D1Factory *m_d2d_factory;
