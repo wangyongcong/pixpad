@@ -9,6 +9,7 @@
 
 #include "game.h"
 #include "view_base.h"
+#include "renderer.h"
 
 namespace wyc
 {
@@ -34,17 +35,13 @@ namespace wyc
 		{
 			return m_game_name;
 		}
-
-		//void on_paint();
-		//void random_triangle(int lx, int ly, int rx, int ry);
-		//void draw_cube(int lx, int ly, int rx, int ry);
-		//void draw_triangles(const std::vector<vec4f> &vertices);
 	private:
 		void create_views();
 
 		const std::wstring &m_game_name;
 		std::vector<std::thread> m_thread_pool;
 		std::atomic_bool m_signal_exit;
+		std::vector<renderer*> m_renderers;
 
 		//GLuint m_tex = 0;
 		//GLuint m_prog = 0;

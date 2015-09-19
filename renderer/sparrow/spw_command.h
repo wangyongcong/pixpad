@@ -7,16 +7,15 @@
 namespace wyc
 {
 	template<>
-	inline bool spw_handler<cmd_present>(renderer * renderer, render_command *)
+	inline bool spw_handler<cmd_present>(spw_renderer * renderer, render_command *)
 	{
 		renderer->present();
 		return true;
 	}
 
 	template<>
-	inline bool spw_handler<cmd_clear>(renderer * _renderer, render_command * _cmd)
+	inline bool spw_handler<cmd_clear>(spw_renderer * renderer, render_command * _cmd)
 	{
-		spw_renderer *renderer = dynamic_cast<spw_renderer*>(_renderer);
 		assert(renderer);
 		cmd_clear *cmd = static_cast<cmd_clear*>(_cmd);
 		assert(cmd);

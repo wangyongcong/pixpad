@@ -178,6 +178,7 @@
     <ClCompile Include="..\..\common\logger.cpp" />
     <ClCompile Include="..\..\common\util.cpp" />
     <ClCompile Include="..\..\renderer\ogl\glutil.cpp" />
+    <ClCompile Include="..\..\renderer\renderer.cpp" />
     <ClCompile Include="..\..\renderer\render_command.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_renderer.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_render_target.cpp" />

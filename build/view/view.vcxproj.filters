@@ -342,5 +342,8 @@
     <ClCompile Include="..\..\thread\platform_info.cpp">
       <Filter>Thread</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\renderer\renderer.cpp">
+      <Filter>Renderer\Base</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
