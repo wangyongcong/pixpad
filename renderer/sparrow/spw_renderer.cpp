@@ -14,8 +14,9 @@ namespace wyc
 
 #define GET_HANDLER(cmd_type) &spw_handler<cmd_type>
 
-	using spw_command_handler = bool(*) (spw_renderer*, render_command*);
+	using spw_command_handler = void (*) (spw_renderer*, render_command*);
 	static spw_command_handler spw_cmd_map[CMD_COUNT] = {
+		GET_HANDLER(cmd_test),
 		GET_HANDLER(cmd_present),
 		GET_HANDLER(cmd_clear),
 	};
@@ -49,17 +50,12 @@ namespace wyc
 	{
 		if (m_cmd_queue.batch_dequeue(m_cmd_buffer, m_cmd_buffer.capacity()))
 		{
-			for (auto cmd : m_cmd_buffer)
+			for (auto &cmd : m_cmd_buffer)
 			{
 				spw_cmd_map[cmd->get_tid()](this, cmd);
 			}
 			m_cmd_buffer.clear();
 		}
-	}
-
-	void spw_renderer::present()
-	{
-		spw_present();
 	}
 
 } // namespace wyc

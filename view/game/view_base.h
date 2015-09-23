@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include "renderer.h"
 
 namespace wyc
 {
@@ -23,6 +24,7 @@ namespace wyc
 		virtual void on_render() = 0;
 		virtual void get_position(int &x, int &y) = 0;
 		virtual void get_size(unsigned &width, unsigned &height) = 0;
+		virtual std::shared_ptr<renderer> get_renderer() = 0;
 	};
 
 

@@ -112,13 +112,15 @@ namespace wyc
 		auto thread_id = std::this_thread::get_id();
 		debug("start render on thread[0x%x], sparrow view", thread_id);
 
+		// register present function
 		m_renderer->spw_present = [=] { this->present(); };
+
+		// notify render thread is ready
+		m_renderer->set_ready();
 		
 		while (!application::get_instance()->is_exit())
 		{
 			m_renderer->process();
-
-			std::this_thread::sleep_for(std::chrono::microseconds(1));
 		}
 
 		debug("exit thread[0x%x]", thread_id);

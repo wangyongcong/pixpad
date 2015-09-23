@@ -1,5 +1,6 @@
 #pragma once
 
+#include <future>
 #include "OpenEXR/ImathColor.h"
 #include "render_target.h"
 #include "render_command.h"
@@ -15,7 +16,10 @@ namespace wyc
 		virtual void set_render_target(std::shared_ptr<render_target> rt) = 0;
 		virtual std::shared_ptr<render_target> get_render_target() = 0;
 		virtual void process() = 0;
-		virtual void present() = 0;
+		void get_ready();
+		void set_ready();
+		void present();
+		void end_frame();
 		// Create a render command.
 		template<class Command, class ...Args>
 		Command* new_command(Args&& ...args);
@@ -25,7 +29,15 @@ namespace wyc
 	protected:
 		command_allocator m_cmd_alloc;
 		ring_queue<render_command*> m_cmd_queue;
+		std::promise<void> m_is_ready;
+		std::future<void> m_is_done;
 	};
+
+	inline void renderer::end_frame()
+	{
+		m_is_done.wait();
+		m_cmd_alloc.reset();
+	}
 
 	template<class Command, class ...Args>
 	inline Command * renderer::new_command(Args&& ...args)

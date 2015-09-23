@@ -4,6 +4,7 @@
 #include <vector>
 #include <atomic>
 #include <thread>
+#include <array>
 
 #include <OpenEXR/ImathRandom.h>
 
@@ -35,13 +36,19 @@ namespace wyc
 		{
 			return m_game_name;
 		}
+
 	private:
 		void create_views();
+		
+		uint64_t m_frame;
+		using duration_t = std::chrono::milliseconds;
+		duration_t m_total_time;
+		std::array<duration_t, 240> m_frame_time;
 
 		const std::wstring &m_game_name;
 		std::vector<std::thread> m_thread_pool;
 		std::atomic_bool m_signal_exit;
-		std::vector<renderer*> m_renderers;
+		std::vector<std::shared_ptr<renderer>> m_renderers;
 
 		//GLuint m_tex = 0;
 		//GLuint m_prog = 0;

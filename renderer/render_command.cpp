@@ -45,7 +45,7 @@ namespace wyc
 		uint8_t *ptr_raw = reinterpret_cast<uint8_t*>(m_root);
 		ptr_raw += m_root->used * m_grain;
 		m_root->used += slot_cnt;
-		debug("size: %d (%d), %d/%d", sz, slot_cnt, m_root->used, m_capacity);
+		//debug("size: %d (%d), %d/%d", sz, slot_cnt, m_root->used, m_capacity);
 		return ptr_raw;
 	}
 

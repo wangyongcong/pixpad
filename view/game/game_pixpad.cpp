@@ -16,7 +16,10 @@
 
 namespace wyc
 {
-	game_pixpad::game_pixpad() : m_game_name(L"Game Pixpad"), m_signal_exit(false)
+	game_pixpad::game_pixpad() : 
+		m_game_name(L"Game Pixpad"), 
+		m_signal_exit(false),
+		m_frame(0)
 	{
 	}
 
@@ -25,6 +28,11 @@ namespace wyc
 		unsigned core_count = std::thread::hardware_concurrency();
 		debug("max thread count: %d", core_count);
 		create_views();
+		for (auto &ptr : m_renderers)
+		{
+			ptr->get_ready();
+		}
+		debug("all renderer is ready.");
 		return;
 	}
 
@@ -39,7 +47,25 @@ namespace wyc
 
 	void game_pixpad::on_update()
 	{
+		auto t_start = std::chrono::high_resolution_clock::now();
+		for (auto &ptr : m_renderers)
+		{
+			auto *clear = ptr->new_command<cmd_clear>();
+			clear->color.setValue(0.4f, 0.4f, 0.4f);
+			ptr->enqueue(clear);
 
+			ptr->present();
+		}
+		// wait for frame
+		for (auto &ptr : m_renderers)
+		{
+			ptr->end_frame();
+		}
+		auto t_end = std::chrono::high_resolution_clock::now();
+		auto frame_time = std::chrono::duration_cast<duration_t>(t_end - t_start);
+		m_total_time += frame_time;
+		m_frame_time[m_frame % m_frame_time.size()] = frame_time;
+		m_frame += 1;
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 
@@ -92,6 +118,7 @@ namespace wyc
 			for (unsigned c = 0; c < col && view_idx < c_view_count; ++c, ++view_idx)
 			{
 				auto ptr_view = view_base::create_view(c_view_list[view_idx], x, y, view_w, view_h);
+				m_renderers.push_back(ptr_view->get_renderer());
 				auto func = std::bind(&view_base::on_render, ptr_view);
 				if (ptr_view) 
 				{

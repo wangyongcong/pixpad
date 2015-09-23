@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <functional>
 #include <vector>
+#include <future>
 
 #include "OpenEXR/ImathColor.h"
 
@@ -48,7 +49,7 @@ namespace wyc
 
 	struct render_command
 	{
-		using handler_t = bool(*) (renderer*, render_command*);
+		using handler_t = void (*) (renderer*, render_command*);
 		command_id id = 0;
 		render_command *next = nullptr;
 
@@ -64,6 +65,7 @@ namespace wyc
 
 	enum CMD_TYPE
 	{
+		CMD_TEST = 0,
 		CMD_PRESENT = 1,
 		CMD_CLEAR,
 
@@ -73,9 +75,16 @@ namespace wyc
 #define RENDER_CMD(cmd_name) struct cmd_name : public render_command
 #define CMD_TID(id) static const CMD_TYPE tid = id
 
+	RENDER_CMD(cmd_test)
+	{
+		CMD_TID(CMD_TEST);
+		std::vector<int> *jobs;
+	};
+
 	RENDER_CMD(cmd_present)
 	{
 		CMD_TID(CMD_PRESENT);
+		std::promise<void> is_done;
 	};
 
 	RENDER_CMD(cmd_clear)

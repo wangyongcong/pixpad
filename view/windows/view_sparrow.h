@@ -14,7 +14,9 @@ namespace wyc
 		virtual void set_text(const wchar_t *text) override;
 		virtual void get_position(int &x, int &y) override;
 		virtual void get_size(unsigned &width, unsigned &height) override;
-
+		virtual std::shared_ptr<renderer> get_renderer() override {
+			return m_renderer;
+		}
 	protected:
 		bool rebuild_resource();
 		void discard_resource();

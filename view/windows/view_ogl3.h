@@ -16,6 +16,9 @@ namespace wyc
 		virtual void on_render() override;
 		virtual void get_position(int &x, int &y) override;
 		virtual void get_size(unsigned &width, unsigned &height) override;
+		virtual std::shared_ptr<renderer> get_renderer() override {
+			return nullptr;
+		}
 
 	protected:
 		HWND m_hwnd;
