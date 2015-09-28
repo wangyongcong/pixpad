@@ -171,4 +171,4 @@ namespace wyc
 } // namespace wyc
 
 #include "unitest.h"
-UNIT_TEST(CRingQueue)
+UNIT_TEST(ring_queue)

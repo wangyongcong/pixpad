@@ -14,7 +14,7 @@ void test()
 {
 	std::cout << "Test wyc ring queue..." << std::endl;
 
-	wyc::ring_queue<message> queue(QUEUE_SIZE);
+	wyc::CRingQueue<message> queue(QUEUE_SIZE);
 
 #ifdef _DEBUG
 	queue.check_alignment();
