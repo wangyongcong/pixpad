@@ -6,7 +6,7 @@
 #include "util.h"
 
 // Global logger
-wyc::xlogger *g_log = nullptr;
+wyc::CLogger *g_log = nullptr;
 // Timer ID for log flushing
 #define ID_TIMER_LOG 1
 // Flush logger on time
@@ -56,7 +56,7 @@ namespace wyc
 		{
 			std::string mbs_name;
 			wstr2str(mbs_name, app_name);
-			g_log = new wyc::debug_logger();
+			g_log = new wyc::CDebugLogger();
 			debug("starting...");
 		}
 

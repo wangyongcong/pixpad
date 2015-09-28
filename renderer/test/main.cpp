@@ -3,11 +3,11 @@
 #include "log.h"
 #include "render_command.h"
 
-wyc::xlogger *g_log = nullptr;
+wyc::CLogger *g_log = nullptr;
 
 int main()
 {
-	g_log = new wyc::debug_logger();
+	g_log = new wyc::CDebugLogger();
 
 	RUN_TEST(render_command);
 

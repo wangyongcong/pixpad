@@ -1,7 +1,7 @@
 #include "logger.h"
 
 // global logger
-extern wyc::xlogger *g_log;
+extern wyc::CLogger *g_log;
 
 // macro for logging
 #define debug(fmt,...) (g_log->debug(fmt,__VA_ARGS__))

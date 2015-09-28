@@ -20,19 +20,19 @@ const char* s_log_lvl_tag[wyc::LOG_LEVEL_COUNT] = {
 	"FATAL",
 };
 
-xlogger::xlogger(LOG_LEVEL lvl)
+CLogger::CLogger(ELogLevel lvl)
 {
 	m_level = lvl;
 	m_buff = new char[TEXT_BUFF_SIZE+2];
 }
 
-xlogger::~xlogger()
+CLogger::~CLogger()
 {
 	delete[] m_buff;
 	m_buff = 0;
 }
 
-void xlogger::format_write(LOG_LEVEL lvl, const char *fmt, va_list args)
+void CLogger::format_write(ELogLevel lvl, const char *fmt, va_list args)
 {
 	auto now = std::chrono::system_clock::now();
 	int cnt = 0;
@@ -44,7 +44,7 @@ void xlogger::format_write(LOG_LEVEL lvl, const char *fmt, va_list args)
 }
 
 
-file_logger::file_logger(const char* log_name, const char* save_path, size_t rotate_size, LOG_LEVEL lvl) : xlogger(lvl)
+CFileLogger::CFileLogger(const char* log_name, const char* save_path, size_t rotate_size, ELogLevel lvl) : CLogger(lvl)
 {
 	m_hfile = 0;
 	m_cur_size = 0;
@@ -53,7 +53,7 @@ file_logger::file_logger(const char* log_name, const char* save_path, size_t rot
 	create(log_name, save_path, rotate_size);
 }
 
-file_logger::~file_logger()
+CFileLogger::~CFileLogger()
 {
 	if (m_hfile)
 	{
@@ -62,7 +62,7 @@ file_logger::~file_logger()
 	}
 }
 
-bool file_logger::create(const char* log_name, const char* save_path, size_t rotate_size)
+bool CFileLogger::create(const char* log_name, const char* save_path, size_t rotate_size)
 {
 	if (!save_path || 0 == save_path[0])
 		m_path = ".\\logs\\";
@@ -101,7 +101,7 @@ bool file_logger::create(const char* log_name, const char* save_path, size_t rot
 	return true;
 }
 
-void file_logger::rotate()
+void CFileLogger::rotate()
 {
 	// rotate
 	fclose(m_hfile);
@@ -127,7 +127,7 @@ void file_logger::rotate()
 
 }
 
-void file_logger::write(const char* record, size_t size)
+void CFileLogger::write(const char* record, size_t size)
 {
 	if (!m_hfile)
 		return;
@@ -137,13 +137,13 @@ void file_logger::write(const char* record, size_t size)
 	fprintf(m_hfile, record);
 }
 
-void file_logger::flush()
+void CFileLogger::flush()
 {
 	if (m_hfile)
 		fflush(m_hfile);
 }
 
-void debug_logger::write(const char * record, size_t size)
+void CDebugLogger::write(const char * record, size_t size)
 {
 #ifdef WIN32
 	OutputDebugStringA(record);

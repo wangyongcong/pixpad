@@ -8,7 +8,7 @@
 namespace wyc
 {
 
-enum LOG_LEVEL
+enum ELogLevel
 {
 	LOG_DEBUG,
 	LOG_INFO,
@@ -21,11 +21,11 @@ enum LOG_LEVEL
 
 #define DEFAULT_ROTATE_SIZE (4*1024*1024)
 
-class xlogger
+class CLogger
 {
 public:
-	xlogger(LOG_LEVEL lvl = LOG_DEBUG);
-	virtual ~xlogger();
+	CLogger(ELogLevel lvl = LOG_DEBUG);
+	virtual ~CLogger();
 	virtual void write(const char* record, size_t size)
 	{
 		printf(record);
@@ -38,23 +38,23 @@ public:
 	void error(const char *fmt, ...);
 	void fatal(const char *fmt, ...);
 
-	LOG_LEVEL get_level() const
+	ELogLevel get_level() const
 	{
 		return m_level;
 	}
-	void set_level(LOG_LEVEL lv)
+	void set_level(ELogLevel lv)
 	{
 		m_level = lv;
 	}
 
 protected:
-	LOG_LEVEL m_level;
+	ELogLevel m_level;
 	char *m_buff;
 
-	void format_write(LOG_LEVEL lvl, const char *fmt, va_list args);
+	void format_write(ELogLevel lvl, const char *fmt, va_list args);
 };
 
-inline void xlogger::debug (const char* fmt, ...) {
+inline void CLogger::debug (const char* fmt, ...) {
 	if (m_level <= LOG_DEBUG) {
 		va_list args;
 		va_start(args, fmt);
@@ -63,7 +63,7 @@ inline void xlogger::debug (const char* fmt, ...) {
 	}
 }
 
-inline void xlogger::info(const char* fmt, ...) {
+inline void CLogger::info(const char* fmt, ...) {
 	if (m_level <= LOG_INFO) {
 		va_list args;
 		va_start(args, fmt);
@@ -72,7 +72,7 @@ inline void xlogger::info(const char* fmt, ...) {
 	}
 }
 
-inline void xlogger::warn(const char* fmt, ...) {
+inline void CLogger::warn(const char* fmt, ...) {
 	if (m_level <= LOG_WARN) {
 		va_list args;
 		va_start(args, fmt);
@@ -81,7 +81,7 @@ inline void xlogger::warn(const char* fmt, ...) {
 	}
 }
 
-inline void xlogger::error(const char* fmt, ...) {
+inline void CLogger::error(const char* fmt, ...) {
 	if (m_level <= LOG_ERROR) {
 		va_list args;
 		va_start(args, fmt);
@@ -90,7 +90,7 @@ inline void xlogger::error(const char* fmt, ...) {
 	}
 }
 
-inline void xlogger::fatal(const char* fmt, ...) {
+inline void CLogger::fatal(const char* fmt, ...) {
 	if (m_level <= LOG_FATAL) {
 		va_list args;
 		va_start(args, fmt);
@@ -99,11 +99,11 @@ inline void xlogger::fatal(const char* fmt, ...) {
 	}
 }
 
-class file_logger : public xlogger
+class CFileLogger : public CLogger
 {
 public:
-	file_logger(const char* log_name, const char* save_path = 0, size_t rotate_size = 0, LOG_LEVEL lvl = LOG_DEBUG);
-	virtual ~file_logger();
+	CFileLogger(const char* log_name, const char* save_path = 0, size_t rotate_size = 0, ELogLevel lvl = LOG_DEBUG);
+	virtual ~CFileLogger();
 	virtual void write(const char* record, size_t size);
 	virtual void flush();
 private:
@@ -120,7 +120,7 @@ private:
 };
 
 
-class debug_logger : public xlogger
+class CDebugLogger : public CLogger
 {
 public:
 	virtual void write(const char* record, size_t size);

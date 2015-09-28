@@ -16,8 +16,7 @@ static int GLSL_VERSION_MAJOR = 0;
 static int GLSL_VERSION_MINOR = 0;
 
 // GL context instance of current thread
-// TODO: Use thread_local keyword (which is not supported now) in future
-__declspec(thread) xgl_context *tls_gl_context = NULL;
+thread_local xgl_context *tls_gl_context = NULL;
 
 // function pointer to wglCreateContextAttribsARB
 static PFNWGLCREATECONTEXTATTRIBSARBPROC create_context_attribs = 0;
