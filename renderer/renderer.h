@@ -8,13 +8,13 @@
 
 namespace wyc
 {
-	class renderer
+	class CRenderer
 	{
 	public:
-		renderer();
-		virtual ~renderer();
-		virtual void set_render_target(std::shared_ptr<render_target> rt) = 0;
-		virtual std::shared_ptr<render_target> get_render_target() = 0;
+		CRenderer();
+		virtual ~CRenderer();
+		virtual void set_render_target(std::shared_ptr<CRenderTarget> rt) = 0;
+		virtual std::shared_ptr<CRenderTarget> get_render_target() = 0;
 		virtual void process() = 0;
 		void get_ready();
 		void set_ready();
@@ -24,23 +24,23 @@ namespace wyc
 		template<class Command, class ...Args>
 		Command* new_command(Args&& ...args);
 		// Enqueue command
-		bool enqueue(render_command *cmd);
+		bool enqueue(RenderCommand *cmd);
 
 	protected:
-		command_allocator m_cmd_alloc;
-		ring_queue<render_command*> m_cmd_queue;
+		CCommandAllocator m_cmd_alloc;
+		CRingQueue<RenderCommand*> m_cmd_queue;
 		std::promise<void> m_is_ready;
 		std::future<void> m_is_done;
 	};
 
-	inline void renderer::end_frame()
+	inline void CRenderer::end_frame()
 	{
 		m_is_done.wait();
 		m_cmd_alloc.reset();
 	}
 
 	template<class Command, class ...Args>
-	inline Command * renderer::new_command(Args&& ...args)
+	inline Command * CRenderer::new_command(Args&& ...args)
 	{
 		void *ptr = m_cmd_alloc.alloc(sizeof(Command));
 		if (!ptr)
@@ -50,7 +50,7 @@ namespace wyc
 		return cmd;
 	}
 
-	inline bool renderer::enqueue(render_command *cmd)
+	inline bool CRenderer::enqueue(RenderCommand *cmd)
 	{
 		return m_cmd_queue.enqueue(cmd);
 	}

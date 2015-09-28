@@ -7,15 +7,15 @@
 
 namespace wyc
 {
-	class xsurface
+	class CSurface
 	{
 	public:
-		xsurface();
-		~xsurface();
+		CSurface();
+		~CSurface();
 		bool storage(unsigned w, unsigned h, unsigned fragment_size, unsigned char alignment = 4);
 		void release();
-		bool share(const xsurface &buffer);
-		bool share(const xsurface &buffer, unsigned x, unsigned y, unsigned w, unsigned h);
+		bool share(const CSurface &buffer);
+		bool share(const CSurface &buffer, unsigned x, unsigned y, unsigned w, unsigned h);
 		bool empty() const;
 		bool is_owner() const;
 		unsigned char alignment() const;
@@ -48,7 +48,7 @@ namespace wyc
 		template<class T>
 		void move_block(unsigned dstx, unsigned dsty, unsigned srcx, unsigned srcy, unsigned w, unsigned h);
 	protected:
-		DISALLOW_COPY_MOVE_AND_ASSIGN(xsurface);
+		DISALLOW_COPY_MOVE_AND_ASSIGN(CSurface);
 
 		enum BUFFER_INFO
 		{
@@ -65,70 +65,70 @@ namespace wyc
 		unsigned m_row;
 	};
 
-	inline bool xsurface::empty() const {
+	inline bool CSurface::empty() const {
 		return m_data == 0;
 	}
 
-	inline bool xsurface::is_owner() const {
+	inline bool CSurface::is_owner() const {
 		return 0 == (m_info & BI_SHARED);
 	}
 
-	inline unsigned char xsurface::alignment() const {
+	inline unsigned char CSurface::alignment() const {
 		return (m_info & BI_ALIGNMENT) >> BI_ALIGNMENT_SHIFT;
 	}
 
-	inline unsigned xsurface::row_length() const {
+	inline unsigned CSurface::row_length() const {
 		return m_row_len;
 	}
 
-	inline unsigned xsurface::row() const {
+	inline unsigned CSurface::row() const {
 		return m_row;
 	}
 
-	inline unsigned xsurface::pitch() const {
+	inline unsigned CSurface::pitch() const {
 		return m_pitch;
 	}
 
-	inline unsigned xsurface::size() const {
+	inline unsigned CSurface::size() const {
 		return m_pitch*m_row;
 	}
 
-	inline unsigned xsurface::fragment_size() const {
+	inline unsigned CSurface::fragment_size() const {
 		return m_info & BI_ELEMENT_SIZE;
 	}
 
-	inline bool xsurface::validate(void *ptr) const {
+	inline bool CSurface::validate(void *ptr) const {
 		return ptr >= m_data && ptr < m_data + size();
 	}
 
-	inline uint8_t* xsurface::get_buffer() {
+	inline uint8_t* CSurface::get_buffer() {
 		return m_data;
 	}
 
-	inline uint8_t* xsurface::get_line(unsigned idx) {
+	inline uint8_t* CSurface::get_line(unsigned idx) {
 		return m_data + idx*m_pitch;
 	}
 
-	inline uint8_t* xsurface::get(unsigned x, unsigned y) {
+	inline uint8_t* CSurface::get(unsigned x, unsigned y) {
 		return m_data + y*m_pitch + x*fragment_size();
 	}
 
-	inline const uint8_t* xsurface::get(unsigned x, unsigned y) const {
+	inline const uint8_t* CSurface::get(unsigned x, unsigned y) const {
 		return m_data + y*m_pitch + x*fragment_size();
 	}
 
 	template<class T>
-	inline T* xsurface::get(unsigned x, unsigned y) {
+	inline T* CSurface::get(unsigned x, unsigned y) {
 		return ((T*)(m_data + y*m_pitch)) + x;
 	}
 
 	template<class T>
-	inline void xsurface::set(unsigned x, unsigned y, const T& val) {
+	inline void CSurface::set(unsigned x, unsigned y, const T& val) {
 		((T*)(m_data + y*m_pitch))[x] = val;
 	}
 
 	template<class T>
-	void xsurface::set_line(unsigned ln, const T& val) {
+	void CSurface::set_line(unsigned ln, const T& val) {
 		T* iter = (T*)(m_data + ln*m_pitch);
 		for (unsigned i = 0; i < m_row_len; ++i) {
 			iter[i] = val;
@@ -136,7 +136,7 @@ namespace wyc
 	}
 
 	template<class T>
-	void xsurface::set_line(unsigned ln, const T& val, unsigned begx, unsigned endx) {
+	void CSurface::set_line(unsigned ln, const T& val, unsigned begx, unsigned endx) {
 		T* iter = (T*)(m_data + ln*m_pitch);
 		for (unsigned i = begx; i < endx; ++i) {
 			iter[i] = val;
@@ -144,7 +144,7 @@ namespace wyc
 	}
 
 	template<class T>
-	void xsurface::clear(const T& val)
+	void CSurface::clear(const T& val)
 	{
 		assert(sizeof(T) == this->fragment_size());
 		uint8_t *pline = m_data;
@@ -159,7 +159,7 @@ namespace wyc
 	}
 
 	template<class T>
-	void xsurface::move_block(unsigned dstx, unsigned dsty, unsigned srcx, unsigned srcy, unsigned w, unsigned h)
+	void CSurface::move_block(unsigned dstx, unsigned dsty, unsigned srcx, unsigned srcy, unsigned w, unsigned h)
 	{
 		if (dstx == srcx && dsty == srcy)
 			return;

@@ -4,9 +4,9 @@
 
 namespace wyc
 {
-	struct platform_info
+	struct PlatformInfo
 	{
-		platform_info();
+		PlatformInfo();
 		std::string m_architecture;
 		size_t m_num_processor;
 		size_t m_num_core;
@@ -14,7 +14,7 @@ namespace wyc
 		size_t m_cacheline_size[3];
 	};
 
-	extern platform_info g_platform_info;
+	extern PlatformInfo g_platform_info;
 
 	inline size_t page_size()
 	{

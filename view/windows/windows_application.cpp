@@ -39,7 +39,7 @@ LRESULT CALLBACK WindowProcess(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 namespace wyc
 {
 
-	bool windows_application::initialize(const std::wstring &app_name, game* game_inst, HINSTANCE hInstance, size_t win_width , size_t win_height, LPTSTR cmd_line)
+	bool CWindowsApplication::initialize(const std::wstring &app_name, CGame* game_inst, HINSTANCE hInstance, size_t win_width , size_t win_height, LPTSTR cmd_line)
 	{
 		/*
 		std::string app_dir;
@@ -122,7 +122,7 @@ namespace wyc
 		return true;
 	}
 
-	void windows_application::start()
+	void CWindowsApplication::start()
 	{
 		HACCEL hAccelTable = NULL;
 		MSG msg;
@@ -145,7 +145,7 @@ namespace wyc
 		close();
 	}
 
-	void windows_application::close()
+	void CWindowsApplication::close()
 	{
 		OutputDebugString(L"windows application is closing...\n");
 		if (g_log)
@@ -156,7 +156,7 @@ namespace wyc
 		}
 	}
 
-	void windows_application::resize(unsigned view_w, unsigned view_h)
+	void CWindowsApplication::resize(unsigned view_w, unsigned view_h)
 	{
 		if (!m_hwnd_main)
 			return;
@@ -183,7 +183,7 @@ namespace wyc
 		}
 	}
 
-	void windows_application::on_event(void * ev)
+	void CWindowsApplication::on_event(void * ev)
 	{
 		MSG *msg = (MSG*)ev;
 		switch (msg->message)

@@ -4,10 +4,10 @@
 
 namespace wyc
 {
-	class windows_application : public application
+	class CWindowsApplication : public CApplication
 	{
 	public:
-		bool initialize(const std::wstring &app_name, game* game_inst, HINSTANCE hInstance, size_t width=0, size_t height=0, LPTSTR cmd_line=nullptr);
+		bool initialize(const std::wstring &app_name, CGame* game_inst, HINSTANCE hInstance, size_t width=0, size_t height=0, LPTSTR cmd_line=nullptr);
 		
 		// application interface
 		virtual void start();
@@ -43,7 +43,7 @@ namespace wyc
 		HWND m_hwnd_main = NULL;
 		std::wstring m_app_name;
 		size_t m_view_w = 0, m_view_h = 0;
-		game *m_game = 0;
+		CGame *m_game = 0;
 	};
 
 }; // end of namespace wyc

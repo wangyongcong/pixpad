@@ -10,14 +10,14 @@
 
 namespace wyc
 {
-	view_ogl3::view_ogl3()
+	CViewOgl3::CViewOgl3()
 	{
 		m_hwnd = NULL;
 	}
 
-	bool view_ogl3::initialize(int x, int y, unsigned w, unsigned h)
+	bool CViewOgl3::initialize(int x, int y, unsigned w, unsigned h)
 	{
-		windows_application* app_inst = dynamic_cast<windows_application*>(application::get_instance());
+		CWindowsApplication* app_inst = dynamic_cast<CWindowsApplication*>(CApplication::get_instance());
 		if (!app_inst)
 		{
 			return false;
@@ -58,11 +58,11 @@ namespace wyc
 		return true;
 	}
 
-	void view_ogl3::set_text(const wchar_t *text)
+	void CViewOgl3::set_text(const wchar_t *text)
 	{
 	}
 
-	void view_ogl3::on_render()
+	void CViewOgl3::on_render()
 	{
 		auto thread_id = std::this_thread::get_id();
 		debug("start render on thread[0x%x], ogl3 view", thread_id);
@@ -82,7 +82,7 @@ namespace wyc
 		info("OpenGL %s (GLSL %s)", version, glsl_version);
 		info("GLEW version %s", glewGetString(GLEW_VERSION));
 
-		while (!application::get_instance()->is_exit())
+		while (!CApplication::get_instance()->is_exit())
 		{
 			glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -93,13 +93,13 @@ namespace wyc
 		debug("exit thread[0x%x]", thread_id);
 	}
 
-	void view_ogl3::get_position(int & x, int & y)
+	void CViewOgl3::get_position(int & x, int & y)
 	{
 		x = m_view_pos.x;
 		y = m_view_pos.y;
 	}
 
-	void view_ogl3::get_size(unsigned & width, unsigned & height)
+	void CViewOgl3::get_size(unsigned & width, unsigned & height)
 	{
 		width = unsigned(m_view_size.x);
 		height = unsigned(m_view_size.y);

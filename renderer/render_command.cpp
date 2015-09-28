@@ -9,7 +9,7 @@
 namespace wyc
 {
 
-	command_allocator::command_allocator(size_t chunk_size, unsigned short granularity)
+	CCommandAllocator::CCommandAllocator(size_t chunk_size, unsigned short granularity)
 	{
 		constexpr size_t align = 8;
 		constexpr size_t align_mask = ~(align - 1);
@@ -27,12 +27,12 @@ namespace wyc
 		debug("grain: %d, capacity: %d, chunk size: %d", m_grain, m_capacity, m_chunk_size);
 	}
 
-	command_allocator::~command_allocator()
+	CCommandAllocator::~CCommandAllocator()
 	{
 		clear();
 	}
 
-	void * command_allocator::alloc(size_t sz)
+	void * CCommandAllocator::alloc(size_t sz)
 	{
 		unsigned slot_cnt = (sz + m_grain - 1) / m_grain;
 		if (slot_cnt > m_capacity)
@@ -49,7 +49,7 @@ namespace wyc
 		return ptr_raw;
 	}
 
-	void command_allocator::reset()
+	void CCommandAllocator::reset()
 	{
 		chunk_t *ptr = m_root;
 		while (ptr)
@@ -59,7 +59,7 @@ namespace wyc
 		}
 	}
 
-	void command_allocator::clear()
+	void CCommandAllocator::clear()
 	{
 		chunk_t *ptr;
 		while (m_root)
@@ -75,7 +75,7 @@ namespace wyc
 		m_chunk_count = 0;
 	}
 
-	command_allocator::chunk_t* command_allocator::new_chunk()
+	CCommandAllocator::chunk_t* CCommandAllocator::new_chunk()
 	{
 		chunk_t* ptr = static_cast<chunk_t*>(malloc(m_chunk_size));
 		if (!ptr)
@@ -94,7 +94,7 @@ UNIT_TEST_BEG(render_command)
 
 void test()
 {
-	wyc::command_allocator allocator(4096, sizeof(wyc::render_command));
+	wyc::CCommandAllocator allocator(4096, sizeof(wyc::RenderCommand));
 	uint8_t sz_list[] = {
 		16, 24, 48, 60, 72, 84, 96
 	};

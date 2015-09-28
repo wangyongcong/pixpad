@@ -2,19 +2,19 @@
 
 namespace wyc
 {
-	spw_render_target::spw_render_target()
+	CSpwRenderTarget::CSpwRenderTarget()
 	{
 	}
 
-	spw_render_target::~spw_render_target()
+	CSpwRenderTarget::~CSpwRenderTarget()
 	{
 	}
 
-	bool spw_render_target::create(unsigned width, unsigned height, unsigned format)
+	bool CSpwRenderTarget::create(unsigned width, unsigned height, unsigned format)
 	{
 		m_color_buffer.release();
 		unsigned frag_size = 0, alignment = 0;
-		spr_pixel_format color_fmt = get_color_format(format);
+		EPixelFormat color_fmt = get_color_format(format);
 		switch (color_fmt)
 		{
 		case SPR_COLOR_R8G8B8A8:

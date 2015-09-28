@@ -3,7 +3,7 @@
 
 namespace wyc
 {
-	xsurface::xsurface()
+	CSurface::CSurface()
 	{
 		m_data = 0;
 		m_info = 0;
@@ -12,7 +12,7 @@ namespace wyc
 		m_row = 0;
 	}
 
-	xsurface::~xsurface()
+	CSurface::~CSurface()
 	{
 		if (m_data && is_owner()) {
 			delete[] m_data;
@@ -20,7 +20,7 @@ namespace wyc
 		}
 	}
 
-	bool xsurface::storage(unsigned w, unsigned h, unsigned fragment_size, unsigned char alignment) {
+	bool CSurface::storage(unsigned w, unsigned h, unsigned fragment_size, unsigned char alignment) {
 		if (m_data) release();
 		size_t pitch = (w * fragment_size + alignment - 1) / alignment * alignment;
 		size_t required_bytes = pitch*h;
@@ -36,7 +36,7 @@ namespace wyc
 		return true;
 	}
 
-	void xsurface::release()
+	void CSurface::release()
 	{
 		if (!m_data)
 			return;
@@ -49,7 +49,7 @@ namespace wyc
 		m_row = 0;
 	}
 
-	bool xsurface::share(const xsurface &buffer)
+	bool CSurface::share(const CSurface &buffer)
 	{
 		if (!buffer.m_data)
 			return false;
@@ -64,7 +64,7 @@ namespace wyc
 		return true;
 	}
 
-	bool xsurface::share(const xsurface &buffer, unsigned x, unsigned y, unsigned w, unsigned h)
+	bool CSurface::share(const CSurface &buffer, unsigned x, unsigned y, unsigned w, unsigned h)
 	{
 		if (x >= buffer.m_row_len || y >= buffer.m_row)
 			return false;
@@ -82,7 +82,7 @@ namespace wyc
 		return true;
 	}
 
-	void xsurface::clear(const uint8_t *pdata, unsigned size) {
+	void CSurface::clear(const uint8_t *pdata, unsigned size) {
 		unsigned cnt;
 		if (size > m_pitch)
 			size = m_pitch;

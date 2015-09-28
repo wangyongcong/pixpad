@@ -6,17 +6,17 @@
 
 namespace wyc
 {
-	class view_ogl3 : public view_base
+	class CViewOgl3 : public CViewBase
 	{
 	public:
-		view_ogl3();
-		~view_ogl3() {}
+		CViewOgl3();
+		~CViewOgl3() {}
 		virtual bool initialize(int x, int y, unsigned w, unsigned h) override;
 		virtual void set_text(const wchar_t *text) override;
 		virtual void on_render() override;
 		virtual void get_position(int &x, int &y) override;
 		virtual void get_size(unsigned &width, unsigned &height) override;
-		virtual std::shared_ptr<renderer> get_renderer() override {
+		virtual std::shared_ptr<CRenderer> get_renderer() override {
 			return nullptr;
 		}
 

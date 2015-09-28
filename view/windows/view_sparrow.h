@@ -4,17 +4,17 @@
 
 namespace wyc
 {
-	class view_sparrow : public view_base
+	class CViewSparrow : public CViewBase
 	{
 	public:
-		view_sparrow();
-		virtual ~view_sparrow();
+		CViewSparrow();
+		virtual ~CViewSparrow();
 		virtual bool initialize(int x, int y, unsigned w, unsigned h) override;
 		virtual void on_render() override;
 		virtual void set_text(const wchar_t *text) override;
 		virtual void get_position(int &x, int &y) override;
 		virtual void get_size(unsigned &width, unsigned &height) override;
-		virtual std::shared_ptr<renderer> get_renderer() override {
+		virtual std::shared_ptr<CRenderer> get_renderer() override {
 			return m_renderer;
 		}
 	protected:
@@ -26,8 +26,8 @@ namespace wyc
 		ID2D1Factory *m_d2d_factory;
 		ID2D1HwndRenderTarget *m_d2d_rt;
 		ID2D1Bitmap *m_bitmap;
-		std::shared_ptr<spw_renderer> m_renderer;
-		std::shared_ptr<spw_render_target> m_target;
+		std::shared_ptr<CSpwRenderer> m_renderer;
+		std::shared_ptr<CSpwRenderTarget> m_target;
 		Imath::V2i m_view_pos;
 		Imath::V2i m_view_size;
 	};

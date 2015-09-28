@@ -2,12 +2,12 @@
 
 namespace wyc
 {
-	class application
+	class CApplication
 	{
 	public:
-		static application* get_instance();
+		static CApplication* get_instance();
 
-		virtual ~application() {}
+		virtual ~CApplication() {}
 
 		virtual void start() = 0;
 		virtual void close() = 0;

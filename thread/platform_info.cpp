@@ -12,9 +12,9 @@
 
 namespace wyc
 {
-	platform_info g_platform_info;
+	PlatformInfo g_platform_info;
 
-	platform_info::platform_info()
+	PlatformInfo::PlatformInfo()
 	{
 		SYSTEM_INFO si;
 		GetSystemInfo(&si);

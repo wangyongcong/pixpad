@@ -4,7 +4,7 @@
 
 namespace wyc
 {
-	enum spr_pixel_format
+	enum EPixelFormat
 	{
 		// color buffer
 		SPR_COLOR_MASK = 0xFF,
@@ -25,25 +25,25 @@ namespace wyc
 		SPR_STENCIL_16 = 0x800,
 	};
 
-	inline spr_pixel_format get_color_format(unsigned format)
+	inline EPixelFormat get_color_format(unsigned format)
 	{
-		return spr_pixel_format(format & SPR_COLOR_MASK);
+		return EPixelFormat(format & SPR_COLOR_MASK);
 	}
 
-	inline spr_pixel_format get_depth_format(unsigned format)
+	inline EPixelFormat get_depth_format(unsigned format)
 	{
-		return spr_pixel_format(format & SPR_DEPTH_MASK);
+		return EPixelFormat(format & SPR_DEPTH_MASK);
 	}
 
-	inline spr_pixel_format get_stencil_format(unsigned format)
+	inline EPixelFormat get_stencil_format(unsigned format)
 	{
-		return spr_pixel_format(format & SPR_STENCIL_MASK);
+		return EPixelFormat(format & SPR_STENCIL_MASK);
 	}
 
-	class render_target
+	class CRenderTarget
 	{
 	public:
-		virtual ~render_target() {}
+		virtual ~CRenderTarget() {}
 		virtual bool create(unsigned width, unsigned height, unsigned format) = 0;
 	};
 

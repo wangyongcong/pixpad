@@ -6,7 +6,7 @@
 
 namespace wyc
 {
-	enum view_type
+	enum EViewType
 	{
 		VIEW_SPARROW = 0,
 		VIEW_OPENGL3,
@@ -14,17 +14,17 @@ namespace wyc
 		VIEW_TYPE_COUNT,
 	};
 
-	class view_base
+	class CViewBase
 	{
 	public:
-		static std::shared_ptr<view_base> create_view(view_type type, int x, int y, unsigned w, unsigned h);
-		virtual ~view_base() {}
+		static std::shared_ptr<CViewBase> create_view(EViewType type, int x, int y, unsigned w, unsigned h);
+		virtual ~CViewBase() {}
 		virtual bool initialize(int x, int y, unsigned w, unsigned h) = 0;
 		virtual void set_text(const wchar_t *text) = 0;
 		virtual void on_render() = 0;
 		virtual void get_position(int &x, int &y) = 0;
 		virtual void get_size(unsigned &width, unsigned &height) = 0;
-		virtual std::shared_ptr<renderer> get_renderer() = 0;
+		virtual std::shared_ptr<CRenderer> get_renderer() = 0;
 	};
 
 

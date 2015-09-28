@@ -7,7 +7,7 @@
 namespace wyc
 {
 
-#define SPW_CMD_HANDLER(cmd_type) template<> inline void spw_handler<cmd_type>(spw_renderer *renderer, render_command *_cmd)
+#define SPW_CMD_HANDLER(cmd_type) template<> inline void spw_handler<cmd_type>(CSpwRenderer *renderer, RenderCommand *_cmd)
 	
 #define get_cmd(cmd_type) static_cast<cmd_type*>(_cmd)
 
@@ -36,7 +36,7 @@ namespace wyc
 		{
 			return;
 		}
-		xsurface& surf = renderer->m_rt->get_color_buffer();
+		CSurface& surf = renderer->m_rt->get_color_buffer();
 		uint32_t v = Imath::rgb2packed(cmd->color);
 		surf.clear(v);
 	}

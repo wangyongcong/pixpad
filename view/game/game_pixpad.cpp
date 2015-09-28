@@ -16,14 +16,14 @@
 
 namespace wyc
 {
-	game_pixpad::game_pixpad() : 
+	CGamePixpad::CGamePixpad() : 
 		m_game_name(L"Game Pixpad"), 
 		m_signal_exit(false),
 		m_frame(0)
 	{
 	}
 
-	void game_pixpad::on_start()
+	void CGamePixpad::on_start()
 	{
 		unsigned core_count = std::thread::hardware_concurrency();
 		debug("max thread count: %d", core_count);
@@ -36,7 +36,7 @@ namespace wyc
 		return;
 	}
 
-	void game_pixpad::on_close()
+	void CGamePixpad::on_close()
 	{
 		m_signal_exit.store(true, std::memory_order_relaxed);
 		for (auto &pthread : m_thread_pool)
@@ -45,7 +45,7 @@ namespace wyc
 		}
 	}
 
-	void game_pixpad::on_update()
+	void CGamePixpad::on_update()
 	{
 		auto t_start = std::chrono::high_resolution_clock::now();
 		for (auto &ptr : m_renderers)
@@ -69,12 +69,12 @@ namespace wyc
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 
-	bool game_pixpad::is_exit()
+	bool CGamePixpad::is_exit()
 	{
 		return m_signal_exit.load(std::memory_order_consume);
 	}
 
-	void game_pixpad::on_key_down(int keycode)
+	void CGamePixpad::on_key_down(int keycode)
 	{
 		if (keycode == VK_ESCAPE) {
 			::PostQuitMessage(0);
@@ -82,7 +82,7 @@ namespace wyc
 		}
 	}
 
-	void game_pixpad::create_views()
+	void CGamePixpad::create_views()
 	{
 		unsigned view_count = next_power2(c_view_count);
 		unsigned n = log2p2(view_count);
@@ -97,7 +97,7 @@ namespace wyc
 			col = row << 1;
 		}
 		debug("create %d x %d views", row, col);
-		application *app_inst = application::get_instance();
+		CApplication *app_inst = CApplication::get_instance();
 		size_t window_w, window_h;
 		app_inst->get_window_size(window_w, window_h);
 		unsigned view_w, view_h;
@@ -109,7 +109,7 @@ namespace wyc
 			app_inst->resize(client_w, client_h);
 		}
 
-		static_assert(c_view_count <= sizeof(c_view_list) / sizeof(wyc::view_type), "Invalid view count.");
+		static_assert(c_view_count <= sizeof(c_view_list) / sizeof(wyc::EViewType), "Invalid view count.");
 
 		int x = 0, y = 0;
 		unsigned view_idx = 0;
@@ -117,9 +117,9 @@ namespace wyc
 		{
 			for (unsigned c = 0; c < col && view_idx < c_view_count; ++c, ++view_idx)
 			{
-				auto ptr_view = view_base::create_view(c_view_list[view_idx], x, y, view_w, view_h);
+				auto ptr_view = CViewBase::create_view(c_view_list[view_idx], x, y, view_w, view_h);
 				m_renderers.push_back(ptr_view->get_renderer());
-				auto func = std::bind(&view_base::on_render, ptr_view);
+				auto func = std::bind(&CViewBase::on_render, ptr_view);
 				if (ptr_view) 
 				{
 					m_thread_pool.push_back(std::thread(func));
@@ -133,7 +133,7 @@ namespace wyc
 
 } // namespace wyc
 
-  //void game_pixpad::on_paint()
+  //void CGamePixpad::on_paint()
   //{
   //	m_redraw = true;
   //	typedef Imath::C3c color_t;
@@ -161,7 +161,7 @@ namespace wyc
   //	draw_cube(lx, ly, rx, ry);
   //}
 
-  //void game_pixpad::random_triangle(int lx, int ly, int rx, int ry)
+  //void CGamePixpad::random_triangle(int lx, int ly, int rx, int ry)
   //{
   //	std::vector<vec4f> planes;
   //	// left plane
@@ -223,7 +223,7 @@ namespace wyc
   //	}
   //}
 
-  //void game_pixpad::draw_cube(int lx, int ly, int rx, int ry)
+  //void CGamePixpad::draw_cube(int lx, int ly, int rx, int ry)
   //{
   //	std::vector<vec3f> vertices;
   //	std::vector<unsigned short> faces;
@@ -298,7 +298,7 @@ namespace wyc
 
   //}
 
-  //void game_pixpad::draw_triangles(const std::vector<vec4f> &vertices)
+  //void CGamePixpad::draw_triangles(const std::vector<vec4f> &vertices)
   //{
   //	xplotter<Imath::C3c> plot(m_surf, Imath::C3c(0, 255, 0));
   //	auto v0 = vertices.back();

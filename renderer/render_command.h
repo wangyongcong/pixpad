@@ -11,11 +11,11 @@
 
 namespace wyc
 {
-	class command_allocator
+	class CCommandAllocator
 	{
 	public:
-		command_allocator(size_t chunk_size, unsigned short granularity);
-		~command_allocator();
+		CCommandAllocator(size_t chunk_size, unsigned short granularity);
+		~CCommandAllocator();
 		// Allocate raw memory
 		void* alloc(size_t sz);
 		// Recycle all allocated memory 
@@ -24,7 +24,7 @@ namespace wyc
 		void clear();
 
 	private:
-		DISALLOW_COPY_MOVE_AND_ASSIGN(command_allocator)
+		DISALLOW_COPY_MOVE_AND_ASSIGN(CCommandAllocator)
 
 		struct chunk_t
 		{
@@ -47,11 +47,11 @@ namespace wyc
 
 	class renderer;
 
-	struct render_command
+	struct RenderCommand
 	{
-		using handler_t = void (*) (renderer*, render_command*);
+		using handler_t = void (*) (renderer*, RenderCommand*);
 		command_id id = 0;
-		render_command *next = nullptr;
+		RenderCommand *next = nullptr;
 
 		inline void set_tid(unsigned short tid)
 		{
@@ -63,7 +63,7 @@ namespace wyc
 		}
 	};
 
-	enum CMD_TYPE
+	enum ECommandType
 	{
 		CMD_TEST = 0,
 		CMD_PRESENT = 1,
@@ -72,8 +72,8 @@ namespace wyc
 		CMD_COUNT
 	};
 
-#define RENDER_CMD(cmd_name) struct cmd_name : public render_command
-#define CMD_TID(id) static const CMD_TYPE tid = id
+#define RENDER_CMD(cmd_name) struct cmd_name : public RenderCommand
+#define CMD_TID(id) static const ECommandType tid = id
 
 	RENDER_CMD(cmd_test)
 	{

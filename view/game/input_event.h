@@ -2,7 +2,7 @@
 
 namespace wyc
 {
-	enum MOUSE_BUTTON
+	enum EMouseButton
 	{
 		MOUSE_BUTTON_LEFT,
 		MOUSE_BUTTON_RIGHT,

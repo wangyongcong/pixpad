@@ -11,7 +11,7 @@
 
 namespace wyc
 {
-	view_sparrow::view_sparrow() : 
+	CViewSparrow::CViewSparrow() : 
 		m_hwnd(NULL), 
 		m_d2d_factory(nullptr), 
 		m_d2d_rt(nullptr), 
@@ -20,7 +20,7 @@ namespace wyc
 	{
 	}
 
-	view_sparrow::~view_sparrow()
+	CViewSparrow::~CViewSparrow()
 	{
 		m_hwnd = NULL;
 		discard_resource();
@@ -29,9 +29,9 @@ namespace wyc
 		m_target = nullptr;
 	}
 
-	bool view_sparrow::initialize(int x, int y, unsigned w, unsigned h)
+	bool CViewSparrow::initialize(int x, int y, unsigned w, unsigned h)
 	{
-		windows_application* app_inst = dynamic_cast<windows_application*>(application::get_instance());
+		CWindowsApplication* app_inst = dynamic_cast<CWindowsApplication*>(CApplication::get_instance());
 		if (!app_inst)
 		{
 			return false;
@@ -85,14 +85,14 @@ namespace wyc
 			return false;
 		}
 		
-		m_target = std::make_shared<spw_render_target>();
+		m_target = std::make_shared<CSpwRenderTarget>();
 		if (!m_target->create(w, h, SPR_COLOR_B8G8R8A8 | SPR_DEPTH_16))
 		{
 			m_target = nullptr;
 			error("Failed to create sparrow render target.");
 			return false;
 		}
-		m_renderer = std::make_shared<spw_renderer>();
+		m_renderer = std::make_shared<CSpwRenderer>();
 		m_renderer->set_render_target(m_target);
 
 		m_view_pos.setValue(x, y);
@@ -107,7 +107,7 @@ namespace wyc
 		return true;
 	}
 
-	void view_sparrow::on_render()
+	void CViewSparrow::on_render()
 	{
 		auto thread_id = std::this_thread::get_id();
 		debug("start render on thread[0x%x], sparrow view", thread_id);
@@ -118,7 +118,7 @@ namespace wyc
 		// notify render thread is ready
 		m_renderer->set_ready();
 		
-		while (!application::get_instance()->is_exit())
+		while (!CApplication::get_instance()->is_exit())
 		{
 			m_renderer->process();
 		}
@@ -126,23 +126,23 @@ namespace wyc
 		debug("exit thread[0x%x]", thread_id);
 	}
 
-	void view_sparrow::set_text(const wchar_t * text)
+	void CViewSparrow::set_text(const wchar_t * text)
 	{
 	}
 
-	void view_sparrow::get_position(int & x, int & y)
+	void CViewSparrow::get_position(int & x, int & y)
 	{
 		x = m_view_pos.x; 
 		y = m_view_pos.y;
 	}
 
-	void view_sparrow::get_size(unsigned & width, unsigned & height)
+	void CViewSparrow::get_size(unsigned & width, unsigned & height)
 	{
 		width = unsigned(m_view_size.x);
 		height = unsigned(m_view_size.y);
 	}
 
-	bool view_sparrow::rebuild_resource()
+	bool CViewSparrow::rebuild_resource()
 	{
 		if (!m_d2d_factory)
 			return false;
@@ -194,13 +194,13 @@ namespace wyc
 		return true;
 	}
 
-	void view_sparrow::discard_resource()
+	void CViewSparrow::discard_resource()
 	{
 		SAFE_RELEASE(m_d2d_rt);
 		SAFE_RELEASE(m_bitmap);
 	}
 
-	void view_sparrow::present()
+	void CViewSparrow::present()
 	{
 		D2D1_RECT_U src_rect = {
 			0, 0, unsigned(m_view_size.x), unsigned(m_view_size.y)
@@ -208,7 +208,7 @@ namespace wyc
 		D2D1_RECT_F dst_rect = {
 			0.0f, 0.0f, float(m_view_size.x), float(m_view_size.y)
 		};
-		xsurface &color_buffer = m_target->get_color_buffer();
+		CSurface &color_buffer = m_target->get_color_buffer();
 		size_t pitch = color_buffer.pitch();
 		HRESULT result;
 		result = m_bitmap->CopyFromMemory(&src_rect, color_buffer.get_buffer(), pitch);

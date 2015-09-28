@@ -6,23 +6,23 @@
 
 namespace wyc
 {
-	class spw_render_target : public render_target
+	class CSpwRenderTarget : public CRenderTarget
 	{
 	public:
-		spw_render_target();
-		virtual ~spw_render_target() override;
+		CSpwRenderTarget();
+		virtual ~CSpwRenderTarget() override;
 		virtual bool create(unsigned width, unsigned height, unsigned format) override;
 
-		inline xsurface& get_color_buffer()
+		inline CSurface& get_color_buffer()
 		{
 			return m_color_buffer;
 		}
 
 	private:
-		DISALLOW_COPY_MOVE_AND_ASSIGN(spw_render_target)
+		DISALLOW_COPY_MOVE_AND_ASSIGN(CSpwRenderTarget)
 
-		xsurface m_color_buffer;
-		spr_pixel_format m_color_fmt;
+		CSurface m_color_buffer;
+		EPixelFormat m_color_fmt;
 	};
 
 } // namespace wyc

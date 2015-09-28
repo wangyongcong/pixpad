@@ -20,10 +20,10 @@ namespace wyc
 {
 	// lock-free, single-producer, single-consumer, bounded ring queue
 	template<class T>
-	class ring_queue
+	class CRingQueue
 	{
 	public:
-		ring_queue(size_t sz) :
+		CRingQueue(size_t sz) :
 			m_size(sz), 
 			m_mask(sz - 1), 
 			m_buffer(static_cast<T*>(std::malloc(sizeof(T) * sz))),
@@ -33,7 +33,7 @@ namespace wyc
 			assert(sz >= 2 && (sz & (sz - 1)) == 0);
 		}
 
-		~ring_queue()
+		~CRingQueue()
 		{
 			auto read_pos = m_read_pos.load(std::memory_order_relaxed);
 			auto end = m_write_pos.load(std::memory_order_relaxed);
@@ -82,7 +82,7 @@ namespace wyc
 		class enqueue_cursor
 		{
 		public:
-			enqueue_cursor(ring_queue *q, size_t beg, size_t end)
+			enqueue_cursor(CRingQueue *q, size_t beg, size_t end)
 				: m_queue(q)
 				, m_beg(beg)
 				, m_end(end)
@@ -103,7 +103,7 @@ namespace wyc
 				m_queue->publish(++m_beg);
 			}
 		private:
-			ring_queue * m_queue;
+			CRingQueue * m_queue;
 			size_t m_beg, m_end;
 		};
 
@@ -138,9 +138,9 @@ namespace wyc
 		void check_alignment()
 		{
 			std::cout << "this: " << this << std::endl;
-			std::cout << "  m_buffer: " << &(this->m_buffer) << " offset=" << offsetof(ring_queue, m_buffer) << std::endl;
-			std::cout << "  m_write_pos: " << &(this->m_write_pos) << " offset=" << offsetof(ring_queue, m_write_pos) << std::endl;
-			std::cout << "  m_read_pos: " << &(this->m_read_pos) << " offset=" << offsetof(ring_queue, m_read_pos) << std::endl;
+			std::cout << "  m_buffer: " << &(this->m_buffer) << " offset=" << offsetof(CRingQueue, m_buffer) << std::endl;
+			std::cout << "  m_write_pos: " << &(this->m_write_pos) << " offset=" << offsetof(CRingQueue, m_write_pos) << std::endl;
+			std::cout << "  m_read_pos: " << &(this->m_read_pos) << " offset=" << offsetof(CRingQueue, m_read_pos) << std::endl;
 		}
 #endif
 
@@ -165,10 +165,10 @@ namespace wyc
 		std::atomic<size_t> m_read_pos;
 
 
-		DISALLOW_COPY_MOVE_AND_ASSIGN(ring_queue)
+		DISALLOW_COPY_MOVE_AND_ASSIGN(CRingQueue)
 	};
 
 } // namespace wyc
 
 #include "unitest.h"
-UNIT_TEST(ring_queue)
+UNIT_TEST(CRingQueue)

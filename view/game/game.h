@@ -4,10 +4,10 @@
 
 namespace wyc
 {
-	class game
+	class CGame
 	{
 	public:
-		virtual ~game() {}
+		virtual ~CGame() {}
 		
 		// application event handler
 		virtual void on_start() = 0;
@@ -17,8 +17,8 @@ namespace wyc
 		virtual bool is_exit() = 0;
 
 		// input event handler
-		virtual void on_mouse_button_down(MOUSE_BUTTON button, int x, int y) = 0;
-		virtual void on_mouse_button_up(MOUSE_BUTTON button, int x, int y) = 0;
+		virtual void on_mouse_button_down(EMouseButton button, int x, int y) = 0;
+		virtual void on_mouse_button_up(EMouseButton button, int x, int y) = 0;
 		virtual void on_mouse_move(int x, int y) = 0;
 		virtual void on_mouse_wheel(int delta) = 0;
 		virtual void on_key_down(int keycode) = 0;

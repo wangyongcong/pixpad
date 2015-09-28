@@ -4,9 +4,9 @@
 
 namespace wyc
 {
-	application *g_application = nullptr;
+	CApplication *g_application = nullptr;
 
-	application* application::get_instance()
+	CApplication* CApplication::get_instance()
 	{
 		return g_application;
 	}
@@ -19,9 +19,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	
 	using namespace wyc;
 	std::wstring application_name = L"Pixpad";
-	windows_application *app = new windows_application();
+	CWindowsApplication *app = new CWindowsApplication();
 	g_application = app;
-	if (!app->initialize(application_name, new game_pixpad(), hInstance, 1280, 720, lpCmdLine))
+	if (!app->initialize(application_name, new CGamePixpad(), hInstance, 1280, 720, lpCmdLine))
 		return 1;
 	g_application->start();
 	return 0;

@@ -13,20 +13,20 @@ namespace wyc
 		L"OpenGL3",
 	};
 
-	std::shared_ptr<view_base> view_base::create_view(view_type type, int x, int y, unsigned w, unsigned h)
+	std::shared_ptr<CViewBase> CViewBase::create_view(EViewType type, int x, int y, unsigned w, unsigned h)
 	{
-		std::shared_ptr<view_base> ptr_view = nullptr;
+		std::shared_ptr<CViewBase> ptr_view = nullptr;
 		switch (type)
 		{
 		case VIEW_SPARROW:
-			ptr_view = std::shared_ptr<view_base>(new view_sparrow);
+			ptr_view = std::shared_ptr<CViewBase>(new CViewSparrow);
 			break;
 		case VIEW_OPENGL3: {
-			ptr_view = std::shared_ptr<view_base>(new view_ogl3);
+			ptr_view = std::shared_ptr<CViewBase>(new CViewOgl3);
 			break;
 		}
 		default:
-			ptr_view = std::shared_ptr<view_base>(new view_ogl3);
+			ptr_view = std::shared_ptr<CViewBase>(new CViewOgl3);
 			break;
 		}
 		if (!ptr_view->initialize(x, y, w, h))
