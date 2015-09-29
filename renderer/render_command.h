@@ -45,11 +45,11 @@ namespace wyc
 
 	typedef uint64_t command_id;
 
-	class renderer;
+	class CRenderer;
 
 	struct RenderCommand
 	{
-		using handler_t = void (*) (renderer*, RenderCommand*);
+		using handler_t = void (*) (CRenderer*, RenderCommand*);
 		command_id id = 0;
 		RenderCommand *next = nullptr;
 

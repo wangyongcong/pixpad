@@ -79,19 +79,19 @@ namespace wyc
 			return true;
 		}
 
-		class enqueue_cursor
+		class EnqueueCursor
 		{
 		public:
-			enqueue_cursor(CRingQueue *q, size_t beg, size_t end)
+			EnqueueCursor(CRingQueue *q, size_t beg, size_t end)
 				: m_queue(q)
 				, m_beg(beg)
 				, m_end(end)
 			{
 			}
-			enqueue_cursor(const enqueue_cursor& other) = default;
-			enqueue_cursor& operator = (const enqueue_cursor& other) = default;
-			enqueue_cursor(enqueue_cursor&& other) = default;
-			enqueue_cursor& operator = (enqueue_cursor&& other) = default;
+			EnqueueCursor(const EnqueueCursor& other) = default;
+			EnqueueCursor& operator = (const EnqueueCursor& other) = default;
+			EnqueueCursor(EnqueueCursor&& other) = default;
+			EnqueueCursor& operator = (EnqueueCursor&& other) = default;
 			inline operator bool() const {
 				return m_beg != m_end;
 			}
@@ -107,11 +107,11 @@ namespace wyc
 			size_t m_beg, m_end;
 		};
 
-		enqueue_cursor batch_enqueue()
+		EnqueueCursor batch_enqueue()
 		{
 			auto beg = m_write_pos.load(std::memory_order_relaxed);
 			auto end = m_read_pos.load(std::memory_order_acquire) + m_size;
-			return enqueue_cursor(this, beg, end);
+			return EnqueueCursor(this, beg, end);
 		}
 
 		bool batch_dequeue(std::vector<T> &ret, size_t max_count=256)
@@ -145,7 +145,7 @@ namespace wyc
 #endif
 
 	private:
-		friend class enqueue_cursor;
+		friend class EnqueueCursor;
 		inline void publish(size_t pos)
 		{
 			m_write_pos.store(pos, std::memory_order_release);
