@@ -85,177 +85,6 @@
     <ClInclude Include="..\..\renderer\ogl\glutil.h">
       <Filter>Renderer\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\half.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\halfExport.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\halfFunction.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\halfLimits.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\Iex.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IexBaseExc.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IexErrnoExc.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IexExport.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IexForward.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMacros.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathExc.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathFloatExc.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathFpu.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IexMathIeeeExc.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IexNamespace.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IexThrowErrnoExc.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmBaseConfig.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThread.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadExport.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadForward.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadMutex.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadNamespace.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadPool.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\IlmThreadSemaphore.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathBox.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathBoxAlgo.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathColor.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathColorAlgo.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathEuler.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathExc.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathExport.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathForward.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFrame.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFrustum.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFrustumTest.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathFun.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathGL.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathGLU.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathHalfLimits.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathInt64.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathInterval.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathLimits.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathLine.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathLineAlgo.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathMath.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathMatrix.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathMatrixAlgo.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathNamespace.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathPlane.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathPlatform.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathQuat.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathRandom.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathRoots.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathShear.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathSphere.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVec.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\3rd\include\OpenEXR\ImathVecAlgo.h">
-      <Filter>3rd\IlmBase</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\renderer\sparrow\surface.h">
       <Filter>Renderer\Sparrow</Filter>
     </ClInclude>
@@ -294,6 +123,177 @@
     </ClInclude>
     <ClInclude Include="..\..\renderer\render_target.h">
       <Filter>Renderer\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\half.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\halfExport.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\halfFunction.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\halfLimits.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\Iex.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IexBaseExc.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IexErrnoExc.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IexExport.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IexForward.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IexMacros.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IexMathExc.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IexMathFloatExc.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IexMathFpu.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IexMathIeeeExc.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IexNamespace.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IexThrowErrnoExc.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IlmBaseConfig.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IlmThread.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IlmThreadExport.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IlmThreadForward.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IlmThreadMutex.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IlmThreadNamespace.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IlmThreadPool.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\IlmThreadSemaphore.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathBox.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathBoxAlgo.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathColor.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathColorAlgo.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathEuler.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathExc.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathExport.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathForward.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathFrame.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathFrustum.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathFrustumTest.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathFun.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathGL.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathGLU.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathHalfLimits.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathInt64.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathInterval.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathLimits.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathLine.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathLineAlgo.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathMath.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathMatrix.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathMatrixAlgo.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathNamespace.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathPlane.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathPlatform.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathQuat.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathRandom.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathRoots.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathShear.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathSphere.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathVec.h">
+      <Filter>3rd\IlmBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathVecAlgo.h">
+      <Filter>3rd\IlmBase</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -345,5 +345,8 @@
     <ClCompile Include="..\..\renderer\renderer.cpp">
       <Filter>Renderer\Base</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>
