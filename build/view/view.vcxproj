@@ -150,6 +150,7 @@
     <ClInclude Include="..\..\common\logger.h" />
     <ClInclude Include="..\..\common\unitest.h" />
     <ClInclude Include="..\..\common\util.h" />
+    <ClInclude Include="..\..\renderer\mesh.h" />
     <ClInclude Include="..\..\renderer\ogl\glutil.h" />
     <ClInclude Include="..\..\renderer\renderer.h" />
     <ClInclude Include="..\..\renderer\render_command.h" />
@@ -177,6 +178,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\common\logger.cpp" />
     <ClCompile Include="..\..\common\util.cpp" />
+    <ClCompile Include="..\..\renderer\mesh.cpp" />
     <ClCompile Include="..\..\renderer\ogl\glutil.cpp" />
     <ClCompile Include="..\..\renderer\renderer.cpp" />
     <ClCompile Include="..\..\renderer\render_command.cpp" />

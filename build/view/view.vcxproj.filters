@@ -295,6 +295,9 @@
     <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathVecAlgo.h">
       <Filter>3rd\IlmBase</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\renderer\mesh.h">
+      <Filter>Renderer\Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">
@@ -343,6 +346,9 @@
       <Filter>Thread</Filter>
     </ClCompile>
     <ClCompile Include="..\..\renderer\renderer.cpp">
+      <Filter>Renderer\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\renderer\mesh.cpp">
       <Filter>Renderer\Base</Filter>
     </ClCompile>
   </ItemGroup>
