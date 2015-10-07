@@ -42,13 +42,17 @@ namespace wyc
 		template<EVertexLayout Layout>
 		void set_vertices(std::initializer_list<typename CVertexLayout<Layout>::vertex_t>&& verts);
 		template<EVertexLayout Layout>
-		typename CVertexLayout<Layout>::vertex_t* get_vertices();
+		const typename CVertexLayout<Layout>::vertex_t* get_vertices() const;
+		size_t get_vertex_count() const;
 		void set_indices(std::initializer_list<uint32_t>&& indices);
-
+		const uint32_t* get_indices() const;
+		size_t get_index_count() const;
 	protected:
 		EVertexLayout m_layout;
 		void *m_vertices;
 		size_t m_vert_count;
+		uint32_t *m_indices;
+		size_t m_index_count;
 	};
 
 	template<EVertexLayout Layout>
@@ -56,7 +60,10 @@ namespace wyc
 	{
 		if (m_vertices)
 		{
-			clear();
+			m_layout = VF_NONE;
+			free(m_vertices);
+			m_vertices = nullptr;
+			m_vert_count = 0;
 		}
 		using vertex_t = CVertexLayout<Layout>::vertex_t;
 		size_t cnt = verts.size();
@@ -76,6 +83,30 @@ namespace wyc
 		{
 			*data++ = v;
 		}
+	}
+
+	template<EVertexLayout Layout>
+	inline const typename CVertexLayout<Layout>::vertex_t * CMesh::get_vertices() const
+	{
+		if (Layout != m_layout)
+			return nullptr;
+		using vertex_t = CVertexLayout<Layout>::vertex_t;
+		return static_cast<const vertex_t*>(m_vertices);
+	}
+
+	inline size_t CMesh::get_vertex_count() const
+	{
+		return m_vert_count;
+	}
+
+	inline const uint32_t* CMesh::get_indices() const
+	{
+		return m_indices;
+	}
+
+	inline size_t CMesh::get_index_count() const
+	{
+		return m_index_count;
 	}
 
 	class CTriangleMesh : public CMesh
