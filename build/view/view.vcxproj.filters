@@ -298,6 +298,12 @@
     <ClInclude Include="..\..\renderer\mesh.h">
       <Filter>Renderer\Base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\renderer\sparrow\spw_rasterizer.h">
+      <Filter>Renderer\Sparrow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\sparrow\mathfwd.h">
+      <Filter>Renderer\Sparrow</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">
