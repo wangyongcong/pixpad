@@ -1,5 +1,5 @@
 #pragma once
-
+#include "OpenEXR/ImathExc.h"
 #include "mathfwd.h"
 
 namespace wyc
@@ -84,19 +84,22 @@ namespace wyc
 	template<typename T>
 	Imath::Vec3<T> barycentric_coord(const Imath::Vec2 &p, Imath::Vec2<T> &v0, const Imath::Vec2<T> &v1, const Imath::Vec2<T> &v2)
 	{
-		Imath::Vec3<T> bc;
-		bc.x = triangle_edge_function(v1, v2, p);
-		bc.y = triangle_edge_function(v2, v0, p);
-		bc.z = triangle_edge_function(v0, v1, p);
-		return bc;
+		T x = triangle_edge_function(v1, v2, p);
+		T y = triangle_edge_function(v2, v0, p);
+		T z = triangle_edge_function(v0, v1, p);
+		T area = x + y + z;
+#ifdef _DEBUG
+		if (area == T(0))
+			throw Imath::NullVecExc("Null barycentric vector.");
+#endif			
+		return Imath::Vec3<T>(x / area, y / area, z / area);
 	}
 
+	// fill triangle {vertices[0], vertices[1], vertices[2]} in counter-clockwise
 	template<typename T>
-	void barycentric_normalize(Imath::Vec3<T> &bc)
+	void fill_triangle(Imath::Vec2<T> *vertices)
 	{
-		T area = bc.x + bc.y + bc.z;
-		if (area != T(0))
-			bc /= area;
+
 	}
 
 
