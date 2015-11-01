@@ -73,7 +73,7 @@ namespace wyc
 	}
 
 	template<typename T>
-	bool inside_triangle(const Imath::Vec2 &p, Imath::Vec2<T> &v0, const Imath::Vec2<T> &v1, const Imath::Vec2<T> &v2)
+	bool is_inside_triangle(const Imath::Vec2 &p, Imath::Vec2<T> &v0, const Imath::Vec2<T> &v1, const Imath::Vec2<T> &v2)
 	{
 		T edge01 = triangle_edge_function(v0, v1, p);
 		T edge12 = triangle_edge_function(v1, v2, p);
@@ -92,11 +92,13 @@ namespace wyc
 	}
 
 	template<typename T>
-	void normalize_barycentric_coord(Imath::Vec3<T> &bc)
+	void barycentric_normalize(Imath::Vec3<T> &bc)
 	{
 		T area = bc.x + bc.y + bc.z;
 		if (area != T(0))
 			bc /= area;
 	}
+
+
 
 } // namespace wyc
