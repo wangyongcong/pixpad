@@ -99,7 +99,10 @@ namespace wyc
 
 	bool is_top_left(const Vec2f &v1, const Vec2f &v2)
 	{
-		return false;
+		// In a counter-clockwise triangle:
+		// A top edge is an edge that is exactly horizontal and goes towards the left, i.e.its end point is left of its start point.
+		// A left edge is an edge that goes down, i.e. its end point is strictly below its start point.
+		return (v1.y == v2.y && v1.x > v2.x) || (v1.y > v2.y);
 	}
 
 	template<uint16 N>
@@ -108,44 +111,76 @@ namespace wyc
 		return Vec2i(fast_to_fixed<N>(v.x), fast_to_fixed<N>(v.y));
 	}
 
+	inline int64_t edge_function_fixed(const Vec2i &v0, const Vec2i &v1, const Vec2i &v2)
+	{
+		return int64_t(v1.x - v0.x) * int64_t(v2.y - v0.y) - int64_t(v1.y - v0.y) * int64_t(v2.x - v0.x);
+	}
+
+#ifdef _DEBUG
+#define ASSERT_INSIDE(v, r) assert(v.x >= -r && v.x < r && v.y >= -r && v.y < r)
+#endif
+
 	// fill triangle {vertices[0], vertices[1], vertices[2]} in counter-clockwise
 	template<typename Plotter>
 	void fill_triangle(const Imath::Box<Vec2i> &box, const Vec2f *vertices, Plotter &plot)
 	{
-#ifdef _DEBUG
+		// 11.8 sub pixel precision
 		// max render target is 2048 x 2048
-		assert(box.min.x >= -1024 && box.min.x < 1024 
-			&& box.min.y >= -1024 && box.min.y < 1024
-			&& box.max.x >= -1024 && box.max.x < 1024
-			&& box.max.y >= -1024 && box.max.y < 1024);
+		// coordinate must be inside [-1024, 1024)
+#ifdef _DEBUG
+		ASSERT_INSIDE(box.min, 1024);
+		ASSERT_INSIDE(box.max, 1024);
 #endif
 		
 		// snap to .8 sub pixel
 		Vec2i v0 = snap_to_subpixel<8>(vertices[0]);
 		Vec2i v1 = snap_to_subpixel<8>(vertices[1]);
 		Vec2i v2 = snap_to_subpixel<8>(vertices[2]);
+
+#ifdef _DEBUG
+		ASSERT_INSIDE(v0, 1024);
+		ASSERT_INSIDE(v1, 1024);
+		ASSERT_INSIDE(v2, 1024);
+#endif
 		
+		// initial edge function with high precision
+		int64_t hp_w0 = edge_function_fixed(v1, v2, box.min);
+		int64_t hp_w1 = edge_function_fixed(v2, v0, box.min);
+		int64_t hp_w2 = edge_function_fixed(v0, v1, box.min);
+
 		// edge function delta
-		int32 edge_a01 = v0.y - v1.y, edge_b01 = v1.x - v0.x;
-		int32 edge_a12 = v1.y - v2.y, edge_b12 = v2.x - v1.x;
-		int32 edge_a20 = v2.y - v0.y, edge_b20 = v0.x - v2.x;
+		int edge_a01 = v0.y - v1.y, edge_b01 = v1.x - v0.x;
+		int edge_a12 = v1.y - v2.y, edge_b12 = v2.x - v1.x;
+		int edge_a20 = v2.y - v0.y, edge_b20 = v0.x - v2.x;
 
-		// initial edge function
-		int32 row_w0 = triangle_edge_function(v1, v2, box.min);
-		int32 row_w1 = triangle_edge_function(v2, v0, box.min);
-		int32 row_w2 = triangle_edge_function(v0, v1, box.min);
+		// top-left bias
+		int bias_v01 = is_top_left(v0, v1) ? 0 : -1;
+		int bias_v12 = is_top_left(v1, v2) ? 0 : -1;
+		int bias_v20 = is_top_left(v2, v0) ? 0 : -1;
 
-		int32 w0, w1, w2;
-		const int32 step = 256;
-		for (int32 y = box.min.y; y < box.max.y; y += step)
+		// edge function increment
+		int row_w0 = int(hp_w0 >> 8) + bias_v12;
+		int row_w1 = int(hp_w1 >> 8) + bias_v20;
+		int row_w2 = int(hp_w2 >> 8) + bias_v01;
+		int fw0 = int(hp_w0 & 0xFF);
+		int fw1 = int(hp_w1 & 0xFF);
+		int fw2 = int(hp_w2 & 0xFF);
+		int w0, w1, w2;
+
+		for (int y = box.min.y; y < box.max.y; y += 1)
 		{
 			w0 = row_w0;
 			w1 = row_w1;
 			w2 = row_w2;
-			for (int32 x = box.min.x; x < box.max.x; x += step)
+			for (int x = box.min.x; x < box.max.x; x += 1)
 			{
-				if ((w0 | w1 | w2) > 0)
-					plot(x, y);
+				if ((w0 | w1 | w2) >= 0) {
+					hp_w0 = (int64_t(w0 - bias_v12) << 8) + fw0;
+					hp_w1 = (int64_t(w1 - bias_v20) << 8) + fw1;
+					hp_w2 = (int64_t(w2 - bias_v01) << 8) + fw2;
+					float real_sum = float(hp_w0 + hp_w1 + hp_w2);
+					plot(x, y, float(hp_w0) / real_sum, float(hp_w1) / real_sum, float(hp_w2) / real_sum);
+				}
 				w0 += edge_a12;
 				w1 += edge_a20;
 				w2 += edge_a01;
