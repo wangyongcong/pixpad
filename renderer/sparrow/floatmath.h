@@ -12,5 +12,11 @@
 #define fast_floor xs_FloorToInt
 // fast ceil float to int
 #define fast_ceil xs_CeilToInt
+// fast covertion from real64 to .N fixed point
+template<uint16 N>
+inline int32 fast_to_fixed(real64 v)
+{
+	xs_CRoundToInt(val, _xs_doublemagic / (1 << N));
+}
 
 #endif // WYC_HEADER_FLOATMATH

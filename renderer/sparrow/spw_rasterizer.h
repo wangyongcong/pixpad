@@ -1,6 +1,8 @@
 #pragma once
 #include "OpenEXR/ImathExc.h"
+#include "OpenEXR/ImathBox.h"
 #include "mathfwd.h"
+#include "floatmath.h"
 
 namespace wyc
 {
@@ -95,11 +97,63 @@ namespace wyc
 		return Imath::Vec3<T>(x / area, y / area, z / area);
 	}
 
-	// fill triangle {vertices[0], vertices[1], vertices[2]} in counter-clockwise
-	template<typename T>
-	void fill_triangle(Imath::Vec2<T> *vertices)
+	bool is_top_left(const Vec2f &v1, const Vec2f &v2)
 	{
+		return false;
+	}
 
+	template<uint16 N>
+	inline Vec2i snap_to_subpixel(const Vec2f &v)
+	{
+		return Vec2i(fast_to_fixed<N>(v.x), fast_to_fixed<N>(v.y));
+	}
+
+	// fill triangle {vertices[0], vertices[1], vertices[2]} in counter-clockwise
+	template<typename Plotter>
+	void fill_triangle(const Imath::Box<Vec2i> &box, const Vec2f *vertices, Plotter &plot)
+	{
+#ifdef _DEBUG
+		// max render target is 2048 x 2048
+		assert(box.min.x >= -1024 && box.min.x < 1024 
+			&& box.min.y >= -1024 && box.min.y < 1024
+			&& box.max.x >= -1024 && box.max.x < 1024
+			&& box.max.y >= -1024 && box.max.y < 1024);
+#endif
+		
+		// snap to .8 sub pixel
+		Vec2i v0 = snap_to_subpixel<8>(vertices[0]);
+		Vec2i v1 = snap_to_subpixel<8>(vertices[1]);
+		Vec2i v2 = snap_to_subpixel<8>(vertices[2]);
+		
+		// edge function delta
+		int32 edge_a01 = v0.y - v1.y, edge_b01 = v1.x - v0.x;
+		int32 edge_a12 = v1.y - v2.y, edge_b12 = v2.x - v1.x;
+		int32 edge_a20 = v2.y - v0.y, edge_b20 = v0.x - v2.x;
+
+		// initial edge function
+		int32 row_w0 = triangle_edge_function(v1, v2, box.min);
+		int32 row_w1 = triangle_edge_function(v2, v0, box.min);
+		int32 row_w2 = triangle_edge_function(v0, v1, box.min);
+
+		int32 w0, w1, w2;
+		const int32 step = 256;
+		for (int32 y = box.min.y; y < box.max.y; y += step)
+		{
+			w0 = row_w0;
+			w1 = row_w1;
+			w2 = row_w2;
+			for (int32 x = box.min.x; x < box.max.x; x += step)
+			{
+				if ((w0 | w1 | w2) > 0)
+					plot(x, y);
+				w0 += edge_a12;
+				w1 += edge_a20;
+				w2 += edge_a01;
+			}
+			row_w0 += edge_b12;
+			row_w1 += edge_b20;
+			row_w2 += edge_b01;
+		}
 	}
 
 
