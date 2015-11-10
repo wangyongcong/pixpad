@@ -110,7 +110,7 @@ namespace wyc
 	void CViewSparrow::on_render()
 	{
 		auto thread_id = std::this_thread::get_id();
-		debug("start render on thread[0x%x], sparrow view", thread_id);
+		debug("start render on thread[0x%X], sparrow view", thread_id);
 
 		// register present function
 		m_renderer->spw_present = [=] { this->present(); };
@@ -123,7 +123,7 @@ namespace wyc
 			m_renderer->process();
 		}
 
-		debug("exit thread[0x%x]", thread_id);
+		debug("exit thread[0x%X]", thread_id);
 	}
 
 	void CViewSparrow::set_text(const wchar_t * text)

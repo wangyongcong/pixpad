@@ -32,7 +32,10 @@ namespace wyc
 		{
 			ptr->get_ready();
 		}
-		debug("all renderer is ready.");
+		debug("all renderers are ready.");
+
+		// start a task
+
 		return;
 	}
 
