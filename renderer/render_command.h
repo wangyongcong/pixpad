@@ -68,6 +68,7 @@ namespace wyc
 		CMD_TEST = 0,
 		CMD_PRESENT = 1,
 		CMD_CLEAR,
+		CMD_TEST_TRIANGLE,
 
 		CMD_COUNT
 	};
@@ -92,6 +93,12 @@ namespace wyc
 		CMD_TID(CMD_CLEAR);
 		unsigned type = 0;
 		Imath::C3f color;
+	};
+
+	RENDER_CMD(cmd_test_triangle)
+	{
+		CMD_TID(CMD_TEST_TRIANGLE);
+		float radius = 1;
 	};
 
 }  // namespace wyc

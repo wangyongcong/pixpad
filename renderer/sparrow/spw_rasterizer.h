@@ -75,7 +75,7 @@ namespace wyc
 	}
 
 	template<typename T>
-	bool is_inside_triangle(const Imath::Vec2 &p, Imath::Vec2<T> &v0, const Imath::Vec2<T> &v1, const Imath::Vec2<T> &v2)
+	bool is_inside_triangle(const Imath::Vec2<T> &p, const Imath::Vec2<T> &v0, const Imath::Vec2<T> &v1, const Imath::Vec2<T> &v2)
 	{
 		T edge01 = triangle_edge_function(v0, v1, p);
 		T edge12 = triangle_edge_function(v1, v2, p);
@@ -84,7 +84,7 @@ namespace wyc
 	}
 
 	template<typename T>
-	Imath::Vec3<T> barycentric_coord(const Imath::Vec2 &p, Imath::Vec2<T> &v0, const Imath::Vec2<T> &v1, const Imath::Vec2<T> &v2)
+	Imath::Vec3<T> barycentric_coord(const Imath::Vec2<T> &p, Imath::Vec2<T> &v0, const Imath::Vec2<T> &v1, const Imath::Vec2<T> &v2)
 	{
 		T x = triangle_edge_function(v1, v2, p);
 		T y = triangle_edge_function(v2, v0, p);
@@ -138,15 +138,19 @@ namespace wyc
 		Vec2i v2 = snap_to_subpixel<8>(vertices[2]);
 
 #ifdef _DEBUG
-		ASSERT_INSIDE(v0, 1024);
-		ASSERT_INSIDE(v1, 1024);
-		ASSERT_INSIDE(v2, 1024);
+		//ASSERT_INSIDE(v0, 1024);
+		//ASSERT_INSIDE(v1, 1024);
+		//ASSERT_INSIDE(v2, 1024);
 #endif
 		
 		// initial edge function with high precision
-		int64_t hp_w0 = edge_function_fixed(v1, v2, box.min);
-		int64_t hp_w1 = edge_function_fixed(v2, v0, box.min);
-		int64_t hp_w2 = edge_function_fixed(v0, v1, box.min);
+		// sample point is at pixel center
+		Vec2i p = box.min;
+		p.x = (p.x << 8) | 0x80;
+		p.y = (p.y << 8) | 0x80;
+		int64_t hp_w0 = edge_function_fixed(v1, v2, p);
+		int64_t hp_w1 = edge_function_fixed(v2, v0, p);
+		int64_t hp_w2 = edge_function_fixed(v0, v1, p);
 
 		// edge function delta
 		int edge_a01 = v0.y - v1.y, edge_b01 = v1.x - v0.x;

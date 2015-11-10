@@ -51,8 +51,12 @@ namespace wyc
 		for (auto &ptr : m_renderers)
 		{
 			auto *clear = ptr->new_command<cmd_clear>();
-			clear->color.setValue(0.4f, 0.4f, 0.4f);
+			//clear->color.setValue(0.4f, 0.4f, 0.4f);
+			clear->color.setValue(0.0f, 0.0f, 0.0f);
 			ptr->enqueue(clear);
+			auto *test = ptr->new_command<cmd_test_triangle>();
+			test->radius = 100.0f;
+			ptr->enqueue(test);
 
 			ptr->present();
 		}

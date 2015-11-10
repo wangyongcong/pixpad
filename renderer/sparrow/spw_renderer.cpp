@@ -19,6 +19,7 @@ namespace wyc
 		GET_HANDLER(cmd_test),
 		GET_HANDLER(cmd_present),
 		GET_HANDLER(cmd_clear),
+		GET_HANDLER(cmd_test_triangle),
 	};
 
 	CSpwRenderer::CSpwRenderer() : 
