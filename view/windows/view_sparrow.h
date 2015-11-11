@@ -19,10 +19,13 @@ namespace wyc
 		virtual std::shared_ptr<CRenderer> get_renderer() override {
 			return m_renderer;
 		}
+		void on_paint();
+
 	protected:
+		void present();
+		void refresh_view();
 		bool rebuild_resource();
 		void discard_resource();
-		void present();
 
 		HWND m_hwnd;
 		ID2D1Factory *m_d2d_factory;

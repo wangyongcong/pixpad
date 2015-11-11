@@ -11,6 +11,28 @@
 
 namespace wyc
 {
+
+	LRESULT CALLBACK ViewSparrowProcess(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		PAINTSTRUCT ps;
+		HDC hdc;
+		CViewSparrow *view = nullptr;
+		switch (message)
+		{
+		case WM_PAINT:
+			hdc = BeginPaint(hWnd, &ps);
+			view = reinterpret_cast<CViewSparrow*>(GetWindowLongPtr(hWnd, GWL_USERDATA));
+			if (view) {
+				view->on_paint();
+			}
+			EndPaint(hWnd, &ps);
+			break;
+		default:
+			return DefWindowProc(hWnd, message, wParam, lParam);
+		}
+		return 0;
+	}
+
 	CViewSparrow::CViewSparrow() : 
 		m_hwnd(NULL), 
 		m_d2d_factory(nullptr), 
@@ -46,7 +68,7 @@ namespace wyc
 			wndcls.cbSize = sizeof(WNDCLASSEX);
 			wndcls.style = CS_HREDRAW | CS_VREDRAW;
 			wndcls.hInstance = os_instance;
-			wndcls.lpfnWndProc = WNDPROC(&DefWindowProc);
+			wndcls.lpfnWndProc = WNDPROC(&ViewSparrowProcess);
 			wndcls.cbClsExtra = 0;
 			wndcls.cbWndExtra = 0;
 			wndcls.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -98,6 +120,7 @@ namespace wyc
 		m_view_pos.setValue(x, y);
 		m_view_size.setValue(int(w), int(h));
 
+		SetWindowLongPtr(m_hwnd, GWL_USERDATA, LONG_PTR(this));
 		// do not response user input
 		EnableWindow(target_wnd, FALSE);
 		ShowWindow(target_wnd, SW_NORMAL);
@@ -222,24 +245,44 @@ namespace wyc
 		D2D1_RECT_U src_rect = {
 			0, 0, unsigned(m_view_size.x), unsigned(m_view_size.y)
 		};
+		CSurface &color_buffer = m_target->get_color_buffer();
+		size_t pitch = color_buffer.pitch();
+		HRESULT result = m_bitmap->CopyFromMemory(&src_rect, color_buffer.get_buffer(), pitch);
+		if (result == S_OK) 
+		{
+			refresh_view();
+		}
+	}
+
+	void CViewSparrow::refresh_view()
+	{
 		D2D1_RECT_F dst_rect = {
 			0.0f, 0.0f, float(m_view_size.x), float(m_view_size.y)
 		};
-		CSurface &color_buffer = m_target->get_color_buffer();
-		size_t pitch = color_buffer.pitch();
-		HRESULT result;
-		result = m_bitmap->CopyFromMemory(&src_rect, color_buffer.get_buffer(), pitch);
 		m_d2d_rt->BeginDraw();
 		m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
-		result = m_d2d_rt->EndDraw();
+		HRESULT result = m_d2d_rt->EndDraw();
+		if (result == S_OK)
+		{
+			return;
+		}
 		if (result == D2DERR_RECREATE_TARGET)
 		{
 			warn("Render target lost!");
 			rebuild_resource();
 		}
-		else if (result != S_OK)
+		else
 		{
 			warn("D2D end draw error: %d", result);
+		}
+	}
+
+	void CViewSparrow::on_paint()
+	{
+		debug("CViewSparrow::on_paint");
+		if (m_d2d_rt && m_bitmap)
+		{
+			refresh_view();
 		}
 	}
 
