@@ -58,6 +58,14 @@ namespace wyc
 		return true;
 	}
 
+	void CViewOgl3::suspend()
+	{
+	}
+
+	void CViewOgl3::wake_up()
+	{
+	}
+
 	void CViewOgl3::set_text(const wchar_t *text)
 	{
 	}

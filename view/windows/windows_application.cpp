@@ -114,10 +114,10 @@ namespace wyc
 		this->m_view_h = client_h;
 
 		this->m_game = game_inst;
-		m_game->on_start();
-
 		ShowWindow(hMainWnd, SW_NORMAL);
 		UpdateWindow(hMainWnd);
+
+		m_game->on_start();
 
 		return true;
 	}

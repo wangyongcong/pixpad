@@ -107,6 +107,18 @@ namespace wyc
 		return true;
 	}
 
+	void CViewSparrow::suspend()
+	{
+		m_suspend_lock.lock();
+		m_suspended = true;
+	}
+
+	void CViewSparrow::wake_up()
+	{
+		if (m_suspended)
+			m_suspend_lock.unlock();
+	}
+
 	void CViewSparrow::on_render()
 	{
 		auto thread_id = std::this_thread::get_id();
@@ -120,6 +132,11 @@ namespace wyc
 		
 		while (!CApplication::get_instance()->is_exit())
 		{
+			if (m_suspended)
+			{
+				std::lock_guard<std::mutex> guard(m_suspend_lock);
+				m_suspended = false;
+			}
 			m_renderer->process();
 		}
 

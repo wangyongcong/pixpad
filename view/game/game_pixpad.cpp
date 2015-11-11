@@ -28,20 +28,23 @@ namespace wyc
 		unsigned core_count = std::thread::hardware_concurrency();
 		debug("max thread count: %d", core_count);
 		create_views();
-		for (auto &ptr : m_renderers)
+		for (auto &ptr : m_views)
 		{
-			ptr->get_ready();
+			ptr->get_renderer()->wait_for_ready();
+			ptr->suspend();
 		}
 		debug("all renderers are ready.");
 
-		// start a task
-
-		return;
+		start_task();
 	}
 
 	void CGamePixpad::on_close()
 	{
 		m_signal_exit.store(true, std::memory_order_relaxed);
+		for (auto &ptr : m_views)
+		{
+			ptr->wake_up();
+		}
 		for (auto &pthread : m_thread_pool)
 		{
 			pthread.join();
@@ -51,23 +54,6 @@ namespace wyc
 	void CGamePixpad::on_update()
 	{
 		auto t_start = std::chrono::high_resolution_clock::now();
-		for (auto &ptr : m_renderers)
-		{
-			auto *clear = ptr->new_command<cmd_clear>();
-			//clear->color.setValue(0.4f, 0.4f, 0.4f);
-			clear->color.setValue(0.0f, 0.0f, 0.0f);
-			ptr->enqueue(clear);
-			auto *test = ptr->new_command<cmd_test_triangle>();
-			test->radius = 100.0f;
-			ptr->enqueue(test);
-
-			ptr->present();
-		}
-		// wait for frame
-		for (auto &ptr : m_renderers)
-		{
-			ptr->end_frame();
-		}
 		auto t_end = std::chrono::high_resolution_clock::now();
 		auto frame_time = std::chrono::duration_cast<duration_t>(t_end - t_start);
 		m_total_time += frame_time;
@@ -125,16 +111,43 @@ namespace wyc
 			for (unsigned c = 0; c < col && view_idx < c_view_count; ++c, ++view_idx)
 			{
 				auto ptr_view = CViewBase::create_view(c_view_list[view_idx], x, y, view_w, view_h);
-				m_renderers.push_back(ptr_view->get_renderer());
-				auto func = std::bind(&CViewBase::on_render, ptr_view);
 				if (ptr_view) 
 				{
+					m_views.push_back(ptr_view);
+					auto func = std::bind(&CViewBase::on_render, ptr_view);
 					m_thread_pool.push_back(std::thread(func));
 				}
 				x += view_w;
 			}
 			x = 0;
 			y += view_h;
+		}
+	}
+
+	void CGamePixpad::start_task()
+	{
+		for (auto &ptr : m_views)
+		{
+			ptr->wake_up();
+		}
+		// start a task
+		for (auto &ptr : m_views)
+		{
+			auto renderer = ptr->get_renderer();
+			auto *clear = renderer->new_command<cmd_clear>();
+			clear->color.setValue(0.0f, 0.0f, 0.0f);
+			renderer->enqueue(clear);
+			auto *test = renderer->new_command<cmd_test_triangle>();
+			test->radius = 100.0f;
+			renderer->enqueue(test);
+
+			renderer->present();
+		}
+		// wait for frame
+		for (auto &ptr : m_views)
+		{
+			ptr->get_renderer()->end_frame();
+			ptr->suspend();
 		}
 	}
 

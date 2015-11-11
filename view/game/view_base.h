@@ -20,6 +20,8 @@ namespace wyc
 		static std::shared_ptr<CViewBase> create_view(EViewType type, int x, int y, unsigned w, unsigned h);
 		virtual ~CViewBase() {}
 		virtual bool initialize(int x, int y, unsigned w, unsigned h) = 0;
+		virtual void suspend() = 0;
+		virtual void wake_up() = 0;
 		virtual void set_text(const wchar_t *text) = 0;
 		virtual void on_render() = 0;
 		virtual void get_position(int &x, int &y) = 0;

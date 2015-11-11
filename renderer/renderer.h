@@ -16,7 +16,7 @@ namespace wyc
 		virtual void set_render_target(std::shared_ptr<CRenderTarget> rt) = 0;
 		virtual std::shared_ptr<CRenderTarget> get_render_target() = 0;
 		virtual void process() = 0;
-		void get_ready();
+		void wait_for_ready();
 		void set_ready();
 		void present();
 		void end_frame();

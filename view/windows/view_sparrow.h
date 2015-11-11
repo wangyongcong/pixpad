@@ -10,6 +10,8 @@ namespace wyc
 		CViewSparrow();
 		virtual ~CViewSparrow();
 		virtual bool initialize(int x, int y, unsigned w, unsigned h) override;
+		virtual void suspend();
+		virtual void wake_up();
 		virtual void on_render() override;
 		virtual void set_text(const wchar_t *text) override;
 		virtual void get_position(int &x, int &y) override;
@@ -30,6 +32,8 @@ namespace wyc
 		std::shared_ptr<CSpwRenderTarget> m_target;
 		Imath::V2i m_view_pos;
 		Imath::V2i m_view_size;
+		std::mutex m_suspend_lock;
+		std::atomic<bool> m_suspended;
 	};
 
 } // namespace wyc

@@ -39,16 +39,17 @@ namespace wyc
 
 	private:
 		void create_views();
-		
+		void start_task();
+
 		uint64_t m_frame;
 		using duration_t = std::chrono::milliseconds;
 		duration_t m_total_time;
 		std::array<duration_t, 240> m_frame_time;
 
+		std::atomic_bool m_signal_exit;
 		const std::wstring &m_game_name;
 		std::vector<std::thread> m_thread_pool;
-		std::atomic_bool m_signal_exit;
-		std::vector<std::shared_ptr<CRenderer>> m_renderers;
+		std::vector<std::shared_ptr<CViewBase>> m_views;
 
 		//GLuint m_tex = 0;
 		//GLuint m_prog = 0;

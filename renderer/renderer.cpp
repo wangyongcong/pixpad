@@ -12,7 +12,7 @@ namespace wyc
 	{
 	}
 
-	void CRenderer::get_ready()
+	void CRenderer::wait_for_ready()
 	{
 		auto future = m_is_ready.get_future();
 		future.wait();
@@ -26,7 +26,7 @@ namespace wyc
 	void CRenderer::present()
 	{
 		auto *cmd = new_command<cmd_present>();
-		m_is_done = std::move(cmd->is_done.get_future());
+		m_is_done = cmd->is_done.get_future();
 		enqueue(cmd);
 	}
 
