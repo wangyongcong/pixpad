@@ -36,6 +36,9 @@
     <Filter Include="Common">
       <UniqueIdentifier>{42a88375-c981-49ee-8b74-c9a96895422e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer\Mathex">
+      <UniqueIdentifier>{8ed9bc52-f549-4cfe-8595-36bb11c5af10}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="view.rc">
@@ -301,17 +304,20 @@
     <ClInclude Include="..\..\renderer\sparrow\spw_rasterizer.h">
       <Filter>Renderer\Sparrow</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\renderer\sparrow\mathfwd.h">
-      <Filter>Renderer\Sparrow</Filter>
+    <ClInclude Include="..\..\renderer\mathex\floatmath.h">
+      <Filter>Renderer\Mathex</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\renderer\sparrow\floatmath.h">
-      <Filter>Renderer\Sparrow</Filter>
+    <ClInclude Include="..\..\renderer\mathex\mathfwd.h">
+      <Filter>Renderer\Mathex</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\renderer\sparrow\xs_config.h">
-      <Filter>Renderer\Sparrow</Filter>
+    <ClInclude Include="..\..\renderer\mathex\xs_config.h">
+      <Filter>Renderer\Mathex</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\renderer\sparrow\xs_float.h">
-      <Filter>Renderer\Sparrow</Filter>
+    <ClInclude Include="..\..\renderer\mathex\xs_float.h">
+      <Filter>Renderer\Mathex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\mathex\vecmath.h">
+      <Filter>Renderer\Mathex</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -368,6 +374,9 @@
     </ClCompile>
     <ClCompile Include="..\..\renderer\sparrow\spw_command.cpp">
       <Filter>Renderer\Sparrow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\renderer\mathex\vecmath.cpp">
+      <Filter>Renderer\Mathex</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

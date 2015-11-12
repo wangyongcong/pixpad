@@ -8,6 +8,7 @@
 
 #include <OpenEXR/ImathFun.h>
 #include <OpenEXR/ImathColor.h>
+#include <OpenEXR/ImathFrustum.h>
 
 #include "application.h"
 #include "game_config.h"
@@ -133,6 +134,8 @@ namespace wyc
 		}
 		// start a task
 		CTriangleMesh mesh(100);
+		Imath::Frustumf frustum;
+		Imath::Matrix44<float> mvp = frustum.projectionMatrix();
 		for (auto &ptr : m_views)
 		{
 			auto renderer = ptr->get_renderer();
@@ -141,6 +144,7 @@ namespace wyc
 			renderer->enqueue(clear);
 			auto *draw = renderer->new_command<cmd_draw_mesh>();
 			draw->mesh = &mesh;
+			draw->mvp = &mvp;
 			renderer->enqueue(draw);
 
 			renderer->present();

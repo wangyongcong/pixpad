@@ -150,20 +150,21 @@
     <ClInclude Include="..\..\common\logger.h" />
     <ClInclude Include="..\..\common\unitest.h" />
     <ClInclude Include="..\..\common\util.h" />
+    <ClInclude Include="..\..\renderer\mathex\floatmath.h" />
+    <ClInclude Include="..\..\renderer\mathex\mathfwd.h" />
+    <ClInclude Include="..\..\renderer\mathex\vecmath.h" />
+    <ClInclude Include="..\..\renderer\mathex\xs_config.h" />
+    <ClInclude Include="..\..\renderer\mathex\xs_float.h" />
     <ClInclude Include="..\..\renderer\mesh.h" />
     <ClInclude Include="..\..\renderer\ogl\glutil.h" />
     <ClInclude Include="..\..\renderer\renderer.h" />
     <ClInclude Include="..\..\renderer\render_command.h" />
     <ClInclude Include="..\..\renderer\render_target.h" />
-    <ClInclude Include="..\..\renderer\sparrow\floatmath.h" />
-    <ClInclude Include="..\..\renderer\sparrow\mathfwd.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_command.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_rasterizer.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_renderer.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_render_target.h" />
     <ClInclude Include="..\..\renderer\sparrow\surface.h" />
-    <ClInclude Include="..\..\renderer\sparrow\xs_config.h" />
-    <ClInclude Include="..\..\renderer\sparrow\xs_float.h" />
     <ClInclude Include="..\..\thread\platform_info.h" />
     <ClInclude Include="..\..\thread\ring_queue.h" />
     <ClInclude Include="..\..\view\game\application.h" />
@@ -183,6 +184,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\common\logger.cpp" />
     <ClCompile Include="..\..\common\util.cpp" />
+    <ClCompile Include="..\..\renderer\mathex\vecmath.cpp" />
     <ClCompile Include="..\..\renderer\mesh.cpp" />
     <ClCompile Include="..\..\renderer\ogl\glutil.cpp" />
     <ClCompile Include="..\..\renderer\renderer.cpp" />

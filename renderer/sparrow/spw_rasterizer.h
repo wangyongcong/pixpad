@@ -1,8 +1,8 @@
 #pragma once
 #include "OpenEXR/ImathExc.h"
 #include "OpenEXR/ImathBox.h"
-#include "mathfwd.h"
-#include "floatmath.h"
+#include "mathex/mathfwd.h"
+#include "mathex/floatmath.h"
 
 namespace wyc
 {

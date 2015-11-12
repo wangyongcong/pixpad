@@ -5,6 +5,7 @@
 #include <vector>
 #include <future>
 
+#include "OpenExr/ImathForward.h"
 #include "OpenEXR/ImathColor.h"
 
 #include "util.h"
@@ -99,7 +100,8 @@ namespace wyc
 	RENDER_CMD(cmd_draw_mesh)
 	{
 		CMD_TID(CMD_DRAW_MESH);
-		CMesh *mesh = nullptr;
+		const CMesh *mesh = nullptr;
+		const Imath::Matrix44<float> *mvp;
 	};
 
 }  // namespace wyc

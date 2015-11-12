@@ -45,7 +45,7 @@ namespace wyc
 		assert(renderer);
 		auto *cmd = get_cmd(cmd_draw_mesh);
 		assert(cmd);
-		CMesh *mesh = cmd->mesh;
+		const CMesh *mesh = cmd->mesh;
 		if (!mesh)
 		{
 			return;
