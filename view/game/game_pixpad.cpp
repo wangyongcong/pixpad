@@ -13,6 +13,7 @@
 #include "game_config.h"
 #include "log.h"
 #include "util.h"
+#include "mesh.h"
 
 namespace wyc
 {
@@ -131,15 +132,16 @@ namespace wyc
 			ptr->wake_up();
 		}
 		// start a task
+		CTriangleMesh mesh(100);
 		for (auto &ptr : m_views)
 		{
 			auto renderer = ptr->get_renderer();
 			auto *clear = renderer->new_command<cmd_clear>();
 			clear->color.setValue(0.0f, 0.0f, 0.0f);
 			renderer->enqueue(clear);
-			auto *test = renderer->new_command<cmd_test_triangle>();
-			test->radius = 100.0f;
-			renderer->enqueue(test);
+			auto *draw = renderer->new_command<cmd_draw_mesh>();
+			draw->mesh = &mesh;
+			renderer->enqueue(draw);
 
 			renderer->present();
 		}

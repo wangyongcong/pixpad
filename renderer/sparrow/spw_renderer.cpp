@@ -12,17 +12,9 @@
 namespace wyc
 {
 
-#define GET_HANDLER(cmd_type) &spw_handler<cmd_type>
+	extern spw_command_handler spw_cmd_map[];
 
-	using spw_command_handler = void (*) (CSpwRenderer*, RenderCommand*);
-	static spw_command_handler spw_cmd_map[CMD_COUNT] = {
-		GET_HANDLER(cmd_test),
-		GET_HANDLER(cmd_present),
-		GET_HANDLER(cmd_clear),
-		GET_HANDLER(cmd_test_triangle),
-	};
-
-	CSpwRenderer::CSpwRenderer() : 
+	CSpwRenderer::CSpwRenderer() :
 		m_rt(nullptr)
 	{
 		m_cmd_buffer.reserve(128);

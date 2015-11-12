@@ -366,6 +366,9 @@
     <ClCompile Include="..\..\renderer\mesh.cpp">
       <Filter>Renderer\Base</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\renderer\sparrow\spw_command.cpp">
+      <Filter>Renderer\Sparrow</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

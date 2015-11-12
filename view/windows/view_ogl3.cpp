@@ -66,6 +66,11 @@ namespace wyc
 	{
 	}
 
+	void CViewOgl3::refresh()
+	{
+		UpdateWindow(m_hwnd);
+	}
+
 	void CViewOgl3::set_text(const wchar_t *text)
 	{
 	}

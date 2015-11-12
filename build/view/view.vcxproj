@@ -187,6 +187,7 @@
     <ClCompile Include="..\..\renderer\ogl\glutil.cpp" />
     <ClCompile Include="..\..\renderer\renderer.cpp" />
     <ClCompile Include="..\..\renderer\render_command.cpp" />
+    <ClCompile Include="..\..\renderer\sparrow\spw_command.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_renderer.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_render_target.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\surface.cpp" />

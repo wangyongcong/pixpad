@@ -14,6 +14,7 @@ namespace wyc
 		virtual bool initialize(int x, int y, unsigned w, unsigned h) override;
 		virtual void suspend() override;
 		virtual void wake_up() override;
+		virtual void refresh() override;
 		virtual void set_text(const wchar_t *text) override;
 		virtual void on_render() override;
 		virtual void get_position(int &x, int &y) override;

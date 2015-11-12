@@ -97,7 +97,7 @@ namespace wyc
 		return Imath::Vec3<T>(x / area, y / area, z / area);
 	}
 
-	bool is_top_left(const Vec2f &v1, const Vec2f &v2)
+	inline bool is_top_left(const Vec2f &v1, const Vec2f &v2)
 	{
 		// In a counter-clockwise triangle:
 		// A top edge is an edge that is exactly horizontal and goes towards the left, i.e.its end point is left of its start point.

@@ -37,4 +37,6 @@ namespace wyc
 		static_assert(0, "Not implemented.");
 	}
 
+	using spw_command_handler = void(*) (CSpwRenderer*, RenderCommand*);
+
 } // namespace wyc

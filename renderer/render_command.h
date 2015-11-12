@@ -8,6 +8,7 @@
 #include "OpenEXR/ImathColor.h"
 
 #include "util.h"
+#include "mesh.h"
 
 namespace wyc
 {
@@ -68,7 +69,7 @@ namespace wyc
 		CMD_TEST = 0,
 		CMD_PRESENT = 1,
 		CMD_CLEAR,
-		CMD_TEST_TRIANGLE,
+		CMD_DRAW_MESH,
 
 		CMD_COUNT
 	};
@@ -95,10 +96,10 @@ namespace wyc
 		Imath::C3f color;
 	};
 
-	RENDER_CMD(cmd_test_triangle)
+	RENDER_CMD(cmd_draw_mesh)
 	{
-		CMD_TID(CMD_TEST_TRIANGLE);
-		float radius = 1;
+		CMD_TID(CMD_DRAW_MESH);
+		CMesh *mesh = nullptr;
 	};
 
 }  // namespace wyc

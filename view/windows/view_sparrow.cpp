@@ -91,7 +91,7 @@ namespace wyc
 		ID2D1Factory *ptr_factory = nullptr;
 		D2D1_FACTORY_OPTIONS options;
 		options.debugLevel = D2D1_DEBUG_LEVEL_NONE;
-		HRESULT result = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, options, &ptr_factory);
+		HRESULT result = D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, options, &ptr_factory);
 		if (result != S_OK)
 		{
 			error("Failed to initialize Direct2D factory.");
@@ -140,6 +140,11 @@ namespace wyc
 	{
 		if (m_suspended)
 			m_suspend_lock.unlock();
+	}
+
+	void CViewSparrow::refresh()
+	{
+		UpdateWindow(m_hwnd);
 	}
 
 	void CViewSparrow::on_render()
@@ -248,41 +253,37 @@ namespace wyc
 		CSurface &color_buffer = m_target->get_color_buffer();
 		size_t pitch = color_buffer.pitch();
 		HRESULT result = m_bitmap->CopyFromMemory(&src_rect, color_buffer.get_buffer(), pitch);
-		if (result == S_OK) 
+		if (result != S_OK) 
 		{
-			refresh_view();
-		}
-	}
-
-	void CViewSparrow::refresh_view()
-	{
-		D2D1_RECT_F dst_rect = {
-			0.0f, 0.0f, float(m_view_size.x), float(m_view_size.y)
-		};
-		m_d2d_rt->BeginDraw();
-		m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
-		HRESULT result = m_d2d_rt->EndDraw();
-		if (result == S_OK)
-		{
-			return;
-		}
-		if (result == D2DERR_RECREATE_TARGET)
-		{
-			warn("Render target lost!");
-			rebuild_resource();
-		}
-		else
-		{
-			warn("D2D end draw error: %d", result);
+			debug("CViewSparrow::present: error", result);
 		}
 	}
 
 	void CViewSparrow::on_paint()
 	{
-		debug("CViewSparrow::on_paint");
+		//debug("CViewSparrow::on_paint");
 		if (m_d2d_rt && m_bitmap)
 		{
-			refresh_view();
+			D2D1_RECT_F dst_rect = {
+				0.0f, 0.0f, float(m_view_size.x), float(m_view_size.y)
+			};
+			m_d2d_rt->BeginDraw();
+			m_d2d_rt->DrawBitmap(m_bitmap, &dst_rect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
+			HRESULT result = m_d2d_rt->EndDraw();
+			if (result == S_OK)
+			{
+				return;
+			}
+			if (result == D2DERR_RECREATE_TARGET)
+			{
+				warn("Render target lost!");
+				rebuild_resource();
+				// todo: we need present again
+			}
+			else
+			{
+				warn("D2D end draw error: %d", result);
+			}
 		}
 	}
 
