@@ -47,6 +47,10 @@ namespace wyc
 		void set_indices(std::initializer_list<uint32_t>&& indices);
 		const uint32_t* get_indices() const;
 		size_t get_index_count() const;
+		
+		// load from .obj file
+		bool load_obj(const std::wstring &filepath);
+
 	protected:
 		EVertexLayout m_layout;
 		void *m_vertices;
