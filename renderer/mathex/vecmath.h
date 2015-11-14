@@ -10,7 +10,7 @@ namespace wyc
 	template<class T>
 	inline T deg2rad(T angle)
 	{
-		return T(angle * Imath::M_PI / 180.0);
+		return T(angle * M_PI / 180.0);
 	}
 
 	template<typename T>

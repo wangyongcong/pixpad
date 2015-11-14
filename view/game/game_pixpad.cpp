@@ -134,6 +134,8 @@ namespace wyc
 		}
 		// start a task
 		CTriangleMesh mesh(100);
+		CMesh cube;
+		cube.load_obj(L"res/cube/cube.obj");
 		Imath::Frustumf frustum;
 		Imath::Matrix44<float> mvp = frustum.projectionMatrix();
 		for (auto &ptr : m_views)
