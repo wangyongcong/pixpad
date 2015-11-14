@@ -86,7 +86,7 @@ namespace wyc
 		std::stringstream ss;
 		std::unordered_map<std::string, std::string> mtl_lib;
 		std::vector<Imath::V3f> vertices;
-		std::vector<Imath::V3f> texcoords;
+		std::vector<Imath::V2f> texcoords;
 		std::vector<Imath::V3f> normals;
 		std::vector<Imath::V3f> parameter;
 		std::vector<Imath::V3i> faces;
@@ -266,6 +266,34 @@ namespace wyc
 			return false;
 		}
 		// interpret data
+		if (faces.empty())
+		{
+			return true;
+		}
+		auto vi = faces[0];
+		EVertexLayout vf;
+		if (vi.y == null_index)
+		{
+			if (vi.z == null_index)
+				vf = VF_P3C3;
+			else
+				vf = VF_P3N3;
+		}
+		else if (vi.z == null_index)
+		{
+			vf = VF_P3S2;
+		}
+		else
+		{
+			CVertexLayout<VF_P3S2N3>::vertex_t v;
+			for (auto &vi : faces)
+			{
+				v.pos = vertices[vi.x];
+				v.uv = texcoords[vi.y];
+				v.normal = normals[vi.z];
+			}
+
+		}
 
 		return true;
 	}

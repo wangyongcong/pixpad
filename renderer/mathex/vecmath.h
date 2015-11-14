@@ -14,9 +14,17 @@ namespace wyc
 	}
 
 	template<typename T>
-	T operator ^ (const Imath::Vec3<T> &v1, const Imath::Vec4<T> &v2)
+	inline T operator ^ (const Imath::Vec3<T> &v1, const Imath::Vec4<T> &v2)
 	{
-		return T(0);
+		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+	}
+
+	template<typename T>
+	inline Imath::Vec2<T>& operator = (Imath::Vec2<T> &lf, const Imath::Vec3<T> &rh)
+	{
+		lf.x = rh.x;
+		lf.y = rh.h;
+		return lf;
 	}
 
 	// OpenGL orthograph matrix

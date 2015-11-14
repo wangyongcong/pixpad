@@ -12,7 +12,9 @@ namespace wyc
 	{
 		VF_NONE = 0,
 		VF_P3C3,
-		VF_P3C3N3, 
+		VF_P3S2,
+		VF_P3N3,
+		VF_P3S2N3,
 	};
 
 	struct VertexP3C3
@@ -21,17 +23,35 @@ namespace wyc
 		Imath::C3f color;
 	};
 
+	struct VertexP3S2
+	{
+		Imath::V3f pos;
+		Imath::V2f uv;
+	};
+
+	struct VertexP3S2N3
+	{
+		Imath::V3f pos;
+		Imath::V2f uv;
+		Imath::V3f normal;
+	};
+
 	template<EVertexLayout Layout>
 	struct CVertexLayout
 	{
 		using vertex_t = void;
 	};
 
-	template<>
-	struct CVertexLayout<VF_P3C3>
-	{
-		using vertex_t = VertexP3C3;
-	};
+#define LAYOUT(f) \
+	template<>\
+	struct CVertexLayout<VF_##f>\
+	{\
+		using vertex_t = Vertex##f;\
+	}
+	
+	LAYOUT(P3C3);
+	LAYOUT(P3S2);
+	LAYOUT(P3S2N3);
 
 	class CMesh
 	{
