@@ -60,6 +60,8 @@ namespace wyc
 		~CMesh();
 		void clear();
 		template<EVertexLayout Layout>
+		bool resize(size_t count);
+		template<EVertexLayout Layout>
 		void set_vertices(std::initializer_list<typename CVertexLayout<Layout>::vertex_t>&& verts);
 		template<EVertexLayout Layout>
 		const typename CVertexLayout<Layout>::vertex_t* get_vertices() const;
@@ -72,6 +74,8 @@ namespace wyc
 		bool load_obj(const std::wstring &filepath);
 
 	protected:
+		bool reserve(size_t count, size_t vert_size);
+
 		EVertexLayout m_layout;
 		void *m_vertices;
 		size_t m_vert_count;
@@ -80,29 +84,27 @@ namespace wyc
 	};
 
 	template<EVertexLayout Layout>
-	inline void CMesh::set_vertices(std::initializer_list<typename CVertexLayout<Layout>::vertex_t>&& verts)
+	inline bool CMesh::resize(size_t count)
 	{
-		if (m_vertices)
+		using vertex_t = CVertexLayout<Layout>::vertex_t;
+		if (!reserve(count, sizeof(vertex_t)))
 		{
 			m_layout = VF_NONE;
-			free(m_vertices);
-			m_vertices = nullptr;
-			m_vert_count = 0;
+			return false;
+		}
+		m_layout = Layout;
+		return true;
+	}
+
+	template<EVertexLayout Layout>
+	inline void CMesh::set_vertices(std::initializer_list<typename CVertexLayout<Layout>::vertex_t>&& verts)
+	{
+		if (!resize<Layout>(verts.size()))
+		{
+			return;
 		}
 		using vertex_t = CVertexLayout<Layout>::vertex_t;
-		size_t cnt = verts.size();
-		if (!cnt)
-		{
-			return;
-		}
-		vertex_t *data = (vertex_t*)malloc(cnt * sizeof(vertex_t));
-		if (!data)
-		{
-			return;
-		}
-		m_vertices = data;
-		m_vert_count = cnt;
-		m_layout = Layout;
+		vertex_t *data = reinterpret_cast<vertex_t*>(m_vertices);
 		for (auto &v : verts)
 		{
 			*data++ = v;

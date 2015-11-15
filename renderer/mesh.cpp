@@ -86,7 +86,7 @@ namespace wyc
 		std::stringstream ss;
 		std::unordered_map<std::string, std::string> mtl_lib;
 		std::vector<Imath::V3f> vertices;
-		std::vector<Imath::V2f> texcoords;
+		std::vector<Imath::V3f> texcoords;
 		std::vector<Imath::V3f> normals;
 		std::vector<Imath::V3f> parameter;
 		std::vector<Imath::V3i> faces;
@@ -271,30 +271,68 @@ namespace wyc
 			return true;
 		}
 		auto vi = faces[0];
-		EVertexLayout vf;
 		if (vi.y == null_index)
 		{
-			if (vi.z == null_index)
-				vf = VF_P3C3;
-			else
-				vf = VF_P3N3;
+			return false;
 		}
 		else if (vi.z == null_index)
 		{
-			vf = VF_P3S2;
+			if (!resize<VF_P3S2>(faces.size()))
+			{
+				return false;
+			}
+			using vertex_t = CVertexLayout<VF_P3S2>::vertex_t;
+			vertex_t *out = reinterpret_cast<vertex_t*>(m_vertices);
+			for (auto &vi : faces)
+			{
+				out->pos = vertices[vi.x];
+				Imath::V3f &tmp = texcoords[vi.y];
+				out->uv.x = tmp.x;
+				out->uv.y = tmp.y;
+				++out;
+			}
 		}
 		else
 		{
-			CVertexLayout<VF_P3S2N3>::vertex_t v;
+			if (!resize<VF_P3S2N3>(faces.size()))
+			{
+				return false;
+			}
+			using vertex_t = CVertexLayout<VF_P3S2N3>::vertex_t;
+			vertex_t *out = reinterpret_cast<vertex_t*>(m_vertices);
 			for (auto &vi : faces)
 			{
-				v.pos = vertices[vi.x];
-				v.uv = texcoords[vi.y];
-				v.normal = normals[vi.z];
+				out->pos = vertices[vi.x];
+				Imath::V3f &tmp = texcoords[vi.y];
+				out->uv.x = tmp.x;
+				out->uv.y = tmp.y;
+				out->normal = normals[vi.z];
+				++out;
 			}
 
 		}
 
+		return true;
+	}
+
+	bool CMesh::reserve(size_t count, size_t vert_size)
+	{
+		if (m_vertices)
+		{
+			free(m_vertices);
+			m_vertices = nullptr;
+			m_vert_count = 0;
+		}
+		if (!count)
+		{
+			return false;
+		}
+		m_vertices = malloc(count * vert_size);
+		if (!m_vertices)
+		{
+			return false;
+		}
+		m_vert_count = count;
 		return true;
 	}
 
