@@ -14,6 +14,7 @@ namespace wyc
 		VF_P3C3,
 		VF_P3S2,
 		VF_P3N3,
+		VF_P3C3N3,
 		VF_P3S2N3,
 	};
 
@@ -27,6 +28,13 @@ namespace wyc
 	{
 		Imath::V3f pos;
 		Imath::V2f uv;
+	};
+
+	struct VertexP3C3N3
+	{
+		Imath::V3f pos;
+		Imath::C3f color;
+		Imath::V3f normal;
 	};
 
 	struct VertexP3S2N3
@@ -51,6 +59,7 @@ namespace wyc
 	
 	LAYOUT(P3C3);
 	LAYOUT(P3S2);
+	LAYOUT(P3C3N3);
 	LAYOUT(P3S2N3);
 
 	class CMesh

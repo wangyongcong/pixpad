@@ -273,7 +273,38 @@ namespace wyc
 		auto vi = faces[0];
 		if (vi.y == null_index)
 		{
-			return false;
+			Imath::V3f def_color(1, 1, 1);
+			if (vi.z == null_index)
+			{
+				if (!resize<VF_P3C3>(faces.size()))
+				{
+					return false;
+				}
+				using vertex_t = CVertexLayout<VF_P3C3>::vertex_t;
+				vertex_t *out = reinterpret_cast<vertex_t*>(m_vertices);
+				for (auto &vi : faces)
+				{
+					out->pos = vertices[vi.x];
+					out->color = def_color;
+					++out;
+				}
+			}
+			else
+			{
+				if (!resize<VF_P3C3N3>(faces.size()))
+				{
+					return false;
+				}
+				using vertex_t = CVertexLayout<VF_P3C3N3>::vertex_t;
+				vertex_t *out = reinterpret_cast<vertex_t*>(m_vertices);
+				for (auto &vi : faces)
+				{
+					out->pos = vertices[vi.x];
+					out->color = def_color;
+					out->normal = vertices[vi.z];
+					++out;
+				}
+			}
 		}
 		else if (vi.z == null_index)
 		{
@@ -309,9 +340,7 @@ namespace wyc
 				out->normal = normals[vi.z];
 				++out;
 			}
-
 		}
-
 		return true;
 	}
 
