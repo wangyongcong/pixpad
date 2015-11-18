@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iterator>
 #include <vector>
 #include <initializer_list>
 
@@ -79,6 +80,66 @@ namespace wyc
 		const uint32_t* get_indices() const;
 		size_t get_index_count() const;
 		
+		template<typename Vec>
+		class CAttributeIterator : public std::iterator<std::random_access_iterator_tag, Vec>
+		{
+			typedef CAttributeIterator MyType;
+			friend CMesh;
+		public:
+			CAttributeIterator()
+				: m_cursor(nullptr), m_stride(0)
+			{
+			}
+			CAttributeIterator(void *vectors, size_t stride)
+				: m_cursor((char*)vectors), m_stride(0)
+			{
+			}
+			CAttributeIterator(const MyType &other)
+			{
+				*this = other;
+			}
+			MyType& operator = (const MyType &other)
+			{
+				m_cursor = other.m_cursor;
+				m_stride = other.m_stride;
+				return *this;
+			}
+			const reference operator * () const
+			{
+				return *reinterpret_cast<pointer>(m_cursor);
+			}
+			pointer operator -> ()
+			{
+				return reinterpret_cast<pointer>(m_cursor);
+			}
+			inline MyType& operator ++ ()
+			{
+				m_cursor += stride;
+				return *this;
+			}
+			inline MyType& operator ++ (int)
+			{
+				MyType _tmp = *this;
+				++*this;
+				return _tmp;
+			}
+			inline MyType& operator -- ()
+			{
+				m_cursor -= stride;
+				return *this;
+			}
+			inline MyType& operator -- (int)
+			{
+				MyType _tmp = *this;
+				--*this;
+				return _tmp;
+			}
+		
+		private:
+			char *m_cursor;
+			size_t m_stride;
+		};
+
 		// load from .obj file
 		bool load_obj(const std::wstring &filepath);
 
