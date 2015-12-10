@@ -9,6 +9,7 @@
 
 #include "OpenEXR/ImathVec.h"
 #include "log.h"
+#include "vertex_buffer.h"
 
 namespace wyc
 {
@@ -271,6 +272,15 @@ namespace wyc
 			return true;
 		}
 		auto vi = faces[0];
+		CVertexBuffer vb;
+		vb.set_attribute(ATTR_POSITION, 3);
+		if (vi.y != null_index)
+			vb.set_attribute(ATTR_TEXTURE, 2);
+		if (vi.z != null_index)
+			vb.set_attribute(ATTR_NORMAL, 3);
+		vb.resize(vertices.size());
+
+
 		if (vi.y == null_index)
 		{
 			Imath::V3f def_color(1, 1, 1);
