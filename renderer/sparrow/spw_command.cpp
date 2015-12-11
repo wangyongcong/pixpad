@@ -65,14 +65,14 @@ namespace wyc
 			assert(y >= 0 && y < surf_h);
 			surf.set(x, y, v);
 		};
-		const VertexP3C3 *verts = mesh->get_vertices<VF_P3C3>();
-		size_t vert_cnt = mesh->get_vertex_count();
+		auto &vb = mesh->vertex_buffer();
+		assert(vb.vertex_size() == sizeof(VertexP3C3));
 		Vec2f out[3];
-		for (size_t i = 2; i < vert_cnt; i += 3)
+		for (auto iter = vb.begin(), end = vb.end(); iter != end;)
 		{
-			auto &v0 = verts[i - 2];
-			auto &v1 = verts[i - 1];
-			auto &v2 = verts[i];
+			const VertexP3C3 &v0 = *iter++;
+			const VertexP3C3 &v1 = *iter++;
+			const VertexP3C3 &v2 = *iter++;
 			out[0].setValue(v0.pos.x, v0.pos.y);
 			out[1].setValue(v1.pos.x, v1.pos.y);
 			out[2].setValue(v2.pos.x, v2.pos.y);

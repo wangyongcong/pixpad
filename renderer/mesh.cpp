@@ -13,6 +13,13 @@
 
 namespace wyc
 {
+	const VertexAttribute CVertexLayout<VF_P3C3>::attr_table[attr_count] =
+	{
+		VertexAttribute{ ATTR_POSITION, 3, offsetof(vertex_t, pos) },
+		VertexAttribute{ ATTR_COLOR, 3, offsetof(vertex_t, color) },
+	};
+
+
 	CMesh::CMesh()
 		: m_vb()
 	{

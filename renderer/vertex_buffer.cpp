@@ -69,5 +69,14 @@ namespace wyc
 		return CAttributeArray(beg, end, m_vert_size);
 	}
 
+	CAttributeArrayConst CVertexBuffer::get_attribute(EAttributeUsage usage) const
+	{
+		auto va = m_attr_tbl[usage];
+		if (!va)
+			return CAttributeArrayConst();
+		auto beg = m_data + va->offset;
+		auto end = beg + m_vert_size * m_vert_cnt;
+		return CAttributeArrayConst(beg, end, m_vert_size);
+	}
 	
 }

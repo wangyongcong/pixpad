@@ -28,27 +28,50 @@ namespace wyc
 		uint32_t offset;
 	};
 
-	struct VectorAccessor
+	class CVectorReader
 	{
-		float *ptr;
-		template<typename Vec>
-		inline VectorAccessor& operator = (const Vec &rhs)
+	public:
+		CVectorReader(void *ptr)
+			: m_ptr((float*)ptr)
+		{}
+		template<typename T>
+		inline operator const T& () const
 		{
-			*(Vec*)ptr = rhs;
-			return *this;
+			return *(T*)m_ptr;
 		}
-		template<typename Vec>
-		inline bool operator == (const Vec &rhs)
+		template<typename T>
+		inline bool operator == (const T &rhs) const
 		{
-			return *(Vec*)ptr == rhs;
-		}
-		inline float& operator[] (int n)
-		{
-			return ptr[n];
+			return *(T*)ptr == rhs;
 		}
 		inline float operator[] (int n) const
 		{
-			return ptr[n];
+			return m_ptr[n];
+		}
+	protected:
+		float *m_ptr;
+	};
+
+	class CVectorAccessor : public CVectorReader
+	{
+	public:
+		CVectorAccessor(void *ptr)
+			: CVectorReader(ptr)
+		{}
+		template<typename T>
+		inline CVectorAccessor& operator = (const T &rhs)
+		{
+			*(T*)m_ptr = rhs;
+			return *this;
+		}
+		template<typename T>
+		inline operator T& ()
+		{
+			return *(T*)m_ptr;
+		}
+		inline float& operator[] (int n)
+		{
+			return m_ptr[n];
 		}
 	};
 
@@ -61,7 +84,7 @@ namespace wyc
 		{
 		}
 		CAttributeIterator(char *beg, size_t stride = 0)
-			: m_cursor(beg), m_stride(0)
+			: m_cursor(beg), m_stride(stride)
 		{
 		}
 		CAttributeIterator(const MyType &other)
@@ -75,9 +98,9 @@ namespace wyc
 			return *this;
 		}
 
-		inline VectorAccessor operator * ()
+		inline CVectorAccessor operator * ()
 		{
-			return{ (float*)m_cursor };
+			return { m_cursor };
 		}
 
 		inline MyType& operator ++ ()
@@ -85,7 +108,7 @@ namespace wyc
 			m_cursor += m_stride;
 			return *this;
 		}
-		inline MyType& operator ++ (int)
+		inline MyType operator ++ (int)
 		{
 			MyType _tmp = *this;
 			++*this;
@@ -96,7 +119,7 @@ namespace wyc
 			m_cursor -= m_stride;
 			return *this;
 		}
-		inline MyType& operator -- (int)
+		inline MyType operator -- (int)
 		{
 			MyType _tmp = *this;
 			--*this;
@@ -105,19 +128,21 @@ namespace wyc
 
 		inline MyType& operator += (int n)
 		{
+			m_cursor += m_stride * n;
 			return *this;
 		}
 		inline MyType& operator -= (int n)
 		{
+			m_cursor -= m_stride * n;
 			return *this;
 		}
-		inline MyType operator + (int n)
+		inline MyType operator + (int n) const 
 		{
-			return *this;
+			return{ m_cursor + m_stride * n, m_stride };
 		}
-		inline MyType operator - (int n)
+		inline MyType operator - (int n) const
 		{
-			return *this;
+			return{m_cursor - m_stride * n, m_stride};
 		}
 
 		inline bool operator == (const MyType& rhs) const
@@ -145,29 +170,55 @@ namespace wyc
 			return m_cursor >= rhs.m_cursor;
 		}
 
-	private:
+	protected:
 		char *m_cursor;
 		unsigned m_stride;
 	};
 
-	class CAttributeArray
+	class CAttributeIteratorConst : public CAttributeIterator
 	{
-		typedef CAttributeArray MyType;
+		typedef CAttributeIterator MyType;
 	public:
-		CAttributeArray()
+		CAttributeIteratorConst()
+			: CAttributeIterator()
+		{
+		}
+		CAttributeIteratorConst(char *beg, size_t stride = 0)
+			: CAttributeIterator(beg, stride)
+		{
+		}
+		CAttributeIteratorConst(const MyType &other)
+		{
+			*this = other;
+		}
+		inline MyType& operator = (const MyType &other)
+		{
+			CAttributeIterator::operator = (other);
+			return *this;
+		}
+		inline CVectorReader operator * ()
+		{
+			return{ m_cursor };
+		}
+	};
+
+	class CAttributeArrayBase
+	{
+		typedef CAttributeArrayBase MyType;
+	public:
+		CAttributeArrayBase()
 			: m_beg(nullptr)
 			, m_end(nullptr)
 			, m_stride(0)
 		{}
-		CAttributeArray(char *beg, char *end, unsigned stride)
+		CAttributeArrayBase(char *beg, char *end, unsigned stride)
 			: m_beg(beg)
 			, m_end(end)
 			, m_stride(stride)
 		{
 			assert(m_end - m_beg >= long(m_stride));
 		}
-
-		CAttributeArray(const MyType& other)
+		CAttributeArrayBase(const MyType& other)
 		{
 			*this = other;
 		}
@@ -178,54 +229,74 @@ namespace wyc
 			m_stride = other.m_stride;
 		}
 
-
 		typedef CAttributeIterator iterator;
+		typedef CAttributeIteratorConst const_iterator;
+	protected:
+		char *m_beg;
+		char *m_end;
+		unsigned m_stride;
+	};
+
+	class CAttributeArray : public CAttributeArrayBase
+	{
+		typedef CAttributeArray MyType;
+	public:
+		CAttributeArray()
+			: CAttributeArrayBase()
+		{}
+		CAttributeArray(char *beg, char *end, unsigned stride)
+			: CAttributeArrayBase(beg, end, stride)
+		{}
+		CAttributeArray(const MyType& other)
+		{
+			*this = other;
+		}
+		MyType& operator = (const MyType& other)
+		{
+			CAttributeArrayBase::operator=(other);
+			return *this;
+		}
 		inline iterator begin()
 		{
-			return iterator(m_beg, m_stride);
+			return{ m_beg, m_stride };
 		}
 		inline iterator end()
 		{
-			return iterator(m_end);
+			return{ m_end };
 		}
 		operator bool() const
 		{
 			return m_beg < m_end;
 		}
+	};
 
-		void test_iterator()
+	class CAttributeArrayConst : public CAttributeArrayBase
+	{
+		typedef CAttributeArrayConst MyType;
+	public:
+		CAttributeArrayConst()
+			: CAttributeArrayBase()
+		{}
+		CAttributeArrayConst(char *beg, char *end, unsigned stride)
+			: CAttributeArrayBase(beg, end, stride)
+		{}
+		CAttributeArrayConst(const MyType& other)
 		{
-			iterator iter(m_beg, m_stride);
-			iterator end(m_end);
-			Imath::V3f v3;
-			float f = 3.14f;
-			*iter = v3;
-			*iter = f;
-			++iter;
-			--iter;
-			iter += 1;
-			iter -= 1;
-			iterator i2 = iter++;
-			i2 = iter--;
-			i2 = iter + 1;
-			i2 = iter - 1;
-			iter == end;
-			iter != end;
-			iter < end;
-			iter > end;
-			iter <= end;
-			iter >= end;
-			for (auto v : *this)
-			{
-				v = v3;
-				v[0] = 3.14f;
-			}
+			*this = other;
 		}
-
-	private:
-		char *m_beg;
-		char *m_end;
-		unsigned m_stride;
+		MyType& operator = (const MyType& other)
+		{
+			CAttributeArrayBase::operator=(other);
+			return *this;
+		}
+		inline const_iterator begin() const
+		{
+			return{ m_beg, m_stride };
+		}
+		inline const_iterator end() const
+		{
+			return{ m_end };
+		}
 	};
 
 	class CVertexBuffer
@@ -241,6 +312,26 @@ namespace wyc
 		
 		void set_attribute(EAttributeUsage usage, uint8_t element_count);
 		CAttributeArray get_attribute(EAttributeUsage usage);
+		CAttributeArrayConst get_attribute(EAttributeUsage usage) const;
+
+		typedef CAttributeIterator iterator;
+		typedef CAttributeIteratorConst const_iterator;
+		inline iterator begin()
+		{
+			return{ m_data, m_vert_size };
+		}
+		inline iterator end()
+		{
+			return{ m_data + m_vert_size * m_vert_cnt };
+		}
+		inline const_iterator begin() const
+		{
+			return{ m_data, m_vert_size };
+		}
+		inline const_iterator end() const
+		{
+			return{ m_data + m_vert_size * m_vert_cnt };
+		}
 
 		inline size_t size() const
 		{
@@ -256,7 +347,6 @@ namespace wyc
 		unsigned m_vert_cnt;
 		VertexAttribute* m_attr_tbl[ATTR_MAX_COUNT];
 	};
-
 
 
 } // namespace wyc

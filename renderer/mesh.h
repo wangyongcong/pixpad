@@ -20,16 +20,27 @@ namespace wyc
 		VF_P3S2N3,
 	};
 
+	template<EVertexLayout Layout>
+	struct CVertexLayout
+	{
+		using vertex_t = void;
+		static const int attr_count = 0;
+		static const VertexAttribute *attr_table;
+	};
+
 	struct VertexP3C3
 	{
 		Imath::V3f pos;
 		Imath::C3f color;
 	};
 
-	//const std::array<VertexAttribute, 2> va = {
-	//	VertexAttribute{ ATTR_POSITION, 3, offsetof(VertexP3C3, pos) },
-	//	VertexAttribute{ ATTR_COLOR, 3, offsetof(VertexP3C3, color) },
-	//};
+	template<>
+	struct CVertexLayout<VF_P3C3>
+	{
+		using vertex_t = VertexP3C3;
+		static const int attr_count = 2;
+		static const VertexAttribute attr_table[attr_count];
+	};
 
 	struct VertexP3S2
 	{
@@ -51,12 +62,6 @@ namespace wyc
 		Imath::V3f normal;
 	};
 
-	template<EVertexLayout Layout>
-	struct CVertexLayout
-	{
-		using vertex_t = void;
-	};
-
 #define LAYOUT(f) \
 	template<>\
 	struct CVertexLayout<VF_##f>\
@@ -64,7 +69,6 @@ namespace wyc
 		using vertex_t = Vertex##f;\
 	}
 	
-	LAYOUT(P3C3);
 	LAYOUT(P3S2);
 	LAYOUT(P3C3N3);
 	LAYOUT(P3S2N3);
@@ -73,64 +77,61 @@ namespace wyc
 	{
 	public:
 		CMesh();
+		CMesh(const CMesh& rhs) = delete;
+		CMesh& operator = (const CMesh& rhs) = delete;
 		~CMesh();
 		template<EVertexLayout Layout>
-		bool resize(size_t count);
-		template<EVertexLayout Layout>
 		void set_vertices(std::initializer_list<typename CVertexLayout<Layout>::vertex_t>&& verts);
-		template<EVertexLayout Layout>
-		const typename CVertexLayout<Layout>::vertex_t* get_vertices() const;
 		size_t vertex_count() const;
-		CVertexBuffer& get_vertex_buffer();
+		CVertexBuffer& vertex_buffer();
+		const CVertexBuffer& vertex_buffer() const;
 
 		// load from .obj file
 		bool load_obj(const std::wstring &filepath);
 
 	protected:
-		bool reserve(size_t count, size_t vert_size);
 		CVertexBuffer m_vb;
 	};
 
 	template<EVertexLayout Layout>
-	inline bool CMesh::resize(size_t count)
-	{
-		using vertex_t = CVertexLayout<Layout>::vertex_t;
-		if (!reserve(count, sizeof(vertex_t)))
-		{
-			m_layout = VF_NONE;
-			return false;
-		}
-		m_layout = Layout;
-		return true;
-	}
-
-	template<EVertexLayout Layout>
 	inline void CMesh::set_vertices(std::initializer_list<typename CVertexLayout<Layout>::vertex_t>&& verts)
 	{
-		if (!resize<Layout>(verts.size()))
+		using layout_t = CVertexLayout<Layout>;
+		using vertex_t = layout_t::vertex_t;
+
+		m_vb.clear();
+
+		if (!layout_t::attr_count || !verts.size())
 		{
 			return;
 		}
-		using vertex_t = CVertexLayout<Layout>::vertex_t;
-		vertex_t *data = reinterpret_cast<vertex_t*>(m_vertices);
+		for (auto &attr : layout_t::attr_table)
+		{
+			m_vb.set_attribute(attr.usage, attr.elem_cnt);
+		}
+		m_vb.resize(verts.size());
+		assert(m_vb.vertex_size() == sizeof(vertex_t));
+		auto out = m_vb.begin();
 		for (auto &v : verts)
 		{
-			*data++ = v;
+			*out = v;
+			++out;
 		}
-	}
-
-	template<EVertexLayout Layout>
-	inline const typename CVertexLayout<Layout>::vertex_t * CMesh::get_vertices() const
-	{
-		if (Layout != m_layout)
-			return nullptr;
-		using vertex_t = CVertexLayout<Layout>::vertex_t;
-		return static_cast<const vertex_t*>(m_vertices);
 	}
 
 	inline size_t CMesh::vertex_count() const
 	{
 		return m_vb.size();
+	}
+
+	inline CVertexBuffer & CMesh::vertex_buffer()
+	{
+		return m_vb;
+	}
+
+	inline const CVertexBuffer & CMesh::vertex_buffer() const
+	{
+		return m_vb;
 	}
 
 	class CTriangleMesh : public CMesh
