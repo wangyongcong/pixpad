@@ -13,61 +13,14 @@
 
 namespace wyc
 {
-	CMesh::CMesh() : 
-		m_layout(VF_NONE), 
-		m_vertices(nullptr), 
-		m_vert_count(0), 
-		m_indices(nullptr), 
-		m_index_count(0)
+	CMesh::CMesh()
+		: m_vb()
 	{
 	}
 
 	CMesh::~CMesh()
 	{
-		clear();
-	}
-
-	void CMesh::clear()
-	{
-		m_layout = VF_NONE;
-		if (m_vertices)
-		{
-			free(m_vertices);
-			m_vertices = nullptr;
-			m_vert_count = 0;
-		}
-		if (m_indices)
-		{
-			free(m_indices);
-			m_indices = nullptr;
-			m_index_count = 0;
-		}
-	}
-
-	void CMesh::set_indices(std::initializer_list<uint32_t>&& indices)
-	{
-		if (m_indices)
-		{
-			free(m_indices);
-			m_indices = nullptr;
-			m_index_count = 0;
-		}
-		size_t cnt = indices.size();
-		if (!cnt)
-		{
-			return;
-		}
-		uint32_t *data= static_cast<uint32_t*>(malloc(sizeof(uint32_t) * cnt));
-		if (!data)
-		{
-			return;
-		}
-		m_indices = data;
-		m_index_count = cnt;
-		for (auto &v : indices)
-		{
-			*data++ = v;
-		}
+		
 	}
 
 	bool CMesh::load_obj(const std::wstring & filepath)
@@ -87,7 +40,7 @@ namespace wyc
 		std::stringstream ss;
 		std::unordered_map<std::string, std::string> mtl_lib;
 		std::vector<Imath::V3f> vertices;
-		std::vector<Imath::V3f> texcoords;
+		std::vector<Imath::V2f> texcoords;
 		std::vector<Imath::V3f> normals;
 		std::vector<Imath::V3f> parameter;
 		std::vector<Imath::V3i> faces;
@@ -99,6 +52,16 @@ namespace wyc
 			Imath::V3f vec = { 0, 0, 0 };
 			int i = 0;
 			while (ss && i < 3)
+			{
+				ss >> vec[i++];
+			}
+			pool.push_back(vec);
+		};
+
+		auto read_vector2 = [&ss](std::vector<Imath::V2f> &pool) {
+			Imath::V2f vec = { 0, 0 };
+			int i = 0;
+			while (ss && i < 2)
 			{
 				ss >> vec[i++];
 			}
@@ -197,7 +160,7 @@ namespace wyc
 			}
 			else if (token == "vt")
 			{// texture coordinate
-				read_vector3(texcoords);
+				read_vector2(texcoords);
 			}
 			else if (token == "vn")
 			{// vertex normal
@@ -278,100 +241,48 @@ namespace wyc
 			vb.set_attribute(ATTR_TEXTURE, 2);
 		if (vi.z != null_index)
 			vb.set_attribute(ATTR_NORMAL, 3);
+		// alloc buffer
 		vb.resize(vertices.size());
-
-
-		if (vi.y == null_index)
+		// copy data
+		auto pos = vertices.begin();
+#ifdef _DEBUG
+		auto pos_end = vertices.end();
+#endif
+		for (auto out : vb.get_attribute(ATTR_POSITION))
 		{
-			Imath::V3f def_color(1, 1, 1);
-			if (vi.z == null_index)
+#ifdef _DEBUG
+			assert(pos != pos_end);
+#endif
+			out = *pos++;
+		}
+		if (!texcoords.empty())
+		{
+			auto in = texcoords.begin();
+#ifdef _DEBUG
+			auto in_end = texcoords.end();
+#endif
+			for (auto out : vb.get_attribute(ATTR_TEXTURE))
 			{
-				if (!resize<VF_P3C3>(faces.size()))
-				{
-					return false;
-				}
-				using vertex_t = CVertexLayout<VF_P3C3>::vertex_t;
-				vertex_t *out = reinterpret_cast<vertex_t*>(m_vertices);
-				for (auto &vi : faces)
-				{
-					out->pos = vertices[vi.x];
-					out->color = def_color;
-					++out;
-				}
-			}
-			else
-			{
-				if (!resize<VF_P3C3N3>(faces.size()))
-				{
-					return false;
-				}
-				using vertex_t = CVertexLayout<VF_P3C3N3>::vertex_t;
-				vertex_t *out = reinterpret_cast<vertex_t*>(m_vertices);
-				for (auto &vi : faces)
-				{
-					out->pos = vertices[vi.x];
-					out->color = def_color;
-					out->normal = vertices[vi.z];
-					++out;
-				}
+#ifdef _DEBUG
+				assert(in != in_end);
+#endif
+				out = *in++;
 			}
 		}
-		else if (vi.z == null_index)
+		if (!normals.empty())
 		{
-			if (!resize<VF_P3S2>(faces.size()))
+			auto in = normals.begin();
+#ifdef _DEBUG
+			auto in_end = normals.end();
+#endif
+			for (auto out : vb.get_attribute(ATTR_NORMAL))
 			{
-				return false;
-			}
-			using vertex_t = CVertexLayout<VF_P3S2>::vertex_t;
-			vertex_t *out = reinterpret_cast<vertex_t*>(m_vertices);
-			for (auto &vi : faces)
-			{
-				out->pos = vertices[vi.x];
-				Imath::V3f &tmp = texcoords[vi.y];
-				out->uv.x = tmp.x;
-				out->uv.y = tmp.y;
-				++out;
+#ifdef _DEBUG
+				assert(in != in_end);
+#endif
+				out = *in++;
 			}
 		}
-		else
-		{
-			if (!resize<VF_P3S2N3>(faces.size()))
-			{
-				return false;
-			}
-			using vertex_t = CVertexLayout<VF_P3S2N3>::vertex_t;
-			vertex_t *out = reinterpret_cast<vertex_t*>(m_vertices);
-			for (auto &vi : faces)
-			{
-				out->pos = vertices[vi.x];
-				Imath::V3f &tmp = texcoords[vi.y];
-				out->uv.x = tmp.x;
-				out->uv.y = tmp.y;
-				out->normal = normals[vi.z];
-				++out;
-			}
-		}
-		return true;
-	}
-
-	bool CMesh::reserve(size_t count, size_t vert_size)
-	{
-		if (m_vertices)
-		{
-			free(m_vertices);
-			m_vertices = nullptr;
-			m_vert_count = 0;
-		}
-		if (!count)
-		{
-			return false;
-		}
-		m_vertices = malloc(count * vert_size);
-		if (!m_vertices)
-		{
-			return false;
-		}
-		m_vert_count = count;
 		return true;
 	}
 

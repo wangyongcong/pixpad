@@ -2,10 +2,11 @@
 
 #include <iterator>
 #include <vector>
+#include <array>
 #include <initializer_list>
-
 #include "OpenEXR/ImathVec.h"
 #include "OpenEXR/ImathColor.h"
+#include "vertex_buffer.h"
 
 namespace wyc
 {
@@ -24,6 +25,11 @@ namespace wyc
 		Imath::V3f pos;
 		Imath::C3f color;
 	};
+
+	//const std::array<VertexAttribute, 2> va = {
+	//	VertexAttribute{ ATTR_POSITION, 3, offsetof(VertexP3C3, pos) },
+	//	VertexAttribute{ ATTR_COLOR, 3, offsetof(VertexP3C3, color) },
+	//};
 
 	struct VertexP3S2
 	{
@@ -68,89 +74,21 @@ namespace wyc
 	public:
 		CMesh();
 		~CMesh();
-		void clear();
 		template<EVertexLayout Layout>
 		bool resize(size_t count);
 		template<EVertexLayout Layout>
 		void set_vertices(std::initializer_list<typename CVertexLayout<Layout>::vertex_t>&& verts);
 		template<EVertexLayout Layout>
 		const typename CVertexLayout<Layout>::vertex_t* get_vertices() const;
-		size_t get_vertex_count() const;
-		void set_indices(std::initializer_list<uint32_t>&& indices);
-		const uint32_t* get_indices() const;
-		size_t get_index_count() const;
-		
-		template<typename Vec>
-		class CAttributeIterator : public std::iterator<std::random_access_iterator_tag, Vec>
-		{
-			typedef CAttributeIterator MyType;
-			friend CMesh;
-		public:
-			CAttributeIterator()
-				: m_cursor(nullptr), m_stride(0)
-			{
-			}
-			CAttributeIterator(void *vectors, size_t stride)
-				: m_cursor((char*)vectors), m_stride(0)
-			{
-			}
-			CAttributeIterator(const MyType &other)
-			{
-				*this = other;
-			}
-			MyType& operator = (const MyType &other)
-			{
-				m_cursor = other.m_cursor;
-				m_stride = other.m_stride;
-				return *this;
-			}
-			const reference operator * () const
-			{
-				return *reinterpret_cast<pointer>(m_cursor);
-			}
-			pointer operator -> ()
-			{
-				return reinterpret_cast<pointer>(m_cursor);
-			}
-			inline MyType& operator ++ ()
-			{
-				m_cursor += stride;
-				return *this;
-			}
-			inline MyType& operator ++ (int)
-			{
-				MyType _tmp = *this;
-				++*this;
-				return _tmp;
-			}
-			inline MyType& operator -- ()
-			{
-				m_cursor -= stride;
-				return *this;
-			}
-			inline MyType& operator -- (int)
-			{
-				MyType _tmp = *this;
-				--*this;
-				return _tmp;
-			}
-		
-		private:
-			char *m_cursor;
-			size_t m_stride;
-		};
+		size_t vertex_count() const;
+		CVertexBuffer& get_vertex_buffer();
 
 		// load from .obj file
 		bool load_obj(const std::wstring &filepath);
 
 	protected:
 		bool reserve(size_t count, size_t vert_size);
-
-		EVertexLayout m_layout;
-		void *m_vertices;
-		size_t m_vert_count;
-		uint32_t *m_indices;
-		size_t m_index_count;
+		CVertexBuffer m_vb;
 	};
 
 	template<EVertexLayout Layout>
@@ -190,19 +128,9 @@ namespace wyc
 		return static_cast<const vertex_t*>(m_vertices);
 	}
 
-	inline size_t CMesh::get_vertex_count() const
+	inline size_t CMesh::vertex_count() const
 	{
-		return m_vert_count;
-	}
-
-	inline const uint32_t* CMesh::get_indices() const
-	{
-		return m_indices;
-	}
-
-	inline size_t CMesh::get_index_count() const
-	{
-		return m_index_count;
+		return m_vb.size();
 	}
 
 	class CTriangleMesh : public CMesh
