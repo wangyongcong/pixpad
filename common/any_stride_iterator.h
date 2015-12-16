@@ -1,13 +1,14 @@
 #pragma once
 
 #include <iterator>
+#include <type_traits>
 
 namespace wyc
 {
 	template<typename T>
 	inline T to_ref(void *ptr)
 	{
-		return *reinterpret_cast<T*>(ptr);
+		return *reinterpret_cast<std::remove_reference<T>::type*>(ptr);
 	}
 
 	template<typename T, typename Ref=T&, typename Ptr=T*>
@@ -36,7 +37,7 @@ namespace wyc
 
 		inline Ref operator * ()
 		{
-			return to_ref<T>(m_cursor);
+			return to_ref<Ref>(m_cursor);
 		}
 		inline Ptr operator -> ()
 		{

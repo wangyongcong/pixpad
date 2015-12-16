@@ -29,10 +29,10 @@ namespace wyc
 		uint32_t offset;
 	};
 
-	class CVectorReader
+	class CVertexReader
 	{
 	public:
-		CVectorReader(void *ptr)
+		CVertexReader(void *ptr)
 			: m_ptr((float*)ptr)
 		{}
 		template<typename T>
@@ -53,14 +53,14 @@ namespace wyc
 		float *m_ptr;
 	};
 
-	class CVectorAccessor : public CVectorReader
+	class CVertexAccessor : public CVertexReader
 	{
 	public:
-		CVectorAccessor(void *ptr)
-			: CVectorReader(ptr)
+		CVertexAccessor(void *ptr)
+			: CVertexReader(ptr)
 		{}
 		template<typename T>
-		inline CVectorAccessor& operator = (const T &rhs)
+		inline CVertexAccessor& operator = (const T &rhs)
 		{
 			*(T*)m_ptr = rhs;
 			return *this;
@@ -76,87 +76,34 @@ namespace wyc
 		}
 	};
 
-	template<> CVectorReader to_ref<CVectorReader>(void *ptr)
+	template<> inline CVertexReader to_ref<CVertexReader>(void *ptr)
 	{
-		return{ ptr };
+		return { ptr };
 	}
 
-	template<> CVectorAccessor to_ref<CVectorAccessor>(void *ptr)
+	template<> inline CVertexAccessor to_ref<CVertexAccessor>(void *ptr)
 	{
-		return{ ptr };
+		return { ptr };
 	}
 
-	class CAttributeIterator : public CAnyStrideIterator<float, CVectorAccessor>
+	template<bool IsConstant>
+	class CAttributeArray
 	{
-		typedef CAttributeIterator MyType;
+		typedef CAttributeArray MyType;
 	public:
-		CAttributeIterator()
-			: CAnyStrideIterator()
-		{
-		}
-		CAttributeIterator(char *beg, size_t stride = 0)
-			: CAnyStrideIterator(beg, stride)
-		{
-		}
-		CAttributeIterator(const MyType &other)
-		{
-			*this = other;
-		}
-		inline MyType& operator = (const MyType &other)
-		{
-			CAnyStrideIterator::operator=(other);
-			return *this;
-		}
-		//inline CVectorAccessor operator * ()
-		//{
-		//	return { m_cursor };
-		//}
-	};
-
-	class CAttributeIteratorConst : public CAnyStrideIterator<float, CVectorReader>
-	{
-		typedef CAttributeIteratorConst MyType;
-	public:
-		CAttributeIteratorConst()
-			: CAnyStrideIterator()
-		{
-		}
-		CAttributeIteratorConst(char *beg, size_t stride = 0)
-			: CAnyStrideIterator(beg, stride)
-		{
-		}
-		CAttributeIteratorConst(const MyType &other)
-		{
-			*this = other;
-		}
-		inline MyType& operator = (const MyType &other)
-		{
-			CAnyStrideIterator::operator = (other);
-			return *this;
-		}
-		//inline CVectorReader operator * ()
-		//{
-		//	return{ m_cursor };
-		//}
-	};
-
-	class CAttributeArrayBase
-	{
-		typedef CAttributeArrayBase MyType;
-	public:
-		CAttributeArrayBase()
+		CAttributeArray()
 			: m_beg(nullptr)
 			, m_end(nullptr)
 			, m_stride(0)
 		{}
-		CAttributeArrayBase(char *beg, char *end, unsigned stride)
+		CAttributeArray(char *beg, char *end, unsigned stride)
 			: m_beg(beg)
 			, m_end(end)
 			, m_stride(stride)
 		{
 			assert(m_end - m_beg >= long(m_stride));
 		}
-		CAttributeArrayBase(const MyType& other)
+		CAttributeArray(const MyType& other)
 		{
 			*this = other;
 		}
@@ -166,34 +113,21 @@ namespace wyc
 			m_end = other.m_end;
 			m_stride = other.m_stride;
 		}
-
-		typedef CAttributeIterator iterator;
-		typedef CAttributeIteratorConst const_iterator;
-	protected:
-		char *m_beg;
-		char *m_end;
-		unsigned m_stride;
-	};
-
-	class CAttributeArray : public CAttributeArrayBase
-	{
-		typedef CAttributeArray MyType;
-	public:
-		CAttributeArray()
-			: CAttributeArrayBase()
-		{}
-		CAttributeArray(char *beg, char *end, unsigned stride)
-			: CAttributeArrayBase(beg, end, stride)
-		{}
-		CAttributeArray(const MyType& other)
-		{
-			*this = other;
-		}
-		MyType& operator = (const MyType& other)
-		{
-			CAttributeArrayBase::operator=(other);
-			return *this;
-		}
+		
+		template<bool T>
+		struct Iterator {};
+		template<>
+		struct Iterator<true> {
+			typedef CAnyStrideIterator<float, CVertexReader> type;
+		};
+		template<>
+		struct Iterator<false> {
+			typedef CAnyStrideIterator<float, CVertexAccessor> type;
+		};
+		using iterator = typename Iterator<IsConstant>::type;
+		//typedef Iterator<false>::type iterator;
+		//typedef Iterator<true>::type const_iterator;
+	
 		inline iterator begin()
 		{
 			return{ m_beg, m_stride };
@@ -202,40 +136,73 @@ namespace wyc
 		{
 			return{ m_end };
 		}
-		operator bool() const
-		{
-			return m_beg < m_end;
-		}
+	protected:
+		char *m_beg;
+		char *m_end;
+		unsigned m_stride;
 	};
 
-	class CAttributeArrayConst : public CAttributeArrayBase
-	{
-		typedef CAttributeArrayConst MyType;
-	public:
-		CAttributeArrayConst()
-			: CAttributeArrayBase()
-		{}
-		CAttributeArrayConst(char *beg, char *end, unsigned stride)
-			: CAttributeArrayBase(beg, end, stride)
-		{}
-		CAttributeArrayConst(const MyType& other)
-		{
-			*this = other;
-		}
-		MyType& operator = (const MyType& other)
-		{
-			CAttributeArrayBase::operator=(other);
-			return *this;
-		}
-		inline const_iterator begin() const
-		{
-			return{ m_beg, m_stride };
-		}
-		inline const_iterator end() const
-		{
-			return{ m_end };
-		}
-	};
+	//class CAttributeArray : public CAttributeArrayBase
+	//{
+	//	typedef CAttributeArray MyType;
+	//public:
+	//	CAttributeArray()
+	//		: CAttributeArrayBase()
+	//	{}
+	//	CAttributeArray(char *beg, char *end, unsigned stride)
+	//		: CAttributeArrayBase(beg, end, stride)
+	//	{}
+	//	CAttributeArray(const MyType& other)
+	//	{
+	//		*this = other;
+	//	}
+	//	MyType& operator = (const MyType& other)
+	//	{
+	//		CAttributeArrayBase::operator=(other);
+	//		return *this;
+	//	}
+	//	inline iterator begin()
+	//	{
+	//		return{ m_beg, m_stride };
+	//	}
+	//	inline iterator end()
+	//	{
+	//		return{ m_end };
+	//	}
+	//	operator bool() const
+	//	{
+	//		return m_beg < m_end;
+	//	}
+	//};
+
+	//class CAttributeArrayConst : public CAttributeArrayBase
+	//{
+	//	typedef CAttributeArrayConst MyType;
+	//public:
+	//	CAttributeArrayConst()
+	//		: CAttributeArrayBase()
+	//	{}
+	//	CAttributeArrayConst(char *beg, char *end, unsigned stride)
+	//		: CAttributeArrayBase(beg, end, stride)
+	//	{}
+	//	CAttributeArrayConst(const MyType& other)
+	//	{
+	//		*this = other;
+	//	}
+	//	MyType& operator = (const MyType& other)
+	//	{
+	//		CAttributeArrayBase::operator=(other);
+	//		return *this;
+	//	}
+	//	inline const_iterator begin() const
+	//	{
+	//		return{ m_beg, m_stride };
+	//	}
+	//	inline const_iterator end() const
+	//	{
+	//		return{ m_end };
+	//	}
+	//};
 
 	class CVertexBuffer
 	{
@@ -249,11 +216,11 @@ namespace wyc
 		void clear();
 		
 		void set_attribute(EAttributeUsage usage, uint8_t element_count);
-		CAttributeArray get_attribute(EAttributeUsage usage);
-		CAttributeArrayConst get_attribute(EAttributeUsage usage) const;
+		CAttributeArray<false> get_attribute(EAttributeUsage usage);
+		CAttributeArray<true> get_attribute(EAttributeUsage usage) const;
 
-		typedef CAttributeIterator iterator;
-		typedef CAttributeIteratorConst const_iterator;
+		typedef CAnyStrideIterator<float, CVertexAccessor> iterator;
+		typedef CAnyStrideIterator<float, CVertexReader> const_iterator;
 		inline iterator begin()
 		{
 			return{ m_data, m_vert_size };

@@ -59,24 +59,24 @@ namespace wyc
 		}
 	}
 
-	CAttributeArray CVertexBuffer::get_attribute(EAttributeUsage usage)
+	CAttributeArray<false> CVertexBuffer::get_attribute(EAttributeUsage usage)
 	{
 		auto va = m_attr_tbl[usage];
 		if (!va)
-			return CAttributeArray();
+			return CAttributeArray<false>();
 		auto beg = m_data + va->offset;
 		auto end = beg + m_vert_size * m_vert_cnt;
-		return CAttributeArray(beg, end, m_vert_size);
+		return CAttributeArray<false>(beg, end, m_vert_size);
 	}
 
-	CAttributeArrayConst CVertexBuffer::get_attribute(EAttributeUsage usage) const
+	CAttributeArray<true> CVertexBuffer::get_attribute(EAttributeUsage usage) const
 	{
 		auto va = m_attr_tbl[usage];
 		if (!va)
-			return CAttributeArrayConst();
+			return CAttributeArray<true>();
 		auto beg = m_data + va->offset;
 		auto end = beg + m_vert_size * m_vert_cnt;
-		return CAttributeArrayConst(beg, end, m_vert_size);
+		return CAttributeArray<true>(beg, end, m_vert_size);
 	}
 	
 }
