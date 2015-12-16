@@ -146,6 +146,7 @@
     <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathSphere.h" />
     <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathVec.h" />
     <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathVecAlgo.h" />
+    <ClInclude Include="..\..\common\any_stride_iterator.h" />
     <ClInclude Include="..\..\common\log.h" />
     <ClInclude Include="..\..\common\logger.h" />
     <ClInclude Include="..\..\common\unitest.h" />

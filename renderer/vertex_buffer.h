@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include "OpenEXR/ImathVec.h"
+#include "any_stride_iterator.h"
 
 namespace wyc
 {
@@ -75,16 +76,26 @@ namespace wyc
 		}
 	};
 
-	class CAttributeIterator : public std::iterator<std::random_access_iterator_tag, float>
+	template<> CVectorReader to_ref<CVectorReader>(void *ptr)
+	{
+		return{ ptr };
+	}
+
+	template<> CVectorAccessor to_ref<CVectorAccessor>(void *ptr)
+	{
+		return{ ptr };
+	}
+
+	class CAttributeIterator : public CAnyStrideIterator<float, CVectorAccessor>
 	{
 		typedef CAttributeIterator MyType;
 	public:
 		CAttributeIterator()
-			: m_cursor(nullptr), m_stride(0)
+			: CAnyStrideIterator()
 		{
 		}
 		CAttributeIterator(char *beg, size_t stride = 0)
-			: m_cursor(beg), m_stride(stride)
+			: CAnyStrideIterator(beg, stride)
 		{
 		}
 		CAttributeIterator(const MyType &other)
@@ -93,98 +104,25 @@ namespace wyc
 		}
 		inline MyType& operator = (const MyType &other)
 		{
-			m_cursor = other.m_cursor;
-			m_stride = other.m_stride;
+			CAnyStrideIterator::operator=(other);
 			return *this;
 		}
-
-		inline CVectorAccessor operator * ()
-		{
-			return { m_cursor };
-		}
-
-		inline MyType& operator ++ ()
-		{
-			m_cursor += m_stride;
-			return *this;
-		}
-		inline MyType operator ++ (int)
-		{
-			MyType _tmp = *this;
-			++*this;
-			return _tmp;
-		}
-		inline MyType& operator -- ()
-		{
-			m_cursor -= m_stride;
-			return *this;
-		}
-		inline MyType operator -- (int)
-		{
-			MyType _tmp = *this;
-			--*this;
-			return _tmp;
-		}
-
-		inline MyType& operator += (int n)
-		{
-			m_cursor += m_stride * n;
-			return *this;
-		}
-		inline MyType& operator -= (int n)
-		{
-			m_cursor -= m_stride * n;
-			return *this;
-		}
-		inline MyType operator + (int n) const 
-		{
-			return{ m_cursor + m_stride * n, m_stride };
-		}
-		inline MyType operator - (int n) const
-		{
-			return{m_cursor - m_stride * n, m_stride};
-		}
-
-		inline bool operator == (const MyType& rhs) const
-		{
-			return m_cursor == rhs.m_cursor;
-		}
-		inline bool operator != (const MyType& rhs) const
-		{
-			return m_cursor != rhs.m_cursor;
-		}
-		inline bool operator < (const MyType& rhs) const
-		{
-			return m_cursor < rhs.m_cursor;
-		}
-		inline bool operator > (const MyType& rhs) const
-		{
-			return m_cursor > rhs.m_cursor;
-		}
-		inline bool operator <= (const MyType& rhs) const
-		{
-			return m_cursor <= rhs.m_cursor;
-		}
-		inline bool operator >= (const MyType& rhs) const
-		{
-			return m_cursor >= rhs.m_cursor;
-		}
-
-	protected:
-		char *m_cursor;
-		unsigned m_stride;
+		//inline CVectorAccessor operator * ()
+		//{
+		//	return { m_cursor };
+		//}
 	};
 
-	class CAttributeIteratorConst : public CAttributeIterator
+	class CAttributeIteratorConst : public CAnyStrideIterator<float, CVectorReader>
 	{
-		typedef CAttributeIterator MyType;
+		typedef CAttributeIteratorConst MyType;
 	public:
 		CAttributeIteratorConst()
-			: CAttributeIterator()
+			: CAnyStrideIterator()
 		{
 		}
 		CAttributeIteratorConst(char *beg, size_t stride = 0)
-			: CAttributeIterator(beg, stride)
+			: CAnyStrideIterator(beg, stride)
 		{
 		}
 		CAttributeIteratorConst(const MyType &other)
@@ -193,13 +131,13 @@ namespace wyc
 		}
 		inline MyType& operator = (const MyType &other)
 		{
-			CAttributeIterator::operator = (other);
+			CAnyStrideIterator::operator = (other);
 			return *this;
 		}
-		inline CVectorReader operator * ()
-		{
-			return{ m_cursor };
-		}
+		//inline CVectorReader operator * ()
+		//{
+		//	return{ m_cursor };
+		//}
 	};
 
 	class CAttributeArrayBase

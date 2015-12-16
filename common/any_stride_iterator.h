@@ -4,8 +4,13 @@
 
 namespace wyc
 {
-
 	template<typename T>
+	inline T to_ref(void *ptr)
+	{
+		return *reinterpret_cast<T*>(ptr);
+	}
+
+	template<typename T, typename Ref=T&, typename Ptr=T*>
 	class CAnyStrideIterator : public std::iterator<std::random_access_iterator_tag, T>
 	{
 		typedef CAnyStrideIterator MyType;
@@ -29,13 +34,13 @@ namespace wyc
 			return *this;
 		}
 
-		inline T& operator * ()
+		inline Ref operator * ()
 		{
-			return *(T*)m_cursor;
+			return to_ref<T>(m_cursor);
 		}
-		inline T* operator -> ()
+		inline Ptr operator -> ()
 		{
-			return (T*)m_cursor;
+			return Ptr(m_cursor);
 		}
 
 		inline MyType& operator ++ ()
