@@ -113,7 +113,12 @@ namespace wyc
 			m_end = other.m_end;
 			m_stride = other.m_stride;
 		}
-		
+
+		operator bool() const
+		{
+			return m_beg < m_end;
+		}
+
 		template<bool T>
 		struct Iterator {};
 		template<>

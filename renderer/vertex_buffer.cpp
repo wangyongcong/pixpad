@@ -4,7 +4,10 @@
 
 namespace wyc
 {
-	CVertexBuffer::CVertexBuffer() : m_data(nullptr)
+	CVertexBuffer::CVertexBuffer() 
+		: m_data(nullptr)
+		, m_vert_cnt(0)
+		, m_vert_size(0)
 	{
 		memset(&m_attr_tbl, 0, sizeof(m_attr_tbl));
 	}
@@ -57,6 +60,8 @@ namespace wyc
 			delete va;
 			va = nullptr;
 		}
+		m_vert_cnt = 0;
+		m_vert_size = 0;
 	}
 
 	CAttributeArray<false> CVertexBuffer::get_attribute(EAttributeUsage usage)

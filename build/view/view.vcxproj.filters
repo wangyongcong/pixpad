@@ -322,6 +322,9 @@
     <ClInclude Include="..\..\renderer\vertex_buffer.h">
       <Filter>Renderer\Base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\any_stride_iterator.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">

@@ -41,11 +41,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\3rd\IlmBase\include;..\..\3rd\glew-1.13.0\include;..\..\view\windows;..\..\view\game;..\..\view;..\..\renderer;..\..\thread;..\..\common;$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>..\..\;..\..\common;..\..\thread;..\..\renderer;..\..\view;..\..\view\game;..\..\view\windows;..\..\3rd\IlmBase\include;..\..\3rd\glew-1.13.0\include;$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\view\windows;..\..\view\game;..\..\view;..\..\renderer;..\..\thread;..\..\common;..\..\3rd\glew-1.13.0\include;..\..\3rd\IlmBase\include;$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>..\..\;..\..\common;..\..\thread;..\..\renderer;..\..\view;..\..\view\game;..\..\view\windows;..\..\3rd\IlmBase\include;..\..\3rd\glew-1.13.0\include;$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

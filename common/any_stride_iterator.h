@@ -20,8 +20,8 @@ namespace wyc
 			: m_cursor(nullptr), m_stride(0)
 		{
 		}
-		CAnyStrideIterator(char *beg, size_t stride = 0)
-			: m_cursor(beg), m_stride(stride)
+		CAnyStrideIterator(void *beg, size_t stride = 0)
+			: m_cursor((char*)beg), m_stride(stride)
 		{
 		}
 		CAnyStrideIterator(const MyType &other)
