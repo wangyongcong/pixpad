@@ -8,7 +8,7 @@
 
 namespace wyc
 {
-	enum EAttributeUsage
+	enum EAttribUsage
 	{
 		ATTR_POSITION = 0,
 		ATTR_COLOR,
@@ -22,9 +22,9 @@ namespace wyc
 		ATTR_MAX_COUNT,
 	};
 
-	struct VertexAttribute
+	struct VertexAttrib
 	{
-		EAttributeUsage usage;
+		EAttribUsage usage;
 		uint8_t elem_cnt;
 		uint32_t offset;
 	};
@@ -39,6 +39,11 @@ namespace wyc
 		inline operator const T& () const
 		{
 			return *(T*)m_ptr;
+		}
+		template<typename T>
+		inline operator T& () const
+		{
+			static_assert(0, "Can't convert to non-const reference.");
 		}
 		template<typename T>
 		inline bool operator == (const T &rhs) const
@@ -87,23 +92,23 @@ namespace wyc
 	}
 
 	template<bool IsConstant>
-	class CAttributeArray
+	class CAttribArrayImpl
 	{
-		typedef CAttributeArray MyType;
+		typedef CAttribArrayImpl MyType;
 	public:
-		CAttributeArray()
+		CAttribArrayImpl()
 			: m_beg(nullptr)
 			, m_end(nullptr)
 			, m_stride(0)
 		{}
-		CAttributeArray(char *beg, char *end, unsigned stride)
+		CAttribArrayImpl(char *beg, char *end, unsigned stride)
 			: m_beg(beg)
 			, m_end(end)
 			, m_stride(stride)
 		{
 			assert(m_end - m_beg >= long(m_stride));
 		}
-		CAttributeArray(const MyType& other)
+		CAttribArrayImpl(const MyType& other)
 		{
 			*this = other;
 		}
@@ -130,8 +135,6 @@ namespace wyc
 			typedef CAnyStrideIterator<float, CVertexAccessor> type;
 		};
 		using iterator = typename Iterator<IsConstant>::type;
-		//typedef Iterator<false>::type iterator;
-		//typedef Iterator<true>::type const_iterator;
 	
 		inline iterator begin()
 		{
@@ -146,6 +149,9 @@ namespace wyc
 		char *m_end;
 		unsigned m_stride;
 	};
+
+	typedef CAttribArrayImpl<false> CAttribArray;
+	typedef CAttribArrayImpl<true> CConstAttribArray;
 
 	//class CAttributeArray : public CAttributeArrayBase
 	//{
@@ -220,9 +226,9 @@ namespace wyc
 		void resize(unsigned vertex_count);
 		void clear();
 		
-		void set_attribute(EAttributeUsage usage, uint8_t element_count);
-		CAttributeArray<false> get_attribute(EAttributeUsage usage);
-		CAttributeArray<true> get_attribute(EAttributeUsage usage) const;
+		void set_attribute(EAttribUsage usage, uint8_t element_count);
+		CAttribArray get_attribute(EAttribUsage usage);
+		CConstAttribArray get_attribute(EAttribUsage usage) const;
 
 		typedef CAnyStrideIterator<float, CVertexAccessor> iterator;
 		typedef CAnyStrideIterator<float, CVertexReader> const_iterator;
@@ -253,9 +259,10 @@ namespace wyc
 		}
 	protected:
 		char *m_data;
+		size_t m_data_size;
 		unsigned m_vert_size;
 		unsigned m_vert_cnt;
-		VertexAttribute* m_attr_tbl[ATTR_MAX_COUNT];
+		VertexAttrib* m_attr_tbl[ATTR_MAX_COUNT];
 	};
 
 

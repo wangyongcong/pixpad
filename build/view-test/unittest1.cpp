@@ -7,7 +7,33 @@
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace ViewUnitTest
-{		
+{	
+	struct Vec3 {
+		float x, y, z;
+		bool operator == (const Vec3 &other) const
+		{
+			return x == other.x && y == other.y && z == other.z;
+		}
+		std::wstring to_string() const {
+			std::wstringstream ss;
+			ss << x << "," << y << "," << z;
+			return ss.str();
+		}
+	};
+
+	struct Vertex {
+		Vec3 pos;
+		Vec3 color;
+		Vec3 normal;
+		bool operator = (const Vertex &other) const
+		{
+			return pos == other.pos && color == other.color && normal == other.normal;
+		}
+		inline std::wstring to_string() const {
+			return L"pos:(), color:(), normal:()";
+		}
+	};
+
 	TEST_CLASS(UnitTest1)
 	{
 	public:
@@ -16,9 +42,6 @@ namespace ViewUnitTest
 		{
 			using namespace wyc;
 			
-			typedef struct {
-				float x, y, z;
-			} Vec3;
 			constexpr int cnt = 8;
 			Vec3 verts[cnt];
 			typedef CAnyStrideIterator<Vec3> iterator;
@@ -98,18 +121,7 @@ namespace ViewUnitTest
 		TEST_METHOD(vertex_buffer)
 		{
 			using namespace wyc;
-
-			typedef struct {
-				float x, y, z;
-			} Vec3;
-
-			typedef struct {
-				Vec3 pos;
-				Vec3 color;
-				Vec3 normal;
-			} Vertex;
-
-			constexpr size_t cnt = 8;
+			constexpr int cnt = 8;
 			
 			CVertexBuffer vb;
 			Assert::IsTrue(vb.size() == 0);
@@ -133,28 +145,92 @@ namespace ViewUnitTest
 			auto tangent = vb.get_attribute(ATTR_TANGENT);
 			Assert::IsFalse(tangent);
 
-			fibonacci<Vec3, CAttributeArray<false>::iterator>(pos.begin(), pos.end());
+			fibonacci<Vec3, CAttribArray::iterator>(pos.begin(), pos.end());
+			fibonacci<Vec3, CAttribArray::iterator>(color.begin(), color.end());
+			fibonacci<Vec3, CAttribArray::iterator>(normal.begin(), normal.end());
+			int idx = 0;
+			const CVertexBuffer &cvb = vb;
+			auto fib = Fibonacci<Vec3>();
+			for (auto it = cvb.begin(); it != cvb.end(); ++it, ++idx)
+			{
+				Assert::IsTrue(idx < cnt);
+				const Vertex &v = *it;
+				auto f = fib.next();
+				Assert::AreEqual(v.pos, f);
+				Assert::AreEqual(v.color, f);
+				Assert::AreEqual(v.normal, f);
+			}
+			Assert::AreEqual(idx, cnt);
+
+			idx = 0;
+			auto cpos = cvb.get_attribute(ATTR_POSITION);
+			Assert::IsTrue(cpos);
+			auto it_pos = cpos.begin();
+			auto ccolor = cvb.get_attribute(ATTR_COLOR);
+			Assert::IsTrue(ccolor);
+			auto it_color = ccolor.begin();
+			auto cnormal = cvb.get_attribute(ATTR_NORMAL);
+			Assert::IsTrue(cnormal);
+			auto it_normal = cnormal.begin();
+			for (auto it = vb.begin(); it != vb.end(); ++it, ++idx, ++it_pos, ++it_color, ++it_normal)
+			{
+				Assert::IsTrue(idx < cnt);
+				Vertex &v = *it;
+				v.pos = { 0, 0, 1 };
+				Assert::IsTrue(it_pos != cpos.end());
+				Assert::AreEqual(v.pos, (const Vec3&)(*it_pos));
+				v.color = { 1, 0, 0 };
+				Assert::IsTrue(it_color != ccolor.end());
+				Assert::AreEqual(v.color, (const Vec3&)(*it_color));
+				v.normal = { 0, 1, 0 };
+				Assert::IsTrue(it_normal != cnormal.end());
+				Assert::AreEqual(v.normal, (const Vec3&)(*it_normal));
+			}
+			Assert::AreEqual(idx, cnt);
+			Assert::IsTrue(it_pos == cpos.end());
+			Assert::IsTrue(it_color == ccolor.end());
+			Assert::IsTrue(it_normal == cnormal.end());
 
 			vb.clear();
 			Assert::IsTrue(vb.size() == 0);
 			Assert::IsTrue(vb.vertex_size() == 0);
 		}
 
-		template<typename T, typename Iter>
-		void fibonacci(Iter beg, Iter end)
+		template<typename T>
+		struct Fibonacci
 		{
 			float x, y, z;
-			x = 0;
-			y = 1;
-			z = 1;
-			for (auto it = beg; it != end; ++it)
+			Fibonacci() : x(0), y(1), z(1) {}
+			inline void reset()
 			{
-				*it = T{ x, y, z };
+				x = 0;
+				y = 1;
+				z = 1;
+			}
+			inline T next()
+			{
+				T ret = { x, y, z };
 				x = y;
 				y = z;
 				z = x + y;
+				return ret;
+			}
+		};
+
+		template<typename T, typename Iter>
+		void fibonacci(Iter beg, Iter end)
+		{
+			auto fib = Fibonacci<T>();
+			for (auto it = beg; it != end; ++it)
+			{
+				*it = fib.next();
 			}
 		}
 
 	};
 }
+
+#define TO_STRING(type) template <> static std::wstring Microsoft::VisualStudio::CppUnitTestFramework::ToString<type>(const type& q) {return q.to_string();}
+
+TO_STRING(ViewUnitTest::Vec3)
+TO_STRING(ViewUnitTest::Vertex)

@@ -6,6 +6,7 @@ namespace wyc
 {
 	CVertexBuffer::CVertexBuffer() 
 		: m_data(nullptr)
+		, m_data_size(0)
 		, m_vert_cnt(0)
 		, m_vert_size(0)
 	{
@@ -17,11 +18,11 @@ namespace wyc
 		clear();
 	}
 
-	void CVertexBuffer::set_attribute(EAttributeUsage usage, uint8_t element_count)
+	void CVertexBuffer::set_attribute(EAttribUsage usage, uint8_t element_count)
 	{
 		auto va = m_attr_tbl[usage];
 		if (!va) {
-			m_attr_tbl[usage] = new VertexAttribute{
+			m_attr_tbl[usage] = new VertexAttrib{
 				usage, element_count, 0
 			};
 		}
@@ -43,7 +44,8 @@ namespace wyc
 		{
 			delete[] m_data;
 		}
-		m_data = new char[m_vert_size * vertex_count];
+		m_data_size = m_vert_size * vertex_count;
+		m_data = new char[m_data_size];
 		m_vert_cnt = vertex_count;
 	}
 
@@ -60,28 +62,29 @@ namespace wyc
 			delete va;
 			va = nullptr;
 		}
+		m_data_size = 0;
 		m_vert_cnt = 0;
 		m_vert_size = 0;
 	}
 
-	CAttributeArray<false> CVertexBuffer::get_attribute(EAttributeUsage usage)
+	CAttribArray CVertexBuffer::get_attribute(EAttribUsage usage)
 	{
 		auto va = m_attr_tbl[usage];
 		if (!va)
-			return CAttributeArray<false>();
+			return CAttribArray();
 		auto beg = m_data + va->offset;
-		auto end = beg + m_vert_size * m_vert_cnt;
-		return CAttributeArray<false>(beg, end, m_vert_size);
+		auto end = beg + m_data_size;
+		return CAttribArray(beg, end, m_vert_size);
 	}
 
-	CAttributeArray<true> CVertexBuffer::get_attribute(EAttributeUsage usage) const
+	CConstAttribArray CVertexBuffer::get_attribute(EAttribUsage usage) const
 	{
 		auto va = m_attr_tbl[usage];
 		if (!va)
-			return CAttributeArray<true>();
+			return CConstAttribArray();
 		auto beg = m_data + va->offset;
-		auto end = beg + m_vert_size * m_vert_cnt;
-		return CAttributeArray<true>(beg, end, m_vert_size);
+		auto end = beg + m_data_size;
+		return CConstAttribArray(beg, end, m_vert_size);
 	}
 	
 }

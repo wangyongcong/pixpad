@@ -25,7 +25,7 @@ namespace wyc
 	{
 		using vertex_t = void;
 		static const int attr_count = 0;
-		static const VertexAttribute *attr_table;
+		static const VertexAttrib *attr_table;
 	};
 
 	struct VertexP3C3
@@ -39,7 +39,7 @@ namespace wyc
 	{
 		using vertex_t = VertexP3C3;
 		static const int attr_count = 2;
-		static const VertexAttribute attr_table[attr_count];
+		static const VertexAttrib attr_table[attr_count];
 	};
 
 	struct VertexP3S2
