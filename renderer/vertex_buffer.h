@@ -153,68 +153,6 @@ namespace wyc
 	typedef CAttribArrayImpl<false> CAttribArray;
 	typedef CAttribArrayImpl<true> CConstAttribArray;
 
-	//class CAttributeArray : public CAttributeArrayBase
-	//{
-	//	typedef CAttributeArray MyType;
-	//public:
-	//	CAttributeArray()
-	//		: CAttributeArrayBase()
-	//	{}
-	//	CAttributeArray(char *beg, char *end, unsigned stride)
-	//		: CAttributeArrayBase(beg, end, stride)
-	//	{}
-	//	CAttributeArray(const MyType& other)
-	//	{
-	//		*this = other;
-	//	}
-	//	MyType& operator = (const MyType& other)
-	//	{
-	//		CAttributeArrayBase::operator=(other);
-	//		return *this;
-	//	}
-	//	inline iterator begin()
-	//	{
-	//		return{ m_beg, m_stride };
-	//	}
-	//	inline iterator end()
-	//	{
-	//		return{ m_end };
-	//	}
-	//	operator bool() const
-	//	{
-	//		return m_beg < m_end;
-	//	}
-	//};
-
-	//class CAttributeArrayConst : public CAttributeArrayBase
-	//{
-	//	typedef CAttributeArrayConst MyType;
-	//public:
-	//	CAttributeArrayConst()
-	//		: CAttributeArrayBase()
-	//	{}
-	//	CAttributeArrayConst(char *beg, char *end, unsigned stride)
-	//		: CAttributeArrayBase(beg, end, stride)
-	//	{}
-	//	CAttributeArrayConst(const MyType& other)
-	//	{
-	//		*this = other;
-	//	}
-	//	MyType& operator = (const MyType& other)
-	//	{
-	//		CAttributeArrayBase::operator=(other);
-	//		return *this;
-	//	}
-	//	inline const_iterator begin() const
-	//	{
-	//		return{ m_beg, m_stride };
-	//	}
-	//	inline const_iterator end() const
-	//	{
-	//		return{ m_end };
-	//	}
-	//};
-
 	class CVertexBuffer
 	{
 	public:

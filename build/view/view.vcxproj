@@ -158,6 +158,7 @@
     <ClInclude Include="..\..\renderer\mathex\xs_float.h" />
     <ClInclude Include="..\..\renderer\mesh.h" />
     <ClInclude Include="..\..\renderer\ogl\glutil.h" />
+    <ClInclude Include="..\..\renderer\pipeline.h" />
     <ClInclude Include="..\..\renderer\renderer.h" />
     <ClInclude Include="..\..\renderer\render_command.h" />
     <ClInclude Include="..\..\renderer\render_target.h" />
@@ -167,6 +168,7 @@
     <ClInclude Include="..\..\renderer\sparrow\spw_render_target.h" />
     <ClInclude Include="..\..\renderer\sparrow\surface.h" />
     <ClInclude Include="..\..\renderer\vertex_buffer.h" />
+    <ClInclude Include="..\..\renderer\vertex_layout.h" />
     <ClInclude Include="..\..\thread\platform_info.h" />
     <ClInclude Include="..\..\thread\ring_queue.h" />
     <ClInclude Include="..\..\view\game\application.h" />
@@ -189,6 +191,7 @@
     <ClCompile Include="..\..\renderer\mathex\vecmath.cpp" />
     <ClCompile Include="..\..\renderer\mesh.cpp" />
     <ClCompile Include="..\..\renderer\ogl\glutil.cpp" />
+    <ClCompile Include="..\..\renderer\pipeline.cpp" />
     <ClCompile Include="..\..\renderer\renderer.cpp" />
     <ClCompile Include="..\..\renderer\render_command.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_command.cpp" />

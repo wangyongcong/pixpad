@@ -325,6 +325,12 @@
     <ClInclude Include="..\..\common\any_stride_iterator.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\renderer\pipeline.h">
+      <Filter>Renderer\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\vertex_layout.h">
+      <Filter>Renderer\Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">
@@ -385,6 +391,9 @@
       <Filter>Renderer\Mathex</Filter>
     </ClCompile>
     <ClCompile Include="..\..\renderer\vertex_buffer.cpp">
+      <Filter>Renderer\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\renderer\pipeline.cpp">
       <Filter>Renderer\Base</Filter>
     </ClCompile>
   </ItemGroup>

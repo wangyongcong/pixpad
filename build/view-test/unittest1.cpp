@@ -89,33 +89,23 @@ namespace ViewUnitTest
 			Assert::IsTrue(iter2 <= iter1);
 
 			// data access
-			float x, y, z;
-			x = 0;
-			y = 1;
-			z = 1;
 			iterator beg(verts, sizeof(Vec3));
 			iterator end(verts + cnt);
+			Fibonacci<Vec3> fib;
 			for (auto it = beg; it != end; ++it)
 			{
-				*it = { x, y, z };
-				x = y;
-				y = z;
-				z = x + y;
+				*it = fib.next();
 			}
-			x = 0;
-			y = 1;
-			z = 1;
+			fib.reset();
 			int idx = 0;
 			for (auto it = beg; it != end; ++it, ++idx)
 			{
+				auto v = fib.next();
 				Assert::IsTrue(idx < cnt);
-				Assert::IsTrue(verts[idx].x == x && verts[idx].y == y && verts[idx].z == z);
-				Assert::IsTrue(it->x == x && it->y == y && it->z == z);
-				x = y;
-				y = z;
-				z = x + y;
+				Assert::AreEqual(verts[idx], v);
+				Assert::AreEqual(*it, v);
 			}
-			Assert::IsTrue(idx == cnt);
+			Assert::AreEqual(idx, cnt);
 		}
 
 		TEST_METHOD(vertex_buffer)
