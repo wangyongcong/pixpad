@@ -2,6 +2,7 @@
 #include "OpenEXR/ImathColorAlgo.h"
 #include "spw_renderer.h"
 #include "spw_rasterizer.h"
+#include "vertex_layout.h"
 
 namespace wyc
 {

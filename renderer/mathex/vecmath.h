@@ -19,6 +19,12 @@ namespace wyc
 		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 	}
 
+	template<typename T>
+	operator Imath::Vec4<T>(const Imath::Vec3<T> &v)
+	{
+		return Imath::Vec4<T>(v.x, v.y, v.z, 1);
+	}
+
 	// OpenGL orthograph matrix
 	void set_orthograph(Matrix44f &proj, float left_plane, float bottom_plane, float near_plane,
 		float right_plane, float top_plane, float far_plane);
