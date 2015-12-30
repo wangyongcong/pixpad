@@ -31,30 +31,77 @@ namespace wyc
 	{
 		auto it_beg = vb.begin();
 		auto it_end = it_beg + end;
-		std::vector<Imath::V4f> triangle;
-		triangle.resize(3);
+		constexpr int prim_verts = 3;
+		std::vector<VertexOut> triangle;
+		triangle.resize(prim_verts);
+		// clipped by 6 planes may result 6 more vertices at most
+		std::vector<VertexOut> verts_out;
+		verts_out.reserve(prim_verts + 3);
 		unsigned char i = 0;
 		for (auto it = it_beg + beg; it != it_end; ++it)
 		{
-			const vertex_t &v = *it;
-			//---------------------------------
-			// vertex shader
-			Imath::V4f vs_out(v.pos);
-			vs_out *= m_mvp;
-			// return vs_out;
-			// vertex shader end
-			//---------------------------------
-			triangle[i++] = vs_out;
+			const VertexIn &v = *it;
+			vertex_shader(v, triangle[i++]);
 			if (i == 3)
 			{
-				clip_polygon_homo(triangle);
-				if (!triangle.empty())
-				{
-					viewport_transform(triangle);
-					draw_triangle(triangle);
-				}
+				i = 0;
+				clip(triangle, verts_out);
+				// send to fragment shader
 			}
+		}
+	}
 
+	void CPipeline::vertex_shader(const VertexIn & in, VertexOut & out)
+	{
+		Imath::V4f pos(in.pos);
+		pos *= m_mvp;
+		out.pos = pos;
+		out.color = in.color;
+	}
+
+	void CPipeline::clip(const std::vector<VertexOut>& vertices, std::vector<VertexOut>& out)
+	{
+		size_t vcnt = vertices.size();
+		float pdot, dot;
+		// clipped by W=0
+		constexpr float w_epsilon = 0.0001f;
+		size_t prev_idx = vcnt - 1;
+		pdot = vertices.back().pos.w - w_epsilon;
+		for (size_t i = 0; i < vcnt; ++i)
+			//for (auto &vert : vertices)
+		{
+			const VertexOut &vert = vertices[i];
+			const VertexOut &prev = vertices[prev_idx];
+			dot = vert.pos.w - w_epsilon;
+			if (pdot * dot < 0)
+				out.push_back(intersect(prev, pdot, vert, dot));
+			if (dot >= 0)
+				out.push_back(vert);
+			//prev = vert;
+			prev_idx = i;
+			pdot = dot;
+		}
+		vertices.swap(out);
+		if (vertices.empty())
+			return;
+		out.clear();
+		// clipped by positive plane: W=X, W=Y, W=Z
+		for (int i = 0; i < 3; ++i)
+		{
+			_clip_comp(&vertices, &out, i);
+			vertices.swap(out);
+			if (vertices.empty())
+				return;
+			out.clear();
+		}
+		// clipped by negative plane: W=-X, W=-Y, W=-Z
+		for (int i = 0; i < 3; ++i)
+		{
+			_clip_comp_neg(&vertices, &out, i);
+			vertices.swap(out);
+			if (vertices.empty())
+				return;
+			out.clear();
 		}
 	}
 

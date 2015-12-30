@@ -61,7 +61,14 @@ namespace wyc
 	// rotate radian counter-clockwise around +Z axis (0, 0, 1)
 	void set_rotate_z(Matrix44f &m, float radian);
 
-	
+	// Represent a plane using vector4
+	//	point: a point on the plane
+	//	normal: the plane normal
+	inline Imath::V4f plane(const Imath::V3f &point, const Imath::V3f &normal)
+	{
+		return Imath::V4f(normal.x, normal.y, normal.z, -point.dot(normal));
+	}
+
 	// Clip polygon by planes
 	// planes: planes used to clip the polygon
 	// vertices: vertices of the polygon, when return, it will contain the result

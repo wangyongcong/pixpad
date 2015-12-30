@@ -36,6 +36,12 @@ namespace wyc
 		//static const VertexAttrib attr_table[attr_count];
 	};
 
+	struct VertexP4C3
+	{
+		Imath::V4f pos;
+		Imath::C3f color;
+	};
+
 	struct VertexP3S2
 	{
 		Imath::V3f pos;
