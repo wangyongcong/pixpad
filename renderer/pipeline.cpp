@@ -1,4 +1,5 @@
 #include "pipeline.h"
+#include <cassert>
 #include <OpenEXR/IlmThreadPool.h>
 #include "mathex/vecmath.h"
 #include "mathex/floatmath.h"
@@ -36,29 +37,36 @@ namespace wyc
 		VertexOut cache[max_verts * 2];
 		VertexOut *triangle = cache;
 		VertexOut *verts_out = cache + max_verts;
-		size_t vcnt = 3;
 		unsigned char i = 0;
 		for (auto it = it_beg + beg; it != it_end; ++it)
 		{
 			const VertexIn &v = *it;
-			vertex_shader(v, triangle[i++]);
+			vertex_shader(m_uniform, v, triangle[i++]);
 			if (i == 3)
 			{
 				i = 0;
-				VertexOut *ret = clip_polygon(triangle, verts_out, vcnt);
+				// clipping
+				size_t vcnt = 3;
+				VertexOut *ret = clip_polygon(triangle, verts_out, vcnt, max_verts);
 				if (!ret)
 					continue;
+				// viewport transform
+				viewport_transform(m_uniform.viewport_center, m_uniform.viewport_radius, ret, vcnt);
 				// send to fragment shader
 			}
 		}
 	}
 
-	void CPipeline::vertex_shader(const VertexIn & in, VertexOut & out)
+	void CPipeline::vertex_shader(const Uniform &uniform, const VertexIn & in, VertexOut & out)
 	{
 		Imath::V4f pos(in.pos);
-		pos *= m_mvp;
+		pos *= uniform.mvp;
 		out.pos = pos;
 		out.color = in.color;
+	}
+
+	void CPipeline::fragment_shader(const Uniform & uniform, const VertexOut & in, Fragment & out)
+	{
 	}
 
 	template<>
@@ -80,7 +88,7 @@ namespace wyc
 		return out;
 	}
 
-	CPipeline::VertexOut* CPipeline::clip_polygon(VertexOut *in, VertexOut *out, size_t &size)
+	CPipeline::VertexOut* CPipeline::clip_polygon(VertexOut *in, VertexOut *out, size_t &size, size_t max_size)
 	{
 		float pdot, dot;
 		// clipped by W=0
@@ -92,10 +100,14 @@ namespace wyc
 		{
 			const auto &pos = in[i].pos;
 			dot = pos.w - w_epsilon;
-			if (pdot * dot < 0)
+			if (pdot * dot < 0) {
+				assert(out_size < max_size && "vertex cache overflow");
 				out[out_size++] = intersect(in[prev_idx], pdot, in[i], dot);
-			if (dot >= 0)
+			}
+			if (dot >= 0) {
+				assert(out_size < max_size && "vertex cache overflow");
 				out[out_size++] = in[i];
+			}
 			prev_idx = i;
 			pdot = dot;
 		}
@@ -114,10 +126,14 @@ namespace wyc
 			{
 				const auto &pos = in[k].pos;
 				dot = pos.w - pos[i];
-				if (pdot * dot < 0)
+				if (pdot * dot < 0) {
+					assert(out_size < max_size && "vertex cache overflow");
 					out[out_size++] = intersect(in[prev_idx], pdot, in[k], dot);
-				if (dot >= 0)
+				}
+				if (dot >= 0) {
+					assert(out_size < max_size && "vertex cache overflow");
 					out[out_size++] = in[k];
+				}
 				prev_idx = i;
 				pdot = dot;
 			}
@@ -138,9 +154,15 @@ namespace wyc
 				const auto &pos = in[k].pos;
 				dot = pos.w + pos[i];
 				if (pdot * dot < 0)
+				{
+					assert(out_size < max_size && "vertex cache overflow");
 					out[out_size++] = intersect(in[prev_idx], pdot, in[k], dot);
+				}
 				if (dot >= 0)
+				{
+					assert(out_size < max_size && "vertex cache overflow");
 					out[out_size++] = in[k];
+				}
 				prev_idx = i;
 				pdot = dot;
 			}
@@ -151,6 +173,17 @@ namespace wyc
 			out_size = 0;
 		}
 		return in;
+	}
+
+	void CPipeline::viewport_transform(const Imath::V2f &center, const Imath::V2f &radius, VertexOut * in, size_t size)
+	{
+		for (size_t i = 0; i < size; ++i)
+		{
+			auto &pos = in[i].pos;
+			pos /= pos.w;
+			pos.x = center.x + radius.x * pos.x;
+			pos.y = center.y + radius.y * pos.y;
+		}
 	}
 
 } // namesace wyc
