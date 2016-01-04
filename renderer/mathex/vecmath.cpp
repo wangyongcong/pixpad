@@ -1,6 +1,5 @@
 #include <cassert>
 #include "vecmath.h"
-#include "floatmath.h"
 
 namespace wyc
 {
@@ -110,17 +109,6 @@ namespace wyc
 		m[0][0] = m[1][1] = std::cos(radian);
 		m[0][1] = -sina;
 		m[1][0] =  sina;
-	}
-
-	template<class Vec>
-	inline Vec intersect(const Vec &p1, float d1, const Vec &p2, float d2)
-	{
-		float t = d1 / (d1 - d2);
-		if (d1 < 0)
-			t = fast_ceil(t * 1000) * 0.001f;
-		else
-			t = fast_floor(t * 1000) * 0.001f;
-		return p1 + (p2 - p1) * t;
 	}
 
 	void clip_polygon_by_plane(const Vec4f &plane, const std::vector<Vec3f> &vertices, std::vector<Vec3f> &out)

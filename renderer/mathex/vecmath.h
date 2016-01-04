@@ -3,6 +3,7 @@
 #include <vector>
 #include "OpenEXR/ImathMatrix.h"
 #include "mathfwd.h"
+#include "floatmath.h"
 
 namespace wyc
 {
@@ -17,12 +18,6 @@ namespace wyc
 	inline T operator ^ (const Imath::Vec3<T> &v1, const Imath::Vec4<T> &v2)
 	{
 		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-	}
-
-	template<typename T>
-	operator Imath::Vec4<T>(const Imath::Vec3<T> &v)
-	{
-		return Imath::Vec4<T>(v.x, v.y, v.z, 1);
 	}
 
 	// OpenGL orthograph matrix
@@ -67,6 +62,17 @@ namespace wyc
 	inline Imath::V4f plane(const Imath::V3f &point, const Imath::V3f &normal)
 	{
 		return Imath::V4f(normal.x, normal.y, normal.z, -point.dot(normal));
+	}
+
+	template<class Vec>
+	inline Vec intersect(const Vec &p1, float d1, const Vec &p2, float d2)
+	{
+		float t = d1 / (d1 - d2);
+		if (d1 < 0)
+			t = fast_ceil(t * 1000) * 0.001f;
+		else
+			t = fast_floor(t * 1000) * 0.001f;
+		return p1 + (p2 - p1) * t;
 	}
 
 	// Clip polygon by planes

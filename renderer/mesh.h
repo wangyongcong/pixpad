@@ -5,6 +5,7 @@
 #include <array>
 #include <initializer_list>
 #include "vertex_buffer.h"
+#include "vertex_layout.h"
 
 namespace wyc
 {

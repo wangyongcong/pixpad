@@ -32,8 +32,8 @@ namespace wyc
 	struct CVertexLayout<VF_P3C3>
 	{
 		using vertex_t = VertexP3C3;
-		//static const int attr_count = 2;
-		//static const VertexAttrib attr_table[attr_count];
+		static const int attr_count = 2;
+		static const VertexAttrib attr_table[attr_count];
 	};
 
 	struct VertexP4C3

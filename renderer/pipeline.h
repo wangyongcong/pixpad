@@ -22,9 +22,10 @@ namespace wyc
 		void feed(const CMesh &mesh);
 		void stage_vertex(const CVertexBuffer &vb, size_t beg, size_t end);
 		void vertex_shader(const VertexIn &in, VertexOut &out);
-		void clip(const std::vector<VertexOut> &vertices, std::vector<VertexOut> &out);
 
 	protected:
+		VertexOut* clip_polygon(VertexOut *in, VertexOut *out, size_t &size);
+
 		unsigned m_num_core;
 		Imath::M44f m_mvp;
 	};
