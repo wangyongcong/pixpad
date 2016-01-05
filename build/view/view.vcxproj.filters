@@ -325,11 +325,11 @@
     <ClInclude Include="..\..\common\any_stride_iterator.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\renderer\pipeline.h">
-      <Filter>Renderer\Base</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\renderer\vertex_layout.h">
       <Filter>Renderer\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\sparrow\spw_pipeline.h">
+      <Filter>Renderer\Sparrow</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -393,8 +393,8 @@
     <ClCompile Include="..\..\renderer\vertex_buffer.cpp">
       <Filter>Renderer\Base</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\renderer\pipeline.cpp">
-      <Filter>Renderer\Base</Filter>
+    <ClCompile Include="..\..\renderer\sparrow\spw_pipeline.cpp">
+      <Filter>Renderer\Sparrow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

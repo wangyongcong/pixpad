@@ -2,15 +2,17 @@
 #include <OpenEXR/ImathMatrix.h>
 #include "mesh.h"
 #include "vertex_layout.h"
+#include "spw_render_target.h"
 
 namespace wyc
 {
-	class CPipeline
+	class CSpwPipeline
 	{
 	public:
-		CPipeline();
-		~CPipeline();
+		CSpwPipeline();
+		~CSpwPipeline();
 		
+		void setup(std::shared_ptr<CSpwRenderTarget> rt);
 		void feed(const CMesh &mesh);
 		void stage_vertex(const CVertexBuffer &vb, size_t beg, size_t end);
 
@@ -32,9 +34,16 @@ namespace wyc
 	protected:
 		static VertexOut* clip_polygon(VertexOut *in, VertexOut *out, size_t &size, size_t max_size);
 		static void viewport_transform(const Imath::V2f &center, const Imath::V2f &radius, VertexOut *in, size_t size);
+		void draw_triangle(const VertexOut &v1, const VertexOut &v2, const VertexOut &v3);
 
 		unsigned m_num_core;
 		Uniform m_uniform;
+		enum POLYGON_WINDING
+		{
+			CLOCK_WISE = 1,
+			COUNTER_CLOCK_WISE = -1
+		} m_clock_wise;
+		std::shared_ptr<CSpwRenderTarget> m_rt;
 	};
 
 } // namespace wyc

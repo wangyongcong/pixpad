@@ -1,4 +1,4 @@
-#include "pipeline.h"
+#include "spw_pipeline.h"
 #include <cassert>
 #include <OpenEXR/IlmThreadPool.h>
 #include "mathex/vecmath.h"
@@ -7,8 +7,9 @@
 
 namespace wyc
 {
-	CPipeline::CPipeline()
+	CSpwPipeline::CSpwPipeline()
 		: m_num_core(0)
+		, m_clock_wise(COUNTER_CLOCK_WISE)
 	{
 		if (0 == m_num_core)
 		{
@@ -17,8 +18,18 @@ namespace wyc
 		}
 	}
 
+	CSpwPipeline::~CSpwPipeline()
+	{
+		m_rt = nullptr;
+	}
 
-	void CPipeline::feed(const CMesh &mesh)
+
+	void CSpwPipeline::setup(std::shared_ptr<CSpwRenderTarget> rt)
+	{
+		m_rt = rt;
+	}
+
+	void CSpwPipeline::feed(const CMesh &mesh)
 	{
 		const CVertexBuffer &vb = mesh.vertex_buffer();
 		size_t vert_cnt = vb.size();
@@ -29,7 +40,7 @@ namespace wyc
 		stage_vertex(vb, 0, vert_cnt);
 	}
 
-	void CPipeline::stage_vertex(const CVertexBuffer &vb, size_t beg, size_t end)
+	void CSpwPipeline::stage_vertex(const CVertexBuffer &vb, size_t beg, size_t end)
 	{
 		auto it_beg = vb.begin();
 		auto it_end = it_beg + end;
@@ -52,12 +63,16 @@ namespace wyc
 					continue;
 				// viewport transform
 				viewport_transform(m_uniform.viewport_center, m_uniform.viewport_radius, ret, vcnt);
-				// send to fragment shader
+				// draw triangles
+				for (size_t j = 2; j < vcnt; ++j)
+				{
+					draw_triangle(ret[0], ret[j - 1], ret[j]);
+				}
 			}
 		}
 	}
 
-	void CPipeline::vertex_shader(const Uniform &uniform, const VertexIn & in, VertexOut & out)
+	void CSpwPipeline::vertex_shader(const Uniform &uniform, const VertexIn & in, VertexOut & out)
 	{
 		Imath::V4f pos(in.pos);
 		pos *= uniform.mvp;
@@ -65,12 +80,12 @@ namespace wyc
 		out.color = in.color;
 	}
 
-	void CPipeline::fragment_shader(const Uniform & uniform, const VertexOut & in, Fragment & out)
+	void CSpwPipeline::fragment_shader(const Uniform & uniform, const VertexOut & in, Fragment & out)
 	{
 	}
 
 	template<>
-	CPipeline::VertexOut intersect<CPipeline::VertexOut>(const CPipeline::VertexOut &p1, float d1, const CPipeline::VertexOut &p2, float d2)
+	CSpwPipeline::VertexOut intersect<CSpwPipeline::VertexOut>(const CSpwPipeline::VertexOut &p1, float d1, const CSpwPipeline::VertexOut &p2, float d2)
 	{
 		float t = d1 / (d1 - d2);
 		if (d1 < 0)
@@ -79,7 +94,7 @@ namespace wyc
 			t = fast_floor(t * 1000) * 0.001f;
 		const float *f1 = reinterpret_cast<const float*>(&p1);
 		const float *f2 = reinterpret_cast<const float*>(&p2);
-		CPipeline::VertexOut out;
+		CSpwPipeline::VertexOut out;
 		float *f3 = reinterpret_cast<float*>(&out);
 		for (int i = 0; i < 7; ++i)
 		{
@@ -88,7 +103,7 @@ namespace wyc
 		return out;
 	}
 
-	CPipeline::VertexOut* CPipeline::clip_polygon(VertexOut *in, VertexOut *out, size_t &size, size_t max_size)
+	CSpwPipeline::VertexOut* CSpwPipeline::clip_polygon(VertexOut *in, VertexOut *out, size_t &size, size_t max_size)
 	{
 		float pdot, dot;
 		// clipped by W=0
@@ -175,7 +190,7 @@ namespace wyc
 		return in;
 	}
 
-	void CPipeline::viewport_transform(const Imath::V2f &center, const Imath::V2f &radius, VertexOut * in, size_t size)
+	void CSpwPipeline::viewport_transform(const Imath::V2f &center, const Imath::V2f &radius, VertexOut * in, size_t size)
 	{
 		for (size_t i = 0; i < size; ++i)
 		{
@@ -184,6 +199,19 @@ namespace wyc
 			pos.x = center.x + radius.x * pos.x;
 			pos.y = center.y + radius.y * pos.y;
 		}
+	}
+
+	void CSpwPipeline::draw_triangle(const VertexOut & v1, const VertexOut & v2, const VertexOut & v3)
+	{
+		// backface culling
+		Imath::V2f v12(v1.pos.x - v2.pos.x, v1.pos.y - v2.pos.y);
+		Imath::V2f v32(v3.pos.x - v2.pos.x, v3.pos.y - v2.pos.y);
+		if (v12.cross(v32) * m_clock_wise <= 0)
+		{
+			return;
+		}
+		// send to rasterizer
+
 	}
 
 } // namesace wyc
