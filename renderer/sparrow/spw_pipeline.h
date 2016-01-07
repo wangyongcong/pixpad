@@ -36,6 +36,7 @@ namespace wyc
 		static VertexOut* clip_polygon(VertexOut *in, VertexOut *out, size_t &size, size_t max_size);
 		static void viewport_transform(const Imath::V2f &center, const Imath::V2f &radius, VertexOut *in, size_t size);
 		void draw_triangle(const VertexOut &v0, const VertexOut &v1, const VertexOut &v2);
+		void write_fragment(int x, int y, VertexOut &in);
 
 		unsigned m_num_core;
 		Uniform m_uniform;
@@ -50,7 +51,7 @@ namespace wyc
 		{
 			Imath::V2i center;
 			Imath::V2i center_device;
-			Imath::Box2i region;
+			Imath::Box2i block;
 		};
 		RasterRegion m_region;
 	};

@@ -68,14 +68,14 @@ namespace wyc
 	// return positive value if counter-clockwise, 
 	// negative value for clockwise, 
 	// 0 for degenerated triangle (v0, v1, v2 are collinear)
-	template<typename T>
-	inline T triangle_edge_function(const Imath::Vec2<T> &v0, const Imath::Vec2<T> &v1, const Imath::Vec2<T> &v2)
+	template<typename T, typename Position>
+	inline T triangle_edge_function(const Position &v0, const Position &v1, const Position &v2)
 	{
 		return (v1.x - v0.x) * (v2.y - v0.y) - (v1.y - v0.y) * (v2.x - v0.x);
 	}
 
-	template<typename T>
-	bool is_inside_triangle(const Imath::Vec2<T> &p, const Imath::Vec2<T> &v0, const Imath::Vec2<T> &v1, const Imath::Vec2<T> &v2)
+	template<typename T, typename Position>
+	bool is_inside_triangle(const Position &p, const Position &v0, const Position &v1, const Position &v2)
 	{
 		T edge01 = triangle_edge_function(v0, v1, p);
 		T edge12 = triangle_edge_function(v1, v2, p);
@@ -97,7 +97,8 @@ namespace wyc
 		return Imath::Vec3<T>(x / area, y / area, z / area);
 	}
 
-	inline bool is_top_left(const Vec2f &v1, const Vec2f &v2)
+	template<typename Position>
+	inline bool is_top_left(const Position &v1, const Position &v2)
 	{
 		// In a counter-clockwise triangle:
 		// A top edge is an edge that is exactly horizontal and goes towards the left, i.e.its end point is left of its start point.
@@ -105,8 +106,8 @@ namespace wyc
 		return (v1.y == v2.y && v1.x > v2.x) || (v1.y > v2.y);
 	}
 
-	template<uint16 N>
-	inline Vec2i snap_to_subpixel(const Vec2f &v)
+	template<uint16 N, typename Position>
+	inline Vec2i snap_to_subpixel(const Position &v)
 	{
 		return Vec2i(fast_to_fixed<N>(v.x), fast_to_fixed<N>(v.y));
 	}
@@ -116,33 +117,40 @@ namespace wyc
 		return int64_t(v1.x - v0.x) * int64_t(v2.y - v0.y) - int64_t(v1.y - v0.y) * int64_t(v2.x - v0.x);
 	}
 
+	template<typename Vertex>
+	inline Vertex interpolate(const Vertex &v0, const Vertex &v1, const Vertex &v2, float t0, float t1, float t2)
+	{
+		return v0 * t0 + v1 * t1 + v2 * t2;
+	}
+
 #ifdef _DEBUG
 #define ASSERT_INSIDE(v, r) assert(v.x >= -r && v.x < r && v.y >= -r && v.y < r)
 #endif
 
-	// fill triangle {vertices[0], vertices[1], vertices[2]} in counter-clockwise
-	template<typename Plotter>
-	void fill_triangle(const Imath::Box<Vec2i> &box, const Vec2f *vertices, Plotter &plot)
+	// fill triangle {pos0, pos1, pos2} in counter-clockwise
+	template<typename Position, typename Vertex, typename Plotter>
+	void fill_triangle(const Imath::Box<Vec2i> &block, const Position &pos0, const Position &pos1, const Position &pos2,
+		const Vertex &vert0, const Vertex &vert1, const Vertex &vert2, Plotter &plot)
 	{
 		// 11.8 sub pixel precision
 		// max render target is 2048 x 2048
 		// coordinate must be inside [-1024, 1024)
 #ifdef _DEBUG
-		ASSERT_INSIDE(box.min, 1024);
-		ASSERT_INSIDE(box.max, 1024);
-		ASSERT_INSIDE(vertices[0], 1024);
-		ASSERT_INSIDE(vertices[1], 1024);
-		ASSERT_INSIDE(vertices[2], 1024);
+		ASSERT_INSIDE(block.min, 1024);
+		ASSERT_INSIDE(block.max, 1024);
+		ASSERT_INSIDE(pos0, 1024);
+		ASSERT_INSIDE(pos1, 1024);
+		ASSERT_INSIDE(pos2, 1024);
 #endif
 		
 		// snap to .8 sub pixel
-		Vec2i v0 = snap_to_subpixel<8>(vertices[0]);
-		Vec2i v1 = snap_to_subpixel<8>(vertices[1]);
-		Vec2i v2 = snap_to_subpixel<8>(vertices[2]);
+		Vec2i v0 = snap_to_subpixel<8>(pos0);
+		Vec2i v1 = snap_to_subpixel<8>(pos1);
+		Vec2i v2 = snap_to_subpixel<8>(pos2);
 
 		// initial edge function with high precision
 		// sample point is at pixel center
-		Vec2i p = box.min;
+		Vec2i p = block.min;
 		p.x = (p.x << 8) | 0x80;
 		p.y = (p.y << 8) | 0x80;
 		int64_t hp_w0 = edge_function_fixed(v1, v2, p);
@@ -168,19 +176,21 @@ namespace wyc
 		int fw2 = int(hp_w2 & 0xFF);
 		int w0, w1, w2;
 
-		for (int y = box.min.y; y < box.max.y; y += 1)
+		for (int y = block.min.y; y < block.max.y; y += 1)
 		{
 			w0 = row_w0;
 			w1 = row_w1;
 			w2 = row_w2;
-			for (int x = box.min.x; x < box.max.x; x += 1)
+			for (int x = block.min.x; x < block.max.x; x += 1)
 			{
 				if ((w0 | w1 | w2) >= 0) {
 					hp_w0 = (int64_t(w0 - bias_v12) << 8) + fw0;
 					hp_w1 = (int64_t(w1 - bias_v20) << 8) + fw1;
 					hp_w2 = (int64_t(w2 - bias_v01) << 8) + fw2;
 					float real_sum = float(hp_w0 + hp_w1 + hp_w2);
-					plot(x, y, float(hp_w0) / real_sum, float(hp_w1) / real_sum, float(hp_w2) / real_sum);
+					auto vert_inter = interpolate(vert0, vert1, vert2, 
+						float(hp_w0) / real_sum, float(hp_w1) / real_sum, float(hp_w2) / real_sum);
+					plot(x, y, vert_inter);
 				}
 				w0 += edge_a12;
 				w1 += edge_a20;

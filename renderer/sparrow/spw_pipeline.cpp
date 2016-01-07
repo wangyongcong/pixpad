@@ -1,8 +1,10 @@
 #include "spw_pipeline.h"
 #include <cassert>
+#include <functional>
 #include "mathex/vecmath.h"
 #include "mathex/floatmath.h"
 #include "thread/platform_info.h"
+#include "spw_rasterizer.h"
 
 namespace wyc
 {
@@ -31,8 +33,8 @@ namespace wyc
 		int halfw = surfh >> 1, halfh = surf.row_length() >> 1;
 		m_region.center = { halfw, halfh };
 		m_region.center_device = { halfw, surfh - halfh - 1 };
-		m_region.region.min = { -halfw, -halfh };
-		m_region.region.max = {  halfw,  halfh };
+		m_region.block.min = { -halfw, -halfh };
+		m_region.block.max = {  halfw,  halfh };
 	}
 
 	void CSpwPipeline::feed(const CMesh &mesh)
@@ -78,7 +80,7 @@ namespace wyc
 		}
 	}
 
-	void CSpwPipeline::vertex_shader(const Uniform &uniform, const VertexIn & in, VertexOut & out)
+	void CSpwPipeline::vertex_shader(const Uniform & uniform, const VertexIn & in, VertexOut & out)
 	{
 		Imath::V4f pos(in.pos);
 		pos *= uniform.mvp;
@@ -88,6 +90,7 @@ namespace wyc
 
 	void CSpwPipeline::fragment_shader(const Uniform & uniform, const VertexOut & in, Fragment & out)
 	{
+		out = in.color;
 	}
 
 	template<>
@@ -106,6 +109,17 @@ namespace wyc
 		{
 			f3[i] = f1[i] * (1 - t) + f2[i] * t;
 		}
+		return out;
+	}
+
+	template<>
+	inline CSpwPipeline::VertexOut interpolate<CSpwPipeline::VertexOut>(
+		const CSpwPipeline::VertexOut &v0, const CSpwPipeline::VertexOut &v1, const CSpwPipeline::VertexOut &v2, 
+		float t0, float t1, float t2)
+	{
+		CSpwPipeline::VertexOut out;
+		out.pos = v0.pos * t0 + v1.pos * t1 + v2.pos * t2;
+		out.color = v0.color * t0 + v1.color * t1 + v2.color * t2;
 		return out;
 	}
 
@@ -218,7 +232,16 @@ namespace wyc
 			return;
 		}
 		// send to rasterizer
+		using namespace std::placeholders;
+		auto plotter = std::bind(&CSpwPipeline::write_fragment, this, _1, _2, _3);
+		fill_triangle(m_region.block, v0.pos, v1.pos, v2.pos, v0, v1, v2, plotter);
+	}
 
+	void CSpwPipeline::write_fragment(int x, int y, VertexOut & in)
+	{
+		Fragment out;
+		fragment_shader(m_uniform, in, out);
+		// write fragment buffer
 	}
 
 } // namesace wyc
