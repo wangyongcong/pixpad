@@ -1,5 +1,6 @@
 #pragma once
 #include <OpenEXR/ImathMatrix.h>
+#include <OpenEXR/ImathBox.h>
 #include "mesh.h"
 #include "vertex_layout.h"
 #include "spw_render_target.h"
@@ -34,7 +35,7 @@ namespace wyc
 	protected:
 		static VertexOut* clip_polygon(VertexOut *in, VertexOut *out, size_t &size, size_t max_size);
 		static void viewport_transform(const Imath::V2f &center, const Imath::V2f &radius, VertexOut *in, size_t size);
-		void draw_triangle(const VertexOut &v1, const VertexOut &v2, const VertexOut &v3);
+		void draw_triangle(const VertexOut &v0, const VertexOut &v1, const VertexOut &v2);
 
 		unsigned m_num_core;
 		Uniform m_uniform;
@@ -44,6 +45,14 @@ namespace wyc
 			COUNTER_CLOCK_WISE = -1
 		} m_clock_wise;
 		std::shared_ptr<CSpwRenderTarget> m_rt;
+
+		struct RasterRegion
+		{
+			Imath::V2i center;
+			Imath::V2i center_device;
+			Imath::Box2i region;
+		};
+		RasterRegion m_region;
 	};
 
 } // namespace wyc

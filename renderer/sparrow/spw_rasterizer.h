@@ -130,6 +130,9 @@ namespace wyc
 #ifdef _DEBUG
 		ASSERT_INSIDE(box.min, 1024);
 		ASSERT_INSIDE(box.max, 1024);
+		ASSERT_INSIDE(vertices[0], 1024);
+		ASSERT_INSIDE(vertices[1], 1024);
+		ASSERT_INSIDE(vertices[2], 1024);
 #endif
 		
 		// snap to .8 sub pixel
@@ -137,12 +140,6 @@ namespace wyc
 		Vec2i v1 = snap_to_subpixel<8>(vertices[1]);
 		Vec2i v2 = snap_to_subpixel<8>(vertices[2]);
 
-#ifdef _DEBUG
-		//ASSERT_INSIDE(v0, 1024);
-		//ASSERT_INSIDE(v1, 1024);
-		//ASSERT_INSIDE(v2, 1024);
-#endif
-		
 		// initial edge function with high precision
 		// sample point is at pixel center
 		Vec2i p = box.min;

@@ -1,6 +1,5 @@
 #include "spw_pipeline.h"
 #include <cassert>
-#include <OpenEXR/IlmThreadPool.h>
 #include "mathex/vecmath.h"
 #include "mathex/floatmath.h"
 #include "thread/platform_info.h"
@@ -27,6 +26,13 @@ namespace wyc
 	void CSpwPipeline::setup(std::shared_ptr<CSpwRenderTarget> rt)
 	{
 		m_rt = rt;
+		CSurface &surf = rt->get_color_buffer();
+		int surfh = surf.row();
+		int halfw = surfh >> 1, halfh = surf.row_length() >> 1;
+		m_region.center = { halfw, halfh };
+		m_region.center_device = { halfw, surfh - halfh - 1 };
+		m_region.region.min = { -halfw, -halfh };
+		m_region.region.max = {  halfw,  halfh };
 	}
 
 	void CSpwPipeline::feed(const CMesh &mesh)
@@ -195,18 +201,19 @@ namespace wyc
 		for (size_t i = 0; i < size; ++i)
 		{
 			auto &pos = in[i].pos;
+			// after homogenized, (x, y) are within [-1, 1]
 			pos /= pos.w;
 			pos.x = center.x + radius.x * pos.x;
 			pos.y = center.y + radius.y * pos.y;
 		}
 	}
 
-	void CSpwPipeline::draw_triangle(const VertexOut & v1, const VertexOut & v2, const VertexOut & v3)
+	void CSpwPipeline::draw_triangle(const VertexOut & v0, const VertexOut & v1, const VertexOut & v2)
 	{
 		// backface culling
-		Imath::V2f v12(v1.pos.x - v2.pos.x, v1.pos.y - v2.pos.y);
-		Imath::V2f v32(v3.pos.x - v2.pos.x, v3.pos.y - v2.pos.y);
-		if (v12.cross(v32) * m_clock_wise <= 0)
+		Imath::V2f v01(v0.pos.x - v1.pos.x, v0.pos.y - v1.pos.y);
+		Imath::V2f v21(v2.pos.x - v1.pos.x, v2.pos.y - v1.pos.y);
+		if (v01.cross(v21) * m_clock_wise <= 0)
 		{
 			return;
 		}

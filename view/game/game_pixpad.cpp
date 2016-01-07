@@ -133,9 +133,9 @@ namespace wyc
 			ptr->wake_up();
 		}
 		// start a task
-		CTriangleMesh mesh(100);
-		CMesh cube;
-		cube.load_obj(L"res/cube/cube.obj");
+		CTriangleMesh triangle(100);
+		//CMesh cube;
+		//cube.load_obj(L"res/cube/cube.obj");
 		Imath::Frustumf frustum;
 		Imath::Matrix44<float> mvp = frustum.projectionMatrix();
 		for (auto &ptr : m_views)
@@ -145,7 +145,7 @@ namespace wyc
 			clear->color.setValue(0.0f, 0.0f, 0.0f);
 			renderer->enqueue(clear);
 			auto *draw = renderer->new_command<cmd_draw_mesh>();
-			draw->mesh = &mesh;
+			draw->mesh = &triangle;
 			draw->mvp = &mvp;
 			renderer->enqueue(draw);
 
