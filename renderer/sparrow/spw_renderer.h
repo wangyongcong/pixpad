@@ -5,6 +5,7 @@
 #include "ring_queue.h"
 #include "render_command.h"
 #include "util.h"
+#include "spw_pipeline.h"
 
 namespace wyc
 {
@@ -29,6 +30,7 @@ namespace wyc
 
 		std::shared_ptr<CSpwRenderTarget> m_rt;
 		std::vector<RenderCommand*> m_cmd_buffer;
+		CSpwPipeline m_pipeline;
 	};
 
 	template<class Command>

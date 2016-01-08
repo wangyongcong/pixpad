@@ -24,7 +24,6 @@ namespace wyc
 		m_rt = nullptr;
 	}
 
-
 	void CSpwPipeline::setup(std::shared_ptr<CSpwRenderTarget> rt)
 	{
 		m_rt = rt;
