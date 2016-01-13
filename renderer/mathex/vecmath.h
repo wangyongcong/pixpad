@@ -21,6 +21,17 @@ namespace wyc
 		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 	}
 
+	template<typename S>
+	inline Imath::Vec4<S> operator * (const Imath::Matrix44<S> &m, const Imath::Vec4<S> &v)
+	{
+		S x = S(v.x * m[0][0] + v.y * m[0][1] + v.z * m[0][2] + v.w * m[0][3]);
+		S y = S(v.x * m[1][0] + v.y * m[1][1] + v.z * m[1][2] + v.w * m[1][3]);
+		S z = S(v.x * m[2][0] + v.y * m[2][1] + v.z * m[2][2] + v.w * m[2][3]);
+		S w = S(v.x * m[3][0] + v.y * m[3][1] + v.z * m[3][2] + v.w * m[3][3]);
+
+		return Imath::Vec4<S>(x, y, z, w);
+	}
+
 	template<typename T>
 	inline bool inside(const Imath::Vec2<T> &point, const Imath::Box<Imath::Vec2<T>> &box)
 	{

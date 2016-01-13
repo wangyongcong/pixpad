@@ -29,7 +29,7 @@ namespace wyc
 	{
 		m_rt = rt;
 		CSurface &surf = rt->get_color_buffer();
-		int surfw = surf.row(), surfh = surf.row_length();
+		int surfh = surf.row(), surfw = surf.row_length();
 		int halfw = surfw >> 1, halfh = surfh >> 1;
 		m_region.center = { halfw, halfh };
 		m_region.center_device = { halfw, surfh - halfh - 1 };
@@ -38,6 +38,7 @@ namespace wyc
 		m_region.block_device.min = { 0, 0 };
 		m_region.block_device.max = { surfw, surfh };
 		set_viewport({ {0, 0}, {surfw, surfh} });
+		set_orthograph(m_uniform.mvp, -halfw, -halfh, 0.1f, halfw, halfh, 100.0f);
 	}
 
 	void CSpwPipeline::feed(const CMesh &mesh)
@@ -86,7 +87,8 @@ namespace wyc
 	void CSpwPipeline::vertex_shader(const Uniform & uniform, const VertexIn & in, VertexOut & out)
 	{
 		Imath::V4f pos(in.pos);
-		pos *= uniform.mvp;
+		pos.z = -1.0f;
+		pos = uniform.mvp * pos;
 		out.pos = pos;
 		out.color = in.color;
 	}
@@ -237,7 +239,10 @@ namespace wyc
 		// send to rasterizer
 		using namespace std::placeholders;
 		auto plotter = std::bind(&CSpwPipeline::write_fragment, this, _1, _2, _3);
-		fill_triangle(m_region.block, v0.pos, v1.pos, v2.pos, v0, v1, v2, plotter);
+		Imath::V2f p0 = { v0.pos.x - m_region.center.x, v0.pos.y - m_region.center.y };
+		Imath::V2f p1 = { v1.pos.x - m_region.center.x, v1.pos.y - m_region.center.y };
+		Imath::V2f p2 = { v2.pos.x - m_region.center.x, v2.pos.y - m_region.center.y };
+		fill_triangle(m_region.block, p0, p1, p2, v0, v1, v2, plotter);
 	}
 
 	void CSpwPipeline::write_fragment(int x, int y, VertexOut & in)

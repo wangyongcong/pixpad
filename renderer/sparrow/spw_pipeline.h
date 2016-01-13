@@ -32,8 +32,10 @@ namespace wyc
 			m_uniform = uniform;
 		}
 		inline void set_viewport(const Imath::Box2i &view) {
-			m_uniform.viewport_center = (view.max + view.min) * 0.5f;
-			m_uniform.viewport_radius = (view.max - view.min) * 0.5f;
+			auto _tmp = view.max + view.min;
+			m_uniform.viewport_center = { _tmp.x * 0.5f, _tmp.y * 0.5f };
+			_tmp = view.max - view.min;
+			m_uniform.viewport_radius = { _tmp.x * 0.5f, _tmp.y * 0.5f };
 		}
 		static void vertex_shader(const Uniform &uniform, const VertexIn &in, VertexOut &out);
 		static void fragment_shader(const Uniform &uniform, const VertexOut &in, Fragment &out);
