@@ -19,7 +19,9 @@ namespace wyc
 
 		typedef VertexP4C3 VertexOut;
 		typedef VertexP3C3 VertexIn;
-		typedef Imath::C3f Fragment;
+		typedef struct {
+			Imath::C3f color;
+		} Fragment;
 		typedef struct
 		{
 			Imath::M44f mvp;
@@ -29,9 +31,9 @@ namespace wyc
 		inline void set_uniform(const Uniform &uniform) {
 			m_uniform = uniform;
 		}
-		inline void set_viewport(const Imath::Box2f &view) {
-			m_uniform.viewport_center = (view.max + view.min) * 0.5;
-			m_uniform.viewport_radius = (view.max - view.min) * 0.5;
+		inline void set_viewport(const Imath::Box2i &view) {
+			m_uniform.viewport_center = (view.max + view.min) * 0.5f;
+			m_uniform.viewport_radius = (view.max - view.min) * 0.5f;
 		}
 		static void vertex_shader(const Uniform &uniform, const VertexIn &in, VertexOut &out);
 		static void fragment_shader(const Uniform &uniform, const VertexOut &in, Fragment &out);
@@ -56,6 +58,7 @@ namespace wyc
 			Imath::V2i center;
 			Imath::V2i center_device;
 			Imath::Box2i block;
+			Imath::Box2i block_device;
 		};
 		RasterRegion m_region;
 	};

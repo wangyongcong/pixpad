@@ -1,6 +1,7 @@
 #include "spw_pipeline.h"
 #include <cassert>
 #include <functional>
+#include <OpenEXR/ImathColorAlgo.h>
 #include "mathex/vecmath.h"
 #include "mathex/floatmath.h"
 #include "thread/platform_info.h"
@@ -28,12 +29,15 @@ namespace wyc
 	{
 		m_rt = rt;
 		CSurface &surf = rt->get_color_buffer();
-		int surfh = surf.row();
-		int halfw = surfh >> 1, halfh = surf.row_length() >> 1;
+		int surfw = surf.row(), surfh = surf.row_length();
+		int halfw = surfw >> 1, halfh = surfh >> 1;
 		m_region.center = { halfw, halfh };
 		m_region.center_device = { halfw, surfh - halfh - 1 };
 		m_region.block.min = { -halfw, -halfh };
 		m_region.block.max = {  halfw,  halfh };
+		m_region.block_device.min = { 0, 0 };
+		m_region.block_device.max = { surfw, surfh };
+		set_viewport({ {0, 0}, {surfw, surfh} });
 	}
 
 	void CSpwPipeline::feed(const CMesh &mesh)
@@ -89,7 +93,7 @@ namespace wyc
 
 	void CSpwPipeline::fragment_shader(const Uniform & uniform, const VertexOut & in, Fragment & out)
 	{
-		out = in.color;
+		out.color = in.color;
 	}
 
 	template<>
@@ -241,6 +245,12 @@ namespace wyc
 		Fragment out;
 		fragment_shader(m_uniform, in, out);
 		// write fragment buffer
+		auto &surf = m_rt->get_color_buffer();
+		unsigned v = Imath::rgb2packed(out.color);
+		x += m_region.center_device.x;
+		y = m_region.center_device.y - y;
+		assert(inside(x, y, m_region.block_device));
+		surf.set(x, y, v);
 	}
 
 } // namesace wyc
