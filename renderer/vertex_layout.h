@@ -1,4 +1,5 @@
 #pragma once
+#include <type_traits>
 #include "OpenEXR/ImathVec.h"
 #include "OpenEXR/ImathColor.h"
 
@@ -22,11 +23,19 @@ namespace wyc
 		//static const VertexAttrib *attr_table;
 	};
 
+	template<typename Vertex>
+	class CVertexMeta
+	{
+	public:
+		EVertexLayout layout = VF_NONE;
+	};
+
 	struct VertexP3C3
 	{
 		Imath::V3f pos;
 		Imath::C3f color;
 	};
+	static_assert(sizeof(VertexP3C3) == sizeof(float) * 6, "Vertex size not match");
 
 	template<>
 	struct CVertexLayout<VF_P3C3>
@@ -41,6 +50,26 @@ namespace wyc
 		Imath::V4f pos;
 		Imath::C3f color;
 	};
+
+	class CVertexP3C3
+	{
+	public:
+		Imath::V3f pos;
+		Imath::C3f color;
+		// meta data
+		static constexpr EVertexLayout layout = VF_P3C3;
+		static constexpr size_t component = 6;
+		static constexpr size_t index_pos = 0;
+	};
+	static_assert(sizeof(CVertexP3C3) == sizeof(float[CVertexP3C3::component]), "size not equal");
+
+	class CVertexP4C3
+	{
+	public:
+		Imath::V4f pos;
+		Imath::C3f color;
+	};
+	static_assert(sizeof(CVertexP3C3) == sizeof(float[6]), "size not equal");
 
 	struct VertexP3S2
 	{

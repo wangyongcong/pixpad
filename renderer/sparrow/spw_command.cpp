@@ -51,7 +51,7 @@ namespace wyc
 		{
 			return;
 		}
-		auto pipeline = renderer->m_pipeline;
+		auto &pipeline = renderer->m_pipeline;
 		pipeline.setup(renderer->m_rt);
 		pipeline.feed(*mesh);
 		//CSurface& surf = renderer->m_rt->get_color_buffer();

@@ -12,13 +12,15 @@ namespace wyc
 	public:
 		CSpwPipeline();
 		~CSpwPipeline();
+		CSpwPipeline(const CSpwPipeline &other) = delete;
+		CSpwPipeline& operator = (const CSpwPipeline &other) = delete;
 		
 		void setup(std::shared_ptr<CSpwRenderTarget> rt);
 		void feed(const CMesh &mesh);
-		void stage_vertex(const CVertexBuffer &vb, size_t beg, size_t end);
+		void process(const CVertexBuffer &vb, size_t beg, size_t end);
 
-		typedef VertexP4C3 VertexOut;
-		typedef VertexP3C3 VertexIn;
+		typedef CVertexP4C3 VertexOut;
+		typedef CVertexP3C3 VertexIn;
 		typedef struct {
 			Imath::C3f color;
 		} Fragment;

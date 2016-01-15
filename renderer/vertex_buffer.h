@@ -187,6 +187,30 @@ namespace wyc
 			return{ m_data + m_vert_size * m_vert_cnt };
 		}
 
+		class CStreamIterator : public CAnyStrideIterator<float>
+		{
+		public:
+			CStreamIterator() : CAnyStrideIterator()
+			{
+			}
+			CStreamIterator(void *beg, size_t stride = 0) 
+				: CAnyStrideIterator(beg, stride)
+			{
+			}
+			inline const float* operator * () const
+			{
+				return (float*)(m_cursor);
+			}
+		};
+		inline CStreamIterator stream_begin() const
+		{
+			return{ m_data, m_vert_size };
+		}
+		inline CStreamIterator stream_end() const
+		{
+			return{ m_data + m_vert_size * m_vert_cnt };
+		}
+
 		inline size_t size() const
 		{
 			return m_vert_cnt;

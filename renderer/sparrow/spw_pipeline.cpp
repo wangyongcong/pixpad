@@ -49,18 +49,28 @@ namespace wyc
 		//size_t tri_per_core = tri_cnt / m_num_core;
 		
 		// todo: work parallel
-		stage_vertex(vb, 0, vert_cnt);
+		process(vb, 0, vert_cnt);
 	}
 
-	void CSpwPipeline::stage_vertex(const CVertexBuffer &vb, size_t beg, size_t end)
+	void CSpwPipeline::process(const CVertexBuffer &vb, size_t beg, size_t end)
 	{
-		auto it_beg = vb.begin();
-		auto it_end = it_beg + end;
+		size_t comp = VertexIn::component;
+		size_t idx_pos = VertexIn::index_pos;
 		constexpr int max_verts = 10;
 		VertexOut cache[max_verts * 2];
 		VertexOut *triangle = cache;
 		VertexOut *verts_out = cache + max_verts;
+
+		auto stream_it = vb.stream_begin();
+		auto stream_end = vb.stream_end();
+		for (auto it = stream_it + beg; it != stream_end; ++it)
+		{
+			const float *pvert = *stream_it;
+		}
+
 		unsigned char i = 0;
+		auto it_beg = vb.begin();
+		auto it_end = it_beg + end;
 		for (auto it = it_beg + beg; it != it_end; ++it)
 		{
 			const VertexIn &v = *it;
