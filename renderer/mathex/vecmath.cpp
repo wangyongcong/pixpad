@@ -175,8 +175,8 @@ namespace wyc
 	void clip_polygon_homo(std::vector<Vec4f> &vertices)
 	{
 		std::vector<Vec4f> out;
-		// clipped by 6 planes may result 6 more vertices at most
-		out.reserve(vertices.size() + 6);
+		// clipped by 7 planes may result 7 more vertices at most
+		out.reserve(vertices.size() + 7);
 		float pdot, dot;
 		Vec4f prev;
 		// clipped by W=0
@@ -215,6 +215,117 @@ namespace wyc
 				return;
 			out.clear();
 		}
+	}
+
+	void intersect(float *v1, float *v2, float d1, float d2, size_t component, float *out)
+	{
+		float t = d1 / (d1 - d2);
+		if (d1 < 0)
+			t = fast_ceil(t * 1000) * 0.001f;
+		else
+			t = fast_floor(t * 1000) * 0.001f;
+		//return p1 + (p2 - p1) * t;
+		for (float *end = out + component; out != end; ++out, ++v1, ++v2)
+		{
+			*out = (*v1) + (*v2 - *v1) * t;
+		}
+	}
+
+	size_t clip_polygon(float *vertex_in, float *vertex_out, size_t stride, size_t pos_offset, size_t size_in, size_t max_size_out)
+	{
+		using vec4_t = Imath::V4f;
+		float pdot, dot;
+		// clipped by W=0
+		constexpr float w_epsilon = 0.0001f;
+		size_t prev_i = stride * (size_in - 1);
+		float *ptr_pos = vertex_in + prev_i + pos_offset;
+		vec4_t *pos = (vec4_t*)(ptr_pos);
+		pdot = pos->w - w_epsilon;
+		size_t size_out = 0;
+		for (size_t i = 0, end = size_in * stride; i < end; i += stride)
+		{
+			//const auto &pos = in[i].pos;
+			ptr_pos += stride;
+			pos = (vec4_t*)(ptr_pos);
+			dot = pos->w - w_epsilon;
+			if (pdot * dot < 0) {
+				assert(size_out < max_size_out && "vertex cache overflow");
+				//out[out_size++] = intersect(in[prev_idx], pdot, in[i], dot);
+				intersect(vertex_in + prev_i, vertex_in + i, pdot, dot, stride, vertex_out + size_out);
+				size_out += stride;
+			}
+			if (dot >= 0) {
+				assert(size_out < max_size_out && "vertex cache overflow");
+				//out[out_size++] = in[i];
+				memcpy(vertex_out + size_out, vertex_in + i, sizeof(float) * stride);
+				size_out += stride;
+			}
+			prev_i = i;
+			pdot = dot;
+		}
+		if (!size_out)
+			return 0;
+		std::swap(vertex_in, vertex_out);
+		size_in = size_out;
+		size_out = 0;
+
+		//// clipped by positive plane: W=X, W=Y, W=Z
+		//for (size_t i = 0; i < 3; ++i)
+		//{
+		//	prev_idx = size - 1;
+		//	const auto &pos = in[prev_idx].pos;
+		//	float pdot = pos.w - pos[i], dot;
+		//	for (size_t k = 0; k < size; ++k)
+		//	{
+		//		const auto &pos = in[k].pos;
+		//		dot = pos.w - pos[i];
+		//		if (pdot * dot < 0) {
+		//			assert(out_size < max_size && "vertex cache overflow");
+		//			out[out_size++] = intersect(in[prev_idx], pdot, in[k], dot);
+		//		}
+		//		if (dot >= 0) {
+		//			assert(out_size < max_size && "vertex cache overflow");
+		//			out[out_size++] = in[k];
+		//		}
+		//		prev_idx = i;
+		//		pdot = dot;
+		//	}
+		//	if (!out_size)
+		//		return nullptr;
+		//	std::swap(in, out);
+		//	size = out_size;
+		//	out_size = 0;
+		//}
+		//// clipped by negative plane: W=-X, W=-Y, W=-Z
+		//for (size_t i = 0; i < 3; ++i)
+		//{
+		//	prev_idx = size - 1;
+		//	const auto &pos = in[prev_idx].pos;
+		//	float pdot = pos.w + pos[i], dot;
+		//	for (size_t k = 0; k < size; ++k)
+		//	{
+		//		const auto &pos = in[k].pos;
+		//		dot = pos.w + pos[i];
+		//		if (pdot * dot < 0)
+		//		{
+		//			assert(out_size < max_size && "vertex cache overflow");
+		//			out[out_size++] = intersect(in[prev_idx], pdot, in[k], dot);
+		//		}
+		//		if (dot >= 0)
+		//		{
+		//			assert(out_size < max_size && "vertex cache overflow");
+		//			out[out_size++] = in[k];
+		//		}
+		//		prev_idx = i;
+		//		pdot = dot;
+		//	}
+		//	if (!out_size)
+		//		return nullptr;
+		//	std::swap(in, out);
+		//	size = out_size;
+		//	out_size = 0;
+		//}
+		return size_out;
 	}
 
 } // namespace wyc

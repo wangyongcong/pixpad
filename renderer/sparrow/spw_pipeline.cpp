@@ -54,44 +54,59 @@ namespace wyc
 
 	void CSpwPipeline::process(const CVertexBuffer &vb, size_t beg, size_t end)
 	{
-		size_t comp = VertexIn::component;
-		size_t idx_pos = VertexIn::index_pos;
-		constexpr int max_verts = 10;
-		VertexOut cache[max_verts * 2];
-		VertexOut *triangle = cache;
-		VertexOut *verts_out = cache + max_verts;
+		constexpr size_t comp_per_vertex = VertexIn::component;
+		constexpr size_t idx_pos = VertexIn::index_pos;
+		// use triangle as the basic primitive (3 vertex)
+		// clipping may produce 7 more vertex
+		// so the maximum vertex count is 10
+		constexpr size_t cache_size = comp_per_vertex * 10;
+		float prim_cache[cache_size];
+		float clip_cache[cache_size];
+		float* const prim_end = prim_cache + comp_per_vertex * 3;
 
 		auto stream_it = vb.stream_begin();
 		auto stream_end = vb.stream_end();
+		float *prim = prim_cache, *clip_out = clip_cache;
 		for (auto it = stream_it + beg; it != stream_end; ++it)
 		{
-			const float *pvert = *stream_it;
+			const float *vert = *stream_it;
+			vertex_shader(m_uniform, *(const VertexIn*)vert, *(VertexOut*)prim);
+			prim += comp_per_vertex;
+			if (prim != prim_end)
+				continue;
+			// emit primitive
+			prim = prim_cache;
+			// clipping
 		}
 
-		unsigned char i = 0;
-		auto it_beg = vb.begin();
-		auto it_end = it_beg + end;
-		for (auto it = it_beg + beg; it != it_end; ++it)
-		{
-			const VertexIn &v = *it;
-			vertex_shader(m_uniform, v, triangle[i++]);
-			if (i == 3)
-			{
-				i = 0;
-				// clipping
-				size_t vcnt = 3;
-				VertexOut *ret = clip_polygon(triangle, verts_out, vcnt, max_verts);
-				if (!ret)
-					continue;
-				// viewport transform
-				viewport_transform(m_uniform.viewport_center, m_uniform.viewport_radius, ret, vcnt);
-				// draw triangles
-				for (size_t j = 2; j < vcnt; ++j)
-				{
-					draw_triangle(ret[0], ret[j - 1], ret[j]);
-				}
-			}
-		}
+		//constexpr int max_verts = 10;
+		//VertexOut cache[max_verts * 2];
+		//VertexOut *triangle = cache;
+		//VertexOut *verts_out = cache + max_verts;
+		//unsigned char i = 0;
+		//auto it_beg = vb.begin();
+		//auto it_end = it_beg + end;
+		//for (auto it = it_beg + beg; it != it_end; ++it)
+		//{
+		//	const VertexIn &v = *it;
+		//	vertex_shader(m_uniform, v, triangle[i++]);
+		//	if (i == 3)
+		//	{
+		//		i = 0;
+		//		// clipping
+		//		size_t vcnt = 3;
+		//		VertexOut *ret = clip_polygon(triangle, verts_out, vcnt, max_verts);
+		//		if (!ret)
+		//			continue;
+		//		// viewport transform
+		//		viewport_transform(m_uniform.viewport_center, m_uniform.viewport_radius, ret, vcnt);
+		//		// draw triangles
+		//		for (size_t j = 2; j < vcnt; ++j)
+		//		{
+		//			draw_triangle(ret[0], ret[j - 1], ret[j]);
+		//		}
+		//	}
+		//}
 	}
 
 	void CSpwPipeline::vertex_shader(const Uniform & uniform, const VertexIn & in, VertexOut & out)
