@@ -2,10 +2,12 @@
 #include <cassert>
 #include <functional>
 #include <OpenEXR/ImathColorAlgo.h>
+#include <mathex/ImathVecExt.h>
+#include <mathex/ImathMatrixExt.h>
 #include "mathex/vecmath.h"
-#include "mathex/floatmath.h"
 #include "thread/platform_info.h"
 #include "spw_rasterizer.h"
+#include "clipping.h"
 
 namespace wyc
 {
@@ -52,61 +54,94 @@ namespace wyc
 		process(vb, 0, vert_cnt);
 	}
 
-	void CSpwPipeline::process(const CVertexBuffer &vb, size_t beg, size_t end)
+	void viewport_transform(const Imath::V2f &center, const Imath::V2f &radius, float* vertex_pos, size_t size, size_t stride)
 	{
-		constexpr size_t comp_per_vertex = VertexIn::component;
-		constexpr size_t idx_pos = VertexIn::index_pos;
+		for (size_t i = 0; i < size; ++i, vertex_pos += stride)
+		{
+			// after homogenized, (x, y) are within [-1, 1]
+			Imath::V4f &pos = *(Imath::V4f*)vertex_pos;
+			pos /= pos.w;
+			pos.x = center.x + radius.x * pos.x;
+			pos.y = center.y + radius.y * pos.y;
+		}
+	}
+
+	void CSpwPipeline::draw_triangles(float *vertices, size_t count, size_t stride, size_t pos_offset) const
+	{
+		float *v0 = vertices;
+		float *v1 = v0 + stride;
+		float *v2 = v1 + stride;
+		for (size_t j = 2; j < count; ++j)
+		{
+			Imath::V2f &p0 = *(Imath::V2f*)(v0 + pos_offset);
+			Imath::V2f &p1 = *(Imath::V2f*)(v1 + pos_offset);
+			Imath::V2f &p2 = *(Imath::V2f*)(v2 + pos_offset);
+			// backface culling
+			Imath::V2f v10(p0.x - p1.x, p0.y - p1.y);
+			Imath::V2f v12(p2.x - p1.x, p2.y - p1.y);
+			if (v10.cross(v12) * m_clock_wise <= 0)
+				return;
+			// send to rasterizer
+			using namespace std::placeholders;
+			auto plotter = std::bind(&CSpwPipeline::write_fragment, this, _1, _2, _3);
+			p0 -= m_region.center;
+			p1 -= m_region.center;
+			p2 -= m_region.center;
+			fill_triangle(m_region.block, p0, p1, p2, v0, v1, v2, plotter);
+			// next one
+			v0 = v1;
+			v1 = v2;
+			v2 += stride;
+		}
+	}
+
+	void CSpwPipeline::write_fragment(int x, int y, VertexOut & in)
+	{
+		Fragment out;
+		fragment_shader(m_uniform, in, out);
+		// write fragment buffer
+		auto &surf = m_rt->get_color_buffer();
+		unsigned v = Imath::rgb2packed(out.color);
+		x += m_region.center_device.x;
+		y = m_region.center_device.y - y;
+		assert(inside(x, y, m_region.block_device));
+		surf.set(x, y, v);
+	}
+
+	void CSpwPipeline::process(const CVertexBuffer &vb, size_t beg, size_t end) const
+	{
+		constexpr size_t stride = VertexIn::component;
+		constexpr size_t pos_offset = VertexIn::index_pos;
 		// use triangle as the basic primitive (3 vertex)
 		// clipping may produce 7 more vertex
 		// so the maximum vertex count is 10
-		constexpr size_t cache_size = comp_per_vertex * 10;
+		constexpr size_t cache_size = stride * 10;
 		float prim_cache[cache_size];
 		float clip_cache[cache_size];
-		float* const prim_end = prim_cache + comp_per_vertex * 3;
 
+		float *prim = prim_cache;
+		float* const prim_end = prim_cache + stride * 3;
 		auto stream_it = vb.stream_begin();
 		auto stream_end = vb.stream_end();
-		float *prim = prim_cache, *clip_out = clip_cache;
 		for (auto it = stream_it + beg; it != stream_end; ++it)
 		{
 			const float *vert = *stream_it;
 			vertex_shader(m_uniform, *(const VertexIn*)vert, *(VertexOut*)prim);
-			prim += comp_per_vertex;
+			prim += stride;
 			if (prim != prim_end)
 				continue;
 			// emit primitive
 			prim = prim_cache;
 			// clipping
+			size_t vcnt = 3;
+			float *out = clip_polygon_stream(prim_cache, clip_cache, vcnt, stride, pos_offset, cache_size);
+			if (!out)
+				continue;
+			// viewport transform
+			viewport_transform(m_uniform.viewport_center, m_uniform.viewport_radius, out + pos_offset, vcnt, stride);
+			// draw triangles
+			draw_triangles(out, vcnt, stride, pos_offset);
 		}
-
-		//constexpr int max_verts = 10;
-		//VertexOut cache[max_verts * 2];
-		//VertexOut *triangle = cache;
-		//VertexOut *verts_out = cache + max_verts;
-		//unsigned char i = 0;
-		//auto it_beg = vb.begin();
-		//auto it_end = it_beg + end;
-		//for (auto it = it_beg + beg; it != it_end; ++it)
-		//{
-		//	const VertexIn &v = *it;
-		//	vertex_shader(m_uniform, v, triangle[i++]);
-		//	if (i == 3)
-		//	{
-		//		i = 0;
-		//		// clipping
-		//		size_t vcnt = 3;
-		//		VertexOut *ret = clip_polygon(triangle, verts_out, vcnt, max_verts);
-		//		if (!ret)
-		//			continue;
-		//		// viewport transform
-		//		viewport_transform(m_uniform.viewport_center, m_uniform.viewport_radius, ret, vcnt);
-		//		// draw triangles
-		//		for (size_t j = 2; j < vcnt; ++j)
-		//		{
-		//			draw_triangle(ret[0], ret[j - 1], ret[j]);
-		//		}
-		//	}
-		//}
 	}
 
 	void CSpwPipeline::vertex_shader(const Uniform & uniform, const VertexIn & in, VertexOut & out)
@@ -123,7 +158,7 @@ namespace wyc
 		out.color = in.color;
 	}
 
-	template<>
+/*	template<>
 	CSpwPipeline::VertexOut intersect<CSpwPipeline::VertexOut>(const CSpwPipeline::VertexOut &p1, float d1, const CSpwPipeline::VertexOut &p2, float d2)
 	{
 		float t = d1 / (d1 - d2);
@@ -239,48 +274,5 @@ namespace wyc
 		}
 		return in;
 	}
-
-	void CSpwPipeline::viewport_transform(const Imath::V2f &center, const Imath::V2f &radius, VertexOut * in, size_t size)
-	{
-		for (size_t i = 0; i < size; ++i)
-		{
-			auto &pos = in[i].pos;
-			// after homogenized, (x, y) are within [-1, 1]
-			pos /= pos.w;
-			pos.x = center.x + radius.x * pos.x;
-			pos.y = center.y + radius.y * pos.y;
-		}
-	}
-
-	void CSpwPipeline::draw_triangle(const VertexOut & v0, const VertexOut & v1, const VertexOut & v2)
-	{
-		// backface culling
-		Imath::V2f v01(v0.pos.x - v1.pos.x, v0.pos.y - v1.pos.y);
-		Imath::V2f v21(v2.pos.x - v1.pos.x, v2.pos.y - v1.pos.y);
-		if (v01.cross(v21) * m_clock_wise <= 0)
-		{
-			return;
-		}
-		// send to rasterizer
-		using namespace std::placeholders;
-		auto plotter = std::bind(&CSpwPipeline::write_fragment, this, _1, _2, _3);
-		Imath::V2f p0 = { v0.pos.x - m_region.center.x, v0.pos.y - m_region.center.y };
-		Imath::V2f p1 = { v1.pos.x - m_region.center.x, v1.pos.y - m_region.center.y };
-		Imath::V2f p2 = { v2.pos.x - m_region.center.x, v2.pos.y - m_region.center.y };
-		fill_triangle(m_region.block, p0, p1, p2, v0, v1, v2, plotter);
-	}
-
-	void CSpwPipeline::write_fragment(int x, int y, VertexOut & in)
-	{
-		Fragment out;
-		fragment_shader(m_uniform, in, out);
-		// write fragment buffer
-		auto &surf = m_rt->get_color_buffer();
-		unsigned v = Imath::rgb2packed(out.color);
-		x += m_region.center_device.x;
-		y = m_region.center_device.y - y;
-		assert(inside(x, y, m_region.block_device));
-		surf.set(x, y, v);
-	}
-
+*/
 } // namesace wyc

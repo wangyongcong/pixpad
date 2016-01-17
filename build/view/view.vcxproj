@@ -152,6 +152,8 @@
     <ClInclude Include="..\..\common\unitest.h" />
     <ClInclude Include="..\..\common\util.h" />
     <ClInclude Include="..\..\renderer\mathex\floatmath.h" />
+    <ClInclude Include="..\..\renderer\mathex\ImathMatrixExt.h" />
+    <ClInclude Include="..\..\renderer\mathex\ImathVecExt.h" />
     <ClInclude Include="..\..\renderer\mathex\mathfwd.h" />
     <ClInclude Include="..\..\renderer\mathex\vecmath.h" />
     <ClInclude Include="..\..\renderer\mathex\xs_config.h" />
@@ -161,6 +163,7 @@
     <ClInclude Include="..\..\renderer\renderer.h" />
     <ClInclude Include="..\..\renderer\render_command.h" />
     <ClInclude Include="..\..\renderer\render_target.h" />
+    <ClInclude Include="..\..\renderer\sparrow\clipping.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_command.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_pipeline.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_rasterizer.h" />
@@ -193,6 +196,7 @@
     <ClCompile Include="..\..\renderer\ogl\glutil.cpp" />
     <ClCompile Include="..\..\renderer\renderer.cpp" />
     <ClCompile Include="..\..\renderer\render_command.cpp" />
+    <ClCompile Include="..\..\renderer\sparrow\clipping.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_command.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_pipeline.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_renderer.cpp" />

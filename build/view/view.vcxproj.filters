@@ -331,6 +331,15 @@
     <ClInclude Include="..\..\renderer\sparrow\spw_pipeline.h">
       <Filter>Renderer\Sparrow</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\renderer\sparrow\clipping.h">
+      <Filter>Renderer\Sparrow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\mathex\ImathVecExt.h">
+      <Filter>Renderer\Mathex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\renderer\mathex\ImathMatrixExt.h">
+      <Filter>Renderer\Mathex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">
@@ -394,6 +403,9 @@
       <Filter>Renderer\Base</Filter>
     </ClCompile>
     <ClCompile Include="..\..\renderer\sparrow\spw_pipeline.cpp">
+      <Filter>Renderer\Sparrow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\renderer\sparrow\clipping.cpp">
       <Filter>Renderer\Sparrow</Filter>
     </ClCompile>
   </ItemGroup>

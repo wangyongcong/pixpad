@@ -8,42 +8,16 @@
 
 namespace wyc
 {
-
 	template<class T>
 	inline T deg2rad(T angle)
 	{
 		return T(angle * M_PI / 180.0);
 	}
 
-	template<typename T>
-	inline T operator ^ (const Imath::Vec3<T> &v1, const Imath::Vec4<T> &v2)
+	template<class T>
+	inline T rad2deg(T rad)
 	{
-		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-	}
-
-	template<typename S>
-	inline Imath::Vec4<S> operator * (const Imath::Matrix44<S> &m, const Imath::Vec4<S> &v)
-	{
-		S x = S(v.x * m[0][0] + v.y * m[0][1] + v.z * m[0][2] + v.w * m[0][3]);
-		S y = S(v.x * m[1][0] + v.y * m[1][1] + v.z * m[1][2] + v.w * m[1][3]);
-		S z = S(v.x * m[2][0] + v.y * m[2][1] + v.z * m[2][2] + v.w * m[2][3]);
-		S w = S(v.x * m[3][0] + v.y * m[3][1] + v.z * m[3][2] + v.w * m[3][3]);
-
-		return Imath::Vec4<S>(x, y, z, w);
-	}
-
-	template<typename T>
-	inline bool inside(const Imath::Vec2<T> &point, const Imath::Box<Imath::Vec2<T>> &box)
-	{
-		return (point.x >= box.min.x && point.y < box.max.x
-			&& point.y >= box.min.y && point.y < box.max.y);
-	}
-
-	template<typename T>
-	inline bool inside(T x, T y, const Imath::Box<Imath::Vec2<T>> &box)
-	{
-		return (x >= box.min.x && y < box.max.x
-			&& y >= box.min.y && y < box.max.y);
+		return T(rad * 180.0 / M_PI);
 	}
 
 	// OpenGL orthograph matrix
@@ -81,32 +55,5 @@ namespace wyc
 	void set_rotate_y(Matrix44f &m, float radian);
 	// rotate radian counter-clockwise around +Z axis (0, 0, 1)
 	void set_rotate_z(Matrix44f &m, float radian);
-
-	// Represent a plane using vector4
-	//	point: a point on the plane
-	//	normal: the plane normal
-	inline Imath::V4f plane(const Imath::V3f &point, const Imath::V3f &normal)
-	{
-		return Imath::V4f(normal.x, normal.y, normal.z, -point.dot(normal));
-	}
-
-	template<class Vec>
-	inline Vec intersect(const Vec &p1, float d1, const Vec &p2, float d2)
-	{
-		float t = d1 / (d1 - d2);
-		if (d1 < 0)
-			t = fast_ceil(t * 1000) * 0.001f;
-		else
-			t = fast_floor(t * 1000) * 0.001f;
-		return p1 + (p2 - p1) * t;
-	}
-
-	// Clip polygon by planes
-	// planes: planes used to clip the polygon
-	// vertices: vertices of the polygon, when return, it will contain the result
-	void clip_polygon(const std::vector<Vec4f> &planes, std::vector<Vec3f> &vertices);
-
-	// Clip polygon in homogeneous clip space
-	void clip_polygon_homo(std::vector<Vec4f> &vertices);
 
 } // namespace wyc

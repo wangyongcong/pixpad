@@ -124,7 +124,9 @@ namespace wyc
 	}
 
 #ifdef _DEBUG
-#define ASSERT_INSIDE(v, r) assert(v.x >= -r && v.x < r && v.y >= -r && v.y < r)
+	#define ASSERT_INSIDE(v, r) assert(v.x >= -r && v.x < r && v.y >= -r && v.y < r)
+#else
+	#define ASSERT_INSIDE(v, r)
 #endif
 
 	// fill triangle {pos0, pos1, pos2} in counter-clockwise
@@ -135,13 +137,11 @@ namespace wyc
 		// 11.8 sub pixel precision
 		// max render target is 2048 x 2048
 		// coordinate must be inside [-1024, 1024)
-#ifdef _DEBUG
 		ASSERT_INSIDE(block.min, 1024);
 		ASSERT_INSIDE(block.max, 1024);
 		ASSERT_INSIDE(pos0, 1024);
 		ASSERT_INSIDE(pos1, 1024);
 		ASSERT_INSIDE(pos2, 1024);
-#endif
 		
 		// snap to .8 sub pixel
 		Vec2i v0 = snap_to_subpixel<8>(pos0);
