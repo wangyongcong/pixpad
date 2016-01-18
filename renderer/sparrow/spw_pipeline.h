@@ -50,7 +50,7 @@ namespace wyc
 
 	protected:
 		static VertexOut* clip_polygon(VertexOut *in, VertexOut *out, size_t &size, size_t max_size);
-		void draw_triangles(float *vertices, size_t count, size_t stride, size_t pos_offset) const;
+		void draw_triangles(const float *vertices, size_t count, size_t stride, size_t pos_offset) const;
 		void write_fragment(int x, int y, VertexOut &in);
 
 		unsigned m_num_core;

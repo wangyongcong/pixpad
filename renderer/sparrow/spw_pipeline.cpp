@@ -66,28 +66,49 @@ namespace wyc
 		}
 	}
 
-	void CSpwPipeline::draw_triangles(float *vertices, size_t count, size_t stride, size_t pos_offset) const
+	class CSpwPlotter
 	{
-		float *v0 = vertices;
-		float *v1 = v0 + stride;
-		float *v2 = v1 + stride;
+	public:
+		const float *v0, *v1, *v2;
+		CSpwPlotter(const CSpwPipeline *pipeline, size_t stride)
+			: m_pipeline(pipeline)
+			, m_stride(stride)
+		{
+		}
+
+		void operator() (float w1, float w2, float w3)
+		{
+
+		}
+
+	private:
+		const CSpwPipeline *m_pipeline;
+		size_t m_stride;
+	};
+
+	void CSpwPipeline::draw_triangles(const float *vertices, size_t count, size_t stride, size_t pos_offset) const
+	{
+		CSpwPlotter plotter(this, stride);
+		const float *v0 = vertices;
+		const float *v1 = v0 + stride;
+		const float *v2 = v1 + stride;
+		Imath::V2f tpos[3];
 		for (size_t j = 2; j < count; ++j)
 		{
-			Imath::V2f &p0 = *(Imath::V2f*)(v0 + pos_offset);
-			Imath::V2f &p1 = *(Imath::V2f*)(v1 + pos_offset);
-			Imath::V2f &p2 = *(Imath::V2f*)(v2 + pos_offset);
+			const Imath::V2f &p0 = *(Imath::V2f*)(v0 + pos_offset);
+			const Imath::V2f &p1 = *(Imath::V2f*)(v1 + pos_offset);
+			const Imath::V2f &p2 = *(Imath::V2f*)(v2 + pos_offset);
 			// backface culling
 			Imath::V2f v10(p0.x - p1.x, p0.y - p1.y);
 			Imath::V2f v12(p2.x - p1.x, p2.y - p1.y);
 			if (v10.cross(v12) * m_clock_wise <= 0)
 				return;
 			// send to rasterizer
-			using namespace std::placeholders;
-			auto plotter = std::bind(&CSpwPipeline::write_fragment, this, _1, _2, _3);
-			p0 -= m_region.center;
-			p1 -= m_region.center;
-			p2 -= m_region.center;
-			fill_triangle(m_region.block, p0, p1, p2, v0, v1, v2, plotter);
+			tpos[0] = p0 - m_region.center;
+			tpos[1] = p1 - m_region.center;
+			tpos[2] = p2 - m_region.center;
+			// todo: calculate triangle bounding box, and intersect with region block
+			//fill_triangle(m_region.block, tpos[0], tpos[1], tpos[2], plotter);
 			// next one
 			v0 = v1;
 			v1 = v2;
