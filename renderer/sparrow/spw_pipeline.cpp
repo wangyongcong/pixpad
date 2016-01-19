@@ -70,34 +70,46 @@ namespace wyc
 	{
 	public:
 		const float *v0, *v1, *v2;
-		CSpwPlotter(const CSpwPipeline *pipeline, size_t stride)
+		CSpwPlotter(CSpwPipeline *pipeline, size_t stride)
 			: m_pipeline(pipeline)
-			, m_stride(stride)
+			, m_size(stride)
 		{
+			m_out = new float[m_size];
+		}
+		~CSpwPlotter()
+		{
+			delete[] m_out;
+			m_out = nullptr;
 		}
 
-		void operator() (float w1, float w2, float w3)
+		void operator() (int x, int y, float w1, float w2, float w3)
 		{
-
+			const float *i0 = v0, *i1 = v1, *i2 = v2;
+			for (float *out = m_out, *end = m_out + m_size; out != m_out; ++out, ++i0, ++i1, ++i2)
+			{
+				*out = *i0 * w1 + *i1 * w2 + *i2 * w3;
+			}
+			m_pipeline->write_fragment(x, y, *(CSpwPipeline::VertexOut*)m_out);
 		}
 
 	private:
-		const CSpwPipeline *m_pipeline;
-		size_t m_stride;
+		CSpwPipeline *m_pipeline;
+		float *m_out;
+		size_t m_size;
 	};
 
 	void CSpwPipeline::draw_triangles(const float *vertices, size_t count, size_t stride, size_t pos_offset) const
 	{
-		CSpwPlotter plotter(this, stride);
-		const float *v0 = vertices;
-		const float *v1 = v0 + stride;
-		const float *v2 = v1 + stride;
+		CSpwPlotter plt(const_cast<CSpwPipeline*>(this), stride);
+		plt.v0 = vertices;
+		plt.v1 = plt.v0 + stride;
+		plt.v2 = plt.v1 + stride;
 		Imath::V2f tpos[3];
 		for (size_t j = 2; j < count; ++j)
 		{
-			const Imath::V2f &p0 = *(Imath::V2f*)(v0 + pos_offset);
-			const Imath::V2f &p1 = *(Imath::V2f*)(v1 + pos_offset);
-			const Imath::V2f &p2 = *(Imath::V2f*)(v2 + pos_offset);
+			const Imath::V2f &p0 = *(Imath::V2f*)(plt.v0 + pos_offset);
+			const Imath::V2f &p1 = *(Imath::V2f*)(plt.v1 + pos_offset);
+			const Imath::V2f &p2 = *(Imath::V2f*)(plt.v2 + pos_offset);
 			// backface culling
 			Imath::V2f v10(p0.x - p1.x, p0.y - p1.y);
 			Imath::V2f v12(p2.x - p1.x, p2.y - p1.y);
@@ -108,11 +120,11 @@ namespace wyc
 			tpos[1] = p1 - m_region.center;
 			tpos[2] = p2 - m_region.center;
 			// todo: calculate triangle bounding box, and intersect with region block
-			//fill_triangle(m_region.block, tpos[0], tpos[1], tpos[2], plotter);
+			fill_triangle(m_region.block, tpos[0], tpos[1], tpos[2], plt);
 			// next one
-			v0 = v1;
-			v1 = v2;
-			v2 += stride;
+			plt.v0 = plt.v1;
+			plt.v1 = plt.v2;
+			plt.v2 += stride;
 		}
 	}
 
@@ -144,10 +156,11 @@ namespace wyc
 		float* const prim_end = prim_cache + stride * 3;
 		auto stream_it = vb.stream_begin();
 		auto stream_end = vb.stream_end();
-		for (auto it = stream_it + beg; it != stream_end; ++it)
+		for (stream_it += beg; stream_it != stream_end; ++stream_it)
 		{
 			const float *vert = *stream_it;
 			vertex_shader(m_uniform, *(const VertexIn*)vert, *(VertexOut*)prim);
+			Imath::V4f &dpos = *(Imath::V4f*)prim;
 			prim += stride;
 			if (prim != prim_end)
 				continue;
@@ -156,7 +169,7 @@ namespace wyc
 			// clipping
 			size_t vcnt = 3;
 			float *out = clip_polygon_stream(prim_cache, clip_cache, vcnt, stride, pos_offset, cache_size);
-			if (!out)
+			if (vcnt < 3)
 				continue;
 			// viewport transform
 			viewport_transform(m_uniform.viewport_center, m_uniform.viewport_radius, out + pos_offset, vcnt, stride);

@@ -47,11 +47,11 @@ namespace wyc
 		}
 		static void vertex_shader(const Uniform &uniform, const VertexIn &in, VertexOut &out);
 		static void fragment_shader(const Uniform &uniform, const VertexOut &in, Fragment &out);
+		void write_fragment(int x, int y, VertexOut &in);
 
 	protected:
-		static VertexOut* clip_polygon(VertexOut *in, VertexOut *out, size_t &size, size_t max_size);
+		//static VertexOut* clip_polygon(VertexOut *in, VertexOut *out, size_t &size, size_t max_size);
 		void draw_triangles(const float *vertices, size_t count, size_t stride, size_t pos_offset) const;
-		void write_fragment(int x, int y, VertexOut &in);
 
 		unsigned m_num_core;
 		Uniform m_uniform;

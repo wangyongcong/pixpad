@@ -133,8 +133,7 @@ namespace wyc
 
 	// fill triangle {pos0, pos1, pos2} in counter-clockwise
 	template<typename Plotter>
-	void fill_triangle(const Imath::Box<Vec2i> &block, const Imath::V2f &pos0, const Imath::V2f &pos1, const Imath::V2f &pos2,
-		const float* vert0, const float* vert1, const float* vert2, size_t stride, Plotter &plot)
+	void fill_triangle(const Imath::Box<Vec2i> &block, const Imath::V2f &pos0, const Imath::V2f &pos1, const Imath::V2f &pos2, Plotter &plot)
 	{
 		// 11.8 sub pixel precision
 		// max render target is 2048 x 2048
@@ -177,6 +176,7 @@ namespace wyc
 		int fw1 = int(hp_w1 & 0xFF);
 		int fw2 = int(hp_w2 & 0xFF);
 		int w0, w1, w2;
+		float real_sum;
 
 		for (int y = block.min.y; y < block.max.y; y += 1)
 		{
@@ -189,12 +189,12 @@ namespace wyc
 					hp_w0 = (int64_t(w0 - bias_v12) << 8) + fw0;
 					hp_w1 = (int64_t(w1 - bias_v20) << 8) + fw1;
 					hp_w2 = (int64_t(w2 - bias_v01) << 8) + fw2;
-					float real_sum = float(hp_w0 + hp_w1 + hp_w2);
-					auto vert_inter = interpolate(stride, 
-						vert0, float(hp_w0) / real_sum, 
-						vert1, float(hp_w1) / real_sum, 
-						vert2, float(hp_w2) / real_sum);
-					plot(x, y, vert_inter);
+					real_sum = float(hp_w0 + hp_w1 + hp_w2);
+					//auto vert_inter = interpolate(stride, 
+					//	vert0, float(hp_w0) / real_sum, 
+					//	vert1, float(hp_w1) / real_sum, 
+					//	vert2, float(hp_w2) / real_sum);
+					plot(x, y, float(hp_w0) / real_sum, float(hp_w1) / real_sum, float(hp_w2) / real_sum);
 				}
 				w0 += edge_a12;
 				w1 += edge_a20;

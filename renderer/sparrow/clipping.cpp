@@ -129,6 +129,7 @@ namespace wyc
 		for (; cur_vert < end; cur_vert += stride)
 		{
 			pos = cur_vert + pos_offset;
+			Imath::V4f &dpos = *(Imath::V4f*)pos;
 			dot = pos[3] - w_epsilon;
 			if (pdot * dot < 0) {
 				assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
@@ -157,10 +158,11 @@ namespace wyc
 			out_vert = vertex_out;
 			vertex_count = 0;
 			pos = prev_vert + pos_offset;
-			pdot = pos[3] - pos[i], dot;
+			pdot = pos[3] - pos[i];
 			for (; cur_vert < end; cur_vert += stride)
 			{
 				pos = cur_vert + pos_offset;
+				Imath::V4f &dpos = *(Imath::V4f*)pos;
 				dot = pos[3] - pos[i];
 				if (pdot * dot < 0) {
 					assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
@@ -190,10 +192,11 @@ namespace wyc
 			out_vert = vertex_out;
 			vertex_count = 0;
 			pos = prev_vert + pos_offset;
-			pdot = pos[3] + pos[i], dot;
+			pdot = pos[3] + pos[i];
 			for (; cur_vert < end; cur_vert += stride)
 			{
 				pos = cur_vert + pos_offset;
+				Imath::V4f &dpos = *(Imath::V4f*)pos;
 				dot = pos[3] + pos[i];
 				if (pdot * dot < 0)
 				{
@@ -210,7 +213,6 @@ namespace wyc
 					vertex_count += 1;
 				}
 				prev_vert = cur_vert;
-				cur_vert += stride;
 				pdot = dot;
 			}
 			if (!vertex_count)
