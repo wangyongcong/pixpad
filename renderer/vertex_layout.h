@@ -13,6 +13,7 @@ namespace wyc
 		VF_P3N3,
 		VF_P3C3N3,
 		VF_P3S2N3,
+		VF_P4C3,
 	};
 
 	template<EVertexLayout Layout>
@@ -68,6 +69,10 @@ namespace wyc
 	public:
 		Imath::V4f pos;
 		Imath::C3f color;
+		// meta data
+		static constexpr EVertexLayout layout = VF_P4C3;
+		static constexpr size_t component = 7;
+		static constexpr size_t index_pos = 0;
 	};
 	static_assert(sizeof(CVertexP3C3) == sizeof(float[6]), "size not equal");
 

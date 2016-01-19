@@ -85,7 +85,7 @@ namespace wyc
 		void operator() (int x, int y, float w1, float w2, float w3)
 		{
 			const float *i0 = v0, *i1 = v1, *i2 = v2;
-			for (float *out = m_out, *end = m_out + m_size; out != m_out; ++out, ++i0, ++i1, ++i2)
+			for (float *out = m_out, *end = m_out + m_size; out != end; ++out, ++i0, ++i1, ++i2)
 			{
 				*out = *i0 * w1 + *i1 * w2 + *i2 * w3;
 			}
@@ -143,38 +143,39 @@ namespace wyc
 
 	void CSpwPipeline::process(const CVertexBuffer &vb, size_t beg, size_t end) const
 	{
-		constexpr size_t stride = VertexIn::component;
-		constexpr size_t pos_offset = VertexIn::index_pos;
+		constexpr size_t stride_in = VertexIn::component;
+		constexpr size_t offset_in = VertexIn::index_pos;
+		constexpr size_t stride_out = VertexOut::component;
+		constexpr size_t offset_out = VertexOut::index_pos;
 		// use triangle as the basic primitive (3 vertex)
 		// clipping may produce 7 more vertex
 		// so the maximum vertex count is 10
-		constexpr size_t cache_size = stride * 10;
+		constexpr size_t cache_size = stride_out * 10;
 		float prim_cache[cache_size];
 		float clip_cache[cache_size];
 
 		float *prim = prim_cache;
-		float* const prim_end = prim_cache + stride * 3;
+		float* const prim_end = prim_cache + stride_out * 3;
 		auto stream_it = vb.stream_begin();
 		auto stream_end = vb.stream_end();
 		for (stream_it += beg; stream_it != stream_end; ++stream_it)
 		{
 			const float *vert = *stream_it;
 			vertex_shader(m_uniform, *(const VertexIn*)vert, *(VertexOut*)prim);
-			Imath::V4f &dpos = *(Imath::V4f*)prim;
-			prim += stride;
+			prim += stride_out;
 			if (prim != prim_end)
 				continue;
 			// emit primitive
 			prim = prim_cache;
 			// clipping
 			size_t vcnt = 3;
-			float *out = clip_polygon_stream(prim_cache, clip_cache, vcnt, stride, pos_offset, cache_size);
+			float *out = clip_polygon_stream(prim_cache, clip_cache, vcnt, stride_out, offset_out, cache_size);
 			if (vcnt < 3)
 				continue;
 			// viewport transform
-			viewport_transform(m_uniform.viewport_center, m_uniform.viewport_radius, out + pos_offset, vcnt, stride);
+			viewport_transform(m_uniform.viewport_center, m_uniform.viewport_radius, out + offset_out, vcnt, stride_out);
 			// draw triangles
-			draw_triangles(out, vcnt, stride, pos_offset);
+			draw_triangles(out, vcnt, stride_out, offset_out);
 		}
 	}
 

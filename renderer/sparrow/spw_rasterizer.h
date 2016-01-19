@@ -172,12 +172,12 @@ namespace wyc
 		int row_w0 = int(hp_w0 >> 8) + bias_v12;
 		int row_w1 = int(hp_w1 >> 8) + bias_v20;
 		int row_w2 = int(hp_w2 >> 8) + bias_v01;
-		int fw0 = int(hp_w0 & 0xFF);
-		int fw1 = int(hp_w1 & 0xFF);
-		int fw2 = int(hp_w2 & 0xFF);
-		int w0, w1, w2;
-		float real_sum;
+		float fw0 = float(hp_w0 & 0xFF) / 255;
+		float fw1 = float(hp_w1 & 0xFF) / 255;
+		float fw2 = float(hp_w2 & 0xFF) / 255;
 
+		int w0, w1, w2;
+		float t_sum, t0, t1, t2;
 		for (int y = block.min.y; y < block.max.y; y += 1)
 		{
 			w0 = row_w0;
@@ -186,15 +186,15 @@ namespace wyc
 			for (int x = block.min.x; x < block.max.x; x += 1)
 			{
 				if ((w0 | w1 | w2) >= 0) {
-					hp_w0 = (int64_t(w0 - bias_v12) << 8) + fw0;
-					hp_w1 = (int64_t(w1 - bias_v20) << 8) + fw1;
-					hp_w2 = (int64_t(w2 - bias_v01) << 8) + fw2;
-					real_sum = float(hp_w0 + hp_w1 + hp_w2);
-					//auto vert_inter = interpolate(stride, 
-					//	vert0, float(hp_w0) / real_sum, 
-					//	vert1, float(hp_w1) / real_sum, 
-					//	vert2, float(hp_w2) / real_sum);
-					plot(x, y, float(hp_w0) / real_sum, float(hp_w1) / real_sum, float(hp_w2) / real_sum);
+					//hp_w0 = (int64_t(w0 - bias_v12) << 8) + fw0;
+					//hp_w1 = (int64_t(w1 - bias_v20) << 8) + fw1;
+					//hp_w2 = (int64_t(w2 - bias_v01) << 8) + fw2;
+					//hp_sum = hp_w0 + hp_w1 + hp_w2;
+					t0 = w0 - bias_v12 + fw0;
+					t1 = w1 - bias_v20 + fw1;
+					t2 = w2 - bias_v01 + fw2;
+					t_sum = t0 + t1 + t2;
+					plot(x, y, t0 / t_sum, t1 / t_sum, t2 / t_sum);
 				}
 				w0 += edge_a12;
 				w1 += edge_a20;
