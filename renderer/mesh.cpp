@@ -19,6 +19,11 @@ namespace wyc
 		VertexAttrib{ ATTR_COLOR, 3, offsetof(vertex_t, color) },
 	};
 
+	const VertexAttrib CVertexP4C3::attr_table[2] =
+	{
+		VertexAttrib{ ATTR_POSITION, 4, offsetof(CVertexP4C3, pos) },
+		VertexAttrib{ ATTR_COLOR, 3, offsetof(CVertexP4C3, color) },
+	};
 
 	CMesh::CMesh()
 		: m_vb()

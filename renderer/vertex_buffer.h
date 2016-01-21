@@ -167,6 +167,9 @@ namespace wyc
 		void set_attribute(EAttribUsage usage, uint8_t element_count);
 		CAttribArray get_attribute(EAttribUsage usage);
 		CConstAttribArray get_attribute(EAttribUsage usage) const;
+		inline bool has_attribute(EAttribUsage usage) const {
+			return m_attr_tbl[usage] != nullptr;
+		}
 
 		typedef CAnyStrideIterator<float, CVertexAccessor> iterator;
 		typedef CAnyStrideIterator<float, CVertexReader> const_iterator;
@@ -211,6 +214,9 @@ namespace wyc
 			return{ m_data + m_vert_size * m_vert_cnt };
 		}
 
+		inline const float* get_as_stream() const {
+			return reinterpret_cast<const float*>(m_data);
+		}
 		inline size_t size() const
 		{
 			return m_vert_cnt;
@@ -218,6 +224,10 @@ namespace wyc
 		inline size_t vertex_size() const
 		{
 			return m_vert_size;
+		}
+		inline size_t get_offset(EAttribUsage usage) const {
+			assert(m_attr_tbl[usage]);
+			return m_attr_tbl[usage]->offset;
 		}
 	protected:
 		char *m_data;

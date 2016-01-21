@@ -23,7 +23,15 @@ namespace wyc
 		
 		void setup(std::shared_ptr<CSpwRenderTarget> rt);
 		void feed(const CMesh &mesh);
-		void process(const CVertexBuffer &vb, size_t beg, size_t end) const;
+		struct VertexStream {
+			const float *data;
+			size_t in_size;
+			size_t in_stride;
+			size_t in_offset_pos;
+			size_t out_stride;
+			size_t out_offset_pos;
+		};
+		void process(const VertexStream &stream) const;
 
 		typedef CVertexP4C3 VertexOut;
 		typedef CVertexP3C3 VertexIn;

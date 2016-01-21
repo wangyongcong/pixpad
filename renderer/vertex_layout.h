@@ -73,6 +73,7 @@ namespace wyc
 		static constexpr EVertexLayout layout = VF_P4C3;
 		static constexpr size_t component = 7;
 		static constexpr size_t index_pos = 0;
+		static const VertexAttrib attr_table[2];
 	};
 	static_assert(sizeof(CVertexP3C3) == sizeof(float[6]), "size not equal");
 

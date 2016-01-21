@@ -51,7 +51,14 @@ namespace wyc
 		//size_t tri_per_core = tri_cnt / m_num_core;
 		
 		// todo: work parallel
-		process(vb, 0, vert_cnt);
+		VertexStream stream;
+		stream.data = vb.get_as_stream();
+		stream.in_size = vb.size();
+		stream.in_stride = vb.vertex_size();
+		stream.in_offset_pos = vb.get_offset(ATTR_POSITION);
+		stream.out_stride = VertexOut::component;
+
+		process(stream);
 	}
 
 	void viewport_transform(const Imath::V2f &center, const Imath::V2f &radius, float* vertex_pos, size_t size, size_t stride)
@@ -141,12 +148,9 @@ namespace wyc
 		surf.set(x, y, v);
 	}
 
-	void CSpwPipeline::process(const CVertexBuffer &vb, size_t beg, size_t end) const
+	//void CSpwPipeline::process(const CVertexBuffer &vb, size_t beg, size_t end) const
+	void CSpwPipeline::process(const VertexStream &stream) const
 	{
-		constexpr size_t stride_in = VertexIn::component;
-		constexpr size_t offset_in = VertexIn::index_pos;
-		constexpr size_t stride_out = VertexOut::component;
-		constexpr size_t offset_out = VertexOut::index_pos;
 		// use triangle as the basic primitive (3 vertex)
 		// clipping may produce 7 more vertex
 		// so the maximum vertex count is 10
