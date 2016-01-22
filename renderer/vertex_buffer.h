@@ -5,30 +5,10 @@
 
 #include "OpenEXR/ImathVec.h"
 #include "any_stride_iterator.h"
+#include "vertex_layout.h"
 
 namespace wyc
 {
-	enum EAttribUsage
-	{
-		ATTR_POSITION = 0,
-		ATTR_COLOR,
-		ATTR_TEXTURE,
-		ATTR_NORMAL,
-		ATTR_TANGENT,
-		ATTR_USAGE_0,
-		ATTR_USAGE_1,
-		ATTR_USAGE_2,
-		ATTR_USAGE_3,
-		ATTR_MAX_COUNT,
-	};
-
-	struct VertexAttrib
-	{
-		EAttribUsage usage;
-		uint8_t elem_cnt;
-		uint32_t offset;
-	};
-
 	class CVertexReader
 	{
 	public:
@@ -164,7 +144,7 @@ namespace wyc
 		void resize(unsigned vertex_count);
 		void clear();
 		
-		void set_attribute(EAttribUsage usage, uint8_t element_count);
+		void set_attribute(EAttribUsage usage, uint8_t component);
 		CAttribArray get_attribute(EAttribUsage usage);
 		CConstAttribArray get_attribute(EAttribUsage usage) const;
 		inline bool has_attribute(EAttribUsage usage) const {

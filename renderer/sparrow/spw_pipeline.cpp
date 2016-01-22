@@ -43,6 +43,26 @@ namespace wyc
 		set_orthograph(m_uniform.mvp, -halfw, -halfh, 0.1f, halfw, halfh, 100.0f);
 	}
 
+	template<typename _VertexIn, typename _VertexOut, typename _Fragment>
+	class CShaderTraits
+	{
+	public:
+		typedef _VertexIn VertexIn;
+		typedef _VertexOut VertexOut;
+		typedef _Fragment Fragment;
+	};
+
+	struct FragmentColor
+	{
+		Imath::C3f color;
+	};
+
+	class CShaderFlatColor : public IShaderProgram, public CShaderTraits<VertexP3C3, VertexP4C3, FragmentColor>
+	{
+	public:
+
+	};
+
 	void CSpwPipeline::feed(const CMesh &mesh)
 	{
 		const CVertexBuffer &vb = mesh.vertex_buffer();
@@ -55,9 +75,10 @@ namespace wyc
 		stream.data = vb.get_as_stream();
 		stream.in_size = vb.size();
 		stream.in_stride = vb.vertex_size();
-		stream.in_offset_pos = vb.get_offset(ATTR_POSITION);
-		stream.out_stride = VertexOut::component;
-
+		assert(vb.get_offset(ATTR_POSITION) % sizeof(float) == 0);
+		stream.in_offset_pos = vb.get_offset(ATTR_POSITION) / sizeof(float);
+		stream.out_stride = VertexOut::Layout::component;
+		stream.out_offset_pos = VertexOut::Layout::offset_pos;
 		process(stream);
 	}
 

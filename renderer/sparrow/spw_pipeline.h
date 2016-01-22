@@ -13,6 +13,13 @@ namespace wyc
 		COUNTER_CLOCK_WISE = -1
 	};
 
+	class IShaderProgram
+	{
+	public:
+		virtual void vertex_shader(const float *vertex_in, const float *vertex_out) = 0;
+		virtual void fragment_shader(const float *vertex_out, const float *frag_out) = 0;
+	};
+
 	class CSpwPipeline
 	{
 	public:
@@ -33,8 +40,8 @@ namespace wyc
 		};
 		void process(const VertexStream &stream) const;
 
-		typedef CVertexP4C3 VertexOut;
-		typedef CVertexP3C3 VertexIn;
+		typedef VertexP4C3 VertexOut;
+		typedef VertexP3C3 VertexIn;
 		typedef struct {
 			Imath::C3f color;
 		} Fragment;

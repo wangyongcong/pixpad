@@ -203,6 +203,7 @@
     <ClCompile Include="..\..\renderer\sparrow\spw_render_target.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\surface.cpp" />
     <ClCompile Include="..\..\renderer\vertex_buffer.cpp" />
+    <ClCompile Include="..\..\renderer\vertex_layout.cpp" />
     <ClCompile Include="..\..\thread\platform_info.cpp" />
     <ClCompile Include="..\..\view\game\game_pixpad.cpp" />
     <ClCompile Include="..\..\view\game\view_base.cpp" />

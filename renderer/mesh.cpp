@@ -13,18 +13,6 @@
 
 namespace wyc
 {
-	const VertexAttrib CVertexLayout<VF_P3C3>::attr_table[attr_count] =
-	{
-		VertexAttrib{ ATTR_POSITION, 3, offsetof(vertex_t, pos) },
-		VertexAttrib{ ATTR_COLOR, 3, offsetof(vertex_t, color) },
-	};
-
-	const VertexAttrib CVertexP4C3::attr_table[2] =
-	{
-		VertexAttrib{ ATTR_POSITION, 4, offsetof(CVertexP4C3, pos) },
-		VertexAttrib{ ATTR_COLOR, 3, offsetof(CVertexP4C3, color) },
-	};
-
 	CMesh::CMesh()
 		: m_vb()
 	{
@@ -301,7 +289,7 @@ namespace wyc
 	CTriangleMesh::CTriangleMesh(float radius)
 	{
 		const float sin30 = 0.5f, cos30 = 0.866f;
-		set_vertices<VF_P3C3>({
+		set_vertices<VertexP3C3>({
 			{
 				{ 0, radius, 0 },
 				{ 1.0, 0, 0 },

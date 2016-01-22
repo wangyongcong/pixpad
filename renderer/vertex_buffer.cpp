@@ -18,16 +18,16 @@ namespace wyc
 		clear();
 	}
 
-	void CVertexBuffer::set_attribute(EAttribUsage usage, uint8_t element_count)
+	void CVertexBuffer::set_attribute(EAttribUsage usage, uint8_t component)
 	{
 		auto va = m_attr_tbl[usage];
 		if (!va) {
 			m_attr_tbl[usage] = new VertexAttrib{
-				usage, element_count, 0
+				usage, component, 0
 			};
 		}
 		else {
-			va->elem_cnt = element_count;
+			va->component = component;
 		}
 	}
 
@@ -38,7 +38,7 @@ namespace wyc
 		{
 			if (!va) continue;
 			va->offset = m_vert_size;
-			m_vert_size += va->elem_cnt * sizeof(float);
+			m_vert_size += va->component * sizeof(float);
 		}
 		if (m_data)
 		{

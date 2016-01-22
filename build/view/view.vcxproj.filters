@@ -408,6 +408,9 @@
     <ClCompile Include="..\..\renderer\sparrow\clipping.cpp">
       <Filter>Renderer\Sparrow</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\renderer\vertex_layout.cpp">
+      <Filter>Renderer\Base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

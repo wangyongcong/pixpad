@@ -16,8 +16,8 @@ namespace wyc
 		CMesh(const CMesh& rhs) = delete;
 		CMesh& operator = (const CMesh& rhs) = delete;
 		~CMesh();
-		template<EVertexLayout Layout>
-		void set_vertices(std::initializer_list<typename CVertexLayout<Layout>::vertex_t>&& verts);
+		template<typename Vertex>
+		void set_vertices(std::initializer_list<Vertex>&& verts);
 		size_t vertex_count() const;
 		CVertexBuffer& vertex_buffer();
 		const CVertexBuffer& vertex_buffer() const;
@@ -29,11 +29,11 @@ namespace wyc
 		CVertexBuffer m_vb;
 	};
 
-	template<EVertexLayout Layout>
-	inline void CMesh::set_vertices(std::initializer_list<typename CVertexLayout<Layout>::vertex_t>&& verts)
+	template<typename Vertex>
+	inline void CMesh::set_vertices(std::initializer_list<Vertex>&& verts)
 	{
-		using layout_t = CVertexLayout<Layout>;
-		using vertex_t = layout_t::vertex_t;
+		using layout_t = Vertex::Layout;
+		using vertex_t = Vertex;
 
 		m_vb.clear();
 
@@ -43,7 +43,7 @@ namespace wyc
 		}
 		for (auto &attr : layout_t::attr_table)
 		{
-			m_vb.set_attribute(attr.usage, attr.elem_cnt);
+			m_vb.set_attribute(attr.usage, attr.component);
 		}
 		m_vb.resize(verts.size());
 		assert(m_vb.vertex_size() == sizeof(vertex_t));
