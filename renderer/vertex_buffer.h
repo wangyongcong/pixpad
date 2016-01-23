@@ -194,7 +194,8 @@ namespace wyc
 			return{ m_data + m_vert_size * m_vert_cnt };
 		}
 
-		inline const float* get_as_stream() const {
+		inline const float* get_vertex_stream() const 
+		{
 			return reinterpret_cast<const float*>(m_data);
 		}
 		inline size_t size() const
@@ -205,15 +206,31 @@ namespace wyc
 		{
 			return m_vert_size;
 		}
-		inline size_t get_offset(EAttribUsage usage) const {
+		inline size_t vertex_component() const {
+			return m_vert_componet;
+		}
+
+		inline const float* get_attrib_stream(EAttribUsage usage) const
+		{
+			assert(m_attr_tbl[usage]);
+			return reinterpret_cast<const float*>(m_data + m_attr_tbl[usage]->offset);
+		}
+		inline size_t attrib_offset(EAttribUsage usage) const 
+		{
 			assert(m_attr_tbl[usage]);
 			return m_attr_tbl[usage]->offset;
 		}
+		inline size_t attrib_component(EAttribUsage usage) const {
+			assert(m_attr_tbl[usage]);
+			return m_attr_tbl[usage]->component;
+		}
+
 	protected:
 		char *m_data;
 		size_t m_data_size;
-		unsigned m_vert_size;
 		unsigned m_vert_cnt;
+		unsigned m_vert_size;
+		unsigned m_vert_componet;
 		VertexAttrib* m_attr_tbl[ATTR_MAX_COUNT];
 	};
 

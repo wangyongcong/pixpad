@@ -2,24 +2,16 @@
 #include <cassert>
 #include <functional>
 #include <OpenEXR/ImathColorAlgo.h>
-#include <mathex/ImathVecExt.h>
-#include <mathex/ImathMatrixExt.h>
 #include "mathex/vecmath.h"
-#include "thread/platform_info.h"
 #include "spw_rasterizer.h"
 #include "clipping.h"
 
 namespace wyc
 {
 	CSpwPipeline::CSpwPipeline()
-		: m_num_core(0)
+		: m_num_core(1)
 		, m_clock_wise(COUNTER_CLOCK_WISE)
 	{
-		if (0 == m_num_core)
-		{
-			// use as many cores as possible
-			m_num_core = core_num();
-		}
 	}
 
 	CSpwPipeline::~CSpwPipeline()
@@ -40,46 +32,55 @@ namespace wyc
 		m_region.block_device.min = { 0, 0 };
 		m_region.block_device.max = { surfw, surfh };
 		set_viewport({ {0, 0}, {surfw, surfh} });
-		set_orthograph(m_uniform.mvp, -halfw, -halfh, 0.1f, halfw, halfh, 100.0f);
 	}
 
-	template<typename _VertexIn, typename _VertexOut, typename _Fragment>
-	class CShaderTraits
+	void CSpwPipeline::feed(const CMesh *mesh, const IShaderProgram *program)
 	{
-	public:
-		typedef _VertexIn VertexIn;
-		typedef _VertexOut VertexOut;
-		typedef _Fragment Fragment;
-	};
+		assert(mesh && program);
+		const CVertexBuffer &vb = mesh->vertex_buffer();
+#ifdef _DEBUG
+		// check input vertex format
+		if (!vb.has_attribute(ATTR_POSITION) || vb.attrib_component(ATTR_POSITION) < 3)
+		{
+			assert(0 && "Input vertex must contain 3D position.");
+		}
+#endif // _DEBUG
 
-	struct FragmentColor
-	{
-		Imath::C3f color;
-	};
-
-	class CShaderFlatColor : public IShaderProgram, public CShaderTraits<VertexP3C3, VertexP4C3, FragmentColor>
-	{
-	public:
-
-	};
-
-	void CSpwPipeline::feed(const CMesh &mesh)
-	{
-		const CVertexBuffer &vb = mesh.vertex_buffer();
-		size_t vert_cnt = vb.size();
-		size_t tri_cnt = vert_cnt / 3;
-		//size_t tri_per_core = tri_cnt / m_num_core;
-		
 		// todo: work parallel
-		VertexStream stream;
-		stream.data = vb.get_as_stream();
-		stream.in_size = vb.size();
-		stream.in_stride = vb.vertex_size();
-		assert(vb.get_offset(ATTR_POSITION) % sizeof(float) == 0);
-		stream.in_offset_pos = vb.get_offset(ATTR_POSITION) / sizeof(float);
-		stream.out_stride = VertexOut::Layout::component;
-		stream.out_offset_pos = VertexOut::Layout::offset_pos;
-		process(stream);
+		TaskVertex task;
+		task.program = program;
+		task.in_vertex = vb.get_vertex_stream();
+		task.in_size = vb.size();
+		task.in_stride = vb.vertex_component();		
+		task.in_pos = reinterpret_cast<const Imath::V3f*>(vb.get_attrib_stream(ATTR_POSITION));
+		task.pos_stride = task.in_stride;
+		size_t out_stride = program->get_vertex_stride();
+		task.out_stride = out_stride;
+		// use triangle as the basic primitive (3 vertex)
+		// clipping may produce 7 more vertex
+		// so the maximum vertex count is 10
+		size_t cache_vert = out_stride * sizeof(float) * 10 * 2;
+		// cache for clipping position (double buffer)
+		size_t cache_clip = sizeof(Imath::V4f) * 10 * 2;
+		task.cache = new char[cache_vert + cache_clip];
+		task.cache_size = 10;
+		task.out_vertex = reinterpret_cast<float*>(task.cache);
+		task.out_cache = task.out_vertex + out_stride * 10;
+		task.clip_pos = reinterpret_cast<Imath::V4f*>(task.cache + cache_vert);
+		task.clip_out = task.clip_pos + 10;
+
+		process(task);
+	}
+
+	void CSpwPipeline::viewport_transform(Imath::V4f* vertex_pos, size_t size) const
+	{
+		for (size_t i = 0; i < size; ++i)
+		{
+			auto &pos = vertex_pos[i];
+			pos /= pos.w;
+			pos.x = m_viewport_center.x + m_viewport_radius.x * pos.x;
+			pos.y = m_viewport_center.y + m_viewport_radius.y * pos.y;
+		}
 	}
 
 	void viewport_transform(const Imath::V2f &center, const Imath::V2f &radius, float* vertex_pos, size_t size, size_t stride)
@@ -98,8 +99,9 @@ namespace wyc
 	{
 	public:
 		const float *v0, *v1, *v2;
-		CSpwPlotter(CSpwPipeline *pipeline, size_t stride)
+		CSpwPlotter(CSpwPipeline *pipeline, const IShaderProgram *program, size_t stride)
 			: m_pipeline(pipeline)
+			, m_program(program)
 			, m_size(stride)
 		{
 			m_out = new float[m_size];
@@ -117,52 +119,52 @@ namespace wyc
 			{
 				*out = *i0 * w1 + *i1 * w2 + *i2 * w3;
 			}
-			m_pipeline->write_fragment(x, y, *(CSpwPipeline::VertexOut*)m_out);
+			m_pipeline->write_fragment(x, y, m_out, m_program);
 		}
 
 	private:
 		CSpwPipeline *m_pipeline;
+		const IShaderProgram *m_program;
 		float *m_out;
 		size_t m_size;
 	};
 
-	void CSpwPipeline::draw_triangles(const float *vertices, size_t count, size_t stride, size_t pos_offset) const
+	void CSpwPipeline::draw_triangles(const Imath::V4f* vertex_pos, const float *vertices, size_t count, size_t stride, const IShaderProgram *program) const
 	{
-		CSpwPlotter plt(const_cast<CSpwPipeline*>(this), stride);
+		CSpwPlotter plt(const_cast<CSpwPipeline*>(this), program, stride);
 		plt.v0 = vertices;
 		plt.v1 = plt.v0 + stride;
 		plt.v2 = plt.v1 + stride;
-		Imath::V2f tpos[3];
+		const Imath::V4f *p0 = vertex_pos, *p1 = vertex_pos + 1, *p2 = vertex_pos + 2;
+		Imath::V3f tpos[3];
 		for (size_t j = 2; j < count; ++j)
 		{
-			const Imath::V2f &p0 = *(Imath::V2f*)(plt.v0 + pos_offset);
-			const Imath::V2f &p1 = *(Imath::V2f*)(plt.v1 + pos_offset);
-			const Imath::V2f &p2 = *(Imath::V2f*)(plt.v2 + pos_offset);
 			// backface culling
-			Imath::V2f v10(p0.x - p1.x, p0.y - p1.y);
-			Imath::V2f v12(p2.x - p1.x, p2.y - p1.y);
+			Imath::V2f v10(p0->x - p1->x, p0->y - p1->y);
+			Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
 			if (v10.cross(v12) * m_clock_wise <= 0)
 				return;
 			// send to rasterizer
-			tpos[0] = p0 - m_region.center;
-			tpos[1] = p1 - m_region.center;
-			tpos[2] = p2 - m_region.center;
+			tpos[0] = { p0->x - m_region.center.x, p0->y - m_region.center.y, p0->z };
+			tpos[1] = { p1->x - m_region.center.x, p1->y - m_region.center.y, p1->z };
+			tpos[2] = { p2->x - m_region.center.x, p2->y - m_region.center.y, p2->z };
 			// todo: calculate triangle bounding box, and intersect with region block
 			fill_triangle(m_region.block, tpos[0], tpos[1], tpos[2], plt);
 			// next one
-			plt.v0 = plt.v1;
+			p1 = p2;
+			p2 += 1;
 			plt.v1 = plt.v2;
 			plt.v2 += stride;
 		}
 	}
 
-	void CSpwPipeline::write_fragment(int x, int y, VertexOut & in)
+	void CSpwPipeline::write_fragment(int x, int y, float *in, const IShaderProgram *program)
 	{
-		Fragment out;
-		fragment_shader(m_uniform, in, out);
+		Imath::C3f out;
+		program->fragment_shader(in, (float*)&out);
 		// write fragment buffer
 		auto &surf = m_rt->get_color_buffer();
-		unsigned v = Imath::rgb2packed(out.color);
+		unsigned v = Imath::rgb2packed(out);
 		x += m_region.center_device.x;
 		y = m_region.center_device.y - y;
 		assert(inside(x, y, m_region.block_device));
@@ -170,169 +172,31 @@ namespace wyc
 	}
 
 	//void CSpwPipeline::process(const CVertexBuffer &vb, size_t beg, size_t end) const
-	void CSpwPipeline::process(const VertexStream &stream) const
+	void CSpwPipeline::process(TaskVertex &task) const
 	{
-		// use triangle as the basic primitive (3 vertex)
-		// clipping may produce 7 more vertex
-		// so the maximum vertex count is 10
-		constexpr size_t cache_size = stride_out * 10;
-		float prim_cache[cache_size];
-		float clip_cache[cache_size];
-
-		float *prim = prim_cache;
-		float* const prim_end = prim_cache + stride_out * 3;
-		auto stream_it = vb.stream_begin();
-		auto stream_end = vb.stream_end();
-		for (stream_it += beg; stream_it != stream_end; ++stream_it)
+		const float *vert = task.in_vertex;
+		float *vert_out = task.out_vertex;
+		size_t vcnt = 0;
+		std::pair<Imath::V4f*, float*> clip_result;
+		for (size_t i = 0; i < task.in_size; ++i, vert += task.in_stride, vert_out += task.out_stride)
 		{
-			const float *vert = *stream_it;
-			vertex_shader(m_uniform, *(const VertexIn*)vert, *(VertexOut*)prim);
-			prim += stride_out;
-			if (prim != prim_end)
-				continue;
-			// emit primitive
-			prim = prim_cache;
-			// clipping
-			size_t vcnt = 3;
-			float *out = clip_polygon_stream(prim_cache, clip_cache, vcnt, stride_out, offset_out, cache_size);
+			task.program->vertex_shader(vert, vert_out, task.clip_pos[vcnt++]);
 			if (vcnt < 3)
 				continue;
+			// clipping
+			clip_result = clip_polygon_stream(task.clip_pos, task.clip_out,
+				task.out_vertex, task.out_cache, vcnt, task.out_stride, 10);
+			if (!vcnt)
+				continue;
+			assert(vcnt >= 3);
 			// viewport transform
-			viewport_transform(m_uniform.viewport_center, m_uniform.viewport_radius, out + offset_out, vcnt, stride_out);
+			viewport_transform(clip_result.first, vcnt);
 			// draw triangles
-			draw_triangles(out, vcnt, stride_out, offset_out);
+			draw_triangles(clip_result.first, clip_result.second, vcnt, task.out_stride, task.program);
+			// next triangle
+			vcnt = 0;
+			vert_out = task.out_vertex;
 		}
 	}
 
-	void CSpwPipeline::vertex_shader(const Uniform & uniform, const VertexIn & in, VertexOut & out)
-	{
-		Imath::V4f pos(in.pos);
-		pos.z = -1.0f;
-		pos = uniform.mvp * pos;
-		out.pos = pos;
-		out.color = in.color;
-	}
-
-	void CSpwPipeline::fragment_shader(const Uniform & uniform, const VertexOut & in, Fragment & out)
-	{
-		out.color = in.color;
-	}
-
-/*	template<>
-	CSpwPipeline::VertexOut intersect<CSpwPipeline::VertexOut>(const CSpwPipeline::VertexOut &p1, float d1, const CSpwPipeline::VertexOut &p2, float d2)
-	{
-		float t = d1 / (d1 - d2);
-		if (d1 < 0)
-			t = fast_ceil(t * 1000) * 0.001f;
-		else
-			t = fast_floor(t * 1000) * 0.001f;
-		const float *f1 = reinterpret_cast<const float*>(&p1);
-		const float *f2 = reinterpret_cast<const float*>(&p2);
-		CSpwPipeline::VertexOut out;
-		float *f3 = reinterpret_cast<float*>(&out);
-		for (int i = 0; i < 7; ++i)
-		{
-			f3[i] = f1[i] * (1 - t) + f2[i] * t;
-		}
-		return out;
-	}
-
-	template<>
-	inline CSpwPipeline::VertexOut interpolate<CSpwPipeline::VertexOut>(
-		const CSpwPipeline::VertexOut &v0, const CSpwPipeline::VertexOut &v1, const CSpwPipeline::VertexOut &v2, 
-		float t0, float t1, float t2)
-	{
-		CSpwPipeline::VertexOut out;
-		out.pos = v0.pos * t0 + v1.pos * t1 + v2.pos * t2;
-		out.color = v0.color * t0 + v1.color * t1 + v2.color * t2;
-		return out;
-	}
-
-	CSpwPipeline::VertexOut* CSpwPipeline::clip_polygon(VertexOut *in, VertexOut *out, size_t &size, size_t max_size)
-	{
-		float pdot, dot;
-		// clipped by W=0
-		constexpr float w_epsilon = 0.0001f;
-		size_t prev_idx = size - 1;
-		pdot = in[prev_idx].pos.w - w_epsilon;
-		size_t out_size = 0;
-		for (size_t i = 0; i < size; ++i)
-		{
-			const auto &pos = in[i].pos;
-			dot = pos.w - w_epsilon;
-			if (pdot * dot < 0) {
-				assert(out_size < max_size && "vertex cache overflow");
-				out[out_size++] = intersect(in[prev_idx], pdot, in[i], dot);
-			}
-			if (dot >= 0) {
-				assert(out_size < max_size && "vertex cache overflow");
-				out[out_size++] = in[i];
-			}
-			prev_idx = i;
-			pdot = dot;
-		}
-		if (!out_size)
-			return nullptr;
-		std::swap(in, out);
-		size = out_size;
-		out_size = 0;
-		// clipped by positive plane: W=X, W=Y, W=Z
-		for (size_t i = 0; i < 3; ++i)
-		{
-			prev_idx = size - 1;
-			const auto &pos = in[prev_idx].pos;
-			float pdot = pos.w - pos[i], dot;
-			for (size_t k = 0; k < size; ++k)
-			{
-				const auto &pos = in[k].pos;
-				dot = pos.w - pos[i];
-				if (pdot * dot < 0) {
-					assert(out_size < max_size && "vertex cache overflow");
-					out[out_size++] = intersect(in[prev_idx], pdot, in[k], dot);
-				}
-				if (dot >= 0) {
-					assert(out_size < max_size && "vertex cache overflow");
-					out[out_size++] = in[k];
-				}
-				prev_idx = i;
-				pdot = dot;
-			}
-			if (!out_size)
-				return nullptr;
-			std::swap(in, out);
-			size = out_size;
-			out_size = 0;
-		}
-		// clipped by negative plane: W=-X, W=-Y, W=-Z
-		for (size_t i = 0; i < 3; ++i)
-		{
-			prev_idx = size - 1;
-			const auto &pos = in[prev_idx].pos;
-			float pdot = pos.w + pos[i], dot;
-			for (size_t k = 0; k < size; ++k)
-			{
-				const auto &pos = in[k].pos;
-				dot = pos.w + pos[i];
-				if (pdot * dot < 0)
-				{
-					assert(out_size < max_size && "vertex cache overflow");
-					out[out_size++] = intersect(in[prev_idx], pdot, in[k], dot);
-				}
-				if (dot >= 0)
-				{
-					assert(out_size < max_size && "vertex cache overflow");
-					out[out_size++] = in[k];
-				}
-				prev_idx = i;
-				pdot = dot;
-			}
-			if (!out_size)
-				return nullptr;
-			std::swap(in, out);
-			size = out_size;
-			out_size = 0;
-		}
-		return in;
-	}
-*/
 } // namesace wyc

@@ -133,7 +133,7 @@ namespace wyc
 
 	// fill triangle {pos0, pos1, pos2} in counter-clockwise
 	template<typename Plotter>
-	void fill_triangle(const Imath::Box<Vec2i> &block, const Imath::V2f &pos0, const Imath::V2f &pos1, const Imath::V2f &pos2, Plotter &plot)
+	void fill_triangle(const Imath::Box<Vec2i> &block, const Imath::V3f &pos0, const Imath::V3f &pos1, const Imath::V3f &pos2, Plotter &plot)
 	{
 		// 11.8 sub pixel precision
 		// max render target is 2048 x 2048
