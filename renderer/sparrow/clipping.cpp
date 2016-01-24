@@ -99,7 +99,7 @@ namespace wyc
 		}
 	}
 
-	void intersect(float *v1, float d1, float *v2, float d2, size_t component, float *out)
+	void intersect(float *v1, float d1, float *v2, float d2, size_t stride, float *out)
 	{
 		float t = d1 / (d1 - d2);
 		if (d1 < 0)
@@ -107,7 +107,7 @@ namespace wyc
 		else
 			t = fast_floor(t * 1000) * 0.001f;
 		// v1 + (v2 - v1) * t;
-		for (float *end = out + component; out != end; ++out, ++v1, ++v2)
+		for (float *end = out + stride; out != end; ++out, ++v1, ++v2)
 		{
 			*out = (*v1) + (*v2 - *v1) * t;
 		}
@@ -236,7 +236,6 @@ namespace wyc
 		size = 0;
 		for (; cur_vert != end; cur_vert += stride, cur_pos += 1)
 		{
-			//pos = cur_vert + pos_offset;
 			dot = cur_pos->w - w_epsilon;
 			if (pdot * dot < 0) {
 				assert(size < max_size && "vertex cache overflow");
@@ -274,7 +273,6 @@ namespace wyc
 			size = 0;
 			for (; cur_vert != end; cur_vert += stride, cur_pos += 1)
 			{
-				//pos = cur_vert + pos_offset;
 				dot = cur_pos->w - (*cur_pos)[k];
 				if (pdot * dot < 0) {
 					assert(size < max_size && "vertex cache overflow");

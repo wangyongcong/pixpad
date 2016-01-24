@@ -132,8 +132,11 @@ namespace wyc
 #endif
 
 	// fill triangle {pos0, pos1, pos2} in counter-clockwise
-	template<typename Plotter>
-	void fill_triangle(const Imath::Box<Vec2i> &block, const Imath::V3f &pos0, const Imath::V3f &pos1, const Imath::V3f &pos2, Plotter &plot)
+	// position vector: should be 3D vector {x, y, z}
+	// plot: functor with following declaration 
+	//   void plot(int x, int y, float z, t0, t1, t2)
+	template<typename Vector, typename Plotter>
+	void fill_triangle(const Imath::Box<Vec2i> &block, const Vector &pos0, const Vector &pos1, const Vector &pos2, Plotter &plot)
 	{
 		// 11.8 sub pixel precision
 		// max render target is 2048 x 2048
@@ -186,15 +189,14 @@ namespace wyc
 			for (int x = block.min.x; x < block.max.x; x += 1)
 			{
 				if ((w0 | w1 | w2) >= 0) {
-					//hp_w0 = (int64_t(w0 - bias_v12) << 8) + fw0;
-					//hp_w1 = (int64_t(w1 - bias_v20) << 8) + fw1;
-					//hp_w2 = (int64_t(w2 - bias_v01) << 8) + fw2;
-					//hp_sum = hp_w0 + hp_w1 + hp_w2;
 					t0 = w0 - bias_v12 + fw0;
 					t1 = w1 - bias_v20 + fw1;
 					t2 = w2 - bias_v01 + fw2;
 					t_sum = t0 + t1 + t2;
-					plot(x, y, t0 / t_sum, t1 / t_sum, t2 / t_sum);
+					t0 /= t_sum;
+					t1 /= t_sum;
+					t2 /= t_sum;
+					plot(x, y, pos0.z * t0 + pos1.z * t1 + pos2.z *t2, t0, t1, t2);
 				}
 				w0 += edge_a12;
 				w1 += edge_a20;

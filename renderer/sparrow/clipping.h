@@ -25,6 +25,8 @@ namespace wyc
 		return p1 + (p2 - p1) * t;
 	}
 
+	void intersect(float *v1, float d1, float *v2, float d2, size_t stride, float *out);
+
 	// Clip polygon by planes
 	// planes: planes used to clip the polygon
 	// vertices: vertices of the polygon, when return, it will contain the result
@@ -46,6 +48,7 @@ namespace wyc
 	// return nullptr if the polygon is totally clipped out
 	// when return, vertex_count specify the count of resulting vertices.
 	float* clip_polygon_stream(float *vertex_in, float *vertex_out, size_t &vertex_count, size_t stride, size_t pos_offset, size_t cache_size);
+
 	std::pair<Imath::V4f*, float*> clip_polygon_stream(Imath::V4f *clip_in, Imath::V4f *clip_out, 
 		float *vertex_in, float *vertex_out, unsigned &size, unsigned stride, unsigned max_size);
 

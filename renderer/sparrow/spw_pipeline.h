@@ -19,7 +19,7 @@ namespace wyc
 	{
 	public:
 		virtual void vertex_shader(const float *vertex_in, float *vertex_out, Imath::V4f &clip_pos) const = 0;
-		virtual void fragment_shader(const float *vertex_out, float *frag_out) const = 0;
+		virtual bool fragment_shader(const float *vertex_out, float *frag_out) const = 0;
 		virtual size_t get_vertex_stride() const = 0;
 		virtual size_t get_vertex_size() const = 0;
 	};
@@ -34,39 +34,27 @@ namespace wyc
 		
 		void setup(std::shared_ptr<CSpwRenderTarget> rt);
 		void feed(const CMesh *mesh, const IShaderProgram *program);
-		struct TaskVertex {
-			const float *in_vertex;
-			size_t in_size;
-			size_t in_stride;
-			const Imath::V3f *in_pos;
-			size_t pos_stride;
-
-			size_t out_stride;
-			size_t out_offset_pos;
-
-			char *cache;
-			size_t cache_size;
-			float *out_vertex;
-			float *out_cache;
-			Imath::V4f *clip_pos;
-			Imath::V4f *clip_out;
-
-			const IShaderProgram *program;
-		};
-		void process(TaskVertex &stream) const;
-
-		inline void set_viewport(const Imath::Box2i &view) {
-			auto _tmp = view.max + view.min;
-			m_viewport_center = { _tmp.x * 0.5f, _tmp.y * 0.5f };
-			_tmp = view.max - view.min;
-			m_viewport_radius = { _tmp.x * 0.5f, _tmp.y * 0.5f };
-		}
+		void set_viewport(const Imath::Box2i &view);
 		void write_fragment(int x, int y, float *in, const IShaderProgram *program);
 
 	protected:
-		//static VertexOut* clip_polygon(VertexOut *in, VertexOut *out, size_t &size, size_t max_size);
+		struct TaskVertex {
+			const IShaderProgram *program;
+			const float *in_vertex;
+			size_t in_size;  // input vertex count
+			size_t in_stride;  // input vertex stride (in float componenet)
+			const Imath::V3f *in_pos;  // input vertex position array
+			size_t out_stride;  // output vertex stride (in float component)
+			char *cache;  // cache buffer
+			size_t cache_size;  // cache size in bytes
+			float *out_vertex;  // output vertex cache 1
+			float *out_cache;   // output vertex cache 2
+			Imath::V4f *clip_pos;  // clip position cache 1
+			Imath::V4f *clip_out;  // clip output cache 2
+		};
+		void process(TaskVertex &stream) const;
 		void viewport_transform(Imath::V4f* vertex_pos, size_t size) const;
-		void draw_triangles(const Imath::V4f* vertex_pos, const float *vertices, size_t count, size_t stride, const IShaderProgram *program) const;
+		void draw_triangles(Imath::V4f* vertex_pos, const float *vertices, size_t count, size_t stride, const IShaderProgram *program) const;
 
 		unsigned m_num_core;
 		POLYGON_WINDING m_clock_wise;
@@ -111,11 +99,12 @@ namespace wyc
 			out->color = in->color;
 		}
 
-		virtual void fragment_shader(const float *vertex_out, float *frag_out) const override
+		virtual bool fragment_shader(const float *vertex_out, float *frag_out) const override
 		{
 			const VertexOut* vout = reinterpret_cast<const VertexOut*>(vertex_out);
 			Fragment *frag = reinterpret_cast<Fragment*>(frag_out);
 			frag->color = vout->color;
+			return true;
 		}
 
 		virtual size_t get_vertex_stride() const override
