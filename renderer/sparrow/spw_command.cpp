@@ -49,12 +49,10 @@ namespace wyc
 		assert(cmd);
 		const CMesh *mesh = cmd->mesh;
 		if (!mesh)
-		{
 			return;
-		}
-		CSurface &surf = renderer->m_rt->get_color_buffer();
-		int surfh = surf.row(), surfw = surf.row_length();
-		int halfw = surfw >> 1, halfh = surfh >> 1;
+		unsigned surfw, surfh;
+		renderer->m_rt->get_size(surfw, surfh);
+		float halfw = surfw * 0.5f, halfh = surfh * 0.5f;
 		CShaderFlatColor shader;
 		set_orthograph(shader.m_uniform.mvp, -halfw, -halfh, 0.1f, halfw, halfh, 100.0f);
 		auto &pipeline = renderer->m_pipeline;

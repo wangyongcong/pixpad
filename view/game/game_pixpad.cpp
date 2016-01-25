@@ -134,6 +134,7 @@ namespace wyc
 		}
 		// start a task
 		CTriangleMesh triangle(100);
+		CQuadMesh quad(100, 100);
 		//CMesh cube;
 		//cube.load_obj(L"res/cube/cube.obj");
 		Imath::Frustumf frustum;
@@ -145,7 +146,7 @@ namespace wyc
 			clear->color.setValue(0.0f, 0.0f, 0.0f);
 			renderer->enqueue(clear);
 			auto *draw = renderer->new_command<cmd_draw_mesh>();
-			draw->mesh = &triangle;
+			draw->mesh = &quad;
 			draw->mvp = &mvp;
 			renderer->enqueue(draw);
 

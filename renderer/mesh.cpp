@@ -292,15 +292,46 @@ namespace wyc
 		set_vertices<VertexP3C3>({
 			{
 				{ 0, radius, 0 },
-				{ 1.0, 0, 0 },
+				{ 1.0f, 0, 0 },
 			},
 			{
 				{ -radius * cos30, -radius * sin30, 0 },
-				{ 0, 1.0, 0 },
+				{ 0, 1.0f, 0 },
 			},
 			{
 				{ radius * cos30, -radius * sin30, 0 },
-				{ 0, 0, 1.0 },
+				{ 0, 0, 1.0f },
+			},
+		});
+	}
+
+	CQuadMesh::CQuadMesh(float w, float h)
+	{
+		float x = w * 0.5f, y = h * 0.5f;
+		set_vertices<VertexP3C3>({
+			{
+				{ -x, -y, 0 },
+				{ 0, 1.0f, 1.0f },
+			},
+			{
+				{ x, -y, 0 },
+				{ 1.0f, 0, 1.0f },
+			},
+			{
+				{ x, y, 0 },
+				{ 1.0f, 1.0f, 0 },
+			},
+			{
+				{ -x, -y, 0 },
+				{ 1, 1.0f, 1.0f },
+			},
+			{
+				{ x, y, 0 },
+				{ 1.0f, 1.0f, 1 },
+			},
+			{
+				{ -x, y, 0 },
+				{ 1, 1, 1 },
 			},
 		});
 	}

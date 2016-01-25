@@ -19,7 +19,7 @@ namespace wyc
 	{
 	public:
 		virtual void vertex_shader(const float *vertex_in, float *vertex_out, Imath::V4f &clip_pos) const = 0;
-		virtual bool fragment_shader(const float *vertex_out, float *frag_out) const = 0;
+		virtual bool fragment_shader(const float *vertex_out, Imath::C4f &frag_color) const = 0;
 		virtual size_t get_vertex_stride() const = 0;
 		virtual size_t get_vertex_size() const = 0;
 	};
@@ -31,11 +31,9 @@ namespace wyc
 		~CSpwPipeline();
 		CSpwPipeline(const CSpwPipeline &other) = delete;
 		CSpwPipeline& operator = (const CSpwPipeline &other) = delete;
-		
 		void setup(std::shared_ptr<CSpwRenderTarget> rt);
 		void feed(const CMesh *mesh, const IShaderProgram *program);
 		void set_viewport(const Imath::Box2i &view);
-		void write_fragment(int x, int y, float *in, const IShaderProgram *program);
 
 	protected:
 		struct TaskVertex {
@@ -51,25 +49,17 @@ namespace wyc
 			float *out_cache;   // output vertex cache 2
 			Imath::V4f *clip_pos;  // clip position cache 1
 			Imath::V4f *clip_out;  // clip output cache 2
+			Imath::Box2i block;
 		};
 		void process(TaskVertex &stream) const;
 		void viewport_transform(Imath::V4f* vertex_pos, size_t size) const;
-		void draw_triangles(Imath::V4f* vertex_pos, const float *vertices, size_t count, size_t stride, const IShaderProgram *program) const;
+		void draw_triangles(Imath::V4f* vertex_pos, const float *vertices, size_t count, TaskVertex &task) const;
 
 		unsigned m_num_core;
 		POLYGON_WINDING m_clock_wise;
 		std::shared_ptr<CSpwRenderTarget> m_rt;
-		Imath::V2f m_viewport_center;
-		Imath::V2f m_viewport_radius;
-
-		struct RasterRegion
-		{
-			Imath::V2i center;
-			Imath::V2i center_device;
-			Imath::Box2i block;
-			Imath::Box2i block_device;
-		};
-		RasterRegion m_region;
+		Imath::V2f m_vp_translate;
+		Imath::V2f m_vp_scale;
 	};
 
 	class CShaderFlatColor : public IShaderProgram
@@ -77,10 +67,6 @@ namespace wyc
 	public:
 		typedef VertexP3C3 VertexIn;
 		typedef VertexP3C3 VertexOut;
-		typedef struct
-		{
-			Imath::C3f color;
-		} Fragment;
 
 		struct Uniform
 		{
@@ -99,11 +85,10 @@ namespace wyc
 			out->color = in->color;
 		}
 
-		virtual bool fragment_shader(const float *vertex_out, float *frag_out) const override
+		virtual bool fragment_shader(const float *vertex_out, Imath::C4f &frag_color) const override
 		{
 			const VertexOut* vout = reinterpret_cast<const VertexOut*>(vertex_out);
-			Fragment *frag = reinterpret_cast<Fragment*>(frag_out);
-			frag->color = vout->color;
+			frag_color = { vout->color.x, vout->color.y, vout->color.z, 1.0f };
 			return true;
 		}
 

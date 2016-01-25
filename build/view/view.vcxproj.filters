@@ -340,6 +340,9 @@
     <ClInclude Include="..\..\renderer\mathex\ImathMatrixExt.h">
       <Filter>Renderer\Mathex</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\renderer\mathex\ImathBoxAlgoExt.h">
+      <Filter>Renderer\Mathex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">

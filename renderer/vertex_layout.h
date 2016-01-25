@@ -23,7 +23,7 @@ namespace wyc
 	struct VertexAttrib
 	{
 		EAttribUsage usage;
-		uint16_t component;
+		uint8_t component;
 		uint16_t offset;
 	};
 

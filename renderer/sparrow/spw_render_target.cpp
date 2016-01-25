@@ -13,21 +13,64 @@ namespace wyc
 	bool CSpwRenderTarget::create(unsigned width, unsigned height, unsigned format)
 	{
 		m_color_buffer.release();
-		unsigned frag_size = 0, alignment = 0;
+		unsigned frag_size = 0, alignment = 4;
 		EPixelFormat color_fmt = get_color_format(format);
 		switch (color_fmt)
 		{
 		case SPR_COLOR_R8G8B8A8:
 		case SPR_COLOR_B8G8R8A8:
 			frag_size = 4;
-			alignment = 4;
 			break;
 		default:
 			return false;
 		}
 		if (!m_color_buffer.storage(width, height, frag_size, alignment))
 			return false;
-		m_color_fmt = color_fmt;
+		EPixelFormat depth_format = get_depth_format(format);
+		switch (depth_format)
+		{
+		case wyc::SPR_DEPTH_16:
+			frag_size = 2;
+			break;
+		case wyc::SPR_DEPTH_32:
+			frag_size = 2;
+			break;
+		default:
+			frag_size = 0;
+			break;
+		}
+		if (frag_size)
+		{
+			if (!m_depth_buffer.storage(width, height, frag_size, alignment))
+			{
+				m_color_buffer.release();
+				return false;
+			}
+		}
+		EPixelFormat stencil_format = get_stencil_format(format);
+		switch (stencil_format)
+		{
+		case wyc::SPR_STENCIL_8:
+			frag_size = 1;
+			break;
+		case wyc::SPR_STENCIL_16:
+			frag_size = 2;
+			break;
+		default:
+			frag_size = 0;
+			break;
+		}
+		if (frag_size)
+		{
+			if (!m_stencil_buffer.storage(width, height, frag_size, alignment))
+			{
+				m_color_buffer.release();
+				m_depth_buffer.release();
+				return false;
+			}
+		}
+		m_rt_width = width;
+		m_rt_height = height;
 		return true;
 	}
 

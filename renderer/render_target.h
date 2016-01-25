@@ -6,6 +6,8 @@ namespace wyc
 {
 	enum EPixelFormat
 	{
+		SPR_INVALID_FORMAT = 0,
+
 		// color buffer
 		SPR_COLOR_MASK = 0xFF,
 		SPR_COLOR_SHIFT = 0,
@@ -45,6 +47,21 @@ namespace wyc
 	public:
 		virtual ~CRenderTarget() {}
 		virtual bool create(unsigned width, unsigned height, unsigned format) = 0;
+		
+		inline void get_size(unsigned &width, unsigned &height) const
+		{
+			width = m_rt_width;
+			height = m_rt_height;
+		}
+		inline unsigned width() const {
+			return m_rt_width;
+		}
+		inline unsigned height() const {
+			return m_rt_height;
+		}
+
+	protected:
+		unsigned m_rt_width, m_rt_height;
 	};
 
 } // namespace wyc

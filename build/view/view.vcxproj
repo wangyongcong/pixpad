@@ -152,6 +152,7 @@
     <ClInclude Include="..\..\common\unitest.h" />
     <ClInclude Include="..\..\common\util.h" />
     <ClInclude Include="..\..\renderer\mathex\floatmath.h" />
+    <ClInclude Include="..\..\renderer\mathex\ImathBoxAlgoExt.h" />
     <ClInclude Include="..\..\renderer\mathex\ImathMatrixExt.h" />
     <ClInclude Include="..\..\renderer\mathex\ImathVecExt.h" />
     <ClInclude Include="..\..\renderer\mathex\mathfwd.h" />
