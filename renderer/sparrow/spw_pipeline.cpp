@@ -86,21 +86,26 @@ namespace wyc
 		float *vert_out = task.out_vertex;
 		size_t vcnt = 0;
 		std::pair<Imath::V4f*, float*> clip_result;
-		for (; vert != end; vert += task.in_stride, vert_out += task.out_stride)
+		for (; vert != end; vert += task.in_stride)
 		{
 			task.program->vertex_shader(vert, vert_out, task.clip_pos[vcnt++]);
-			if (vcnt < 3)
+			if (vcnt < 3) {
+				vert_out += task.out_stride;
 				continue;
+			}
 			// clipping
+			VertexP3C3 *v = (VertexP3C3*)task.out_vertex;
+			auto &p0 = v[0];
+			auto &p1 = v[1];
+			auto &p2 = v[2];
 			clip_result = clip_polygon_stream(task.clip_pos, task.clip_out,
 				task.out_vertex, task.out_cache, vcnt, task.out_stride, 10);
-			if (!vcnt)
-				continue;
-			assert(vcnt >= 3);
-			// viewport transform
-			viewport_transform(clip_result.first, vcnt);
-			// draw triangles
-			draw_triangles(clip_result.first, clip_result.second, vcnt, task);
+			if (vcnt >= 3) {
+				// viewport transform
+				viewport_transform(clip_result.first, vcnt);
+				// draw triangles
+				draw_triangles(clip_result.first, clip_result.second, vcnt, task);
+			}
 			// next triangle
 			vcnt = 0;
 			vert_out = task.out_vertex;
@@ -158,6 +163,8 @@ namespace wyc
 			unsigned v = Imath::rgb2packed(frag_color);
 			x += m_center.x;
 			y = m_center.y - y;
+			unsigned v2 = *surf.get<unsigned>(x, y);
+			assert(v2 == 0xff000000);
 			surf.set(x, y, v);
 		}
 

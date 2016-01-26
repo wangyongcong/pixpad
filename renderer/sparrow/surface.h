@@ -48,21 +48,15 @@ namespace wyc
 		template<class T>
 		void move_block(unsigned dstx, unsigned dsty, unsigned srcx, unsigned srcy, unsigned w, unsigned h);
 	protected:
-		DISALLOW_COPY_MOVE_AND_ASSIGN(CSurface);
-
-		enum BUFFER_INFO
-		{
-			BI_ELEMENT_SIZE = 0xFFFF,
-			BI_ALIGNMENT = 0xF0000,
-			BI_ALIGNMENT_SHIFT = 16,
-			BI_SHARED = 0x100000
-		};
+		DISALLOW_COPY_MOVE_AND_ASSIGN(CSurface)
 
 		uint8_t *m_data;
-		unsigned m_info;
 		unsigned m_pitch;
 		unsigned m_row_len;
 		unsigned m_row;
+		uint16_t m_frag_size;
+		uint8_t m_alignment;
+		bool m_is_share;
 	};
 
 	inline bool CSurface::empty() const {
@@ -70,11 +64,11 @@ namespace wyc
 	}
 
 	inline bool CSurface::is_owner() const {
-		return 0 == (m_info & BI_SHARED);
+		return !m_is_share;
 	}
 
 	inline unsigned char CSurface::alignment() const {
-		return (m_info & BI_ALIGNMENT) >> BI_ALIGNMENT_SHIFT;
+		return m_alignment;
 	}
 
 	inline unsigned CSurface::row_length() const {
@@ -94,7 +88,7 @@ namespace wyc
 	}
 
 	inline unsigned CSurface::fragment_size() const {
-		return m_info & BI_ELEMENT_SIZE;
+		return m_frag_size;
 	}
 
 	inline bool CSurface::validate(void *ptr) const {
@@ -119,12 +113,12 @@ namespace wyc
 
 	template<class T>
 	inline T* CSurface::get(unsigned x, unsigned y) {
-		return ((T*)(m_data + y*m_pitch)) + x;
+		return (T*)(m_data + y*m_pitch + x*fragment_size());
 	}
 
 	template<class T>
 	inline void CSurface::set(unsigned x, unsigned y, const T& val) {
-		((T*)(m_data + y*m_pitch))[x] = val;
+		*(T*)(m_data + y*m_pitch + x*fragment_size()) = val;
 	}
 
 	template<class T>
