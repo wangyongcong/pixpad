@@ -234,54 +234,27 @@ namespace wyc
 		{
 			return true;
 		}
-		auto vi = faces[0];
+		auto &vi = faces[0];
 		CVertexBuffer vb;
 		vb.set_attribute(ATTR_POSITION, 3);
-		if (vi.y != null_index)
+		bool has_uv = vi.y != null_index, has_normal = vi.z != null_index;
+		if (has_uv) 
 			vb.set_attribute(ATTR_TEXTURE, 2);
-		if (vi.z != null_index)
+		if (has_normal)
 			vb.set_attribute(ATTR_NORMAL, 3);
 		// alloc buffer
-		vb.resize(vertices.size());
+		vb.resize(faces.size());
 		// copy data
-		auto pos = vertices.begin();
-#ifdef _DEBUG
-		auto pos_end = vertices.end();
-#endif
-		for (auto out : vb.get_attribute(ATTR_POSITION))
+		auto pos = vb.get_attribute(ATTR_POSITION).begin();
+		auto uv = vb.get_attribute(ATTR_TEXTURE).begin();
+		auto normal = vb.get_attribute(ATTR_TEXTURE).begin();
+		for (const Imath::V3i &index : faces)
 		{
-#ifdef _DEBUG
-			assert(pos != pos_end);
-#endif
-			out = *pos++;
-		}
-		if (!texcoords.empty())
-		{
-			auto in = texcoords.begin();
-#ifdef _DEBUG
-			auto in_end = texcoords.end();
-#endif
-			for (auto out : vb.get_attribute(ATTR_TEXTURE))
-			{
-#ifdef _DEBUG
-				assert(in != in_end);
-#endif
-				out = *in++;
-			}
-		}
-		if (!normals.empty())
-		{
-			auto in = normals.begin();
-#ifdef _DEBUG
-			auto in_end = normals.end();
-#endif
-			for (auto out : vb.get_attribute(ATTR_NORMAL))
-			{
-#ifdef _DEBUG
-				assert(in != in_end);
-#endif
-				out = *in++;
-			}
+			*pos++ = vertices[index.x];
+			if (has_uv)
+				*uv++ = texcoords[index.y];
+			if (has_normal)
+				*normal++ = normals[index.z];
 		}
 		return true;
 	}
