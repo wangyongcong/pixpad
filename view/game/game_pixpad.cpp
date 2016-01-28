@@ -136,7 +136,8 @@ namespace wyc
 		CTriangleMesh triangle(100);
 		CQuadMesh quad(100, 100);
 		//CMesh cube;
-		//cube.load_obj(L"res/cube/cube.obj");
+		//if (!cube.load_obj(L"res/cube/cube.obj"))
+		//	return;
 		Imath::Frustumf frustum;
 		Imath::Matrix44<float> mvp = frustum.projectionMatrix();
 		for (auto &ptr : m_views)

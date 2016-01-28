@@ -235,26 +235,41 @@ namespace wyc
 			return true;
 		}
 		auto &vi = faces[0];
-		CVertexBuffer vb;
-		vb.set_attribute(ATTR_POSITION, 3);
+		m_vb.clear();
+		m_vb.set_attribute(ATTR_POSITION, 3);
 		bool has_uv = vi.y != null_index, has_normal = vi.z != null_index;
 		if (has_uv) 
-			vb.set_attribute(ATTR_TEXTURE, 2);
+			m_vb.set_attribute(ATTR_TEXTURE, 2);
 		if (has_normal)
-			vb.set_attribute(ATTR_NORMAL, 3);
+			m_vb.set_attribute(ATTR_NORMAL, 3);
 		// alloc buffer
-		vb.resize(faces.size());
+		m_vb.resize(faces.size());
 		// copy data
-		auto pos = vb.get_attribute(ATTR_POSITION).begin();
-		auto uv = vb.get_attribute(ATTR_TEXTURE).begin();
-		auto normal = vb.get_attribute(ATTR_TEXTURE).begin();
+		auto pos = m_vb.get_attribute(ATTR_POSITION).begin();
+		auto uv = m_vb.get_attribute(ATTR_TEXTURE).begin();
+		auto normal = m_vb.get_attribute(ATTR_TEXTURE).begin();
+		int i = 0;
 		for (const Imath::V3i &index : faces)
 		{
-			*pos++ = vertices[index.x];
-			if (has_uv)
-				*uv++ = texcoords[index.y];
-			if (has_normal)
-				*normal++ = normals[index.z];
+			if (index.x <= 0)
+				i = index.x + vertices.size();
+			else 
+				i -= 1;
+			*pos++ = vertices[i];
+			if (has_uv) {
+				if (index.y <= 0)
+					i = index.y + texcoords.size();
+				else
+					i -= 1;
+				*uv++ = texcoords[i];
+			}
+			if (has_normal) {
+				if (index.z <= 0)
+					i = index.z + normals.size();
+				else
+					i -= 1;
+				*normal++ = normals[i];
+			}
 		}
 		return true;
 	}

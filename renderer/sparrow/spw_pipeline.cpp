@@ -94,10 +94,6 @@ namespace wyc
 				continue;
 			}
 			// clipping
-			VertexP3C3 *v = (VertexP3C3*)task.out_vertex;
-			auto &p0 = v[0];
-			auto &p1 = v[1];
-			auto &p2 = v[2];
 			clip_result = clip_polygon_stream(task.clip_pos, task.clip_out,
 				task.out_vertex, task.out_cache, vcnt, task.out_stride, 10);
 			if (vcnt >= 3) {
