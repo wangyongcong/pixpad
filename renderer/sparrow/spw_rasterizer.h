@@ -7,8 +7,8 @@
 namespace wyc
 {
 	// bresenham line rasterization
-	template<typename Plotter>
-	void line_bresenham(Plotter &plot, Vec2f &v0, const Vec2f &v1)
+	template<typename Vector, typename Plotter>
+	void line_bresenham(Plotter &plot, const Vector &v0, const Vector &v1)
 	{
 		int x0, y0, x1, y1;
 		x0 = fast_round(v0.x);
@@ -36,14 +36,14 @@ namespace wyc
 			int d = -dx;
 			for (int i = 0; i<dx; ++i)
 			{
-				plot += 1;
+				x0 += 1;
 				d += m;
 				if (d >= 0)
 				{
-					plot.skip_row(advance);
+					y0 += advance;
 					d -= dx << 1;
 				}
-				plot();
+				plot(x0, y0);
 			}
 		}
 		else
@@ -52,16 +52,24 @@ namespace wyc
 			int d = -dy;
 			for (int i = 0; i < dy; ++i)
 			{
-				plot.skip_row(advance);
+				y0 += advance;
 				d += m;
 				if (d >= 0)
 				{
-					plot += 1;
+					x0 += 1;
 					d -= dy << 1;
 				}
-				plot();
+				plot(x0, y0);
 			}
 		}
+	}
+
+	template<typename Vector, typename Plotter>
+	void draw_triangle_frame(const Vector &pos0, const Vector &pos1, const Vector &pos2, Plotter &plot)
+	{
+		line_bresenham(plot, pos0, pos1);
+		line_bresenham(plot, pos1, pos2);
+		line_bresenham(plot, pos2, pos0);
 	}
 
 	// calculate the signed-area * 2 of triangle (v0, v1, v2)

@@ -165,11 +165,14 @@
     <ClInclude Include="..\..\renderer\render_command.h" />
     <ClInclude Include="..\..\renderer\render_target.h" />
     <ClInclude Include="..\..\renderer\sparrow\clipping.h" />
+    <ClInclude Include="..\..\renderer\sparrow\shader\flat_color.h" />
+    <ClInclude Include="..\..\renderer\sparrow\shader\tex_color.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_command.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_pipeline.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_rasterizer.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_renderer.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_render_target.h" />
+    <ClInclude Include="..\..\renderer\sparrow\spw_shader.h" />
     <ClInclude Include="..\..\renderer\sparrow\surface.h" />
     <ClInclude Include="..\..\renderer\vertex_buffer.h" />
     <ClInclude Include="..\..\renderer\vertex_layout.h" />
@@ -198,6 +201,8 @@
     <ClCompile Include="..\..\renderer\renderer.cpp" />
     <ClCompile Include="..\..\renderer\render_command.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\clipping.cpp" />
+    <ClCompile Include="..\..\renderer\sparrow\shader\flat_color.cpp" />
+    <ClCompile Include="..\..\renderer\sparrow\shader\tex_color.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_command.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_pipeline.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_renderer.cpp" />

@@ -73,7 +73,7 @@ namespace wyc
 	class CTriangleMesh : public CMesh
 	{
 	public:
-		CTriangleMesh(float radius);
+		CTriangleMesh(float size);
 	};
 
 	class CQuadMesh : public CMesh
@@ -81,4 +81,5 @@ namespace wyc
 	public:
 		CQuadMesh(float w, float h);
 	};
+
 } // namespace wyc

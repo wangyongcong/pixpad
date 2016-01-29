@@ -12,6 +12,7 @@ namespace wyc
 	CSpwPipeline::CSpwPipeline()
 		: m_num_core(1)
 		, m_clock_wise(COUNTER_CLOCK_WISE)
+		, m_draw_mode(FILL_MODE)
 	{
 	}
 
@@ -141,6 +142,24 @@ namespace wyc
 			m_vert = nullptr;
 		}
 
+		// plot mode
+		void operator() (int x, int y)
+		{
+			// write render target
+			Imath::C4f frag_color;
+			if (!m_program->fragment_shader(m_vert, frag_color))
+				return;
+			frag_color.r *= frag_color.a;
+			frag_color.g *= frag_color.a;
+			frag_color.b *= frag_color.a;
+			x += m_center.x;
+			y = m_center.y - y;
+			unsigned v = Imath::rgb2packed(frag_color);
+			auto &surf = m_rt->get_color_buffer();
+			surf.set(x, y, v);
+		}
+
+		// fill mode
 		void operator() (int x, int y, float z, float w1, float w2, float w3)
 		{
 			// todo: z-test first
@@ -155,12 +174,15 @@ namespace wyc
 			if (!m_program->fragment_shader(m_vert, frag_color))
 				return;
 			// write fragment buffer
-			auto &surf = m_rt->get_color_buffer();
+			frag_color.r *= frag_color.a;
+			frag_color.g *= frag_color.a;
+			frag_color.b *= frag_color.a;
 			unsigned v = Imath::rgb2packed(frag_color);
 			x += m_center.x;
 			y = m_center.y - y;
-			unsigned v2 = *surf.get<unsigned>(x, y);
-			assert(v2 == 0xff000000);
+			auto &surf = m_rt->get_color_buffer();
+			//unsigned v2 = *surf.get<unsigned>(x, y);
+			//assert(v2 == 0xff000000);
 			surf.set(x, y, v);
 		}
 
@@ -195,6 +217,11 @@ namespace wyc
 			Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
 			if (v10.cross(v12) * m_clock_wise <= 0)
 				return;
+			if (m_draw_mode == LINE_MODE)
+			{
+				draw_triangle_frame(*p0, *p1, *p2, plt);
+				continue;
+			}
 			// calculate triangle bounding box and intersection of region block
 			Imath::bounding(bounding, p0, p1, p2);
 			Imath::intersection(bounding, task.block);

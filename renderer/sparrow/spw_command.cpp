@@ -3,7 +3,6 @@
 #include "spw_renderer.h"
 #include "spw_rasterizer.h"
 #include "vertex_layout.h"
-#include <mathex/vecmath.h>
 
 namespace wyc
 {
@@ -50,14 +49,10 @@ namespace wyc
 		const CMesh *mesh = cmd->mesh;
 		if (!mesh)
 			return;
-		unsigned surfw, surfh;
-		renderer->m_rt->get_size(surfw, surfh);
-		float halfw = surfw * 0.5f, halfh = surfh * 0.5f;
-		CShaderFlatColor shader;
-		set_orthograph(shader.m_uniform.mvp, -halfw, -halfh, 0.1f, halfw, halfh, 100.0f);
 		auto &pipeline = renderer->m_pipeline;
 		pipeline.setup(renderer->m_rt);
-		pipeline.feed(mesh, &shader);
+		pipeline.set_draw_mode(LINE_MODE);
+		pipeline.feed(mesh, cmd->program);
 	}
 
 

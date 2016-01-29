@@ -38,7 +38,7 @@ namespace wyc
 		for (auto va : m_attr_tbl)
 		{
 			if (!va) continue;
-			va->offset = m_vert_size;
+			va->offset = m_vert_componet * sizeof(float);
 			m_vert_componet += va->component;
 		}
 		m_vert_size = m_vert_componet * sizeof(float);

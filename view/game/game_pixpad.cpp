@@ -15,6 +15,8 @@
 #include "log.h"
 #include "util.h"
 #include "mesh.h"
+#include <sparrow/shader/tex_color.h>
+#include <mathex/vecmath.h>
 
 namespace wyc
 {
@@ -133,13 +135,23 @@ namespace wyc
 			ptr->wake_up();
 		}
 		// start a task
-		CTriangleMesh triangle(100);
-		CQuadMesh quad(100, 100);
-		//CMesh cube;
-		//if (!cube.load_obj(L"res/cube/cube.obj"))
-		//	return;
-		Imath::Frustumf frustum;
-		Imath::Matrix44<float> mvp = frustum.projectionMatrix();
+		//CTriangleMesh triangle(100);
+		//CQuadMesh quad(100, 100);
+		CMesh cube;
+		if (!cube.load_obj(L"res/cube/cube.obj"))
+			return;
+		// material
+		CShaderTexColor shader;
+		set_orthograph(shader.m_uniform.mvp, -400, -300, 0.1f, 400, 300, 1000.0f);
+		Imath::M44f transform;
+		set_scale(transform, 100, 100, 100);
+		transform[0][3] = 0;
+		transform[1][3] = 0;
+		transform[2][3] = -100;
+		shader.m_uniform.mvp *= transform;
+		shader.m_uniform.color = { 1.0f, 0.0f, 1.0f, 1.0f };
+		//Imath::Frustumf frustum;
+		//Imath::Matrix44<float> mvp = frustum.projectionMatrix();
 		for (auto &ptr : m_views)
 		{
 			auto renderer = ptr->get_renderer();
@@ -147,8 +159,8 @@ namespace wyc
 			clear->color.setValue(0.0f, 0.0f, 0.0f);
 			renderer->enqueue(clear);
 			auto *draw = renderer->new_command<cmd_draw_mesh>();
-			draw->mesh = &quad;
-			draw->mvp = &mvp;
+			draw->mesh = &cube;
+			draw->program = &shader;
 			renderer->enqueue(draw);
 
 			renderer->present();

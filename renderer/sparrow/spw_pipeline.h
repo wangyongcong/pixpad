@@ -6,6 +6,7 @@
 #include "mesh.h"
 #include "vertex_layout.h"
 #include "spw_render_target.h"
+#include "spw_shader.h"
 
 namespace wyc
 {
@@ -15,13 +16,10 @@ namespace wyc
 		COUNTER_CLOCK_WISE = -1
 	};
 
-	class IShaderProgram
+	enum POLYGON_DRAW_MODE
 	{
-	public:
-		virtual void vertex_shader(const float *vertex_in, float *vertex_out, Imath::V4f &clip_pos) const = 0;
-		virtual bool fragment_shader(const float *vertex_out, Imath::C4f &frag_color) const = 0;
-		virtual size_t get_vertex_stride() const = 0;
-		virtual size_t get_vertex_size() const = 0;
+		FILL_MODE,
+		LINE_MODE,
 	};
 
 	class CSpwPipeline
@@ -34,6 +32,9 @@ namespace wyc
 		void setup(std::shared_ptr<CSpwRenderTarget> rt);
 		void feed(const CMesh *mesh, const IShaderProgram *program);
 		void set_viewport(const Imath::Box2i &view);
+		inline void set_draw_mode(POLYGON_DRAW_MODE m) {
+			m_draw_mode = m;
+		}
 
 	protected:
 		struct TaskVertex {
@@ -57,49 +58,10 @@ namespace wyc
 
 		unsigned m_num_core;
 		POLYGON_WINDING m_clock_wise;
+		POLYGON_DRAW_MODE m_draw_mode;
 		std::shared_ptr<CSpwRenderTarget> m_rt;
 		Imath::V2f m_vp_translate;
 		Imath::V2f m_vp_scale;
-	};
-
-	class CShaderFlatColor : public IShaderProgram
-	{
-	public:
-		typedef VertexP3C3 VertexIn;
-		typedef VertexP3C3 VertexOut;
-
-		struct Uniform
-		{
-			Imath::M44f mvp;
-		} m_uniform;
-
-		virtual void vertex_shader(const float *vertex_in, float *vertex_out, Imath::V4f &clip_pos) const override
-		{
-			const VertexIn* in = reinterpret_cast<const VertexIn*>(vertex_in);
-			VertexOut* out = reinterpret_cast<VertexOut*>(vertex_out);
-			Imath::V4f pos(in->pos);
-			pos.z = -1.0f;
-			pos = m_uniform.mvp * pos;
-			clip_pos = pos;
-			out->pos = in->pos;
-			out->color = in->color;
-		}
-
-		virtual bool fragment_shader(const float *vertex_out, Imath::C4f &frag_color) const override
-		{
-			const VertexOut* vout = reinterpret_cast<const VertexOut*>(vertex_out);
-			frag_color = { vout->color.x, vout->color.y, vout->color.z, 1.0f };
-			return true;
-		}
-
-		virtual size_t get_vertex_stride() const override
-		{
-			return VertexOut::Layout::component;
-		}
-		virtual size_t get_vertex_size() const override
-		{
-			return sizeof(VertexOut);
-		}
 	};
 
 } // namespace wyc

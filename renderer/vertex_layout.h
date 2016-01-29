@@ -1,7 +1,7 @@
 #pragma once
 #include <type_traits>
-#include "OpenEXR/ImathVec.h"
-#include "OpenEXR/ImathColor.h"
+#include <OpenEXR/ImathVec.h>
+#include <OpenEXR/ImathColor.h>
 
 namespace wyc
 {
@@ -47,6 +47,21 @@ namespace wyc
 		Imath::V4f pos;
 		Imath::C3f color;
 		VERTEX_LAYOUT(7, 0, 2)
+	};
+
+	struct VertexP3Tex2N3
+	{
+		Imath::V3f pos;
+		Imath::V2f uv;
+		Imath::V3f normal;
+		VERTEX_LAYOUT(8, 0, 3)
+	};
+
+	struct VertexTex2N3
+	{
+		Imath::V2f uv;
+		Imath::V3f normal;
+		VERTEX_LAYOUT(5, 0, 2)
 	};
 
 } // namespace wyc

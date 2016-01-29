@@ -4,12 +4,11 @@
 #include <functional>
 #include <vector>
 #include <future>
-
-#include "OpenExr/ImathForward.h"
-#include "OpenEXR/ImathColor.h"
-
+#include <OpenExr/ImathForward.h>
+#include <OpenEXR/ImathColor.h>
 #include "util.h"
 #include "mesh.h"
+#include <sparrow/spw_shader.h>
 
 namespace wyc
 {
@@ -101,7 +100,7 @@ namespace wyc
 	{
 		CMD_TID(CMD_DRAW_MESH);
 		const CMesh *mesh = nullptr;
-		const Imath::Matrix44<float> *mvp;
+		IShaderProgram *program = nullptr;
 	};
 
 }  // namespace wyc

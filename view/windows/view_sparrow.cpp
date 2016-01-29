@@ -226,7 +226,7 @@ namespace wyc
 		// create bitmap
 		D2D1_PIXEL_FORMAT bitmap_fmt = {
 			DXGI_FORMAT_R8G8B8A8_UNORM,
-			D2D1_ALPHA_MODE_IGNORE
+			D2D1_ALPHA_MODE_PREMULTIPLIED
 		};
 		result = ptr_render_target->CreateBitmap({ w, h }, 0, 0, { bitmap_fmt , 0, 0 }, &m_bitmap);
 		if (result != S_OK)

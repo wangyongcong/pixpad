@@ -247,7 +247,7 @@ namespace wyc
 		// copy data
 		auto pos = m_vb.get_attribute(ATTR_POSITION).begin();
 		auto uv = m_vb.get_attribute(ATTR_TEXTURE).begin();
-		auto normal = m_vb.get_attribute(ATTR_TEXTURE).begin();
+		auto normal = m_vb.get_attribute(ATTR_NORMAL).begin();
 		int i = 0;
 		for (const Imath::V3i &index : faces)
 		{
@@ -274,20 +274,20 @@ namespace wyc
 		return true;
 	}
 
-	CTriangleMesh::CTriangleMesh(float radius)
+	CTriangleMesh::CTriangleMesh(float size)
 	{
 		const float sin30 = 0.5f, cos30 = 0.866f;
 		set_vertices<VertexP3C3>({
 			{
-				{ 0, radius, 0 },
+				{ 0, size, 0 },
 				{ 1.0f, 0, 0 },
 			},
 			{
-				{ -radius * cos30, -radius * sin30, 0 },
+				{ -size * cos30, -size * sin30, 0 },
 				{ 0, 1.0f, 0 },
 			},
 			{
-				{ radius * cos30, -radius * sin30, 0 },
+				{ size * cos30, -size * sin30, 0 },
 				{ 0, 0, 1.0f },
 			},
 		});
