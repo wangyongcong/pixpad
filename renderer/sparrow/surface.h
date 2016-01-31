@@ -118,6 +118,8 @@ namespace wyc
 
 	template<class T>
 	inline void CSurface::set(unsigned x, unsigned y, const T& val) {
+		assert(x >= 0 && x < m_row_len);
+		assert(y >= 0 && y < m_row);
 		*(T*)(m_data + y*m_pitch + x*fragment_size()) = val;
 	}
 

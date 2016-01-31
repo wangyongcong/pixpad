@@ -94,13 +94,10 @@ namespace wyc
 				vert_out += task.out_stride;
 				continue;
 			}
-			// clipping
 			clip_result = clip_polygon_stream(task.clip_pos, task.clip_out,
 				task.out_vertex, task.out_cache, vcnt, task.out_stride, 10);
 			if (vcnt >= 3) {
-				// viewport transform
 				viewport_transform(clip_result.first, vcnt);
-				// draw triangles
 				draw_triangles(clip_result.first, clip_result.second, vcnt, task);
 			}
 			// next triangle

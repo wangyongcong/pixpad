@@ -17,6 +17,7 @@
 #include "mesh.h"
 #include <sparrow/shader/tex_color.h>
 #include <mathex/vecmath.h>
+#include <common/image.h>
 
 namespace wyc
 {
@@ -139,6 +140,9 @@ namespace wyc
 		//CQuadMesh quad(100, 100);
 		CMesh cube;
 		if (!cube.load_obj(L"res/cube/cube.obj"))
+			return;
+		CImage image;
+		if (!image.load(L"res/cube/default.png"))
 			return;
 		// material
 		CShaderTexColor shader;

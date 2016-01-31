@@ -41,11 +41,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\;..\..\common;..\..\thread;..\..\renderer;..\..\view;..\..\view\game;..\..\view\windows;..\..\3rd\IlmBase\include;..\..\3rd\glew-1.13.0\include;$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>..\..\;..\..\common;..\..\thread;..\..\renderer;..\..\view;..\..\view\game;..\..\view\windows;..\..\3rd\IlmBase\include;..\..\3rd\glew-1.13.0\include;..\..\3rd\libpng\include;$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\3rd\IlmBase\lib;..\..\3rd\zlib\lib;..\..\3rd\libpng\lib;..\..\3rd\glew-1.13.0\lib\Release MX\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\;..\..\common;..\..\thread;..\..\renderer;..\..\view;..\..\view\game;..\..\view\windows;..\..\3rd\IlmBase\include;..\..\3rd\glew-1.13.0\include;$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>..\..\;..\..\common;..\..\thread;..\..\renderer;..\..\view;..\..\view\game;..\..\view\windows;..\..\3rd\IlmBase\include;..\..\3rd\glew-1.13.0\include;..\..\3rd\libpng\include;$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\3rd\IlmBase\lib;..\..\3rd\zlib\lib;..\..\3rd\libpng\lib;..\..\3rd\glew-1.13.0\lib\Release MX\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -57,7 +59,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\3rd\glew-1.13.0\lib\Release MX\Win32;..\..\3rd\IlmBase\lib;..\..\lib\debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpng16_staticd.lib;zlibstaticd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y $(TargetPath) $(SolutionDir)..\bin\$(Configuration)\</Command>
@@ -79,7 +81,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\3rd\glew-1.13.0\lib\Release MX\Win32;..\..\3rd\IlmBase\lib;..\..\lib\release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpng16_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y $(TargetPath) $(SolutionDir)..\bin\$(Configuration)\</Command>
@@ -147,6 +149,7 @@
     <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathVec.h" />
     <ClInclude Include="..\..\3rd\IlmBase\include\OpenEXR\ImathVecAlgo.h" />
     <ClInclude Include="..\..\common\any_stride_iterator.h" />
+    <ClInclude Include="..\..\common\image.h" />
     <ClInclude Include="..\..\common\log.h" />
     <ClInclude Include="..\..\common\logger.h" />
     <ClInclude Include="..\..\common\unitest.h" />
@@ -193,6 +196,7 @@
     <ClInclude Include="..\..\view\windows\windows_application.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\image.cpp" />
     <ClCompile Include="..\..\common\logger.cpp" />
     <ClCompile Include="..\..\common\util.cpp" />
     <ClCompile Include="..\..\renderer\mathex\vecmath.cpp" />

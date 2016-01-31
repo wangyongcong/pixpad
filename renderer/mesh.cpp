@@ -2,13 +2,13 @@
 
 #include <cassert>
 #include <fstream>
-#include <locale>
 #include <unordered_map>
 #include <vector>
 #include <sstream>
 
 #include "OpenEXR/ImathVec.h"
 #include "log.h"
+#include "util.h"
 #include "vertex_buffer.h"
 
 namespace wyc
@@ -23,10 +23,14 @@ namespace wyc
 		
 	}
 
-	bool CMesh::load_obj(const std::wstring & filepath)
+	bool CMesh::load_obj(const std::wstring & w_file_path)
 	{
-		std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> cvt;
-		std::string path =cvt.to_bytes(filepath);
+		std::string path;
+		if (!wstr2str(path, w_file_path))
+		{
+			error("Invalid file path");
+			return false;
+		}
 		std::ifstream fin(path, std::ios_base::in);
 		if (!fin.is_open())
 		{

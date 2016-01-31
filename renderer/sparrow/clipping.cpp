@@ -239,7 +239,7 @@ namespace wyc
 			dot = cur_pos->w - w_epsilon;
 			if (pdot * dot < 0) {
 				assert(size < max_size && "vertex cache overflow");
-				*out_pos++ = intersect(*prev_pos, pdot, *cur_pos, pdot);
+				*out_pos++ = intersect(*prev_pos, pdot, *cur_pos, dot);
 				intersect(prev_vert, pdot, cur_vert, dot, stride, out_vert);
 				out_vert += stride;
 				size += 1;
@@ -276,7 +276,7 @@ namespace wyc
 				dot = cur_pos->w - (*cur_pos)[k];
 				if (pdot * dot < 0) {
 					assert(size < max_size && "vertex cache overflow");
-					*out_pos++ = intersect(*prev_pos, pdot, *cur_pos, pdot);
+					*out_pos++ = intersect(*prev_pos, pdot, *cur_pos, dot);
 					intersect(prev_vert, pdot, cur_vert, dot, stride, out_vert);
 					out_vert += stride;
 					size += 1;
@@ -315,7 +315,7 @@ namespace wyc
 				if (pdot * dot < 0)
 				{
 					assert(size < max_size && "vertex cache overflow");
-					*out_pos++ = intersect(*prev_pos, pdot, *cur_pos, pdot);
+					*out_pos++ = intersect(*prev_pos, pdot, *cur_pos, dot);
 					intersect(prev_vert, pdot, cur_vert, dot, stride, out_vert);
 					out_vert += stride;
 					size += 1;

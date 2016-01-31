@@ -1,3 +1,4 @@
+#include <locale>
 #include "util.h"
 
 namespace wyc
@@ -35,6 +36,16 @@ uint32_t log2p2(uint32_t val)
 
 bool wstr2str(std::string &dst, const std::wstring &src)
 {
+#ifdef WIN32
+	std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> cvt(new std::codecvt_byname<wchar_t, char, std::mbstate_t>(".936"));
+	try {
+		dst = cvt.to_bytes(src);
+	}
+	catch (const std::range_error&) {
+		return false;
+	}
+	return true;
+#else
 	size_t src_size = src.size() * sizeof(wchar_t);
 	if (src_size >= 1024)
 		return false;
@@ -47,6 +58,7 @@ bool wstr2str(std::string &dst, const std::wstring &src)
 	dst.assign(pdst, cnt-1);
 	delete[] pdst;
 	return true;
+#endif
 }
 
 } // end of namespace wyc
