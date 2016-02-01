@@ -51,7 +51,7 @@ namespace wyc
 			return;
 		auto &pipeline = renderer->m_pipeline;
 		pipeline.setup(renderer->m_rt);
-		pipeline.set_draw_mode(LINE_MODE);
+		//pipeline.set_draw_mode(LINE_MODE);
 		pipeline.feed(mesh, cmd->program);
 	}
 

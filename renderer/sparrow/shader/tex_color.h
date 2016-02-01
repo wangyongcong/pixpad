@@ -2,6 +2,7 @@
 #include <OpenEXR/ImathMatrix.h>
 #include <vertex_layout.h>
 #include <sparrow/spw_shader.h>
+#include <sparrow/spw_texture.h>
 
 namespace wyc
 {
@@ -15,6 +16,7 @@ namespace wyc
 		{
 			Imath::M44f mvp;
 			Imath::C4f color;
+			CSpwTexture2D tex2d;
 		} m_uniform;
 
 		virtual void vertex_shader(const float *vertex_in, float *vertex_out, Imath::Vec4<float> &clip_pos) const;

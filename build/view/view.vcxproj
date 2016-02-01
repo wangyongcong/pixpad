@@ -176,6 +176,7 @@
     <ClInclude Include="..\..\renderer\sparrow\spw_renderer.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_render_target.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_shader.h" />
+    <ClInclude Include="..\..\renderer\sparrow\spw_texture.h" />
     <ClInclude Include="..\..\renderer\sparrow\surface.h" />
     <ClInclude Include="..\..\renderer\vertex_buffer.h" />
     <ClInclude Include="..\..\renderer\vertex_layout.h" />
@@ -211,6 +212,7 @@
     <ClCompile Include="..\..\renderer\sparrow\spw_pipeline.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_renderer.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_render_target.cpp" />
+    <ClCompile Include="..\..\renderer\sparrow\spw_texture.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\surface.cpp" />
     <ClCompile Include="..\..\renderer\vertex_buffer.cpp" />
     <ClCompile Include="..\..\renderer\vertex_layout.cpp" />

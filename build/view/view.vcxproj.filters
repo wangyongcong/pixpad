@@ -358,6 +358,9 @@
     <ClInclude Include="..\..\common\image.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\renderer\sparrow\spw_texture.h">
+      <Filter>Renderer\Sparrow</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">
@@ -437,6 +440,9 @@
     </ClCompile>
     <ClCompile Include="..\..\common\image.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\renderer\sparrow\spw_texture.cpp">
+      <Filter>Renderer\Sparrow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

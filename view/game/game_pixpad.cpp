@@ -141,8 +141,9 @@ namespace wyc
 		CMesh cube;
 		if (!cube.load_obj(L"res/cube/cube.obj"))
 			return;
-		CImage image;
-		if (!image.load(L"res/cube/default.png"))
+		auto image = std::make_shared<CImage>();
+		//CImage image;
+		if (!image->load(L"res/cube/default.png"))
 			return;
 		// material
 		CShaderTexColor shader;
@@ -154,6 +155,7 @@ namespace wyc
 		transform[2][3] = -100;
 		shader.m_uniform.mvp *= transform;
 		shader.m_uniform.color = { 1.0f, 0.0f, 1.0f, 1.0f };
+		shader.m_uniform.tex2d.set_image(image);
 		//Imath::Frustumf frustum;
 		//Imath::Matrix44<float> mvp = frustum.projectionMatrix();
 		for (auto &ptr : m_views)

@@ -18,7 +18,8 @@ namespace wyc
 	bool CShaderTexColor::fragment_shader(const float *vertex_out, Imath::Color4<float> &frag_color) const
 	{
 		const VertexOut* vout = reinterpret_cast<const VertexOut*>(vertex_out);
-		frag_color = { m_uniform.color.r, m_uniform.color.g, m_uniform.color.b, m_uniform.color.a };
+		frag_color = m_uniform.tex2d.sample(vout->uv);
+		//frag_color = { m_uniform.color.r, m_uniform.color.g, m_uniform.color.b, m_uniform.color.a };
 		return true;
 	}
 
