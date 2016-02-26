@@ -361,6 +361,9 @@
     <ClInclude Include="..\..\renderer\sparrow\spw_texture.h">
       <Filter>Renderer\Sparrow</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\renderer\scene.h">
+      <Filter>Renderer\Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">
@@ -443,6 +446,12 @@
     </ClCompile>
     <ClCompile Include="..\..\renderer\sparrow\spw_texture.cpp">
       <Filter>Renderer\Sparrow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\renderer\scene.cpp">
+      <Filter>Renderer\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\renderer\load_collada.cpp">
+      <Filter>Renderer\Base</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

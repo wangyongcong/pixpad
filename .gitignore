@@ -214,9 +214,8 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-lib/mathex*.lib
-lib/elog*.lib
-lib/libpixpad*.lib
 baretail.exe
 baregrep.exe
 *.udm
+3rd/OpenCOLLADA/include/*
+3rd/OpenCOLLADA/lib/*

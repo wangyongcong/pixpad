@@ -18,6 +18,7 @@
 #include <sparrow/shader/tex_color.h>
 #include <mathex/vecmath.h>
 #include <common/image.h>
+#include <renderer/scene.h>
 
 namespace wyc
 {
@@ -30,6 +31,8 @@ namespace wyc
 
 	void CGamePixpad::on_start()
 	{
+		CScene scn;
+		scn.load_collada(L"res/helloworld.dae");
 		unsigned core_count = std::thread::hardware_concurrency();
 		debug("max thread count: %d", core_count);
 		create_views();

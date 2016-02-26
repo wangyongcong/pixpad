@@ -41,13 +41,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\;..\..\common;..\..\thread;..\..\renderer;..\..\view;..\..\view\game;..\..\view\windows;..\..\3rd\IlmBase\include;..\..\3rd\glew-1.13.0\include;..\..\3rd\libpng\include;$(ProjectDir);$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\3rd\IlmBase\lib;..\..\3rd\zlib\lib;..\..\3rd\libpng\lib;..\..\3rd\glew-1.13.0\lib\Release MX\Win32;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\;..\..\common;..\..\thread;..\..\renderer;..\..\view;..\..\view\game;..\..\view\windows;..\..\3rd\IlmBase\include;..\..\3rd\glew-1.13.0\include;..\..\3rd\libpng\include;..\..\3rd\OpenCOLLADA\include\COLLADABaseUtils;..\..\3rd\OpenCOLLADA\include\COLLADAFramework;..\..\3rd\OpenCOLLADA\include\COLLADASaxFrameworkLoader;..\..\3rd\OpenCOLLADA\include\GeneratedSaxParser;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\3rd\IlmBase\lib;..\..\3rd\zlib\lib;..\..\3rd\libpng\lib;..\..\3rd\glew-1.13.0\lib\Release MX\Win32;..\..\3rd\OpenCOLLADA\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\;..\..\common;..\..\thread;..\..\renderer;..\..\view;..\..\view\game;..\..\view\windows;..\..\3rd\IlmBase\include;..\..\3rd\glew-1.13.0\include;..\..\3rd\libpng\include;$(ProjectDir);$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\3rd\IlmBase\lib;..\..\3rd\zlib\lib;..\..\3rd\libpng\lib;..\..\3rd\glew-1.13.0\lib\Release MX\Win32;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\;..\..\common;..\..\thread;..\..\renderer;..\..\view;..\..\view\game;..\..\view\windows;..\..\3rd\IlmBase\include;..\..\3rd\glew-1.13.0\include;..\..\3rd\libpng\include;..\..\3rd\OpenCOLLADA\include\COLLADABaseUtils;..\..\3rd\OpenCOLLADA\include\COLLADAFramework;..\..\3rd\OpenCOLLADA\include\COLLADASaxFrameworkLoader;..\..\3rd\OpenCOLLADA\include\GeneratedSaxParser;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\3rd\IlmBase\lib;..\..\3rd\zlib\lib;..\..\3rd\libpng\lib;..\..\3rd\glew-1.13.0\lib\Release MX\Win32;..\..\3rd\OpenCOLLADA\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -167,6 +167,7 @@
     <ClInclude Include="..\..\renderer\renderer.h" />
     <ClInclude Include="..\..\renderer\render_command.h" />
     <ClInclude Include="..\..\renderer\render_target.h" />
+    <ClInclude Include="..\..\renderer\scene.h" />
     <ClInclude Include="..\..\renderer\sparrow\clipping.h" />
     <ClInclude Include="..\..\renderer\sparrow\shader\flat_color.h" />
     <ClInclude Include="..\..\renderer\sparrow\shader\tex_color.h" />
@@ -200,11 +201,13 @@
     <ClCompile Include="..\..\common\image.cpp" />
     <ClCompile Include="..\..\common\logger.cpp" />
     <ClCompile Include="..\..\common\util.cpp" />
+    <ClCompile Include="..\..\renderer\load_collada.cpp" />
     <ClCompile Include="..\..\renderer\mathex\vecmath.cpp" />
     <ClCompile Include="..\..\renderer\mesh.cpp" />
     <ClCompile Include="..\..\renderer\ogl\glutil.cpp" />
     <ClCompile Include="..\..\renderer\renderer.cpp" />
     <ClCompile Include="..\..\renderer\render_command.cpp" />
+    <ClCompile Include="..\..\renderer\scene.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\clipping.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\shader\flat_color.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\shader\tex_color.cpp" />
