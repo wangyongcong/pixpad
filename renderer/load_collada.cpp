@@ -1,6 +1,12 @@
 #include "scene.h"
 #include <COLLADASaxFWLLoader.h>
 #include <COLLADAFWIWriter.h>
+#include <COLLADAFWVisualScene.h>
+#include <COLLADAFWLibraryNodes.h>
+#include <COLLADAFWGeometry.h>
+#include <COLLADAFWCamera.h>
+#include <COLLADAFWLight.h>
+#include <COLLADAFWMaterial.h>
 #include <common/util.h>
 #include <common/log.h>
 
@@ -15,6 +21,18 @@
 
 namespace wyc
 {
+
+	inline const char* str(const COLLADAFW::UniqueId &uid)
+	{
+		static std::string ls_tmp_uid;
+		ls_tmp_uid = uid.toAscii();
+		return ls_tmp_uid.c_str();
+	}
+
+	inline const char* str(const COLLADAFW::String &s)
+	{
+		return s.c_str();
+	}
 
 class CSceneWriter : public COLLADAFW::IWriter
 {
@@ -62,6 +80,25 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeVisualScene(const COLLADAFW::VisualScene* visualScene)
 	{
+		debug("\tvisual scene: %s", visualScene->getName().c_str());
+		auto &node_array = visualScene->getRootNodes();
+		for (size_t i = 0; i < node_array.getCount(); ++i)
+		{
+			auto node = node_array[i];
+			debug("\t\tobj: %s (%s)", node->getName().c_str(), str(node->getUniqueId()));
+			auto &inst_cam = node->getInstanceCameras();
+			if (!inst_cam.empty())
+			{
+				for (size_t j = 0; j < inst_cam.getCount(); ++j)
+					debug("\t\t\tinstance camera %s", str(inst_cam[j]->getInstanciatedObjectId()));
+			}
+			auto &inst_geo = node->getInstanceGeometries();
+			if (!inst_geo.empty())
+			{
+				for (size_t j = 0; j < inst_geo.getCount(); ++j)
+					debug("\t\t\tinstance geometry %s", str(inst_geo[j]->getInstanciatedObjectId()));
+			}
+		}
 		return true;
 	}
 
@@ -70,6 +107,8 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeLibraryNodes(const COLLADAFW::LibraryNodes* libraryNodes)
 	{
+		auto &nodes = libraryNodes->getNodes();
+		debug("\tlibrary nodes: %d", nodes.getCount());
 		return true;
 	}
 
@@ -77,6 +116,7 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeGeometry(const COLLADAFW::Geometry* geometry)
 	{
+		debug("\tgeometry: %s (%s)", geometry->getName().c_str(), str(geometry->getUniqueId()));
 		return true;
 	}
 
@@ -84,6 +124,7 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeMaterial(const COLLADAFW::Material* material)
 	{
+		debug("\tmateiral: %s (%s)", str(material->getName()), str(material->getUniqueId()));
 		return true;
 	}
 
@@ -98,6 +139,7 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeCamera(const COLLADAFW::Camera* camera)
 	{
+		debug("\tcamera: %s (%s)", str(camera->getName()), str(camera->getUniqueId()));
 		return true;
 	}
 
@@ -112,6 +154,7 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeLight(const COLLADAFW::Light* light)
 	{
+		debug("\tlight: %s (%s)", str(light->getName()), str(light->getUniqueId()));
 		return true;
 	}
 
