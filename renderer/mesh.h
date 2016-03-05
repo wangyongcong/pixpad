@@ -25,7 +25,7 @@ namespace wyc
 		// load from .obj file
 		bool load_obj(const std::wstring &filepath);
 
-	protected:
+	private:
 		CVertexBuffer m_vb;
 	};
 

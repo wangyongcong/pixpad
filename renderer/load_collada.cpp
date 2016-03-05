@@ -1,12 +1,7 @@
 #include "scene.h"
+#include <COLLADAFW.h>
 #include <COLLADASaxFWLLoader.h>
 #include <COLLADAFWIWriter.h>
-#include <COLLADAFWVisualScene.h>
-#include <COLLADAFWLibraryNodes.h>
-#include <COLLADAFWGeometry.h>
-#include <COLLADAFWCamera.h>
-#include <COLLADAFWLight.h>
-#include <COLLADAFWMaterial.h>
 #include <common/util.h>
 #include <common/log.h>
 
@@ -21,7 +16,6 @@
 
 namespace wyc
 {
-
 	inline const char* str(const COLLADAFW::UniqueId &uid)
 	{
 		static std::string ls_tmp_uid;
@@ -34,15 +28,21 @@ namespace wyc
 		return s.c_str();
 	}
 
-class CSceneWriter : public COLLADAFW::IWriter
+class CColladaSceneWriter : public COLLADAFW::IWriter
 {
 	// member declarations
-private:
-	typedef CSceneWriter MyType;
-	// public function declarations
 public:
-	CSceneWriter() : IWriter() {}
-	virtual ~CSceneWriter() {}
+	CColladaSceneWriter(CScene *scn) 
+		: IWriter()
+		, m_scene(scn)
+	{
+		assert(scn && "CColladaSceneWriter: Need a valid scene to write to");
+	}
+	virtual ~CColladaSceneWriter() {}
+	/** Disable default copy ctor. */
+	CColladaSceneWriter(const CColladaSceneWriter& pre) = delete;
+	/** Disable default assignment operator. */
+	const CColladaSceneWriter& operator= (const CColladaSceneWriter& pre) = delete;
 
 	/** This method will be called if an error in the loading process occurred and the loader cannot
 	continue to to load. The writer should undo all operations that have been performed.
@@ -116,7 +116,15 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeGeometry(const COLLADAFW::Geometry* geometry)
 	{
-		debug("\tgeometry: %s (%s)", geometry->getName().c_str(), str(geometry->getUniqueId()));
+		if (geometry->getType() == COLLADAFW::Geometry::GEO_TYPE_MESH)
+		{
+			const COLLADAFW::Mesh *mesh = dynamic_cast<const COLLADAFW::Mesh*>(geometry);
+			writeMesh(mesh);			
+		}
+		else
+		{
+			debug("\tgeometry: %s (%s)", geometry->getName().c_str(), str(geometry->getUniqueId()));
+		}
 		return true;
 	}
 
@@ -209,11 +217,86 @@ public:
 
 	// private function declarations
 private:
-	/** Disable default copy ctor. */
-	MyType(const MyType& pre);
-	/** Disable default assignment operator. */
-	const MyType& operator= (const MyType& pre);
+	
+	void writeMesh(const COLLADAFW::Mesh *colla_mesh)
+	{
+		std::string unique_name = colla_mesh->getUniqueId().toAscii();
+		debug("\tmesh: %s (%s)", colla_mesh->getName().c_str(), unique_name.c_str());
+		CMesh *scn_mesh = m_scene->create_mesh(unique_name);
+		auto &prim_array = colla_mesh->getMeshPrimitives();
+		size_t face_count = 0;
+		for (size_t i = 0; i < prim_array.getCount(); ++i)
+		{
+			const COLLADAFW::MeshPrimitive * prim = prim_array[i];
+			auto prim_type = prim->getPrimitiveType();
+			switch (prim_type)
+			{
+			case COLLADAFW::MeshPrimitive::PrimitiveType::POINTS:
+			case COLLADAFW::MeshPrimitive::PrimitiveType::LINES:
+			case COLLADAFW::MeshPrimitive::PrimitiveType::LINE_STRIPS:
+			case COLLADAFW::MeshPrimitive::PrimitiveType::POLYGONS:
+			case COLLADAFW::MeshPrimitive::PrimitiveType::TRIANGLES:
+			case COLLADAFW::MeshPrimitive::PrimitiveType::TRIANGLE_FANS:
+			case COLLADAFW::MeshPrimitive::PrimitiveType::TRIANGLE_STRIPS:
+				error("%s : not support primitive type: %d", __FUNCTION__, prim_type);
+				break;
+			case COLLADAFW::MeshPrimitive::PrimitiveType::POLYLIST:
+				writePolyList(scn_mesh, colla_mesh, prim);
+				break;
+			default:
+				error("%s : undefined primitive type: %d", __FUNCTION__, prim_type);
+				break;
+			}
+			face_count += prim->getFaceCount();
+		}
+	}
 
+	void writePolyList(CMesh *scn_mesh, const COLLADAFW::Mesh *colla_mesh, const COLLADAFW::MeshPrimitive *primitive)
+	{
+		const COLLADAFW::MeshVertexData &pos_data = colla_mesh->getPositions();
+		if (pos_data.empty())
+		{
+			warn("Empty mesh");
+			return;
+		}
+		const COLLADAFW::FloatArray *pos_array = pos_data.getFloatValues();
+		const float* pos_iter = pos_array->getData();
+
+		size_t face_cnt = primitive->getFaceCount();
+		size_t index_cnt = face_cnt * 3;
+		const auto &pos_indices = primitive->getPositionIndices();
+		if (pos_indices.getCount() != index_cnt)
+		{
+			warn("Must be triangular mesh");
+			return;
+		}
+
+		auto &vb = scn_mesh->vertex_buffer();
+		// always {x, y, z}
+		vb.set_attribute(EAttribUsage::ATTR_POSITION, 3);
+		auto &normal_data = colla_mesh->getNormals();
+		if (!normal_data.empty()) {
+			// always {x, y, z}
+			vb.set_attribute(EAttribUsage::ATTR_NORMAL, 3);
+		}
+		auto &color_data = colla_mesh->getColors();
+		if (!color_data.empty()) {
+			// always {x, y, z}
+			vb.set_attribute(EAttribUsage::ATTR_COLOR, 3);
+		}
+		vb.resize(index_cnt);
+		
+		for (size_t i = 0; i < face_cnt; ++i)
+		{
+			unsigned pos_i;
+			for (int j = 0; j < 3; ++j) {
+				pos_i = pos_indices[j];
+			}
+		}
+
+	}
+	
+	CScene *m_scene;
 };
 
 bool CScene::load_collada(const std::wstring & w_file_path)
@@ -225,8 +308,9 @@ bool CScene::load_collada(const std::wstring & w_file_path)
 		return false;
 	}
 	COLLADASaxFWL::Loader collada;
-	CSceneWriter writer;
-	if (!collada.loadDocument(path, &writer))
+	CColladaSceneWriter writer(this);
+	COLLADAFW::Root root(&collada, &writer);
+	if (!root.loadDocument(path))
 	{
 		error("Fail to load file: %s", path);
 		return false;
