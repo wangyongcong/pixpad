@@ -329,6 +329,11 @@ private:
 			return;
 		}
 		const unsigned int *index_data = pos_indices.getData();
+		for (auto &i : ib)
+		{
+			i = *index_data++;
+		}
+		assert(index_data == pos_indices.getData() + pos_indices.getCount());
 	}
 	
 	CScene *m_scene;
