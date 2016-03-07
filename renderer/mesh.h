@@ -6,6 +6,7 @@
 #include <initializer_list>
 #include "vertex_buffer.h"
 #include "vertex_layout.h"
+#include "index_buffer.h"
 
 namespace wyc
 {
@@ -21,12 +22,15 @@ namespace wyc
 		size_t vertex_count() const;
 		CVertexBuffer& vertex_buffer();
 		const CVertexBuffer& vertex_buffer() const;
+		CIndexBuffer& index_buffer();
+		const CIndexBuffer& index_buffer() const;
 
 		// load from .obj file
 		bool load_obj(const std::wstring &filepath);
 
 	private:
 		CVertexBuffer m_vb;
+		CIndexBuffer m_ib;
 	};
 
 	template<typename Vertex>
@@ -68,6 +72,16 @@ namespace wyc
 	inline const CVertexBuffer & CMesh::vertex_buffer() const
 	{
 		return m_vb;
+	}
+
+	inline CIndexBuffer & CMesh::index_buffer()
+	{
+		return m_ib;
+	}
+
+	inline const CIndexBuffer & CMesh::index_buffer() const
+	{
+		return m_ib;
 	}
 
 	class CTriangleMesh : public CMesh

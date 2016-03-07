@@ -97,6 +97,7 @@ namespace wyc
 			m_beg = other.m_beg;
 			m_end = other.m_end;
 			m_stride = other.m_stride;
+			return *this;
 		}
 
 		operator bool() const
@@ -202,11 +203,11 @@ namespace wyc
 		{
 			return m_vert_cnt;
 		}
-		inline size_t vertex_size() const
+		inline uint16_t vertex_size() const
 		{
 			return m_vert_size;
 		}
-		inline size_t vertex_component() const {
+		inline uint16_t vertex_component() const {
 			return m_vert_componet;
 		}
 
@@ -228,9 +229,9 @@ namespace wyc
 	protected:
 		char *m_data;
 		size_t m_data_size;
-		unsigned m_vert_cnt;
-		unsigned m_vert_size;
-		unsigned m_vert_componet;
+		size_t m_vert_cnt;
+		uint16_t m_vert_size;
+		uint16_t m_vert_componet;
 		VertexAttrib* m_attr_tbl[ATTR_MAX_COUNT];
 	};
 

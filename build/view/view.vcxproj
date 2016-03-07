@@ -55,6 +55,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4819;4099;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -268,6 +269,7 @@
     <ClInclude Include="..\..\common\logger.h" />
     <ClInclude Include="..\..\common\unitest.h" />
     <ClInclude Include="..\..\common\util.h" />
+    <ClInclude Include="..\..\renderer\index_buffer.h" />
     <ClInclude Include="..\..\renderer\mathex\floatmath.h" />
     <ClInclude Include="..\..\renderer\mathex\ImathBoxAlgoExt.h" />
     <ClInclude Include="..\..\renderer\mathex\ImathMatrixExt.h" />
@@ -315,6 +317,7 @@
     <ClCompile Include="..\..\common\image.cpp" />
     <ClCompile Include="..\..\common\logger.cpp" />
     <ClCompile Include="..\..\common\util.cpp" />
+    <ClCompile Include="..\..\renderer\index_buffer.cpp" />
     <ClCompile Include="..\..\renderer\load_collada.cpp" />
     <ClCompile Include="..\..\renderer\mathex\vecmath.cpp" />
     <ClCompile Include="..\..\renderer\mesh.cpp" />

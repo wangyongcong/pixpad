@@ -709,6 +709,9 @@
     <ClInclude Include="..\..\3rd\OpenCOLLADA\include\COLLADAFramework\COLLADAFWPolylist.h">
       <Filter>3rd\OpenCOLLADA</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\renderer\index_buffer.h">
+      <Filter>Renderer\Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">
@@ -796,6 +799,9 @@
       <Filter>Renderer\Base</Filter>
     </ClCompile>
     <ClCompile Include="..\..\renderer\load_collada.cpp">
+      <Filter>Renderer\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\renderer\index_buffer.cpp">
       <Filter>Renderer\Base</Filter>
     </ClCompile>
   </ItemGroup>

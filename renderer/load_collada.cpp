@@ -222,9 +222,65 @@ private:
 	{
 		std::string unique_name = colla_mesh->getUniqueId().toAscii();
 		debug("\tmesh: %s (%s)", colla_mesh->getName().c_str(), unique_name.c_str());
+		const COLLADAFW::MeshVertexData &pos_data = colla_mesh->getPositions();
+		if (pos_data.empty())
+		{
+			warn("Empty mesh");
+			return;
+		}
+		if (COLLADAFW::FloatOrDoubleArray::DATA_TYPE_FLOAT != pos_data.getType())
+		{
+			warn("Invalid data type, we only support single precision floating point value");
+			return;
+		}
 		CMesh *scn_mesh = m_scene->create_mesh(unique_name);
+		auto &vb = scn_mesh->vertex_buffer();
+		// Position: {x, y, z}
+		size_t vertex_count = pos_data.getValuesCount() / 3;
+		vb.set_attribute(EAttribUsage::ATTR_POSITION, 3);
+		// Color: {x, y, z}
+		auto &color_data = colla_mesh->getColors();
+		if (!color_data.empty()) {
+			assert(color_data.getValuesCount() == pos_data.getValuesCount());
+			vb.set_attribute(EAttribUsage::ATTR_COLOR, 3);
+		}
+		// Normal: {x, y, z}
+		auto &normal_data = colla_mesh->getNormals();
+		if (!normal_data.empty()) {
+			// Notice: COLLADA could have face normal, but we only support vertex normal
+			if (normal_data.getValuesCount() == pos_data.getValuesCount()) {
+				vb.set_attribute(EAttribUsage::ATTR_NORMAL, 3);
+			}
+			else {
+				warn("Normal count dosen't match vertex count. It could be face normal which we don't support.");
+			}
+		}
+		// todo: apply other vertex attribute
+		// reserve memory for vertex data
+		vb.resize(vertex_count);
+		auto va = vb.get_attribute(EAttribUsage::ATTR_POSITION);
+		Imath::V3f *vec = (Imath::V3f*)pos_data.getFloatValues()->getData();
+		for (auto it : va) {
+			it = *vec++;
+		}
+		if (!color_data.empty())
+		{
+			vec = (Imath::V3f*)color_data.getFloatValues()->getData();
+			va = vb.get_attribute(EAttribUsage::ATTR_COLOR);
+			for (auto it : va) {
+				it = *vec++;
+			}
+		}
+		if (!normal_data.empty())
+		{
+			vec = (Imath::V3f*)normal_data.getFloatValues()->getData();
+			va = vb.get_attribute(EAttribUsage::ATTR_NORMAL);
+			for (auto it : va) {
+				it = *vec++;
+			}
+		}
+		// setup indices
 		auto &prim_array = colla_mesh->getMeshPrimitives();
-		size_t face_count = 0;
 		for (size_t i = 0; i < prim_array.getCount(); ++i)
 		{
 			const COLLADAFW::MeshPrimitive * prim = prim_array[i];
@@ -247,21 +303,11 @@ private:
 				error("%s : undefined primitive type: %d", __FUNCTION__, prim_type);
 				break;
 			}
-			face_count += prim->getFaceCount();
 		}
 	}
 
 	void writePolyList(CMesh *scn_mesh, const COLLADAFW::Mesh *colla_mesh, const COLLADAFW::MeshPrimitive *primitive)
 	{
-		const COLLADAFW::MeshVertexData &pos_data = colla_mesh->getPositions();
-		if (pos_data.empty())
-		{
-			warn("Empty mesh");
-			return;
-		}
-		const COLLADAFW::FloatArray *pos_array = pos_data.getFloatValues();
-		const float* pos_iter = pos_array->getData();
-
 		size_t face_cnt = primitive->getFaceCount();
 		size_t index_cnt = face_cnt * 3;
 		const auto &pos_indices = primitive->getPositionIndices();
@@ -270,30 +316,19 @@ private:
 			warn("Must be triangular mesh");
 			return;
 		}
-
-		auto &vb = scn_mesh->vertex_buffer();
-		// always {x, y, z}
-		vb.set_attribute(EAttribUsage::ATTR_POSITION, 3);
-		auto &normal_data = colla_mesh->getNormals();
-		if (!normal_data.empty()) {
-			// always {x, y, z}
-			vb.set_attribute(EAttribUsage::ATTR_NORMAL, 3);
+		size_t vertex_cnt = scn_mesh->vertex_count();
+		auto &ib = scn_mesh->index_buffer();
+		if (vertex_cnt < std::numeric_limits<uint16_t>::max()) {
+			ib.resize<uint16_t>(index_cnt);
 		}
-		auto &color_data = colla_mesh->getColors();
-		if (!color_data.empty()) {
-			// always {x, y, z}
-			vb.set_attribute(EAttribUsage::ATTR_COLOR, 3);
+		else if (vertex_cnt < std::numeric_limits<uint32_t>::max()) {
+			ib.resize<uint32_t>(index_cnt);
 		}
-		vb.resize(index_cnt);
-		
-		for (size_t i = 0; i < face_cnt; ++i)
-		{
-			unsigned pos_i;
-			for (int j = 0; j < 3; ++j) {
-				pos_i = pos_indices[j];
-			}
+		else {
+			assert(0 && "Vertex count overflow");
+			return;
 		}
-
+		const unsigned int *index_data = pos_indices.getData();
 	}
 	
 	CScene *m_scene;
