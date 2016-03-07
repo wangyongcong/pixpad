@@ -9,68 +9,6 @@
 
 namespace wyc
 {
-	class CVertexReader
-	{
-	public:
-		CVertexReader(void *ptr)
-			: m_ptr((float*)ptr)
-		{}
-		template<typename T>
-		inline operator const T& () const
-		{
-			return *(T*)m_ptr;
-		}
-		template<typename T>
-		inline operator T& () const
-		{
-			static_assert(0, "Can't convert to non-const reference.");
-		}
-		template<typename T>
-		inline bool operator == (const T &rhs) const
-		{
-			return *(T*)ptr == rhs;
-		}
-		inline float operator[] (int n) const
-		{
-			return m_ptr[n];
-		}
-	protected:
-		float *m_ptr;
-	};
-
-	class CVertexAccessor : public CVertexReader
-	{
-	public:
-		CVertexAccessor(void *ptr)
-			: CVertexReader(ptr)
-		{}
-		template<typename T>
-		inline CVertexAccessor& operator = (const T &rhs)
-		{
-			*(T*)m_ptr = rhs;
-			return *this;
-		}
-		template<typename T>
-		inline operator T& ()
-		{
-			return *(T*)m_ptr;
-		}
-		inline float& operator[] (int n)
-		{
-			return m_ptr[n];
-		}
-	};
-
-	template<> inline CVertexReader to_ref<CVertexReader>(void *ptr)
-	{
-		return { ptr };
-	}
-
-	template<> inline CVertexAccessor to_ref<CVertexAccessor>(void *ptr)
-	{
-		return { ptr };
-	}
-
 	template<bool IsConstant>
 	class CAttribArrayImpl
 	{
@@ -109,11 +47,11 @@ namespace wyc
 		struct Iterator {};
 		template<>
 		struct Iterator<true> {
-			typedef CAnyStrideIterator<float, CVertexReader> type;
+			typedef CAnyStrideIterator<float, CAnyReader> type;
 		};
 		template<>
 		struct Iterator<false> {
-			typedef CAnyStrideIterator<float, CVertexAccessor> type;
+			typedef CAnyStrideIterator<float, CAnyAccessor&> type;
 		};
 		using iterator = typename Iterator<IsConstant>::type;
 	
@@ -152,8 +90,8 @@ namespace wyc
 			return m_attr_tbl[usage] != nullptr;
 		}
 
-		typedef CAnyStrideIterator<float, CVertexAccessor> iterator;
-		typedef CAnyStrideIterator<float, CVertexReader> const_iterator;
+		typedef CAnyStrideIterator<float, CAnyReader> const_iterator;
+		typedef CAnyStrideIterator<float, CAnyAccessor&> iterator;
 		inline iterator begin()
 		{
 			return{ m_data, m_vert_size };

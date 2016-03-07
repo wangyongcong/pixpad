@@ -18,7 +18,8 @@ namespace wyc
 		size_t size() const;
 		uint8_t stride() const;
 		
-		using iterator = CAnyStrideIterator<unsigned>;
+		using const_iterator = CAnyStrideIterator<unsigned, CAnyReader>;
+		using iterator = CAnyStrideIterator<unsigned, CAnyAccessor&>;
 		inline iterator begin() {
 			return{ m_data, m_stride };
 		}

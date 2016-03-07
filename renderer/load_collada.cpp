@@ -260,14 +260,14 @@ private:
 		vb.resize(vertex_count);
 		auto va = vb.get_attribute(EAttribUsage::ATTR_POSITION);
 		Imath::V3f *vec = (Imath::V3f*)pos_data.getFloatValues()->getData();
-		for (auto it : va) {
+		for (auto &it : va) {
 			it = *vec++;
 		}
 		if (!color_data.empty())
 		{
 			vec = (Imath::V3f*)color_data.getFloatValues()->getData();
 			va = vb.get_attribute(EAttribUsage::ATTR_COLOR);
-			for (auto it : va) {
+			for (auto &it : va) {
 				it = *vec++;
 			}
 		}
@@ -275,7 +275,7 @@ private:
 		{
 			vec = (Imath::V3f*)normal_data.getFloatValues()->getData();
 			va = vb.get_attribute(EAttribUsage::ATTR_NORMAL);
-			for (auto it : va) {
+			for (auto &it : va) {
 				it = *vec++;
 			}
 		}
@@ -318,20 +318,24 @@ private:
 		}
 		size_t vertex_cnt = scn_mesh->vertex_count();
 		auto &ib = scn_mesh->index_buffer();
+		const unsigned int *index_data = pos_indices.getData();
 		if (vertex_cnt < std::numeric_limits<uint16_t>::max()) {
 			ib.resize<uint16_t>(index_cnt);
+			for (auto &i : ib)
+			{
+				i = (uint16_t)(*index_data++);
+			}
 		}
 		else if (vertex_cnt < std::numeric_limits<uint32_t>::max()) {
 			ib.resize<uint32_t>(index_cnt);
+			for (auto &i : ib)
+			{
+				i = *index_data++;
+			}
 		}
 		else {
 			assert(0 && "Vertex count overflow");
 			return;
-		}
-		const unsigned int *index_data = pos_indices.getData();
-		for (auto &i : ib)
-		{
-			i = *index_data++;
 		}
 		assert(index_data == pos_indices.getData() + pos_indices.getCount());
 	}

@@ -5,10 +5,58 @@
 
 namespace wyc
 {
+	class CAnyReader
+	{
+	public:
+		CAnyReader(void *ptr)
+			: m_ptr(ptr)
+		{}
+		template<typename T>
+		inline operator const T& () const
+		{
+			return *reinterpret_cast<const T*>(m_ptr);
+		}
+		template<typename T>
+		inline operator T& () const
+		{
+			static_assert(0, "Can't convert to non-const reference.");
+		}
+		template<typename T>
+		inline bool operator == (const T &rhs) const
+		{
+			return (void*)m_ptr == (void*)rhs;
+		}
+	private:
+		void *m_ptr;
+	};
+
+	class CAnyAccessor
+	{
+	public:
+		CAnyAccessor(const CAnyAccessor&) = delete;
+		CAnyAccessor& operator = (const CAnyAccessor&) = delete;
+		template<typename T>
+		inline CAnyAccessor& operator = (const T &rhs)
+		{
+			*reinterpret_cast<T*>(this) = rhs;
+			return *this;
+		}
+		template<typename T>
+		inline operator T& ()
+		{
+			return *reinterpret_cast<T*>(this);
+		}
+	};
+
 	template<typename T>
 	inline T to_ref(void *ptr)
 	{
 		return *reinterpret_cast<std::remove_reference<T>::type*>(ptr);
+	}
+
+	template<> inline CAnyReader to_ref<CAnyReader>(void *ptr)
+	{
+		return{ ptr };
 	}
 
 	template<typename T, typename Ref=T&, typename Ptr=T*>
@@ -41,7 +89,7 @@ namespace wyc
 		}
 		inline Ptr operator -> ()
 		{
-			return Ptr(m_cursor);
+			return reinterpret_cast<Ptr>(m_cursor);
 		}
 
 		inline MyType& operator ++ ()
