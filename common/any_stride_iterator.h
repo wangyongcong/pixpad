@@ -10,7 +10,16 @@ namespace wyc
 	public:
 		CAnyReader(void *ptr)
 			: m_ptr(ptr)
-		{}
+		{
+		}
+		CAnyReader(const CAnyReader &other)
+			: m_ptr(other.m_ptr)
+		{
+		}
+		CAnyReader& operator = (const CAnyReader &other)
+		{
+			m_ptr = other.m_ptr;
+		}
 		template<typename T>
 		inline operator const T& () const
 		{
@@ -73,10 +82,25 @@ namespace wyc
 		{
 		}
 		CAnyStrideIterator(const MyType &other)
+			: m_cursor(other.m_cursor)
+			, m_stride(other.m_stride)
 		{
-			*this = other;
 		}
 		inline MyType& operator = (const MyType &other)
+		{
+			m_cursor = other.m_cursor;
+			m_stride = other.m_stride;
+			return *this;
+		}
+
+		template<typename T2, typename Ref2, typename Ptr2>
+		CAnyStrideIterator(const CAnyStrideIterator<T2, Ref2, Ptr2> &other)
+			: m_cursor(other.m_cursor)
+			, m_stride(other.m_stride)
+		{
+		}
+		template<typename T2, typename Ref2, typename Ptr2>
+		inline MyType& operator = (const CAnyStrideIterator<T2, Ref2, Ptr2> &other)
 		{
 			m_cursor = other.m_cursor;
 			m_stride = other.m_stride;
@@ -162,6 +186,7 @@ namespace wyc
 	protected:
 		char *m_cursor;
 		unsigned m_stride;
+		template<typename T2, typename Ref2, typename Ptr2> friend class CAnyStrideIterator;
 	};
 
 } // namespace wyc

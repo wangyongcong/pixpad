@@ -181,6 +181,19 @@ namespace ViewUnitTest
 			Assert::IsTrue(it_color == ccolor.end());
 			Assert::IsTrue(it_normal == cnormal.end());
 
+			for (auto &it: pos)
+			{
+				Vec3 &v = it;
+				Assert::AreEqual(v, Vec3{ 0, 0, 1 });
+				it = Vec3{ 0, 0, 0 };
+				Assert::AreEqual(v, Vec3{ 0, 0, 0 });
+			}
+			for (auto it : cpos)
+			{
+				Vec3 v = it;
+				Assert::AreEqual(v, Vec3{ 0, 0, 0 });
+			}
+
 			vb.clear();
 			Assert::IsTrue(vb.size() == 0);
 			Assert::IsTrue(vb.vertex_size() == 0);
