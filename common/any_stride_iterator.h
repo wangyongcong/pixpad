@@ -5,40 +5,6 @@
 
 namespace wyc
 {
-	class CAnyReader
-	{
-	public:
-		CAnyReader(void *ptr)
-			: m_ptr(ptr)
-		{
-		}
-		CAnyReader(const CAnyReader &other)
-			: m_ptr(other.m_ptr)
-		{
-		}
-		CAnyReader& operator = (const CAnyReader &other)
-		{
-			m_ptr = other.m_ptr;
-		}
-		template<typename T>
-		inline operator const T& () const
-		{
-			return *reinterpret_cast<const T*>(m_ptr);
-		}
-		template<typename T>
-		inline operator T& () const
-		{
-			static_assert(0, "Can't convert to non-const reference.");
-		}
-		template<typename T>
-		inline bool operator == (const T &rhs) const
-		{
-			return (void*)m_ptr == (void*)rhs;
-		}
-	private:
-		void *m_ptr;
-	};
-
 	class CAnyAccessor
 	{
 	public:
@@ -55,6 +21,48 @@ namespace wyc
 		{
 			return *reinterpret_cast<T*>(this);
 		}
+	};
+
+	class CAnyReader
+	{
+	public:
+		CAnyReader(void *ptr)
+			: m_ptr(ptr)
+		{
+		}
+		CAnyReader(const CAnyReader &other)
+			: m_ptr(other.m_ptr)
+		{
+		}
+		CAnyReader& operator = (const CAnyReader &other)
+		{
+			m_ptr = other.m_ptr;
+		}
+		CAnyReader(const CAnyAccessor &other)
+			: m_ptr(const_cast<CAnyAccessor*>(&other))
+		{
+		}
+		CAnyReader& operator = (const CAnyAccessor &other)
+		{
+			m_ptr = const_cast<CAnyAccessor*>(&other);
+		}
+		template<typename T>
+		inline operator const T& () const
+		{
+			return *reinterpret_cast<const T*>(m_ptr);
+		}
+		template<typename T>
+		inline operator T& () const
+		{
+			static_assert(0, "Can't convert to non-const reference.");
+		}
+		template<typename T>
+		inline bool operator == (const T &rhs) const
+		{
+			return *reinterpret_cast<const T*>(m_ptr) == rhs;
+		}
+	private:
+		void *m_ptr;
 	};
 
 	template<typename T>

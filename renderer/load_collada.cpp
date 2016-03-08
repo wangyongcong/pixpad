@@ -321,25 +321,22 @@ private:
 		const unsigned int *index_data = pos_indices.getData();
 		if (vertex_cnt < std::numeric_limits<uint16_t>::max()) {
 			ib.resize<uint16_t>(index_cnt);
-			for (auto &i : ib)
-			{
+			for (auto &i : ib) {
 				i = (uint16_t)(*index_data++);
 			}
+			assert(index_data == pos_indices.getData() + pos_indices.getCount());
 		}
 		else if (vertex_cnt < std::numeric_limits<uint32_t>::max()) {
-			ib.resize<uint32_t>(index_cnt);
-			for (auto &i : ib)
-			{
-				i = *index_data++;
-			}
+			ib.resize<uint32_t>(index_cnt, index_data);
 		}
 		else {
 			assert(0 && "Vertex count overflow");
 			return;
 		}
-		assert(index_data == pos_indices.getData() + pos_indices.getCount());
 	}
 	
+	// private data declarations
+private:
 	CScene *m_scene;
 };
 

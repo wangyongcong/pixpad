@@ -14,6 +14,8 @@ namespace wyc
 		~CIndexBuffer();
 		template<typename IndexType>
 		void resize(size_t count);
+		template<typename IndexType>
+		void resize(size_t count, const IndexType* data);
 		void clear();
 		size_t size() const;
 		uint8_t stride() const;
@@ -53,6 +55,15 @@ namespace wyc
 		static_assert(std::is_integral<IndexType>(), "Index type is not integral");
 		_resize(count, sizeof(IndexType));
 		m_max_val = (unsigned long)std::numeric_limits<IndexType>::max();
+	}
+
+	template<typename IndexType>
+	inline void CIndexBuffer::resize(size_t count, const IndexType * data)
+	{
+		static_assert(std::is_integral<IndexType>(), "Index type is not integral");
+		_resize(count, sizeof(IndexType));
+		m_max_val = (unsigned long)std::numeric_limits<IndexType>::max();
+		memcpy(m_data, data, m_data_size);
 	}
 
 } // namespace wyc

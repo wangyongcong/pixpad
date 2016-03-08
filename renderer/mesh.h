@@ -24,7 +24,9 @@ namespace wyc
 		const CVertexBuffer& vertex_buffer() const;
 		CIndexBuffer& index_buffer();
 		const CIndexBuffer& index_buffer() const;
-
+		inline bool has_index() const {
+			return m_ib.size() > 0;
+		}
 		// load from .obj file
 		bool load_obj(const std::wstring &filepath);
 
