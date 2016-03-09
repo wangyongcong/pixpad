@@ -269,6 +269,7 @@
     <ClInclude Include="..\..\common\logger.h" />
     <ClInclude Include="..\..\common\unitest.h" />
     <ClInclude Include="..\..\common\util.h" />
+    <ClInclude Include="..\..\renderer\camera.h" />
     <ClInclude Include="..\..\renderer\index_buffer.h" />
     <ClInclude Include="..\..\renderer\mathex\floatmath.h" />
     <ClInclude Include="..\..\renderer\mathex\ImathBoxAlgoExt.h" />
@@ -317,6 +318,7 @@
     <ClCompile Include="..\..\common\image.cpp" />
     <ClCompile Include="..\..\common\logger.cpp" />
     <ClCompile Include="..\..\common\util.cpp" />
+    <ClCompile Include="..\..\renderer\camera.cpp" />
     <ClCompile Include="..\..\renderer\index_buffer.cpp" />
     <ClCompile Include="..\..\renderer\load_collada.cpp" />
     <ClCompile Include="..\..\renderer\mathex\vecmath.cpp" />

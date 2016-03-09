@@ -28,6 +28,15 @@ namespace wyc
 		return s.c_str();
 	}
 
+	inline void to_transform(wyc::Matrix44f &lft, const COLLADABU::Math::Matrix4 &rht)
+	{
+		float *dst = lft.getValue();
+		for (int i = 0; i < 16; ++i)
+		{
+			dst[i] = (float)rht.getElement(i);
+		}
+	}
+
 class CColladaSceneWriter : public COLLADAFW::IWriter
 {
 	// member declarations
@@ -84,20 +93,7 @@ public:
 		auto &node_array = visualScene->getRootNodes();
 		for (size_t i = 0; i < node_array.getCount(); ++i)
 		{
-			auto node = node_array[i];
-			debug("\t\tobj: %s (%s)", node->getName().c_str(), str(node->getUniqueId()));
-			auto &inst_cam = node->getInstanceCameras();
-			if (!inst_cam.empty())
-			{
-				for (size_t j = 0; j < inst_cam.getCount(); ++j)
-					debug("\t\t\tinstance camera %s", str(inst_cam[j]->getInstanciatedObjectId()));
-			}
-			auto &inst_geo = node->getInstanceGeometries();
-			if (!inst_geo.empty())
-			{
-				for (size_t j = 0; j < inst_geo.getCount(); ++j)
-					debug("\t\t\tinstance geometry %s", str(inst_geo[j]->getInstanciatedObjectId()));
-			}
+			writeVisualSceneNode(node_array[i]);
 		}
 		return true;
 	}
@@ -147,7 +143,20 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeCamera(const COLLADAFW::Camera* camera)
 	{
-		debug("\tcamera: %s (%s)", str(camera->getName()), str(camera->getUniqueId()));
+		std::string unique_name = camera->getUniqueId().toAscii();
+		debug("\tcamera: %s (%s)", str(camera->getName()), unique_name.c_str());
+		CCamera *scn_camera = m_scene->create_camera(unique_name);
+		auto camera_type = camera->getCameraType();
+		if (COLLADAFW::Camera::ORTHOGRAPHIC == camera_type)
+		{
+			scn_camera->set_orthographic(float(camera->getXMag()), float(camera->getYMag()), 
+				float(camera->getNearClippingPlane()), float(camera->getFarClippingPlane()));
+		}
+		else if (COLLADAFW::Camera::PERSPECTIVE == camera_type)
+		{
+			scn_camera->set_perspective(float(camera->getYFov()), float(camera->getAspectRatio()),
+				float(camera->getNearClippingPlane()), float(camera->getFarClippingPlane()));
+		}
 		return true;
 	}
 
@@ -332,6 +341,41 @@ private:
 		else {
 			assert(0 && "Vertex count overflow");
 			return;
+		}
+	}
+
+	void writeVisualSceneNode(const COLLADAFW::Node *node, const COLLADAFW::Node *parent=0)
+	{
+		debug("\t\tobj: %s (%s)", node->getName().c_str(), str(node->getUniqueId()));
+		COLLADABU::Math::Matrix4 colla_transofrm;
+		node->getTransformationMatrix(colla_transofrm);
+		wyc::Matrix44f transform;
+		to_transform(transform, colla_transofrm);
+		std::string unique_name;
+		auto &inst_cam = node->getInstanceCameras();
+		if (!inst_cam.empty())
+		{
+			for (size_t j = 0; j < inst_cam.getCount(); ++j) {
+				unique_name = inst_cam[j]->getInstanciatedObjectId().toAscii();
+				auto scn_camera = m_scene->get_camera(unique_name);
+				if (!scn_camera) {
+					debug("\t\t\tinstance camera %s not found", unique_name.c_str());
+					continue;
+				}
+				scn_camera->set_transform(transform);
+				debug("\t\t\tinstance camera %s", unique_name.c_str());
+			}
+		}
+		auto &inst_geo = node->getInstanceGeometries();
+		if (!inst_geo.empty())
+		{
+			for (size_t j = 0; j < inst_geo.getCount(); ++j)
+				debug("\t\t\tinstance geometry %s", str(inst_geo[j]->getInstanciatedObjectId()));
+		}
+		auto &child_nodes = node->getChildNodes();
+		for (size_t i = 0; i < child_nodes.getCount(); ++i)
+		{
+			writeVisualSceneNode(child_nodes[i]);
 		}
 	}
 	
