@@ -31,8 +31,6 @@ namespace wyc
 
 	void CGamePixpad::on_start()
 	{
-		CScene scn;
-		scn.load_collada(L"res/helloworld.dae");
 		unsigned core_count = std::thread::hardware_concurrency();
 		debug("max thread count: %d", core_count);
 		create_views();
@@ -141,37 +139,38 @@ namespace wyc
 		// start a task
 		//CTriangleMesh triangle(100);
 		//CQuadMesh quad(100, 100);
-		CMesh cube;
-		if (!cube.load_obj(L"res/cube/cube.obj"))
-			return;
-		auto image = std::make_shared<CImage>();
+		//CMesh cube;
+		//if (!cube.load_obj(L"res/cube/cube.obj"))
+		//	return;
+		//auto image = std::make_shared<CImage>();
 		//CImage image;
-		if (!image->load(L"res/cube/default.png"))
-			return;
+		//if (!image->load(L"res/cube/default.png"))
+		//	return;
 		// material
-		CShaderTexColor shader;
-		set_orthograph(shader.m_uniform.mvp, -400, -300, 0.1f, 400, 300, 1000.0f);
-		Imath::M44f transform;
-		set_scale(transform, 100, 100, 100);
-		transform[0][3] = 0;
-		transform[1][3] = 0;
-		transform[2][3] = -100;
-		shader.m_uniform.mvp *= transform;
-		shader.m_uniform.color = { 1.0f, 0.0f, 1.0f, 1.0f };
-		shader.m_uniform.tex2d.set_image(image);
+		//CShaderTexColor shader;
+		//set_orthograph(shader.m_uniform.mvp, -400, -300, 0.1f, 400, 300, 1000.0f);
+		//Imath::M44f transform;
+		//set_scale(transform, 100, 100, 100);
+		//transform[0][3] = 0;
+		//transform[1][3] = 0;
+		//transform[2][3] = -100;
+		//shader.m_uniform.mvp *= transform;
+		//shader.m_uniform.color = { 1.0f, 0.0f, 1.0f, 1.0f };
+		//shader.m_uniform.tex2d.set_image(image);
 		//Imath::Frustumf frustum;
 		//Imath::Matrix44<float> mvp = frustum.projectionMatrix();
+		m_scene.load_collada(L"res/helloworld.dae");
 		for (auto &ptr : m_views)
 		{
 			auto renderer = ptr->get_renderer();
 			auto *clear = renderer->new_command<cmd_clear>();
 			clear->color.setValue(0.0f, 0.0f, 0.0f);
 			renderer->enqueue(clear);
-			auto *draw = renderer->new_command<cmd_draw_mesh>();
-			draw->mesh = &cube;
-			draw->program = &shader;
-			renderer->enqueue(draw);
-
+			//auto *draw = renderer->new_command<cmd_draw_mesh>();
+			//draw->mesh = &cube;
+			//draw->program = &shader;
+			//renderer->enqueue(draw);
+			m_scene.render();
 			renderer->present();
 		}
 		// wait for frame

@@ -11,6 +11,7 @@
 #include "game.h"
 #include "view_base.h"
 #include "renderer.h"
+#include <renderer/scene.h>
 
 namespace wyc
 {
@@ -51,13 +52,8 @@ namespace wyc
 		std::vector<std::thread> m_thread_pool;
 		std::vector<std::shared_ptr<CViewBase>> m_views;
 
-		//GLuint m_tex = 0;
-		//GLuint m_prog = 0;
-		//GLuint m_vbo = 0;
-		//GLuint m_ibo = 0;
-		//CSurface m_surf;
-		//bool m_redraw = false;
 		Imath::Rand32 m_rnd;
+		CScene m_scene;
 	};
 
 } // namespace wyc

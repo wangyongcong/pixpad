@@ -38,4 +38,8 @@ namespace wyc
 		return it->second.get();
 	}
 
+	void CScene::render()
+	{
+	}
+
 } // namespace wyc

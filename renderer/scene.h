@@ -35,6 +35,8 @@ namespace wyc
 		}
 		CCamera* create_camera(const std::string &name);
 
+		void render();
+
 	private:
 		std::unordered_map<std::string, std::shared_ptr<CMesh>> m_mesh_pool;
 		std::unordered_map<std::string, std::shared_ptr<CCamera>> m_camera_pool;

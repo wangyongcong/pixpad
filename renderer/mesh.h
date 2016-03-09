@@ -4,6 +4,8 @@
 #include <vector>
 #include <array>
 #include <initializer_list>
+#include <OpenEXR/ImathMatrix.h>
+#include "mathex/mathfwd.h"
 #include "vertex_buffer.h"
 #include "vertex_layout.h"
 #include "index_buffer.h"
@@ -27,12 +29,17 @@ namespace wyc
 		inline bool has_index() const {
 			return m_ib.size() > 0;
 		}
+		void set_transform(const Matrix44f& transform);
+		const Matrix44f& get_transform() const;
+		Matrix44f& get_transform();
+
 		// load from .obj file
 		bool load_obj(const std::wstring &filepath);
 
 	private:
 		CVertexBuffer m_vb;
 		CIndexBuffer m_ib;
+		Matrix44f m_transform;
 	};
 
 	template<typename Vertex>
@@ -84,6 +91,21 @@ namespace wyc
 	inline const CIndexBuffer & CMesh::index_buffer() const
 	{
 		return m_ib;
+	}
+
+	inline void CMesh::set_transform(const Matrix44f & transform)
+	{
+		m_transform = transform;
+	}
+
+	inline const Matrix44f & CMesh::get_transform() const
+	{
+		return m_transform;
+	}
+
+	inline Matrix44f & CMesh::get_transform()
+	{
+		return m_transform;
 	}
 
 	class CTriangleMesh : public CMesh

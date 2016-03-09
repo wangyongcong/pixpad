@@ -93,7 +93,7 @@ public:
 		auto &node_array = visualScene->getRootNodes();
 		for (size_t i = 0; i < node_array.getCount(); ++i)
 		{
-			writeVisualSceneNode(node_array[i]);
+			writeVisualSceneNode(node_array[i], COLLADABU::Math::Matrix4::IDENTITY);
 		}
 		return true;
 	}
@@ -344,19 +344,19 @@ private:
 		}
 	}
 
-	void writeVisualSceneNode(const COLLADAFW::Node *node, const COLLADAFW::Node *parent=0)
+	void writeVisualSceneNode(const COLLADAFW::Node *node, const COLLADABU::Math::Matrix4& parent_transform)
 	{
 		debug("\t\tobj: %s (%s)", node->getName().c_str(), str(node->getUniqueId()));
-		COLLADABU::Math::Matrix4 colla_transofrm;
-		node->getTransformationMatrix(colla_transofrm);
-		wyc::Matrix44f transform;
+		COLLADABU::Math::Matrix4 colla_transofrm = node->getTransformationMatrix() * parent_transform;
+		Matrix44f transform;
 		to_transform(transform, colla_transofrm);
+		
 		std::string unique_name;
-		auto &inst_cam = node->getInstanceCameras();
-		if (!inst_cam.empty())
+		auto &camera_list = node->getInstanceCameras();
+		if (!camera_list.empty())
 		{
-			for (size_t j = 0; j < inst_cam.getCount(); ++j) {
-				unique_name = inst_cam[j]->getInstanciatedObjectId().toAscii();
+			for (size_t j = 0; j < camera_list.getCount(); ++j) {
+				unique_name = camera_list[j]->getInstanciatedObjectId().toAscii();
 				auto scn_camera = m_scene->get_camera(unique_name);
 				if (!scn_camera) {
 					debug("\t\t\tinstance camera %s not found", unique_name.c_str());
@@ -366,16 +366,26 @@ private:
 				debug("\t\t\tinstance camera %s", unique_name.c_str());
 			}
 		}
-		auto &inst_geo = node->getInstanceGeometries();
-		if (!inst_geo.empty())
+
+		auto &geometry_list = node->getInstanceGeometries();
+		if (!geometry_list.empty())
 		{
-			for (size_t j = 0; j < inst_geo.getCount(); ++j)
-				debug("\t\t\tinstance geometry %s", str(inst_geo[j]->getInstanciatedObjectId()));
+			for (size_t j = 0; j < geometry_list.getCount(); ++j) {
+				unique_name = geometry_list[j]->getInstanciatedObjectId().toAscii();
+				auto scn_mesh = m_scene->get_mesh(unique_name);
+				if (!scn_mesh) {
+					debug("\t\t\tinstance geometry %s not found", unique_name.c_str());
+					continue;
+				}
+				scn_mesh->set_transform(transform);
+				debug("\t\t\tinstance geometry %s", unique_name.c_str());
+			}
 		}
+
 		auto &child_nodes = node->getChildNodes();
 		for (size_t i = 0; i < child_nodes.getCount(); ++i)
 		{
-			writeVisualSceneNode(child_nodes[i]);
+			writeVisualSceneNode(child_nodes[i], colla_transofrm);
 		}
 	}
 	
