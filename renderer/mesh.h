@@ -29,10 +29,6 @@ namespace wyc
 		inline bool has_index() const {
 			return m_ib.size() > 0;
 		}
-		void set_transform(const Matrix44f& transform);
-		const Matrix44f& get_transform() const;
-		Matrix44f& get_transform();
-
 		// load from .obj file
 		bool load_obj(const std::wstring &filepath);
 
@@ -91,21 +87,6 @@ namespace wyc
 	inline const CIndexBuffer & CMesh::index_buffer() const
 	{
 		return m_ib;
-	}
-
-	inline void CMesh::set_transform(const Matrix44f & transform)
-	{
-		m_transform = transform;
-	}
-
-	inline const Matrix44f & CMesh::get_transform() const
-	{
-		return m_transform;
-	}
-
-	inline Matrix44f & CMesh::get_transform()
-	{
-		return m_transform;
 	}
 
 	class CTriangleMesh : public CMesh

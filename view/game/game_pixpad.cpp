@@ -170,7 +170,8 @@ namespace wyc
 			//draw->mesh = &cube;
 			//draw->program = &shader;
 			//renderer->enqueue(draw);
-			m_scene.render();
+			m_scene.render(renderer);
+
 			renderer->present();
 		}
 		// wait for frame

@@ -39,11 +39,11 @@
     <Filter Include="Renderer\Mathex">
       <UniqueIdentifier>{8ed9bc52-f549-4cfe-8595-36bb11c5af10}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Renderer\Shader">
-      <UniqueIdentifier>{ec72b3e6-20e7-4069-83f0-10348d55327b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rd\OpenCOLLADA">
       <UniqueIdentifier>{97f4ede4-d45e-4a5b-81df-6d5012d5655a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Material">
+      <UniqueIdentifier>{ec72b3e6-20e7-4069-83f0-10348d55327b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -350,10 +350,10 @@
       <Filter>Renderer\Mathex</Filter>
     </ClInclude>
     <ClInclude Include="..\..\renderer\sparrow\shader\flat_color.h">
-      <Filter>Renderer\Shader</Filter>
+      <Filter>Renderer\Material</Filter>
     </ClInclude>
     <ClInclude Include="..\..\renderer\sparrow\shader\tex_color.h">
-      <Filter>Renderer\Shader</Filter>
+      <Filter>Renderer\Material</Filter>
     </ClInclude>
     <ClInclude Include="..\..\renderer\sparrow\spw_shader.h">
       <Filter>Renderer\Sparrow</Filter>
@@ -787,10 +787,10 @@
       <Filter>Renderer\Base</Filter>
     </ClCompile>
     <ClCompile Include="..\..\renderer\sparrow\shader\flat_color.cpp">
-      <Filter>Renderer\Shader</Filter>
+      <Filter>Renderer\Material</Filter>
     </ClCompile>
     <ClCompile Include="..\..\renderer\sparrow\shader\tex_color.cpp">
-      <Filter>Renderer\Shader</Filter>
+      <Filter>Renderer\Material</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\image.cpp">
       <Filter>Common</Filter>

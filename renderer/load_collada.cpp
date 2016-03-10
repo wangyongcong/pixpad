@@ -145,7 +145,7 @@ public:
 	{
 		std::string unique_name = camera->getUniqueId().toAscii();
 		debug("\tcamera: %s (%s)", str(camera->getName()), unique_name.c_str());
-		CCamera *scn_camera = m_scene->create_camera(unique_name);
+		auto scn_camera = m_scene->create_camera(unique_name);
 		auto camera_type = camera->getCameraType();
 		if (COLLADAFW::Camera::ORTHOGRAPHIC == camera_type)
 		{
@@ -242,7 +242,7 @@ private:
 			warn("Invalid data type, we only support single precision floating point value");
 			return;
 		}
-		CMesh *scn_mesh = m_scene->create_mesh(unique_name);
+		auto scn_mesh = m_scene->create_mesh(unique_name);
 		auto &vb = scn_mesh->vertex_buffer();
 		// Position: {x, y, z}
 		size_t vertex_count = pos_data.getValuesCount() / 3;
@@ -306,7 +306,7 @@ private:
 				error("%s : not support primitive type: %d", __FUNCTION__, prim_type);
 				break;
 			case COLLADAFW::MeshPrimitive::PrimitiveType::POLYLIST:
-				writePolyList(scn_mesh, colla_mesh, prim);
+				writePolyList(scn_mesh.get(), colla_mesh, prim);
 				break;
 			default:
 				error("%s : undefined primitive type: %d", __FUNCTION__, prim_type);
@@ -372,13 +372,8 @@ private:
 		{
 			for (size_t j = 0; j < geometry_list.getCount(); ++j) {
 				unique_name = geometry_list[j]->getInstanciatedObjectId().toAscii();
-				auto scn_mesh = m_scene->get_mesh(unique_name);
-				if (!scn_mesh) {
-					debug("\t\t\tinstance geometry %s not found", unique_name.c_str());
-					continue;
-				}
-				scn_mesh->set_transform(transform);
-				debug("\t\t\tinstance geometry %s", unique_name.c_str());
+				auto obj = m_scene->add_object(unique_name, transform);
+				debug("\t\t\tinstance geometry %s (PID=%d)", unique_name.c_str(), obj->get_pid());
 			}
 		}
 
