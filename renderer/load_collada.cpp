@@ -363,6 +363,7 @@ private:
 					continue;
 				}
 				scn_camera->set_transform(transform);
+				m_scene->set_active_camera(unique_name);
 				debug("\t\t\tinstance camera %s", unique_name.c_str());
 			}
 		}

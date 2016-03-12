@@ -1,6 +1,7 @@
 #include "scene.h"
 #include <common/util.h>
 #include <common/log.h>
+#include <sparrow/shader/flat_color.h>
 
 namespace wyc
 {
@@ -62,9 +63,14 @@ namespace wyc
 	void CScene::render(std::shared_ptr<CRenderer> renderer)
 	{
 		CSceneObj *obj;
+		auto camera = get_active_camera();
+		Matrix44f world_to_camera = camera->get_transform().inverse();
+		world_to_camera *= camera->get_projection();
+		CShaderFlatColor material;
 		for (auto it : m_objs)
 		{
 			obj = it.second.get();
+			material.m_uniform.mvp = obj->get_transform() * world_to_camera;
 			obj->render(renderer);
 		}
 	}

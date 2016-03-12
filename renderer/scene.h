@@ -5,6 +5,7 @@
 #include "mesh.h"
 #include "camera.h"
 #include "renderer.h"
+#include <sparrow/spw_shader.h>
 
 namespace wyc
 {
@@ -26,7 +27,10 @@ namespace wyc
 		}
 		virtual void render(std::shared_ptr<CRenderer> renderer)
 		{
-
+			auto cmd = renderer->new_command<cmd_draw_mesh>();
+			cmd->mesh = m_mesh.get();
+			cmd->program = m_material.get();
+			renderer->enqueue(cmd);
 		}
 
 		inline void set_mesh(std::shared_ptr<CMesh> mesh) {
@@ -46,6 +50,7 @@ namespace wyc
 		unsigned m_pid;
 		std::shared_ptr<CMesh> m_mesh;
 		Matrix44f m_transform;
+		std::shared_ptr<IShaderProgram> m_material;
 	};
 
 	class CScene
@@ -58,6 +63,7 @@ namespace wyc
 
 		bool load_collada(const std::wstring &file);
 		
+		std::shared_ptr<CMesh> create_mesh(const std::string &name);
 		inline std::shared_ptr<CMesh> get_mesh(const std::string &name) const
 		{
 			auto &it = m_mesh_pool.find(name);
@@ -65,8 +71,8 @@ namespace wyc
 				return it->second;
 			return nullptr;
 		}
-		std::shared_ptr<CMesh> create_mesh(const std::string &name);
 
+		std::shared_ptr<CCamera> create_camera(const std::string &name);
 		inline std::shared_ptr<CCamera> get_camera(const std::string &name) const
 		{
 			auto &it = m_camera_pool.find(name);
@@ -74,10 +80,16 @@ namespace wyc
 				return it->second;
 			return nullptr;
 		}
-		std::shared_ptr<CCamera> create_camera(const std::string &name);
+		inline void set_active_camera(const std::string &name) {
+			m_active_camera = name;
+		}
+		inline std::shared_ptr<CCamera> get_active_camera() const {
+			return get_camera(m_active_camera);
+		}
 
 		std::shared_ptr<CSceneObj> add_object(const std::string &mesh_name, const Matrix44f &transform);
 		std::shared_ptr<CSceneObj> get_object(unsigned pid);
+
 		void render(std::shared_ptr<CRenderer> renderer);
 
 	private:
@@ -85,6 +97,7 @@ namespace wyc
 		std::unordered_map<std::string, std::shared_ptr<CCamera>> m_camera_pool;
 		std::unordered_map<unsigned, std::shared_ptr<CSceneObj>> m_objs;
 		unsigned m_cur_pid;
+		std::string m_active_camera;
 	};
 
 } // namespace wyc

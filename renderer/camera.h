@@ -13,6 +13,7 @@ namespace wyc
 		void set_perspective(float fov, float aspect, float znear, float zfar);
 		const Matrix44f& get_transform() const;
 		void set_transform(const Matrix44f& transform);
+		const Matrix44f& get_projection() const;
 
 	private:
 		Matrix44f m_transform;
@@ -27,6 +28,11 @@ namespace wyc
 	inline void CCamera::set_transform(const Matrix44f & transform)
 	{
 		m_transform = transform;
+	}
+
+	inline const Matrix44f & CCamera::get_projection() const
+	{
+		return m_projection;
 	}
 
 } // namespace wyc

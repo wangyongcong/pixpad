@@ -137,15 +137,6 @@ namespace wyc
 			ptr->wake_up();
 		}
 		// start a task
-		//CTriangleMesh triangle(100);
-		//CQuadMesh quad(100, 100);
-		//CMesh cube;
-		//if (!cube.load_obj(L"res/cube/cube.obj"))
-		//	return;
-		//auto image = std::make_shared<CImage>();
-		//CImage image;
-		//if (!image->load(L"res/cube/default.png"))
-		//	return;
 		// material
 		//CShaderTexColor shader;
 		//set_orthograph(shader.m_uniform.mvp, -400, -300, 0.1f, 400, 300, 1000.0f);
@@ -159,6 +150,7 @@ namespace wyc
 		//shader.m_uniform.tex2d.set_image(image);
 		//Imath::Frustumf frustum;
 		//Imath::Matrix44<float> mvp = frustum.projectionMatrix();
+		
 		m_scene.load_collada(L"res/helloworld.dae");
 		for (auto &ptr : m_views)
 		{
@@ -166,10 +158,6 @@ namespace wyc
 			auto *clear = renderer->new_command<cmd_clear>();
 			clear->color.setValue(0.0f, 0.0f, 0.0f);
 			renderer->enqueue(clear);
-			//auto *draw = renderer->new_command<cmd_draw_mesh>();
-			//draw->mesh = &cube;
-			//draw->program = &shader;
-			//renderer->enqueue(draw);
 			m_scene.render(renderer);
 
 			renderer->present();
