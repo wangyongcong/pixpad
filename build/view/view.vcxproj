@@ -271,6 +271,7 @@
     <ClInclude Include="..\..\common\util.h" />
     <ClInclude Include="..\..\renderer\camera.h" />
     <ClInclude Include="..\..\renderer\index_buffer.h" />
+    <ClInclude Include="..\..\renderer\material.h" />
     <ClInclude Include="..\..\renderer\mathex\floatmath.h" />
     <ClInclude Include="..\..\renderer\mathex\ImathBoxAlgoExt.h" />
     <ClInclude Include="..\..\renderer\mathex\ImathMatrixExt.h" />
@@ -321,6 +322,7 @@
     <ClCompile Include="..\..\renderer\camera.cpp" />
     <ClCompile Include="..\..\renderer\index_buffer.cpp" />
     <ClCompile Include="..\..\renderer\load_collada.cpp" />
+    <ClCompile Include="..\..\renderer\material.cpp" />
     <ClCompile Include="..\..\renderer\mathex\vecmath.cpp" />
     <ClCompile Include="..\..\renderer\mesh.cpp" />
     <ClCompile Include="..\..\renderer\ogl\glutil.cpp" />

@@ -715,6 +715,9 @@
     <ClInclude Include="..\..\renderer\camera.h">
       <Filter>Renderer\Base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\renderer\material.h">
+      <Filter>Renderer\Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">
@@ -808,6 +811,9 @@
       <Filter>Renderer\Base</Filter>
     </ClCompile>
     <ClCompile Include="..\..\renderer\camera.cpp">
+      <Filter>Renderer\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\renderer\material.cpp">
       <Filter>Renderer\Base</Filter>
     </ClCompile>
   </ItemGroup>
