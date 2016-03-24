@@ -6,7 +6,7 @@
 #include "mesh.h"
 #include "vertex_layout.h"
 #include "spw_render_target.h"
-#include "spw_shader.h"
+#include "shader.h"
 
 namespace wyc
 {

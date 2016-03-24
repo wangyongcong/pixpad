@@ -5,7 +5,7 @@
 #include "mesh.h"
 #include "camera.h"
 #include "renderer.h"
-#include <sparrow/spw_shader.h>
+#include "material.h"
 
 namespace wyc
 {
@@ -29,7 +29,7 @@ namespace wyc
 		{
 			auto cmd = renderer->new_command<cmd_draw_mesh>();
 			cmd->mesh = m_mesh.get();
-			cmd->program = m_material.get();
+			cmd->material = m_material.get();
 			renderer->enqueue(cmd);
 		}
 
@@ -50,7 +50,7 @@ namespace wyc
 		unsigned m_pid;
 		std::shared_ptr<CMesh> m_mesh;
 		Matrix44f m_transform;
-		std::shared_ptr<IShaderProgram> m_material;
+		std::shared_ptr<CMaterial> m_material;
 	};
 
 	class CScene

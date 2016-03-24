@@ -294,7 +294,6 @@
     <ClInclude Include="..\..\renderer\sparrow\spw_rasterizer.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_renderer.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_render_target.h" />
-    <ClInclude Include="..\..\renderer\sparrow\spw_shader.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_texture.h" />
     <ClInclude Include="..\..\renderer\sparrow\surface.h" />
     <ClInclude Include="..\..\renderer\vertex_buffer.h" />

@@ -15,4 +15,7 @@ namespace wyc
 	typedef Imath::Matrix33<float> Matrix33f;
 	typedef Imath::Matrix44<float> Matrix44f;
 
+	typedef Imath::Color3<float> Color3f;
+	typedef Imath::Color4<float> Color4f;
+
 } // namespacw wyc

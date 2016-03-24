@@ -8,7 +8,8 @@
 #include <OpenEXR/ImathColor.h>
 #include "util.h"
 #include "mesh.h"
-#include <sparrow/spw_shader.h>
+#include "shader.h"
+#include "material.h"
 
 namespace wyc
 {
@@ -100,7 +101,8 @@ namespace wyc
 	{
 		CMD_TID(CMD_DRAW_MESH);
 		const CMesh *mesh = nullptr;
-		IShaderProgram *program = nullptr;
+		const CMaterial *material = nullptr;
+
 	};
 
 }  // namespace wyc

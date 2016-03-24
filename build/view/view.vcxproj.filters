@@ -355,9 +355,6 @@
     <ClInclude Include="..\..\renderer\sparrow\shader\tex_color.h">
       <Filter>Renderer\Material</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\renderer\sparrow\spw_shader.h">
-      <Filter>Renderer\Sparrow</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\image.h">
       <Filter>Common</Filter>
     </ClInclude>
