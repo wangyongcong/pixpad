@@ -2,6 +2,8 @@
 #include <OpenEXR/ImathMatrix.h>
 #include <vertex_layout.h>
 #include <shader.h>
+#include <material.h>
+#include <mathex/mathfwd.h>
 
 namespace wyc
 {
@@ -20,6 +22,44 @@ namespace wyc
 		virtual bool fragment_shader(const float *vertex_out, Imath::Color4<float> &frag_color) const;
 		virtual size_t get_vertex_stride() const override;
 		virtual size_t get_vertex_size() const override;
+	};
+
+	class CMaterialFlatColor : public CMaterial
+	{
+	public:
+		Color4f color;
+	};
+
+	template<class VertexIn, class VertexOut>
+	class TShaderFlatColor : public IShaderProgram
+	{
+	public:
+		Matrix44f mvp_matrix;
+		CMaterialFlatColor *material;
+
+		virtual void vertex_shader(const float *vertex_in, float *vertex_out, Vec4f &clip_pos) const override {
+			const VertexIn* in = reinterpret_cast<const VertexIn*>(vertex_in);
+			VertexOut* out = reinterpret_cast<VertexOut*>(vertex_out);
+			Vec4f pos(in->pos);
+			pos.z = -1.0f;
+			pos = mvp_matrix * pos;
+			clip_pos = pos;
+			out->pos = in->pos;
+		}
+
+		virtual bool fragment_shader(const float *vertex_out, Color4f &frag_color) const override {
+			const VertexOut* vout = reinterpret_cast<const VertexOut*>(vertex_out);
+			frag_color = { material->color.x, material->color.y, material->color.z, 1.0f };
+			return true;
+		}
+
+		virtual size_t get_vertex_stride() const override {
+			return VertexOut::Layout::component;
+		}
+
+		virtual size_t get_vertex_size() const override {
+			return sizeof(VertexOut);
+		}
 	};
 
 } // namespace

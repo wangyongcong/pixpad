@@ -1,7 +1,9 @@
 #pragma once
+#include <string>
 #include "shader.h"
 
-#define MATERIAL_PROPERTY(type, name) type name
+#define PROPERTY
+#define PUBLIC_PROPERTY
 
 namespace wyc
 {
@@ -13,6 +15,13 @@ namespace wyc
 		inline shader_ptr get_shader() const {
 			return m_shader;
 		}
+		inline void set_shader(shader_ptr shader) {
+			m_shader = shader;
+		}
+	
+	public:
+		// public material property
+		std::string name;
 
 	protected:
 		shader_ptr m_shader;
