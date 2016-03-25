@@ -3,13 +3,14 @@
 namespace wyc
 {
 	CMaterial::CMaterial()
-		: m_shader(nullptr)
+		: shader(nullptr)
 	{
+		mvp_matrix.makeIdentity();
 	}
 
 	CMaterial::~CMaterial()
 	{
-		m_shader = nullptr;
+		shader = nullptr;
 	}
 
 } // namespace wyc

@@ -52,7 +52,7 @@ namespace wyc
 		auto &pipeline = renderer->m_pipeline;
 		pipeline.setup(renderer->m_rt);
 		//pipeline.set_draw_mode(LINE_MODE);
-		IShaderProgram* shader = cmd->material->get_shader().get();
+		IShaderProgram* shader = cmd->material->shader.get();
 		pipeline.feed(mesh, shader);
 	}
 

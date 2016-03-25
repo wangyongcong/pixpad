@@ -6,6 +6,7 @@
 #include "camera.h"
 #include "renderer.h"
 #include "material.h"
+#include <sparrow/shader/flat_color.h>
 
 namespace wyc
 {
@@ -17,6 +18,7 @@ namespace wyc
 			, m_mesh(nullptr)
 		{
 			m_transform.makeIdentity();
+			load_default_material();
 		}
 		virtual ~CSceneObj()
 		{
@@ -45,12 +47,30 @@ namespace wyc
 		inline const Matrix44f& get_transform() const {
 			return m_transform;
 		}
+		inline void set_material(material_ptr material) {
+			m_material = material;
+		}
+		inline material_ptr get_material() const {
+			return m_material;
+		}
+
+		void load_default_material()
+		{
+			CMaterialFlatColor *mateiral = new CMaterialFlatColor();
+			mateiral->color = { 0.0f, 1.0f, 0.0f, 1.0f };
+			mateiral->shader = shader_ptr(new CShaderFlatColor<VertexP3C3, VertexP3C3>());
+			m_material = material_ptr(mateiral);
+		}
+		void set_camera_transform(const Matrix44f& world_to_camera)
+		{
+			m_material->mvp_matrix = m_transform * world_to_camera;
+		}
 
 	protected:
 		unsigned m_pid;
 		std::shared_ptr<CMesh> m_mesh;
 		Matrix44f m_transform;
-		std::shared_ptr<CMaterial> m_material;
+		material_ptr m_material;
 	};
 
 	class CScene
