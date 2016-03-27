@@ -129,6 +129,20 @@ public:
 	virtual bool writeMaterial(const COLLADAFW::Material* material)
 	{
 		debug("\tmateiral: %s (%s)", str(material->getName()), str(material->getUniqueId()));
+		std::string unique_name = material->getUniqueId().toAscii();
+		std::string name = str(material->getName());
+		std::string material_class;
+		std::string material_name;
+		size_t pos = name.find_first_of("-");
+		if (pos != std::string::npos)
+		{
+			material_class = name.substr(0, pos);
+			material_name = name.substr(pos + 1);
+		}
+		else {
+			error("%s : Unknown material [%s]", __FUNCTION__, name.c_str());
+		}
+		m_scene->create_material(unique_name, material_class);
 		return true;
 	}
 
@@ -154,7 +168,8 @@ public:
 		}
 		else if (COLLADAFW::Camera::PERSPECTIVE == camera_type)
 		{
-			scn_camera->set_perspective(float(camera->getYFov()), float(camera->getAspectRatio()),
+			float yfov = float(camera->getXFov() / camera->getAspectRatio());
+			scn_camera->set_perspective(yfov, float(camera->getAspectRatio()),
 				float(camera->getNearClippingPlane()), float(camera->getFarClippingPlane()));
 		}
 		return true;
@@ -372,9 +387,19 @@ private:
 		if (!geometry_list.empty())
 		{
 			for (size_t j = 0; j < geometry_list.getCount(); ++j) {
-				unique_name = geometry_list[j]->getInstanciatedObjectId().toAscii();
+				auto geometry = geometry_list[j];
+				unique_name = geometry->getInstanciatedObjectId().toAscii();
 				auto obj = m_scene->add_object(unique_name, transform);
 				debug("\t\t\tinstance geometry %s (PID=%d)", unique_name.c_str(), obj->get_pid());
+				auto &material_array = geometry->getMaterialBindings();
+				for (size_t k = 0; k < material_array.getCount(); ++k)
+				{
+					auto &binding = material_array[k];
+					unique_name = binding.getReferencedMaterial().toAscii();
+					auto material = m_scene->get_material(unique_name);
+					obj->set_material(material);
+					debug("\t\t\tuse material %s", unique_name.c_str());
+				}
 			}
 		}
 

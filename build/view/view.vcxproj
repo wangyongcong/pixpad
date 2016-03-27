@@ -286,6 +286,7 @@
     <ClInclude Include="..\..\renderer\render_command.h" />
     <ClInclude Include="..\..\renderer\render_target.h" />
     <ClInclude Include="..\..\renderer\scene.h" />
+    <ClInclude Include="..\..\renderer\shader.h" />
     <ClInclude Include="..\..\renderer\sparrow\clipping.h" />
     <ClInclude Include="..\..\renderer\sparrow\shader\flat_color.h" />
     <ClInclude Include="..\..\renderer\sparrow\shader\tex_color.h" />

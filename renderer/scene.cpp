@@ -22,8 +22,32 @@ namespace wyc
 			m_mesh_pool[name] = mesh;
 			return mesh;
 		}
-		debug("%s : The mesh with name [%s] already exists", __FUNCTION__, name.c_str());
+		error("%s : The mesh with name [%s] already exists", __FUNCTION__, name.c_str());
 		return it->second;
+	}
+
+	material_ptr CScene::create_material(const std::string & name, const std::string &type)
+	{
+		auto it = m_materials.find(name);
+		if (it != m_materials.end())
+		{
+			error("%s : The material with name [%s] already exists", __FUNCTION__, name.c_str());
+			return nullptr;
+		}
+		// todo: we need a material factory
+		CMaterial *ptr;
+		if (type == "FlatColor")
+		{
+			ptr = new CMaterialFlatColor;
+		}
+		else
+		{
+			error("%s : Unknown material [%s]", __FUNCTION__, type.c_str());
+			return nullptr;
+		}
+		auto ret = material_ptr(ptr);
+		m_materials[name] = ret;
+		return ret;
 	}
 
 	std::shared_ptr<CCamera> CScene::create_camera(const std::string & name)

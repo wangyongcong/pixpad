@@ -92,6 +92,15 @@ namespace wyc
 			return nullptr;
 		}
 
+		material_ptr create_material(const std::string &name, const std::string &type);
+		inline material_ptr get_material(const std::string &name) const
+		{
+			auto &it = m_materials.find(name);
+			if (it != m_materials.end())
+				return it->second;
+			return nullptr;
+		}
+
 		std::shared_ptr<CCamera> create_camera(const std::string &name);
 		inline std::shared_ptr<CCamera> get_camera(const std::string &name) const
 		{
@@ -116,6 +125,7 @@ namespace wyc
 		std::unordered_map<std::string, std::shared_ptr<CMesh>> m_mesh_pool;
 		std::unordered_map<std::string, std::shared_ptr<CCamera>> m_camera_pool;
 		std::unordered_map<unsigned, std::shared_ptr<CSceneObj>> m_objs;
+		std::unordered_map<std::string, material_ptr> m_materials;
 		unsigned m_cur_pid;
 		std::string m_active_camera;
 	};

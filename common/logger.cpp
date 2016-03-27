@@ -15,7 +15,7 @@ namespace wyc
 const char* s_log_lvl_tag[wyc::LOG_LEVEL_COUNT] = {
 	"DEBUG",		
 	"INFO",		
-	"WARN",	
+	"WARNING",	
 	"ERROR",
 	"FATAL",
 };
@@ -36,7 +36,7 @@ void CLogger::format_write(ELogLevel lvl, const char *fmt, va_list args)
 {
 	auto now = std::chrono::system_clock::now();
 	int cnt = 0;
-	cnt += ::sprintf_s(m_buff, TEXT_BUFF_SIZE, "[%s] ", s_log_lvl_tag[m_level]);
+	cnt += ::sprintf_s(m_buff, TEXT_BUFF_SIZE, "[%s] ", s_log_lvl_tag[lvl]);
 	cnt += ::vsprintf_s(m_buff + cnt, TEXT_BUFF_SIZE - cnt, fmt, args);
 	m_buff[cnt++] = '\n';
 	m_buff[cnt] = 0;
