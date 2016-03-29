@@ -22,23 +22,33 @@ namespace wyc
 			m_mesh_pool[name] = mesh;
 			return mesh;
 		}
-		error("%s : The mesh with name [%s] already exists", __FUNCTION__, name.c_str());
+		warn("%s : The mesh with name [%s] already exists", __FUNCTION__, name.c_str());
 		return it->second;
 	}
 
 	material_ptr CScene::create_material(const std::string & name, const std::string &type)
 	{
-		auto it = m_materials.find(name);
-		if (it != m_materials.end())
+		auto it = m_material_lib.find(name);
+		if (it != m_material_lib.end())
 		{
-			error("%s : The material with name [%s] already exists", __FUNCTION__, name.c_str());
-			return nullptr;
+			warn("%s : The material with name [%s] already exists", __FUNCTION__, name.c_str());
+			return it->second;
 		}
 		// todo: we need a material factory
 		CMaterial *ptr;
 		if (type == "FlatColor")
 		{
 			ptr = new CMaterialFlatColor;
+			auto it = m_shader_lib.find(type);
+			if (it == m_shader_lib.end())
+			{
+				ptr->shader = shader_ptr(new CShaderFlatColor<VertexP3C3, VertexP3C3>);
+				m_shader_lib[type] = ptr->shader;
+			}
+			else
+			{
+				ptr->shader = it->second;
+			}
 		}
 		else
 		{
@@ -46,7 +56,7 @@ namespace wyc
 			return nullptr;
 		}
 		auto ret = material_ptr(ptr);
-		m_materials[name] = ret;
+		m_material_lib[name] = ret;
 		return ret;
 	}
 
@@ -59,7 +69,7 @@ namespace wyc
 			m_camera_pool[name] = camera;
 			return camera;
 		}
-		debug("%s : The mesh with name [%s] already exists", __FUNCTION__, name.c_str());
+		debug("%s : The camera with name [%s] already exists", __FUNCTION__, name.c_str());
 		return it->second;
 	}
 

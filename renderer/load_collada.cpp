@@ -126,11 +126,11 @@ public:
 
 	/** When this method is called, the writer must write the material.
 	@return The writer should return true, if writing succeeded, false otherwise.*/
-	virtual bool writeMaterial(const COLLADAFW::Material* material)
+	virtual bool writeMaterial(const COLLADAFW::Material* dae_material)
 	{
-		debug("\tmateiral: %s (%s)", str(material->getName()), str(material->getUniqueId()));
-		std::string unique_name = material->getUniqueId().toAscii();
-		std::string name = str(material->getName());
+		debug("\tmateiral: %s (%s)", str(dae_material->getName()), str(dae_material->getUniqueId()));
+		std::string unique_name = dae_material->getUniqueId().toAscii();
+		std::string name = str(dae_material->getName());
 		std::string material_class;
 		std::string material_name;
 		size_t pos = name.find_first_of("-");

@@ -149,12 +149,15 @@ namespace wyc
 			return m_vert_componet;
 		}
 
-		inline const float* get_attrib_stream(EAttribUsage usage) const
+		inline const void* attrib_stream(EAttribUsage usage) const
 		{
 			assert(m_attr_tbl[usage]);
-			return reinterpret_cast<const float*>(m_data + m_attr_tbl[usage]->offset);
+			return m_data + m_attr_tbl[usage]->offset;
 		}
-		inline size_t attrib_offset(EAttribUsage usage) const 
+		inline size_t attrib_stride(EAttribUsage usage) const {
+			return m_vert_size;
+		}
+		inline size_t attrib_offset(EAttribUsage usage) const
 		{
 			assert(m_attr_tbl[usage]);
 			return m_attr_tbl[usage]->offset;

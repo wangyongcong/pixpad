@@ -50,7 +50,7 @@ namespace wyc
 		task.in_vertex = vb.get_vertex_stream();
 		task.in_size = vb.size();
 		task.in_stride = vb.vertex_component();		
-		task.in_pos = reinterpret_cast<const Imath::V3f*>(vb.get_attrib_stream(ATTR_POSITION));
+		task.in_pos = reinterpret_cast<const Imath::V3f*>(vb.attrib_stream(ATTR_POSITION));
 		size_t out_stride = program->get_vertex_stride();
 		task.out_stride = out_stride;
 		// use triangle as the basic primitive (3 vertex)

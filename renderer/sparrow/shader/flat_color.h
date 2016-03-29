@@ -36,7 +36,17 @@ namespace wyc
 	class CShaderFlatColor : public IShaderProgram
 	{
 	public:
-		CMaterialFlatColor *material;
+		const CMaterialFlatColor *material;
+
+		virtual bool bind_input(const CVertexBuffer &vb) override
+		{
+			if (vb.attrib_component(ATTR_POSITION) < 3)
+				return false;
+			m_input.pos_stream = reinterpret_cast<const Vec3f*>(vb.attrib_stream(ATTR_POSITION));
+			m_input.pos_stride = vb.attrib_stride(ATTR_POSITION);
+			m_input.count = vb.size();
+			return true;
+		}
 
 		virtual void vertex_shader(const float *vertex_in, float *vertex_out, Vec4f &clip_pos) const override 
 		{
@@ -63,6 +73,14 @@ namespace wyc
 		virtual size_t get_vertex_size() const override {
 			return sizeof(VertexOut);
 		}
+
+	private:
+		struct {
+			const Vec3f *pos_stream;
+			size_t pos_stride;
+			size_t count;
+		} m_input;
+
 	};
 
 } // namespace
