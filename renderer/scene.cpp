@@ -97,13 +97,11 @@ namespace wyc
 	{
 		CSceneObj *obj;
 		auto camera = get_active_camera();
-		Matrix44f world_to_camera = camera->get_transform().inverse();
-		world_to_camera *= camera->get_projection();
+		camera->update_transform();
 		for (auto it : m_objs)
 		{
 			obj = it.second.get();
-			obj->set_camera_transform(world_to_camera);
-			obj->render(renderer);
+			obj->render(renderer, camera);
 		}
 	}
 

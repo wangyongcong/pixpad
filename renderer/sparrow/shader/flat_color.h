@@ -38,7 +38,7 @@ namespace wyc
 	public:
 		const CMaterialFlatColor *material;
 
-		virtual bool bind_input(const CVertexBuffer &vb) override
+		virtual bool bind_vertex(const CVertexBuffer &vb) override
 		{
 			if (vb.attrib_component(ATTR_POSITION) < 3)
 				return false;

@@ -12,8 +12,8 @@ namespace wyc
 	{
 	public:
 		CMaterial();
-		virtual ~CMaterial();
-	
+		virtual ~CMaterial() {}
+
 	public:
 		// public material property
 		std::string name;

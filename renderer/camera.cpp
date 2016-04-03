@@ -5,10 +5,18 @@ namespace wyc
 {
 	CCamera::CCamera()
 	{
+		m_transform.makeIdentity();
+		m_projection.makeIdentity();
 	}
 
 	CCamera::~CCamera()
 	{
+	}
+
+	void CCamera::update_transform()
+	{
+		m_view_transform = m_transform.inverse();
+		m_view_proj = m_view_transform * m_projection;
 	}
 
 	void CCamera::set_orthographic(float x_range_radius, float y_range_radius, float znear, float zfar)

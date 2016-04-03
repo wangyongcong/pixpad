@@ -16,9 +16,9 @@ namespace wyc
 		CSceneObj(unsigned pid)
 			: m_pid(pid)
 			, m_mesh(nullptr)
+			, m_is_material_changed(false)
 		{
 			m_transform.makeIdentity();
-			load_default_material();
 		}
 		virtual ~CSceneObj()
 		{
@@ -27,8 +27,19 @@ namespace wyc
 		inline unsigned get_pid() const {
 			return m_pid;
 		}
-		virtual void render(std::shared_ptr<CRenderer> renderer)
+		virtual void render(std::shared_ptr<CRenderer> renderer, std::shared_ptr<CCamera> camera)
 		{
+			if (!m_mesh)
+				return;
+			if (!m_material)
+				load_default_material();
+			if (m_is_material_changed)
+			{
+				if (!m_material->shader || 
+					!m_material->shader->bind_vertex(m_mesh->vertex_buffer()))
+					return;
+			}
+			m_material->mvp_matrix = m_transform * camera->get_view_projection();
 			auto cmd = renderer->new_command<cmd_draw_mesh>();
 			cmd->mesh = m_mesh.get();
 			cmd->material = m_material.get();
@@ -49,6 +60,7 @@ namespace wyc
 		}
 		inline void set_material(material_ptr material) {
 			m_material = material;
+			m_is_material_changed = true;
 		}
 		inline material_ptr get_material() const {
 			return m_material;
@@ -60,10 +72,7 @@ namespace wyc
 			mateiral->color = { 0.0f, 1.0f, 0.0f, 1.0f };
 			mateiral->shader = shader_ptr(new CShaderFlatColor<VertexP3C3, VertexP3C3>());
 			m_material = material_ptr(mateiral);
-		}
-		void set_camera_transform(const Matrix44f& world_to_camera)
-		{
-			m_material->mvp_matrix = m_transform * world_to_camera;
+			m_is_material_changed = true;
 		}
 
 	protected:
@@ -71,6 +80,7 @@ namespace wyc
 		std::shared_ptr<CMesh> m_mesh;
 		Matrix44f m_transform;
 		material_ptr m_material;
+		bool m_is_material_changed;
 	};
 
 	class CScene
