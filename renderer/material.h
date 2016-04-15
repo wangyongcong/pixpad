@@ -13,6 +13,9 @@ namespace wyc
 	public:
 		CMaterial();
 		virtual ~CMaterial() {}
+		virtual bool bind_vertex(const CVertexBuffer &vb) = 0;
+		virtual void vertex_shader(const float *vertex_in, float *vertex_out, Vec4f &clip_pos) const = 0;
+		virtual bool fragment_shader(const float *vertex_out, Color4f &frag_color) const = 0;
 
 	public:
 		// public material property

@@ -4,33 +4,24 @@
 
 namespace wyc 
 {
-	//void CShaderFlatColor::vertex_shader(const float *vertex_in, float *vertex_out, Imath::Vec4<float> &clip_pos) const
-	//{
-	//	const VertexIn* in = reinterpret_cast<const VertexIn*>(vertex_in);
-	//	VertexOut* out = reinterpret_cast<VertexOut*>(vertex_out);
-	//	Imath::V4f pos(in->pos);
-	//	pos.z = -1.0f;
-	//	pos = m_uniform.mvp * pos;
-	//	clip_pos = pos;
-	//	out->pos = in->pos;
-	//	out->color = in->color;
-	//}
+	bool CMaterialFlatColor::bind_vertex(const CVertexBuffer & vb)
+	{
+		if (vb.has_attribute(ATTR_POSITION) 
+			|| vb.attrib_component(ATTR_POSITION) < 3)
+			return false;
+		m_input.pos_stream = reinterpret_cast<const Vec3f*>(vb.attrib_stream(ATTR_POSITION));
+		m_input.pos_stride = vb.attrib_stride(ATTR_POSITION);
+		m_input.count = vb.size();
+		return true;
+	}
 
-	//bool CShaderFlatColor::fragment_shader(const float *vertex_out, Imath::Color4<float> &frag_color) const
-	//{
-	//	const VertexOut* vout = reinterpret_cast<const VertexOut*>(vertex_out);
-	//	frag_color = { vout->color.x, vout->color.y, vout->color.z, 1.0f };
-	//	return true;
-	//}
+	void CMaterialFlatColor::vertex_shader(const float * vertex_in, float * vertex_out, Vec4f & clip_pos) const
+	{
+	}
 
-	//size_t CShaderFlatColor::get_vertex_stride() const
-	//{
-	//	return VertexOut::Layout::component;
-	//}
-
-	//size_t CShaderFlatColor::get_vertex_size() const
-	//{
-	//	return sizeof(VertexOut);
-	//}
+	bool CMaterialFlatColor::fragment_shader(const float * vertex_out, Color4f & frag_color) const
+	{
+		return false;
+	}
 
 } // namespace wyc

@@ -8,28 +8,31 @@
 
 namespace wyc
 {
-	//class CShaderFlatColor : public IShaderProgram
-	//{
-	//public:
-	//	typedef VertexP3C3 VertexIn;
-	//	typedef VertexP3C3 VertexOut;
-
-	//	struct Uniform
-	//	{
-	//		Imath::M44f mvp;
-	//	} m_uniform;
-
-	//	virtual void vertex_shader(const float *vertex_in, float *vertex_out, Imath::Vec4<float> &clip_pos) const;
-	//	virtual bool fragment_shader(const float *vertex_out, Imath::Color4<float> &frag_color) const;
-	//	virtual size_t get_vertex_stride() const override;
-	//	virtual size_t get_vertex_size() const override;
-	//};
-
 	class CMaterialFlatColor : public CMaterial
 	{
 	public:
 		// material property
 		Color4f color;
+		typedef Vec4f VertexOut;
+		struct ShaderOutput {
+			size_t vertex_size;
+			size_t pos_offset;
+		};
+		static ShaderOutput ms_shader_output;
+		// shader interface
+		virtual bool bind_vertex(const CVertexBuffer &vb) override;
+		virtual void vertex_shader(const float *vertex_in, float *vertex_out, Vec4f &clip_pos) const override;
+		virtual bool fragment_shader(const float *vertex_out, Color4f &frag_color) const override;
+		virtual const ShaderOutput& get_output_layout() const {
+			return ms_shader_output;
+		}
+
+	private:
+		struct {
+			const Vec3f *pos_stream;
+			size_t pos_stride;
+			size_t count;
+		} m_input;
 	};
 
 	template<class VertexIn, class VertexOut>
