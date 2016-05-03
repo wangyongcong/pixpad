@@ -29,27 +29,31 @@ namespace wyc
 		set_viewport({ {0, 0}, {int(surfw), int(surfh)} });
 	}
 
-	void CSpwPipeline::feed(const CMesh *mesh, const IShaderProgram *program)
+	void CSpwPipeline::feed(const CMesh *mesh, const CMaterial *material)
 	{
-		assert(mesh && program);
+		assert(mesh && material);
 		const CVertexBuffer &vb = mesh->vertex_buffer();
 #ifdef _DEBUG
 		// check input vertex format
 		if (!vb.has_attribute(ATTR_POSITION) || vb.attrib_component(ATTR_POSITION) < 3)
 		{
 			assert(0 && "Input vertex must contain 3D position.");
+			return;
 		}
 #endif // _DEBUG
+		//const CIndexBuffer &ib = mesh->index_buffer();
+
+		// setup render target
 		unsigned surfw, surfh;
 		m_rt->get_size(surfw, surfh);
 		int halfw = surfw >> 1, halfh = surfh >> 1;
 
 		// todo: work parallel
 		TaskVertex task;
-		task.program = program;
+		task.material = material;
 		task.in_vertex = vb.get_vertex_stream();
 		task.in_size = vb.size();
-		task.in_stride = vb.vertex_component();		
+		task.in_stride = vb.vertex_component();
 		task.in_pos = reinterpret_cast<const Imath::V3f*>(vb.attrib_stream(ATTR_POSITION));
 		size_t out_stride = program->get_vertex_stride();
 		task.out_stride = out_stride;

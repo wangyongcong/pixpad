@@ -6,7 +6,7 @@
 #include "mesh.h"
 #include "vertex_layout.h"
 #include "spw_render_target.h"
-#include "shader.h"
+#include <renderer/material.h>
 
 namespace wyc
 {
@@ -30,7 +30,7 @@ namespace wyc
 		CSpwPipeline(const CSpwPipeline &other) = delete;
 		CSpwPipeline& operator = (const CSpwPipeline &other) = delete;
 		void setup(std::shared_ptr<CSpwRenderTarget> rt);
-		void feed(const CMesh *mesh, const IShaderProgram *program);
+		void feed(const CMesh *mesh, const CMaterial *program);
 		void set_viewport(const Imath::Box2i &view);
 		inline void set_draw_mode(POLYGON_DRAW_MODE m) {
 			m_draw_mode = m;
@@ -38,7 +38,7 @@ namespace wyc
 
 	protected:
 		struct TaskVertex {
-			const IShaderProgram *program;
+			const CMaterial *material;
 			const float *in_vertex;
 			size_t in_size;  // input vertex count
 			size_t in_stride;  // input vertex stride (in float componenet)

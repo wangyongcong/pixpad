@@ -219,3 +219,4 @@ baregrep.exe
 *.udm
 3rd/OpenCOLLADA/include/*
 3rd/OpenCOLLADA/lib/*
+/build/pixpad.VC.db

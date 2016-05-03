@@ -35,6 +35,58 @@ namespace wyc
 		} m_input;
 	};
 
+	class CMaterialPhoneColor : public CMaterial
+	{
+	public:
+		virtual const AttribDefine& get_attrib_define() const
+		{
+			static AttribSlot ls_attrib_slots[] = {
+				{ATTR_POSITION, 3},
+				{ATTR_COLOR, 4},
+			};
+			static AttribDefine ls_attrib_define = {
+				ls_attrib_slots,
+				sizeof(ls_attrib_slots) / sizeof(AttribSlot),
+				calc_attrib_size(ls_attrib_slots, sizeof(ls_attrib_slots) / sizeof(AttribSlot))
+			};
+			return ls_attrib_define;
+		}
+		struct VertexIn {
+			const Vec3f *pos;
+			const Vec4f *color;
+		};
+		struct VertexOut {
+			Vec3f *pos;
+			Vec4f *color;
+		};
+		unsigned calc_attrib_size(const AttribSlot *attrib_slots, unsigned cnt) const
+		{
+			unsigned size = 0;
+			for (auto i = 0; i < cnt; ++i)
+			{
+				size += attrib_slots[i].component;
+			}
+			return size;
+		}
+
+		virtual void vertex_shader(const float *vertex_in, float *vertex_out, Vec4f &clip_pos) const override
+		{
+			VertexIn *in = (VertexIn*)vertex_in;
+			in->pos;
+			in->color;
+			VertexOut *out = (VertexOut*)vertex_out;
+			out->pos;
+			out->color;
+		}
+
+		virtual bool fragment_shader(const float *vertex_out, Color4f &frag_color) const override
+		{
+
+		}
+
+	private:
+	};
+
 	template<class VertexIn, class VertexOut>
 	class CShaderFlatColor : public IShaderProgram
 	{
