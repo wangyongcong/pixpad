@@ -37,12 +37,15 @@ namespace wyc
 		}
 
 	protected:
+		typedef std::pair<const char*, size_t> AttribStream;
 		struct TaskVertex {
 			const CMaterial *material;
-			const float *in_vertex;
+			const AttribStream* attrib_stream;
+			size_t attrib_count;
+			size_t attrib_component;
+			const char** in_stream;
 			size_t in_size;  // input vertex count
-			size_t in_stride;  // input vertex stride (in float componenet)
-			const Imath::V3f *in_pos;  // input vertex position array
+
 			size_t out_stride;  // output vertex stride (in float component)
 			char *cache;  // cache buffer
 			size_t cache_size;  // cache size in bytes

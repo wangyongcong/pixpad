@@ -33,37 +33,50 @@ namespace wyc
 	{
 		assert(mesh && material);
 		const CVertexBuffer &vb = mesh->vertex_buffer();
-#ifdef _DEBUG
-		// check input vertex format
-		if (!vb.has_attribute(ATTR_POSITION) || vb.attrib_component(ATTR_POSITION) < 3)
-		{
-			assert(0 && "Input vertex must contain 3D position.");
-			return;
-		}
-#endif // _DEBUG
-		//const CIndexBuffer &ib = mesh->index_buffer();
+		const CIndexBuffer &ib = mesh->index_buffer();
 
 		// setup render target
 		unsigned surfw, surfh;
 		m_rt->get_size(surfw, surfh);
 		int halfw = surfw >> 1, halfh = surfh >> 1;
 
+		// bind stream
+		auto &attrib_define = material->get_attrib_define();
+		if (!attrib_define.count)
+			return;
+		std::vector<AttribStream> attrib_stream;
+		attrib_stream.resize(attrib_define.count);
+		for (auto i = 0; i < attrib_define.count; ++i)
+		{
+			auto &slot = attrib_define.attrib_slots[i];
+			if (!vb.has_attribute(slot.usage)
+				|| vb.attrib_component(slot.usage) < slot.component)
+				return;
+			attrib_stream[i] = {
+				(const char*)vb.attrib_stream(slot.usage),
+				vb.attrib_stride(slot.usage),
+			};
+		}
+
 		// todo: work parallel
+		std::vector<const char*> attrib_ptr(attrib_define.count, nullptr);
 		TaskVertex task;
 		task.material = material;
-		task.in_vertex = vb.get_vertex_stream();
+		task.attrib_stream = &attrib_stream[0];
+		task.attrib_count = attrib_stream.size();
+		task.attrib_component = attrib_define.component;
+		task.in_stream = &attrib_ptr[0];
 		task.in_size = vb.size();
-		task.in_stride = vb.vertex_component();
-		task.in_pos = reinterpret_cast<const Imath::V3f*>(vb.attrib_stream(ATTR_POSITION));
-		size_t out_stride = program->get_vertex_stride();
-		task.out_stride = out_stride;
+
 		// use triangle as the basic primitive (3 vertex)
 		// clipping may produce 7 more vertex
 		// so the maximum vertex count is 10
-		constexpr int max_count = 10;
-		size_t cache_vert = out_stride * sizeof(float) * max_count * 2;
-		// cache for clipping position (double buffer)
-		size_t cache_clip = sizeof(Imath::V4f) * max_count * 2;
+		// and we use double buffer to swap input/output
+		constexpr int max_count = 10 * 2;
+		// cache for vertex attributes 
+		size_t cache_vert = attrib_define.component * sizeof(float) * max_count;
+		// cache for clipping position
+		size_t cache_clip = sizeof(Imath::V4f) * max_count;
 		task.cache_size = cache_vert + cache_clip;
 		task.cache = new char[task.cache_size];
 		task.out_vertex = reinterpret_cast<float*>(task.cache);
