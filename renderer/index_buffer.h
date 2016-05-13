@@ -19,7 +19,9 @@ namespace wyc
 		void clear();
 		size_t size() const;
 		uint8_t stride() const;
-		
+		inline const char* get_index_stream() const {
+			return m_data;
+		}
 		using const_iterator = CAnyStrideIterator<unsigned, CAnyReader>;
 		using iterator = CAnyStrideIterator<unsigned, CAnyAccessor&>;
 		inline iterator begin() {

@@ -113,7 +113,7 @@ namespace wyc
 		}
 	}
 
-	float* clip_polygon_stream(float *vertex_in, float *vertex_out, size_t &vertex_count, size_t stride, size_t pos_offset, size_t cache_size)
+	float* clip_polygon_stream(float *vertex_in, float *vertex_out, size_t &vertex_count, size_t stride)
 	{
 		// clipped by W=0
 		constexpr float w_epsilon = 0.0001f;
@@ -122,22 +122,22 @@ namespace wyc
 		float *out_vert = vertex_out;
 		float *end = cur_vert + (vertex_count * stride);
 		// pos = {x, y, z, w}
-		float *pos = prev_vert + pos_offset;
+		float *pos = prev_vert/* + pos_offset*/;
 		float pdot, dot;
 		pdot = pos[3] - w_epsilon;
 		vertex_count = 0;
 		for (; cur_vert < end; cur_vert += stride)
 		{
-			pos = cur_vert + pos_offset;
+			pos = cur_vert/* + pos_offset*/;
 			dot = pos[3] - w_epsilon;
 			if (pdot * dot < 0) {
-				assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
+				//assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
 				intersect(prev_vert, pdot, cur_vert, dot, stride, out_vert);
 				out_vert += stride;
 				vertex_count += 1;
 			}
 			if (dot >= 0) {
-				assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
+				//assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
 				memcpy(out_vert, cur_vert, sizeof(float) * stride);
 				out_vert += stride;
 				vertex_count += 1;
@@ -156,20 +156,20 @@ namespace wyc
 			cur_vert = vertex_in;
 			out_vert = vertex_out;
 			vertex_count = 0;
-			pos = prev_vert + pos_offset;
+			pos = prev_vert/* + pos_offset*/;
 			pdot = pos[3] - pos[i];
 			for (; cur_vert < end; cur_vert += stride)
 			{
-				pos = cur_vert + pos_offset;
+				pos = cur_vert/* + pos_offset*/;
 				dot = pos[3] - pos[i];
 				if (pdot * dot < 0) {
-					assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
+					//assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
 					intersect(prev_vert, pdot, cur_vert, dot, stride, out_vert);
 					out_vert += stride;
 					vertex_count += 1;
 				}
 				if (dot >= 0) {
-					assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
+					//assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
 					memcpy(out_vert, cur_vert, sizeof(float) * stride);
 					out_vert += stride;
 					vertex_count += 1;
@@ -189,22 +189,22 @@ namespace wyc
 			cur_vert = vertex_in;
 			out_vert = vertex_out;
 			vertex_count = 0;
-			pos = prev_vert + pos_offset;
+			pos = prev_vert/* + pos_offset*/;
 			pdot = pos[3] + pos[i];
 			for (; cur_vert < end; cur_vert += stride)
 			{
-				pos = cur_vert + pos_offset;
+				pos = cur_vert/* + pos_offset*/;
 				dot = pos[3] + pos[i];
 				if (pdot * dot < 0)
 				{
-					assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
+					//assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
 					intersect(prev_vert, pdot, cur_vert, dot, stride, out_vert);
 					out_vert += stride;
 					vertex_count += 1;
 				}
 				if (dot >= 0)
 				{
-					assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
+					//assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
 					memcpy(out_vert, cur_vert, sizeof(float) * stride);
 					out_vert += stride;
 					vertex_count += 1;

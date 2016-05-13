@@ -47,7 +47,7 @@ namespace wyc
 	// retutn: the buffer which contains the clipping result, it's either vertex_in or vertex_out.
 	// return nullptr if the polygon is totally clipped out
 	// when return, vertex_count specify the count of resulting vertices.
-	float* clip_polygon_stream(float *vertex_in, float *vertex_out, size_t &vertex_count, size_t stride, size_t pos_offset, size_t cache_size);
+	float* clip_polygon_stream(float *vertex_in, float *vertex_out, size_t &vertex_count, size_t stride);
 
 	std::pair<Imath::V4f*, float*> clip_polygon_stream(Imath::V4f *clip_in, Imath::V4f *clip_out, 
 		float *vertex_in, float *vertex_out, unsigned &size, unsigned stride, unsigned max_size);

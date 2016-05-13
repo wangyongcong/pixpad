@@ -3,7 +3,7 @@
 #include <functional>
 #include <OpenEXR/ImathColorAlgo.h>
 #include <mathex/ImathBoxAlgoExt.h>
-#include "mathex/vecmath.h"
+#include <mathex/vecmath.h>
 #include "spw_rasterizer.h"
 #include "clipping.h"
 
@@ -29,26 +29,36 @@ namespace wyc
 		set_viewport({ {0, 0}, {int(surfw), int(surfh)} });
 	}
 
+	bool CSpwPipeline::check_material(const AttribDefine & attrib_def) const
+	{
+		if (!attrib_def.in_count || !attrib_def.out_count)
+			return false;
+		if (attrib_def.out_attribs[0].usage != ATTR_POSITION && attrib_def.out_attribs[0].component != 4)
+			return false;
+		return true;
+	}
+
 	void CSpwPipeline::feed(const CMesh *mesh, const CMaterial *material)
 	{
 		assert(mesh && material);
 		const CVertexBuffer &vb = mesh->vertex_buffer();
 		const CIndexBuffer &ib = mesh->index_buffer();
-
+		if (ib.stride() != sizeof(unsigned))
+			return;
 		// setup render target
 		unsigned surfw, surfh;
 		m_rt->get_size(surfw, surfh);
 		int halfw = surfw >> 1, halfh = surfh >> 1;
 
 		// bind stream
-		auto &attrib_define = material->get_attrib_define();
-		if (!attrib_define.count)
+		auto &attrib_def = material->get_attrib_define();
+		if (!check_material(attrib_def))
 			return;
 		std::vector<AttribStream> attrib_stream;
-		attrib_stream.resize(attrib_define.count);
-		for (auto i = 0; i < attrib_define.count; ++i)
+		attrib_stream.resize(attrib_def.in_count);
+		for (auto i = 0; i < attrib_def.in_count; ++i)
 		{
-			auto &slot = attrib_define.attrib_slots[i];
+			auto &slot = attrib_def.in_attribs[i];
 			if (!vb.has_attribute(slot.usage)
 				|| vb.attrib_component(slot.usage) < slot.component)
 				return;
@@ -59,32 +69,32 @@ namespace wyc
 		}
 
 		// todo: work parallel
-		std::vector<const char*> attrib_ptr(attrib_define.count, nullptr);
 		TaskVertex task;
 		task.material = material;
-		task.attrib_stream = &attrib_stream[0];
-		task.attrib_count = attrib_stream.size();
-		task.attrib_component = attrib_define.component;
-		task.in_stream = &attrib_ptr[0];
-		task.in_size = vb.size();
-
+		task.index_stream = reinterpret_cast<const unsigned*>(ib.get_index_stream());
+		task.index_size = ib.size() / 3 * 3;
+		task.in_stream = &attrib_stream[0];
+		task.in_count = attrib_stream.size();
+		task.in_stride = attrib_def.in_stride;
+		task.out_count = attrib_def.out_count;
+		task.out_stride = attrib_def.out_stride;
+		// assign surface block
+		task.block = { { 0, 0 },{ halfw, halfh } };
 		// use triangle as the basic primitive (3 vertex)
 		// clipping may produce 7 more vertex
 		// so the maximum vertex count is 10
 		// and we use double buffer to swap input/output
 		constexpr int max_count = 10 * 2;
 		// cache for vertex attributes 
-		size_t cache_vert = attrib_define.component * sizeof(float) * max_count;
+		size_t cache_vert = sizeof(float) * attrib_def.out_stride * max_count;
 		// cache for clipping position
-		size_t cache_clip = sizeof(Imath::V4f) * max_count;
+		size_t cache_clip = sizeof(Vec4f) * max_count;
 		task.cache_size = cache_vert + cache_clip;
 		task.cache = new char[task.cache_size];
-		task.out_vertex = reinterpret_cast<float*>(task.cache);
-		task.out_cache = task.out_vertex + out_stride * max_count;
-		task.clip_pos = reinterpret_cast<Imath::V4f*>(task.cache + cache_vert);
-		task.clip_out = task.clip_pos + max_count;
-		// assign surface block
-		task.block = { {0, 0}, {halfw, halfh} };
+		task.vert_cache0 = reinterpret_cast<float*>(task.cache);
+		task.vert_cache1 = task.vert_cache0 + attrib_def.out_stride * max_count;
+		task.clip_cache0 = reinterpret_cast<Vec4f*>(task.cache + cache_vert);
+		task.clip_cache1 = task.clip_cache0 + max_count;
 
 		process(task);
 	}
@@ -99,35 +109,58 @@ namespace wyc
 
 	void CSpwPipeline::process(TaskVertex &task) const
 	{
-		const float *vert = task.in_vertex;
-		const float *end = vert + task.in_size * task.in_stride;
-		float *vert_out = task.out_vertex;
-		size_t vcnt = 0;
-		std::pair<Imath::V4f*, float*> clip_result;
-		for (; vert != end; vert += task.in_stride)
+		std::vector<const char*> attrib_ptr(task.in_count, nullptr);
+		const void* in_vertex = &attrib_ptr[0];
+		for (size_t i = 0; i < task.index_size; ++i)
 		{
-			task.program->vertex_shader(vert, vert_out, task.clip_pos[vcnt++]);
-			if (vcnt < 3) {
-				vert_out += task.out_stride;
-				continue;
+			auto idx_vert = task.index_stream[i];
+			for (size_t j = 0; j < task.in_count; ++j)
+			{
+				auto &stream = task.in_stream[j];
+				attrib_ptr[j] = stream.first + stream.second * idx_vert;
 			}
-			clip_result = clip_polygon_stream(task.clip_pos, task.clip_out,
-				task.out_vertex, task.out_cache, vcnt, task.out_stride, 10);
-			if (vcnt >= 3) {
-				viewport_transform(clip_result.first, vcnt);
-				draw_triangles(clip_result.first, clip_result.second, vcnt, task);
+			size_t vcnt = i % 3;
+			task.material->vertex_shader(in_vertex, task.vert_cache0);
+			if (vcnt == 2)
+			{
+				size_t clip_count;
+				float *clip_result = clip_polygon_stream(task.vert_cache0, task.vert_cache1, clip_count, task.out_stride);
+				if (clip_count >= 3)
+				{
+					viewport_transform(clip_result, clip_count, task.out_stride);
+					draw_triangles(clip_result, clip_count, task);
+				}
 			}
-			// next triangle
-			vcnt = 0;
-			vert_out = task.out_vertex;
 		}
+		//const float *vert = task.in_vertex;
+		//const float *end = vert + task.in_size * task.in_stride;
+		//float *vert_out = task.out_vertex;
+		//size_t vcnt = 0;
+		//std::pair<Imath::V4f*, float*> clip_result;
+		//for (; vert != end; vert += task.in_stride)
+		//{
+		//	task.program->vertex_shader(vert, vert_out, task.clip_pos[vcnt++]);
+		//	if (vcnt < 3) {
+		//		vert_out += task.out_stride;
+		//		continue;
+		//	}
+		//	clip_result = clip_polygon_stream(task.clip_pos, task.clip_out,
+		//		task.out_vertex, task.out_cache, vcnt, task.out_stride, 10);
+		//	if (vcnt >= 3) {
+		//		viewport_transform(clip_result.first, vcnt);
+		//		draw_triangles(clip_result.first, clip_result.second, vcnt, task);
+		//	}
+		//	// next triangle
+		//	vcnt = 0;
+		//	vert_out = task.out_vertex;
+		//}
 	}
 
-	void CSpwPipeline::viewport_transform(Imath::V4f* vertex_pos, size_t size) const
+	void CSpwPipeline::viewport_transform(float* vert_pos, size_t size, size_t stride) const
 	{
-		for (size_t i = 0; i < size; ++i)
+		for (size_t i = 0; i < size; ++i, vert_pos += stride)
 		{
-			auto &pos = vertex_pos[i];
+			Vec4f &pos = *reinterpret_cast<Vec4f*>(vert_pos);
 			// we keep pos.w to correct interpolation
 			// perspective projection: pos.w == -pos.z 
 			// orthographic projection: pos.w == 1
@@ -137,13 +170,69 @@ namespace wyc
 		}
 	}
 
+	//void CSpwPipeline::viewport_transform(Imath::V4f* vertex_pos, size_t size) const
+	//{
+	//	for (size_t i = 0; i < size; ++i)
+	//	{
+	//		auto &pos = vertex_pos[i];
+	//		// we keep pos.w to correct interpolation
+	//		// perspective projection: pos.w == -pos.z 
+	//		// orthographic projection: pos.w == 1
+	//		pos.x = m_vp_translate.x + m_vp_scale.x * (pos.x / pos.w);
+	//		pos.y = m_vp_translate.y + m_vp_scale.y * (pos.y / pos.w);
+	//		pos.z /= pos.w;
+	//	}
+	//}
+
+	void CSpwPipeline::draw_triangles(float *vertices, size_t count, TaskVertex &task) const
+	{
+		size_t stride = task.out_stride;
+		auto center = task.block.center();
+		CSpwPlotter plt(m_rt.get(), task.material, task.block, stride);
+		plt.v0 = vertices;
+		plt.v1 = plt.v0 + stride;
+		plt.v2 = plt.v1 + stride;
+		Vec4f *p0 = (Vec4f*)vertices, *p1 = (Vec4f*)(vertices + stride), *p2 = (Vec4f*)(vertices + stride * 2);
+		p0->x -= center.x;
+		p0->y -= center.y;
+		p1->x -= center.x;
+		p1->y -= center.y;
+		Imath::Box2i bounding;
+		for (size_t j = 2; j < count; ++j)
+		{
+			p2->x -= center.x;
+			p2->y -= center.y;
+			// backface culling
+			Imath::V2f v10(p0->x - p1->x, p0->y - p1->y);
+			Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
+			if (v10.cross(v12) * m_clock_wise <= 0)
+				return;
+			//if (m_draw_mode == LINE_MODE)
+			//{
+			//	draw_triangle_frame(*p0, *p1, *p2, plt);
+			//	continue;
+			//}
+			// calculate triangle bounding box and intersection of region block
+			Imath::bounding(bounding, p0, p1, p2);
+			Imath::intersection(bounding, task.block);
+			if (!bounding.isEmpty())
+				fill_triangle(bounding, *p0, *p1, *p2, plt);
+			// next one
+			p1 = p2;
+			p2 = (Vec4f*)(((float*)p2) + stride);
+			//p2 += 1;
+			plt.v1 = plt.v2;
+			plt.v2 += stride;
+		}
+	}
+
 	class CSpwPlotter
 	{
 	public:
 		const float *v0, *v1, *v2;
-		CSpwPlotter(CSpwRenderTarget *rt, const IShaderProgram *program, const Imath::Box2i &block, size_t commponent)
+		CSpwPlotter(CSpwRenderTarget *rt, const CMaterial *material, const Imath::Box2i &block, size_t commponent)
 			: m_rt(rt)
-			, m_program(program)
+			, m_material(material)
 			, m_size(commponent)
 		{
 			m_vert = new float[m_size];
@@ -161,7 +250,7 @@ namespace wyc
 		{
 			// write render target
 			Imath::C4f frag_color;
-			if (!m_program->fragment_shader(m_vert, frag_color))
+			if (!m_material->fragment_shader(m_vert, frag_color))
 				return;
 			frag_color.r *= frag_color.a;
 			frag_color.g *= frag_color.a;
@@ -185,7 +274,7 @@ namespace wyc
 			}
 			// write render target
 			Imath::C4f frag_color;
-			if (!m_program->fragment_shader(m_vert, frag_color))
+			if (!m_material->fragment_shader(m_vert, frag_color))
 				return;
 			// write fragment buffer
 			frag_color.r *= frag_color.a;
@@ -202,51 +291,12 @@ namespace wyc
 
 	private:
 		CSpwRenderTarget *m_rt;
-		const IShaderProgram *m_program;
+		const CMaterial *m_material;
 		float *m_vert;
 		size_t m_size;
 		Imath::V2i m_center;
 	};
 
-	void CSpwPipeline::draw_triangles(Imath::V4f* vertex_pos, const float *vertices, size_t count, TaskVertex &task) const
-	{
-		size_t stride = task.out_stride;
-		auto center = task.block.center();
-		CSpwPlotter plt(m_rt.get(), task.program, task.block, stride);
-		plt.v0 = vertices;
-		plt.v1 = plt.v0 + stride;
-		plt.v2 = plt.v1 + stride;
-		Imath::V4f *p0 = vertex_pos, *p1 = vertex_pos + 1, *p2 = vertex_pos + 2;
-		p0->x -= center.x;
-		p0->y -= center.y;
-		p1->x -= center.x;
-		p1->y -= center.y;
-		Imath::Box2i bounding;
-		for (size_t j = 2; j < count; ++j)
-		{
-			p2->x -= center.x;
-			p2->y -= center.y;
-			// backface culling
-			Imath::V2f v10(p0->x - p1->x, p0->y - p1->y);
-			Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
-			if (v10.cross(v12) * m_clock_wise <= 0)
-				return;
-			if (m_draw_mode == LINE_MODE)
-			{
-				draw_triangle_frame(*p0, *p1, *p2, plt);
-				continue;
-			}
-			// calculate triangle bounding box and intersection of region block
-			Imath::bounding(bounding, p0, p1, p2);
-			Imath::intersection(bounding, task.block);
-			if (!bounding.isEmpty()) 
-				fill_triangle(bounding, *p0, *p1, *p2, plt);
-			// next one
-			p1 = p2;
-			p2 += 1;
-			plt.v1 = plt.v2;
-			plt.v2 += stride;
-		}
-	}
+
 
 } // namesace wyc

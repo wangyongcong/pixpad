@@ -40,24 +40,27 @@ namespace wyc
 		typedef std::pair<const char*, size_t> AttribStream;
 		struct TaskVertex {
 			const CMaterial *material;
-			const AttribStream* attrib_stream;
-			size_t attrib_count;
-			size_t attrib_component;
-			const char** in_stream;
-			size_t in_size;  // input vertex count
-
+			const unsigned* index_stream;
+			size_t index_size;
+			const AttribStream* in_stream;
+			size_t in_count;
+			size_t in_stride;
+			size_t out_count;
 			size_t out_stride;  // output vertex stride (in float component)
 			char *cache;  // cache buffer
 			size_t cache_size;  // cache size in bytes
-			float *out_vertex;  // output vertex cache 1
-			float *out_cache;   // output vertex cache 2
-			Imath::V4f *clip_pos;  // clip position cache 1
-			Imath::V4f *clip_out;  // clip output cache 2
+			float *vert_cache0;  // output vertex cache 1
+			float *vert_cache1;  // output vertex cache 2
+			Vec4f *clip_cache0;  // clip position cache 1
+			Vec4f *clip_cache1;  // clip position cache 2
 			Imath::Box2i block;
 		};
+		bool check_material(const AttribDefine &attrib_def) const;
 		void process(TaskVertex &stream) const;
-		void viewport_transform(Imath::V4f* vertex_pos, size_t size) const;
-		void draw_triangles(Imath::V4f* vertex_pos, const float *vertices, size_t count, TaskVertex &task) const;
+		void viewport_transform(float* vert_pos, size_t size, size_t stride) const;
+		void draw_triangles(float *vertices, size_t count, TaskVertex &task) const;
+		//void viewport_transform(Imath::V4f* vertex_pos, size_t size) const;
+		//void draw_triangles(Imath::V4f* vertex_pos, const float *vertices, size_t count, TaskVertex &task) const;
 
 		unsigned m_num_core;
 		POLYGON_WINDING m_clock_wise;
