@@ -38,7 +38,7 @@ namespace wyc
 
 	protected:
 		typedef std::pair<const char*, size_t> AttribStream;
-		struct TaskVertex {
+		struct RasterTask {
 			const CMaterial *material;
 			const unsigned* index_stream;
 			size_t index_size;
@@ -51,16 +51,18 @@ namespace wyc
 			size_t cache_size;  // cache size in bytes
 			float *vert_cache0;  // output vertex cache 1
 			float *vert_cache1;  // output vertex cache 2
-			Vec4f *clip_cache0;  // clip position cache 1
-			Vec4f *clip_cache1;  // clip position cache 2
+			//Vec4f *clip_cache0;  // clip position cache 1
+			//Vec4f *clip_cache1;  // clip position cache 2
+			float *frag_cache;
+			size_t frag_stride;
 			Imath::Box2i block;
 		};
 		bool check_material(const AttribDefine &attrib_def) const;
-		void process(TaskVertex &stream) const;
+		void process(RasterTask &stream) const;
 		void viewport_transform(float* vert_pos, size_t size, size_t stride) const;
-		void draw_triangles(float *vertices, size_t count, TaskVertex &task) const;
+		void draw_triangles(float *vertices, size_t count, RasterTask &task) const;
 		//void viewport_transform(Imath::V4f* vertex_pos, size_t size) const;
-		//void draw_triangles(Imath::V4f* vertex_pos, const float *vertices, size_t count, TaskVertex &task) const;
+		//void draw_triangles(Imath::V4f* vertex_pos, const float *vertices, size_t count, RasterTask &task) const;
 
 		unsigned m_num_core;
 		POLYGON_WINDING m_clock_wise;
@@ -68,6 +70,21 @@ namespace wyc
 		std::shared_ptr<CSpwRenderTarget> m_rt;
 		Imath::V2f m_vp_translate;
 		Imath::V2f m_vp_scale;
+
+		class CSpwPlotter
+		{
+		public:
+			const float *v0, *v1, *v2;
+			CSpwPlotter(CSpwRenderTarget *rt, RasterTask &task, const Imath::V2i &center);
+			// plot mode
+			void operator() (int x, int y);
+			// fill mode
+			void operator() (int x, int y, float z, float w1, float w2, float w3);
+		private:
+			CSpwRenderTarget *m_rt;
+			RasterTask &m_task;
+			Imath::V2i m_center;
+		};
 	};
 
 } // namespace wyc

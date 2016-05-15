@@ -2,67 +2,73 @@
 #include <OpenEXR/ImathMatrix.h>
 #include <vertex_layout.h>
 #include <material.h>
+#include <mathex/mathfwd.h>
 #include <mathex/ImathMatrixExt.h>
 
 namespace wyc
 {
-	class CMaterialFlatColor : public CMaterial
+	class CMaterialPhoneColor : public CMaterial
 	{
 	public:
 		struct VertexIn {
 			const Vec3f *pos;
+			const Color4f *color;
 		};
 
 		struct VertexOut {
 			Vec4f pos;
+			Color4f color;
 		};
 
 		virtual const AttribDefine& get_attrib_define() const override
 		{
 			static AttribSlot ls_in_attribs[] = {
 				{ ATTR_POSITION, 3 },
+				{ ATTR_COLOR, 4 },
 			};
 			static AttribSlot ls_out_attirbs[] = {
 				{ ATTR_POSITION, 4 },
+				{ ATTR_COLOR, 4 },
 			};
 			static AttribDefine ls_attrib_define = {
 				ls_in_attribs, // attribute slot binding
-				1, // attribute count
-				3, // total attribute components
+				2, // attribute count
+				7, // total attribute components
 				ls_out_attirbs,
-				1,
-				4,
+				2,
+				8,
 			};
 			return ls_attrib_define;
 		}
 
 		virtual const std::unordered_map<std::string, CUniform>& get_uniform_define() const override
 		{
-			DECLARE_UNIFORM_MAP(CMaterialFlatColor) {
-				MAKE_UNIFORM(Matrix44f, mvp_matrix),
-				MAKE_UNIFORM(Color4f, color)
+			DECLARE_UNIFORM_MAP(CMaterialPhoneColor) {
+				MAKE_UNIFORM(Matrix44f, mvp_matrix)
 			};
 			return UNIFORM_MAP;
 		}
 
-		// shader interface
 		virtual void vertex_shader(const void *vertex_in, void *vertex_out) const override
 		{
-			const VertexIn* in = reinterpret_cast<const VertexIn*>(vertex_in);
-			VertexOut* out = reinterpret_cast<VertexOut*>(vertex_out);
+			VertexIn *in = (VertexIn*)vertex_in;
 			Vec4f pos(*in->pos);
 			pos.z = -1.0f;
-			out->pos = mvp_matrix * pos;
+			pos = this->mvp_matrix * pos;
+			VertexOut *out = (VertexOut*)vertex_out;
+			out->pos = pos;
+			out->color = *in->color;
 		}
 
 		virtual bool fragment_shader(const void *vertex_out, Color4f &frag_color) const override
 		{
-			frag_color = color;
+			const VertexOut* out = reinterpret_cast<const VertexOut*>(vertex_out);
+			frag_color = out->color;
+			return true;
 		}
 
-	private:
+	protected:
 		Matrix44f mvp_matrix;
-		Color4f color;
 	};
 
 } // namespace

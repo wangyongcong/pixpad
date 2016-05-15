@@ -289,6 +289,7 @@
     <ClInclude Include="..\..\renderer\shader.h" />
     <ClInclude Include="..\..\renderer\sparrow\clipping.h" />
     <ClInclude Include="..\..\renderer\sparrow\shader\flat_color.h" />
+    <ClInclude Include="..\..\renderer\sparrow\shader\phone_color.h" />
     <ClInclude Include="..\..\renderer\sparrow\shader\tex_color.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_command.h" />
     <ClInclude Include="..\..\renderer\sparrow\spw_pipeline.h" />
@@ -330,7 +331,6 @@
     <ClCompile Include="..\..\renderer\render_command.cpp" />
     <ClCompile Include="..\..\renderer\scene.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\clipping.cpp" />
-    <ClCompile Include="..\..\renderer\sparrow\shader\flat_color.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\shader\tex_color.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_command.cpp" />
     <ClCompile Include="..\..\renderer\sparrow\spw_pipeline.cpp" />

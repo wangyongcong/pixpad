@@ -69,7 +69,7 @@ namespace wyc
 		}
 
 		// todo: work parallel
-		TaskVertex task;
+		RasterTask task;
 		task.material = material;
 		task.index_stream = reinterpret_cast<const unsigned*>(ib.get_index_stream());
 		task.index_size = ib.size() / 3 * 3;
@@ -88,13 +88,15 @@ namespace wyc
 		// cache for vertex attributes 
 		size_t cache_vert = sizeof(float) * attrib_def.out_stride * max_count;
 		// cache for clipping position
-		size_t cache_clip = sizeof(Vec4f) * max_count;
-		task.cache_size = cache_vert + cache_clip;
+		size_t cache_frag = sizeof(float) * (task.out_stride - 4);
+		task.cache_size = cache_vert + cache_frag;
 		task.cache = new char[task.cache_size];
 		task.vert_cache0 = reinterpret_cast<float*>(task.cache);
 		task.vert_cache1 = task.vert_cache0 + attrib_def.out_stride * max_count;
-		task.clip_cache0 = reinterpret_cast<Vec4f*>(task.cache + cache_vert);
-		task.clip_cache1 = task.clip_cache0 + max_count;
+		task.frag_cache = reinterpret_cast<float*>(task.cache + cache_vert);
+		task.frag_stride = task.out_stride - 4;
+		//task.clip_cache0 = reinterpret_cast<Vec4f*>(task.cache + cache_vert);
+		//task.clip_cache1 = task.clip_cache0 + max_count;
 
 		process(task);
 	}
@@ -107,7 +109,7 @@ namespace wyc
 		m_vp_scale = { _tmp.x * 0.5f, _tmp.y * 0.5f };
 	}
 
-	void CSpwPipeline::process(TaskVertex &task) const
+	void CSpwPipeline::process(RasterTask &task) const
 	{
 		std::vector<const char*> attrib_ptr(task.in_count, nullptr);
 		const void* in_vertex = &attrib_ptr[0];
@@ -184,20 +186,16 @@ namespace wyc
 	//	}
 	//}
 
-	void CSpwPipeline::draw_triangles(float *vertices, size_t count, TaskVertex &task) const
+	void CSpwPipeline::draw_triangles(float *vertices, size_t count, RasterTask &task) const
 	{
-		size_t stride = task.out_stride;
+		Vec4f *p0 = (Vec4f*)vertices, *p1 = (Vec4f*)(vertices + task.out_stride), *p2 = (Vec4f*)(vertices + task.out_stride * 2);
 		auto center = task.block.center();
-		CSpwPlotter plt(m_rt.get(), task.material, task.block, stride);
-		plt.v0 = vertices;
-		plt.v1 = plt.v0 + stride;
-		plt.v2 = plt.v1 + stride;
-		Vec4f *p0 = (Vec4f*)vertices, *p1 = (Vec4f*)(vertices + stride), *p2 = (Vec4f*)(vertices + stride * 2);
 		p0->x -= center.x;
 		p0->y -= center.y;
 		p1->x -= center.x;
 		p1->y -= center.y;
 		Imath::Box2i bounding;
+		CSpwPlotter plt(m_rt.get(), task, center);
 		for (size_t j = 2; j < count; ++j)
 		{
 			p2->x -= center.x;
@@ -205,98 +203,80 @@ namespace wyc
 			// backface culling
 			Imath::V2f v10(p0->x - p1->x, p0->y - p1->y);
 			Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
-			if (v10.cross(v12) * m_clock_wise <= 0)
-				return;
-			//if (m_draw_mode == LINE_MODE)
-			//{
-			//	draw_triangle_frame(*p0, *p1, *p2, plt);
-			//	continue;
-			//}
-			// calculate triangle bounding box and intersection of region block
-			Imath::bounding(bounding, p0, p1, p2);
-			Imath::intersection(bounding, task.block);
-			if (!bounding.isEmpty())
-				fill_triangle(bounding, *p0, *p1, *p2, plt);
+			if (v10.cross(v12) * m_clock_wise > 0) {
+				//if (m_draw_mode == LINE_MODE)
+				//{
+				//	draw_triangle_frame(*p0, *p1, *p2, plt);
+				//	continue;
+				//}
+				// calculate triangle bounding box and intersection of region block
+				Imath::bounding(bounding, p0, p1, p2);
+				Imath::intersection(bounding, task.block);
+				if (!bounding.isEmpty()) {
+					plt.v0 = (float*)(p0 + 1);
+					plt.v1 = (float*)(p1 + 1);
+					plt.v2 = (float*)(p2 + 1);
+					fill_triangle(bounding, *p0, *p1, *p2, plt);
+				}
+			}
 			// next one
 			p1 = p2;
-			p2 = (Vec4f*)(((float*)p2) + stride);
+			p2 = (Vec4f*)(((float*)p2) + task.out_stride);
 			//p2 += 1;
-			plt.v1 = plt.v2;
-			plt.v2 += stride;
 		}
 	}
 
-	class CSpwPlotter
+	CSpwPipeline::CSpwPlotter::CSpwPlotter(CSpwRenderTarget *rt, RasterTask &task, const Imath::V2i &center)
+		: m_rt(rt)
+		, m_task(task)
+		, m_center(center)
 	{
-	public:
-		const float *v0, *v1, *v2;
-		CSpwPlotter(CSpwRenderTarget *rt, const CMaterial *material, const Imath::Box2i &block, size_t commponent)
-			: m_rt(rt)
-			, m_material(material)
-			, m_size(commponent)
+		m_center.y = rt->height() - m_center.y - 1;
+	}
+
+	// fill mode
+	void CSpwPipeline::CSpwPlotter::operator() (int x, int y, float z, float w1, float w2, float w3)
+	{
+		// todo: z-test first
+
+		// interpolate vertex attributes
+		const float *i0 = v0, *i1 = v1, *i2 = v2;
+		for (float *out = m_task.frag_cache, *end = m_task.frag_cache + m_task.frag_stride; out != end; ++out, ++i0, ++i1, ++i2)
 		{
-			m_vert = new float[m_size];
-			m_center = block.center();
-			m_center.y = rt->height() - m_center.y - 1;
+			*out = *i0 * w1 + *i1 * w2 + *i2 * w3;
 		}
-		~CSpwPlotter()
-		{
-			delete[] m_vert;
-			m_vert = nullptr;
-		}
+		// write render target
+		Imath::C4f frag_color;
+		if (!m_task.material->fragment_shader(m_task.frag_cache, frag_color))
+			return;
+		// write fragment buffer
+		frag_color.r *= frag_color.a;
+		frag_color.g *= frag_color.a;
+		frag_color.b *= frag_color.a;
+		unsigned v = Imath::rgb2packed(frag_color);
+		x += m_center.x;
+		y = m_center.y - y;
+		auto &surf = m_rt->get_color_buffer();
+		//unsigned v2 = *surf.get<unsigned>(x, y);
+		//assert(v2 == 0xff000000);
+		surf.set(x, y, v);
+	}
 
-		// plot mode
-		void operator() (int x, int y)
-		{
-			// write render target
-			Imath::C4f frag_color;
-			if (!m_material->fragment_shader(m_vert, frag_color))
-				return;
-			frag_color.r *= frag_color.a;
-			frag_color.g *= frag_color.a;
-			frag_color.b *= frag_color.a;
-			x += m_center.x;
-			y = m_center.y - y;
-			unsigned v = Imath::rgb2packed(frag_color);
-			auto &surf = m_rt->get_color_buffer();
-			surf.set(x, y, v);
-		}
-
-		// fill mode
-		void operator() (int x, int y, float z, float w1, float w2, float w3)
-		{
-			// todo: z-test first
-
-			const float *i0 = v0, *i1 = v1, *i2 = v2;
-			for (float *out = m_vert, *end = m_vert + m_size; out != end; ++out, ++i0, ++i1, ++i2)
-			{
-				*out = *i0 * w1 + *i1 * w2 + *i2 * w3;
-			}
-			// write render target
-			Imath::C4f frag_color;
-			if (!m_material->fragment_shader(m_vert, frag_color))
-				return;
-			// write fragment buffer
-			frag_color.r *= frag_color.a;
-			frag_color.g *= frag_color.a;
-			frag_color.b *= frag_color.a;
-			unsigned v = Imath::rgb2packed(frag_color);
-			x += m_center.x;
-			y = m_center.y - y;
-			auto &surf = m_rt->get_color_buffer();
-			//unsigned v2 = *surf.get<unsigned>(x, y);
-			//assert(v2 == 0xff000000);
-			surf.set(x, y, v);
-		}
-
-	private:
-		CSpwRenderTarget *m_rt;
-		const CMaterial *m_material;
-		float *m_vert;
-		size_t m_size;
-		Imath::V2i m_center;
-	};
-
-
+	// plot mode
+	void CSpwPipeline::CSpwPlotter::operator() (int x, int y)
+	{
+		// write render target
+		Imath::C4f frag_color;
+		if (!m_task.material->fragment_shader(m_task.frag_cache, frag_color))
+			return;
+		frag_color.r *= frag_color.a;
+		frag_color.g *= frag_color.a;
+		frag_color.b *= frag_color.a;
+		x += m_center.x;
+		y = m_center.y - y;
+		unsigned v = Imath::rgb2packed(frag_color);
+		auto &surf = m_rt->get_color_buffer();
+		surf.set(x, y, v);
+	}
 
 } // namesace wyc

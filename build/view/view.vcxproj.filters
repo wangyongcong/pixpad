@@ -718,6 +718,9 @@
     <ClInclude Include="..\..\renderer\shader.h">
       <Filter>Renderer\Base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\renderer\sparrow\shader\phone_color.h">
+      <Filter>Renderer\Material</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\view\game\game_pixpad.cpp">
@@ -788,9 +791,6 @@
     </ClCompile>
     <ClCompile Include="..\..\renderer\vertex_layout.cpp">
       <Filter>Renderer\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\renderer\sparrow\shader\flat_color.cpp">
-      <Filter>Renderer\Material</Filter>
     </ClCompile>
     <ClCompile Include="..\..\renderer\sparrow\shader\tex_color.cpp">
       <Filter>Renderer\Material</Filter>
