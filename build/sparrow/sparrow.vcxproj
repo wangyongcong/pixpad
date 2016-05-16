@@ -71,12 +71,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\install\zlib\include;..\install\libpng\include;..\install\openexr\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\install\zlib\lib;..\install\libpng\lib;..\install\openexr\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\install\zlib\include;..\install\libpng\include;..\install\openexr\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\install\zlib\lib;..\install\libpng\lib;..\install\openexr\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
