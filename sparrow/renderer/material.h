@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <memory>
 #include <OpenEXR/ImathMatrix.h>
-#include <mathex/mathfwd.h>
+#include "mathfwd.h"
 #include "vertex_buffer.h"
 
 namespace wyc

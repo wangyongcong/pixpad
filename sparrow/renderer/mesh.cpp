@@ -5,8 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <sstream>
-
-#include "OpenEXR/ImathVec.h"
+#include <OpenEXR/ImathVec.h>
 #include "log.h"
 #include "util.h"
 #include "vertex_buffer.h"

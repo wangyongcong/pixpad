@@ -1,6 +1,6 @@
 #include "clipping.h"
-#include <mathex/ImathVecExt.h>
-#include <mathex/floatmath.h>
+#include "ImathVecExt.h"
+#include "floatmath.h"
 
 namespace wyc
 {

@@ -5,8 +5,8 @@
 #include <vector>
 #include <float.h>
 #include "surface.h"
-#include "math/vecmath.h"
-#include "math/floatmath.h"
+#include "vecmath.h"
+#include "floatmath.h"
 #include "rs_line.h"
 
 namespace wyc

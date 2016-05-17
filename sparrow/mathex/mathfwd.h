@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OpenEXR/ImathForward.h"
+#include <OpenEXR/ImathForward.h>
 
 namespace wyc
 {

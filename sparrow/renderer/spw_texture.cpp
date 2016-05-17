@@ -1,7 +1,7 @@
 #include "spw_texture.h"
 #include <cassert>
 #include <OpenEXR/ImathColor.h>
-#include <mathex/floatmath.h>
+#include "floatmath.h"
 
 namespace wyc
 {

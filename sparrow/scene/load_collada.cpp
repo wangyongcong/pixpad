@@ -2,8 +2,8 @@
 #include <COLLADAFW.h>
 #include <COLLADASaxFWLLoader.h>
 #include <COLLADAFWIWriter.h>
-#include <common/util.h>
-#include <common/log.h>
+#include "util.h"
+#include "log.h"
 
 #pragma comment(lib, "GeneratedSaxParser.lib")
 #pragma comment(lib, "OpenCOLLADABaseUtils.lib")

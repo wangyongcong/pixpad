@@ -6,7 +6,7 @@
 #include "camera.h"
 #include "renderer.h"
 #include "material.h"
-#include <sparrow/shader/flat_color.h>
+#include "flat_color.h"
 
 namespace wyc
 {

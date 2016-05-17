@@ -1,6 +1,6 @@
 #include "tex_color.h"
-#include <mathex/ImathVecExt.h>
-#include <mathex/ImathMatrixExt.h>
+#include "ImathVecExt.h"
+#include "ImathMatrixExt.h"
 
 namespace wyc 
 {

@@ -1,9 +1,9 @@
 #pragma once
 #include <OpenEXR/ImathMatrix.h>
-#include <vertex_layout.h>
-#include <material.h>
-#include <mathex/mathfwd.h>
-#include <mathex/ImathMatrixExt.h>
+#include "vertex_layout.h"
+#include "material.h"
+#include "mathfwd.h"
+#include "ImathMatrixExt.h"
 
 namespace wyc
 {

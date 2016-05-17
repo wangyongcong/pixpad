@@ -1,5 +1,5 @@
 #include "camera.h"
-#include "mathex/vecmath.h"
+#include "vecmath.h"
 
 namespace wyc
 {

@@ -2,8 +2,8 @@
 #include <cassert>
 #include <functional>
 #include <OpenEXR/ImathColorAlgo.h>
-#include <mathex/ImathBoxAlgoExt.h>
-#include <mathex/vecmath.h>
+#include "ImathBoxAlgoExt.h"
+#include "vecmath.h"
 #include "spw_rasterizer.h"
 #include "clipping.h"
 

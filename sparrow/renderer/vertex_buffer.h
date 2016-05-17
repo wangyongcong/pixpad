@@ -2,8 +2,7 @@
 #include <cstdint>
 #include <iterator>
 #include <cassert>
-
-#include "OpenEXR/ImathVec.h"
+#include <OpenEXR/ImathVec.h>
 #include "any_stride_iterator.h"
 #include "vertex_layout.h"
 

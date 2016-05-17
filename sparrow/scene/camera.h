@@ -1,6 +1,6 @@
 #pragma once
 #include <OpenEXR/ImathMatrix.h>
-#include "mathex/mathfwd.h"
+#include "mathfwd.h"
 
 namespace wyc
 {

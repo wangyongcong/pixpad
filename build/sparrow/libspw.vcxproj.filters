@@ -1,0 +1,347 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="common">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="scene">
+      <UniqueIdentifier>{9bf4395a-6e20-4c6d-be76-d0e805603ca4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="renderer">
+      <UniqueIdentifier>{a15c038c-d50a-405e-92b4-3ea7178c14c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd">
+      <UniqueIdentifier>{48760a50-eb20-4cc9-88a1-8b21d99495c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd\OpenEXR">
+      <UniqueIdentifier>{f8491983-65bf-48e7-b86f-ca77895fd98c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shader">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\sparrow\common\any_stride_iterator.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\common\image.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\common\log.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\common\logger.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\common\unitest.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\common\util.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\scene\camera.h">
+      <Filter>scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\scene\scene.h">
+      <Filter>scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\clipping.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\index_buffer.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\material.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\mesh.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\renderer.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\render_command.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\render_target.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\spw_command.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\spw_pipeline.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\spw_rasterizer.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\spw_renderer.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\spw_render_target.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\spw_texture.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\surface.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\vertex_buffer.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\vertex_layout.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\half.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\halfExport.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\halfFunction.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\halfLimits.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\Iex.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IexBaseExc.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IexErrnoExc.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IexExport.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IexForward.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IexMacros.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IexMathExc.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IexMathFloatExc.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IexMathFpu.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IexMathIeeeExc.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IexNamespace.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IexThrowErrnoExc.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IlmBaseConfig.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IlmThread.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IlmThreadExport.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IlmThreadForward.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IlmThreadMutex.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IlmThreadNamespace.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IlmThreadPool.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\IlmThreadSemaphore.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathBox.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathBoxAlgo.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathColor.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathColorAlgo.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathEuler.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathExc.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathExport.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathForward.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathFrame.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathFrustum.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathFrustumTest.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathFun.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathGL.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathGLU.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathHalfLimits.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathInt64.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathInterval.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathLimits.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathLine.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathLineAlgo.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathMath.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathMatrix.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathMatrixAlgo.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathNamespace.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathPlane.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathPlatform.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathQuat.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathRandom.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathRoots.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathShear.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathSphere.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathVec.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\install\include\OpenEXR\ImathVecAlgo.h">
+      <Filter>3rd\OpenEXR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\shader\flat_color.h">
+      <Filter>shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\shader\phone_color.h">
+      <Filter>shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\shader\tex_color.h">
+      <Filter>shader</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\sparrow\common\image.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\common\logger.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\common\util.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\scene\camera.cpp">
+      <Filter>scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\scene\load_collada.cpp">
+      <Filter>scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\scene\scene.cpp">
+      <Filter>scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\clipping.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\index_buffer.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\material.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\mesh.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\renderer.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\render_command.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\spw_command.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\spw_pipeline.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\spw_renderer.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\spw_render_target.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\spw_texture.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\surface.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\vertex_buffer.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\vertex_layout.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\shader\tex_color.cpp">
+      <Filter>shader</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

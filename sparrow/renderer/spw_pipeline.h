@@ -1,12 +1,12 @@
 #pragma once
 #include <OpenEXR/ImathMatrix.h>
 #include <OpenEXR/ImathBox.h>
-#include <mathex/ImathVecExt.h>
-#include <mathex/ImathMatrixExt.h>
+#include "ImathVecExt.h"
+#include "ImathMatrixExt.h"
 #include "mesh.h"
 #include "vertex_layout.h"
 #include "spw_render_target.h"
-#include <renderer/material.h>
+#include "material.h"
 
 namespace wyc
 {

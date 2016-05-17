@@ -28,10 +28,10 @@ PROJECT_CONFIG = {
 		"depends": ("zlib", ),
 	},
 	"openexr/IlmBase": {
-		"install": os.path.join(INSTALL_PREFIX, "openexr"),
+		"install": INSTALL_PREFIX,
 	},
 	"OpenCOLLADA": {
-
+		"install": INSTALL_PREFIX,
 	},
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <OpenEXR/ImathForward.h>
-#include <common/image.h>
+#include "image.h"
 
 namespace wyc
 {

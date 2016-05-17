@@ -1,6 +1,6 @@
 #include "scene.h"
-#include <common/util.h>
-#include <common/log.h>
+#include "util.h"
+#include "log.h"
 
 namespace wyc
 {

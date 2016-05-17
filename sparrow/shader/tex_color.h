@@ -1,8 +1,7 @@
 #pragma once
 #include <OpenEXR/ImathMatrix.h>
-#include <vertex_layout.h>
-#include <shader.h>
-#include <sparrow/spw_texture.h>
+#include "vertex_layout.h"
+#include "spw_texture.h"
 
 namespace wyc
 {
