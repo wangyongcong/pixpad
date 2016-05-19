@@ -275,8 +275,8 @@
     <ClInclude Include="..\..\sparrow\shader\phone_color.h">
       <Filter>shader</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\sparrow\shader\tex_color.h">
-      <Filter>shader</Filter>
+    <ClInclude Include="..\..\sparrow\scene\scene_obj.h">
+      <Filter>scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -340,8 +340,8 @@
     <ClCompile Include="..\..\sparrow\renderer\vertex_layout.cpp">
       <Filter>renderer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\sparrow\shader\tex_color.cpp">
-      <Filter>shader</Filter>
+    <ClCompile Include="..\..\sparrow\scene\scene_obj.cpp">
+      <Filter>scene</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

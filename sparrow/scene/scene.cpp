@@ -39,16 +39,6 @@ namespace wyc
 		if (type == "FlatColor")
 		{
 			ptr = new CMaterialFlatColor;
-			auto it = m_shader_lib.find(type);
-			if (it == m_shader_lib.end())
-			{
-				ptr->shader = shader_ptr(new CShaderFlatColor<VertexP3C3, VertexP3C3>);
-				m_shader_lib[type] = ptr->shader;
-			}
-			else
-			{
-				ptr->shader = it->second;
-			}
 		}
 		else
 		{

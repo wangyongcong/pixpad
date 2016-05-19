@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspw", "sparrow\libspw.vcxproj", "{09481871-B2D2-44FD-B806-89061A1DAEA6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspw_static", "libspw\libspw.vcxproj", "{09481871-B2D2-44FD-B806-89061A1DAEA6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sparrow", "sparrow\sparrow.vcxproj", "{3F9BC01A-01A1-4E9D-89F4-57B28DB18647}"
+	ProjectSection(ProjectDependencies) = postProject
+		{09481871-B2D2-44FD-B806-89061A1DAEA6} = {09481871-B2D2-44FD-B806-89061A1DAEA6}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +26,14 @@ Global
 		{09481871-B2D2-44FD-B806-89061A1DAEA6}.Release|x64.Build.0 = Release|x64
 		{09481871-B2D2-44FD-B806-89061A1DAEA6}.Release|x86.ActiveCfg = Release|Win32
 		{09481871-B2D2-44FD-B806-89061A1DAEA6}.Release|x86.Build.0 = Release|Win32
+		{3F9BC01A-01A1-4E9D-89F4-57B28DB18647}.Debug|x64.ActiveCfg = Debug|x64
+		{3F9BC01A-01A1-4E9D-89F4-57B28DB18647}.Debug|x64.Build.0 = Debug|x64
+		{3F9BC01A-01A1-4E9D-89F4-57B28DB18647}.Debug|x86.ActiveCfg = Debug|Win32
+		{3F9BC01A-01A1-4E9D-89F4-57B28DB18647}.Debug|x86.Build.0 = Debug|Win32
+		{3F9BC01A-01A1-4E9D-89F4-57B28DB18647}.Release|x64.ActiveCfg = Release|x64
+		{3F9BC01A-01A1-4E9D-89F4-57B28DB18647}.Release|x64.Build.0 = Release|x64
+		{3F9BC01A-01A1-4E9D-89F4-57B28DB18647}.Release|x86.ActiveCfg = Release|Win32
+		{3F9BC01A-01A1-4E9D-89F4-57B28DB18647}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

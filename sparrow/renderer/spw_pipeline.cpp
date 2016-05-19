@@ -56,7 +56,7 @@ namespace wyc
 			return;
 		std::vector<AttribStream> attrib_stream;
 		attrib_stream.resize(attrib_def.in_count);
-		for (auto i = 0; i < attrib_def.in_count; ++i)
+		for (unsigned i = 0; i < attrib_def.in_count; ++i)
 		{
 			auto &slot = attrib_def.in_attribs[i];
 			if (!vb.has_attribute(slot.usage)

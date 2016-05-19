@@ -8,7 +8,6 @@
 #include <OpenEXR/ImathColor.h>
 #include "util.h"
 #include "mesh.h"
-#include "shader.h"
 #include "material.h"
 
 namespace wyc

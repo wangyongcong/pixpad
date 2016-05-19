@@ -49,12 +49,9 @@ namespace wyc
 		const CMesh *mesh = cmd->mesh;
 		if (!mesh)
 			return;
-		shader_ptr shader = cmd->material->shader;
-		shader->bind_input(mesh->vertex_buffer());
 		auto &pipeline = renderer->m_pipeline;
 		pipeline.setup(renderer->m_rt);
-		//pipeline.set_draw_mode(LINE_MODE);
-		pipeline.feed(mesh, shader.get());
+		pipeline.feed(mesh, cmd->material);
 	}
 
 

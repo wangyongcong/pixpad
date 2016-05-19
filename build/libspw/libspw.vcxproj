@@ -103,9 +103,9 @@
     <ClInclude Include="..\..\sparrow\renderer\vertex_layout.h" />
     <ClInclude Include="..\..\sparrow\scene\camera.h" />
     <ClInclude Include="..\..\sparrow\scene\scene.h" />
+    <ClInclude Include="..\..\sparrow\scene\scene_obj.h" />
     <ClInclude Include="..\..\sparrow\shader\flat_color.h" />
     <ClInclude Include="..\..\sparrow\shader\phone_color.h" />
-    <ClInclude Include="..\..\sparrow\shader\tex_color.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sparrow\common\image.cpp" />
@@ -128,14 +128,14 @@
     <ClCompile Include="..\..\sparrow\scene\camera.cpp" />
     <ClCompile Include="..\..\sparrow\scene\load_collada.cpp" />
     <ClCompile Include="..\..\sparrow\scene\scene.cpp" />
-    <ClCompile Include="..\..\sparrow\shader\tex_color.cpp" />
+    <ClCompile Include="..\..\sparrow\scene\scene_obj.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{09481871-B2D2-44FD-B806-89061A1DAEA6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>libspw</RootNamespace>
+    <RootNamespace>libspw_static</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>libspw</ProjectName>
+    <ProjectName>libspw_static</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -184,11 +184,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>..\..\install\include;..\..\install\zlib\include;..\..\install\libpng\include;..\..\install\include\opencollada\COLLADABaseUtils;..\..\install\include\opencollada\COLLADAFramework;..\..\install\include\opencollada\COLLADASaxFrameworkLoader;..\..\install\include\opencollada\COLLADAStreamWriter;..\..\install\include\opencollada\GeneratedSaxParser;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\install\lib;..\..\install\zlib\lib;..\..\install\libpng\lib</LibraryPath>
+    <LibraryPath>..\..\install\lib;..\..\install\zlib\lib;..\..\install\libpng\lib;..\..\install\libspw\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>..\..\install\include;..\..\install\zlib\include;..\..\install\libpng\include;..\..\install\include\opencollada\COLLADABaseUtils;..\..\install\include\opencollada\COLLADAFramework;..\..\install\include\opencollada\COLLADASaxFrameworkLoader;..\..\install\include\opencollada\COLLADAStreamWriter;..\..\install\include\opencollada\GeneratedSaxParser;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\install\lib;..\..\install\zlib\lib;..\..\install\libpng\lib</LibraryPath>
+    <LibraryPath>..\..\install\lib;..\..\install\zlib\lib;..\..\install\libpng\lib;..\..\install\libspw\lib</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -199,10 +199,20 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\sparrow\common;..\..\sparrow\mathex;..\..\sparrow\renderer;..\..\sparrow\scene;..\..\sparrow\shader;..\..\sparrow\thread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <PostBuildEvent>
+      <Command>set TARGET_FILE=$(TargetFileName)
+set INSTALL_DIR=$(InstallPath)libspw\lib
+if $(Configuration)==Debug (set TARGET_FILE=$(TargetName)d$(TargetExt))
+if $(Configuration)==Release (set TARGET_FILE=$(TargetName)$(TargetExt))
+mkdir %INSTALL_DIR%
+xcopy /Y /D $(TargetPath) %INSTALL_DIR%\%TARGET_FILE%</Command>
+    </PostBuildEvent>
+    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -228,12 +238,22 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\sparrow\common;..\..\sparrow\mathex;..\..\sparrow\renderer;..\..\sparrow\scene;..\..\sparrow\shader;..\..\sparrow\thread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent>
+      <Command>set TARGET_FILE=$(TargetFileName)
+set INSTALL_DIR=$(InstallPath)libspw\lib
+if $(Configuration)==Debug (set TARGET_FILE=$(TargetName)d$(TargetExt))
+if $(Configuration)==Release (set TARGET_FILE=$(TargetName)$(TargetExt))
+mkdir %INSTALL_DIR%
+xcopy /Y /D $(TargetPath) %INSTALL_DIR%\%TARGET_FILE%</Command>
+    </PostBuildEvent>
+    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
