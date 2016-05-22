@@ -45,4 +45,8 @@ namespace wyc
 		return m_view_transform;
 	}
 
+	inline const Matrix44f & CCamera::get_view_projection() const
+	{
+		return m_view_proj;
+	}
 } // namespace wyc

@@ -71,14 +71,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>..\..\install\libspw\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\install\libspw\lib;..\..\install\lib;..\..\install\libpng\lib;..\..\install\lib\opencollada;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\install;..\..\install\include;..\..\install\zlib\include;..\..\install\libpng\include;..\..\install\include\opencollada\COLLADABaseUtils;..\..\install\include\opencollada\COLLADAFramework;..\..\install\include\opencollada\COLLADASaxFrameworkLoader;..\..\install\include\opencollada\COLLADAStreamWriter;..\..\install\include\opencollada\GeneratedSaxParser;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>..\..\install\libspw\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\install\libspw\lib;..\..\install\lib;..\..\install\libpng\lib;..\..\install\lib\opencollada;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\install;..\..\install\include;..\..\install\zlib\include;..\..\install\libpng\include;..\..\install\include\opencollada\COLLADABaseUtils;..\..\install\include\opencollada\COLLADAFramework;..\..\install\include\opencollada\COLLADASaxFrameworkLoader;..\..\install\include\opencollada\COLLADAStreamWriter;..\..\install\include\opencollada\GeneratedSaxParser;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -91,6 +93,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\..\sparrow\common;..\..\sparrow\mathex;..\..\sparrow\renderer;..\..\sparrow\scene;..\..\sparrow\shader;..\..\sparrow\thread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -98,8 +101,8 @@
     </Link>
     <PostBuildEvent>
       <Command>set INSTALL_DIR=$(SolutionDir)..\bin
-mkdir %INSTALL_DIR%
-xcopy /D /Y $(TargetPath) %INSTALL_DIR%\</Command>
+if not exist %INSTALL_DIR% (mkdir %INSTALL_DIR%)
+copy /Y $(TargetPath) %INSTALL_DIR%\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -125,6 +128,7 @@ xcopy /D /Y $(TargetPath) %INSTALL_DIR%\</Command>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\..\sparrow\common;..\..\sparrow\mathex;..\..\sparrow\renderer;..\..\sparrow\scene;..\..\sparrow\shader;..\..\sparrow\thread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,8 +138,8 @@ xcopy /D /Y $(TargetPath) %INSTALL_DIR%\</Command>
     </Link>
     <PostBuildEvent>
       <Command>set INSTALL_DIR=$(SolutionDir)..\bin
-mkdir %INSTALL_DIR%
-xcopy /D /Y $(TargetPath) %INSTALL_DIR%\</Command>
+if not exist %INSTALL_DIR% (mkdir %INSTALL_DIR%)
+copy /Y $(TargetPath) %INSTALL_DIR%\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

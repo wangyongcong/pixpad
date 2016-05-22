@@ -184,11 +184,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>..\..\install\include;..\..\install\zlib\include;..\..\install\libpng\include;..\..\install\include\opencollada\COLLADABaseUtils;..\..\install\include\opencollada\COLLADAFramework;..\..\install\include\opencollada\COLLADASaxFrameworkLoader;..\..\install\include\opencollada\COLLADAStreamWriter;..\..\install\include\opencollada\GeneratedSaxParser;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\install\lib;..\..\install\zlib\lib;..\..\install\libpng\lib;..\..\install\libspw\lib</LibraryPath>
+    <LibraryPath>..\..\install\lib;..\..\install\zlib\lib;..\..\install\libpng\lib;..\..\install\libspw\lib;..\..\install\lib\opencollada</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>..\..\install\include;..\..\install\zlib\include;..\..\install\libpng\include;..\..\install\include\opencollada\COLLADABaseUtils;..\..\install\include\opencollada\COLLADAFramework;..\..\install\include\opencollada\COLLADASaxFrameworkLoader;..\..\install\include\opencollada\COLLADAStreamWriter;..\..\install\include\opencollada\GeneratedSaxParser;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\install\lib;..\..\install\zlib\lib;..\..\install\libpng\lib;..\..\install\libspw\lib</LibraryPath>
+    <LibraryPath>..\..\install\lib;..\..\install\zlib\lib;..\..\install\libpng\lib;..\..\install\libspw\lib;..\..\install\lib\opencollada</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -209,8 +209,15 @@
 set INSTALL_DIR=$(InstallPath)libspw\lib
 if $(Configuration)==Debug (set TARGET_FILE=$(TargetName)d$(TargetExt))
 if $(Configuration)==Release (set TARGET_FILE=$(TargetName)$(TargetExt))
-mkdir %INSTALL_DIR%
-xcopy /Y /D $(TargetPath) %INSTALL_DIR%\%TARGET_FILE%</Command>
+if not exist %INSTALL_DIR% (mkdir %INSTALL_DIR%)
+set TARGET_PATH=%INSTALL_DIR%\%TARGET_FILE%
+if not exist %TARGET_PATH% (goto CPY) else (goto CMP_AND_CPY)
+:CPY
+copy /Y $(TargetPath) %TARGET_PATH%
+goto END
+:CMP_AND_CPY
+xcopy /Y /D $(TargetPath) %TARGET_PATH%
+:END</Command>
     </PostBuildEvent>
     <Lib />
   </ItemDefinitionGroup>
@@ -250,8 +257,15 @@ xcopy /Y /D $(TargetPath) %INSTALL_DIR%\%TARGET_FILE%</Command>
 set INSTALL_DIR=$(InstallPath)libspw\lib
 if $(Configuration)==Debug (set TARGET_FILE=$(TargetName)d$(TargetExt))
 if $(Configuration)==Release (set TARGET_FILE=$(TargetName)$(TargetExt))
-mkdir %INSTALL_DIR%
-xcopy /Y /D $(TargetPath) %INSTALL_DIR%\%TARGET_FILE%</Command>
+if not exist %INSTALL_DIR% (mkdir %INSTALL_DIR%)
+set TARGET_PATH=%INSTALL_DIR%\%TARGET_FILE%
+if not exist %TARGET_PATH% (goto CPY) else (goto CMP_AND_CPY)
+:CPY
+copy /Y $(TargetPath) %TARGET_PATH%
+goto END
+:CMP_AND_CPY
+xcopy /Y /D $(TargetPath) %TARGET_PATH%
+:END</Command>
     </PostBuildEvent>
     <Lib />
   </ItemDefinitionGroup>
