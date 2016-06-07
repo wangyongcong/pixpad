@@ -61,4 +61,17 @@ bool wstr2str(std::string &dst, const std::wstring &src)
 #endif
 }
 
+bool str2wstr(std::wstring & dst, const std::string src)
+{
+	std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> cvt(new std::codecvt_byname<wchar_t, char, std::mbstate_t>(".936"));
+	try {
+		dst = cvt.from_bytes(src);
+	}
+	catch (const std::range_error&) {
+		return false;
+	}
+	return true;
+}
+
+
 } // end of namespace wyc

@@ -41,6 +41,8 @@ namespace wyc
 
 	// wstring (UTF16) to string (CP936)
 	bool wstr2str(std::string &ret, const std::wstring &wstr);
+	// string (CP936) to wstring (UTF16)
+	bool str2wstr(std::wstring &ret, const std::string str);
 
 } // end of namespace wyc
 

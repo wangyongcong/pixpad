@@ -85,6 +85,14 @@
     <ClInclude Include="..\..\sparrow\common\logger.h" />
     <ClInclude Include="..\..\sparrow\common\unitest.h" />
     <ClInclude Include="..\..\sparrow\common\util.h" />
+    <ClInclude Include="..\..\sparrow\mathex\floatmath.h" />
+    <ClInclude Include="..\..\sparrow\mathex\ImathBoxAlgoExt.h" />
+    <ClInclude Include="..\..\sparrow\mathex\ImathMatrixExt.h" />
+    <ClInclude Include="..\..\sparrow\mathex\ImathVecExt.h" />
+    <ClInclude Include="..\..\sparrow\mathex\mathfwd.h" />
+    <ClInclude Include="..\..\sparrow\mathex\vecmath.h" />
+    <ClInclude Include="..\..\sparrow\mathex\xs_config.h" />
+    <ClInclude Include="..\..\sparrow\mathex\xs_float.h" />
     <ClInclude Include="..\..\sparrow\renderer\clipping.h" />
     <ClInclude Include="..\..\sparrow\renderer\index_buffer.h" />
     <ClInclude Include="..\..\sparrow\renderer\material.h" />
@@ -106,11 +114,14 @@
     <ClInclude Include="..\..\sparrow\scene\scene_obj.h" />
     <ClInclude Include="..\..\sparrow\shader\flat_color.h" />
     <ClInclude Include="..\..\sparrow\shader\phone_color.h" />
+    <ClInclude Include="..\..\sparrow\thread\platform_info.h" />
+    <ClInclude Include="..\..\sparrow\thread\ring_queue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sparrow\common\image.cpp" />
     <ClCompile Include="..\..\sparrow\common\logger.cpp" />
     <ClCompile Include="..\..\sparrow\common\util.cpp" />
+    <ClCompile Include="..\..\sparrow\mathex\vecmath.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\clipping.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\index_buffer.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\material.cpp" />
@@ -129,6 +140,7 @@
     <ClCompile Include="..\..\sparrow\scene\load_collada.cpp" />
     <ClCompile Include="..\..\sparrow\scene\scene.cpp" />
     <ClCompile Include="..\..\sparrow\scene\scene_obj.cpp" />
+    <ClCompile Include="..\..\sparrow\thread\platform_info.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{09481871-B2D2-44FD-B806-89061A1DAEA6}</ProjectGuid>

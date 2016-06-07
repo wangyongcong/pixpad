@@ -21,6 +21,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="thread">
+      <UniqueIdentifier>{89f1e9bd-c3e5-4713-b1b9-63040269467e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mathex">
+      <UniqueIdentifier>{ba0fe0a6-6e6e-4091-9b60-d2eb9434103c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="README" />
@@ -278,6 +284,36 @@
     <ClInclude Include="..\..\sparrow\scene\scene_obj.h">
       <Filter>scene</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\sparrow\thread\platform_info.h">
+      <Filter>thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\thread\ring_queue.h">
+      <Filter>thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\mathex\floatmath.h">
+      <Filter>mathex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\mathex\ImathBoxAlgoExt.h">
+      <Filter>mathex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\mathex\ImathMatrixExt.h">
+      <Filter>mathex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\mathex\ImathVecExt.h">
+      <Filter>mathex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\mathex\mathfwd.h">
+      <Filter>mathex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\mathex\vecmath.h">
+      <Filter>mathex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\mathex\xs_config.h">
+      <Filter>mathex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\mathex\xs_float.h">
+      <Filter>mathex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sparrow\common\image.cpp">
@@ -342,6 +378,12 @@
     </ClCompile>
     <ClCompile Include="..\..\sparrow\scene\scene_obj.cpp">
       <Filter>scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\thread\platform_info.cpp">
+      <Filter>thread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\mathex\vecmath.cpp">
+      <Filter>mathex</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

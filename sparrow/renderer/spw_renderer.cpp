@@ -1,5 +1,4 @@
 #include "spw_renderer.h"
-#include "platform_info.h"
 #include "log.h"
 #include "spw_command.h"
 

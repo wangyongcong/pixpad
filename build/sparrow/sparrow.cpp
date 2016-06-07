@@ -29,7 +29,14 @@ void do_render(const std::string & scn_file, const std::string & img_file)
 	auto renderer = std::make_shared<wyc::CSpwRenderer>();
 	renderer->set_render_target(render_target);
 	wyc::CScene scn;
-	if (!scn.load_collada(L"res/helloworld.dae"))
+	std::wstring w_scn_file;
+	wyc::CCamera camera;
+	if (!wyc::str2wstr(w_scn_file, scn_file))
+	{
+		error("Invalid file path");
+		return;
+	}
+	if (!scn.load_collada(w_scn_file))
 	{
 		error("Failed to load scene file");
 		return;
