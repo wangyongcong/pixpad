@@ -6,6 +6,7 @@
 #include "logger.h"
 #include "scene.h"
 #include "spw_renderer.h"
+#include "image.h"
 
 #ifdef _DEBUG
 	#pragma comment(lib, "libspw_staticd.lib")
@@ -13,6 +14,8 @@
 	#pragma comment(lib, "IexMath-2_2.lib")
 	#pragma comment(lib, "Iex-2_2.lib")
 	#pragma comment(lib, "Half.lib")
+	#pragma comment(lib, "libpng16_staticd.lib")
+	#pragma comment(lib, "zlibstaticd.lib")
 #else
 	#pragma comment(lib, "libspw_static.lib")
 #endif
@@ -22,7 +25,7 @@ wyc::CLogger *g_log = nullptr;
 void do_render(const std::string & scn_file, const std::string & img_file)
 {
 	unsigned core_count = std::thread::hardware_concurrency();
-	std::cout << "max thread count: " << core_count << std::endl;
+	log_debug("max thread count: %d", core_count);
 
 	auto render_target = std::make_shared<wyc::CSpwRenderTarget>();
 	render_target->create(800, 600, wyc::SPR_COLOR_R8G8B8A8);
@@ -33,20 +36,25 @@ void do_render(const std::string & scn_file, const std::string & img_file)
 	wyc::CCamera camera;
 	if (!wyc::str2wstr(w_scn_file, scn_file))
 	{
-		error("Invalid file path");
+		log_error("Invalid file path");
 		return;
 	}
 	if (!scn.load_collada(w_scn_file))
 	{
-		error("Failed to load scene file");
+		log_error("Failed to load scene file");
 		return;
 	}
 	auto cmd = renderer->new_command<wyc::cmd_clear>();
-	cmd->color = { 0, 0, 0 };
+	cmd->color = { 0.0f, 1.0f, 0.0f };
 	renderer->enqueue(cmd);
 	scn.render(renderer);
 	renderer->process();
-	renderer->present();
+	auto &buffer = render_target->get_color_buffer();
+	wyc::CImage image(buffer.get_buffer(), buffer.row_length(), buffer.row(), buffer.pitch());
+	if (!image.save(img_file))
+	{
+		log_error("Failed to save image file");
+	}
 }
 
 int main(int argc, char *argv[])
@@ -75,17 +83,15 @@ int main(int argc, char *argv[])
 	}
 	catch (TCLAP::ArgException &e)
 	{
-#ifdef error
-#undef error
-#endif
-		std::cerr << "ERROR:" << e.error() << std::endl;
+		log_error("ERROR: %s", e.error().c_str());
 		return 1;
 	}
 	catch (std::exception &e)
 	{
-		std::cerr << "ERROR:" << e.what() << std::endl;
+		log_error("ERROR: %s", e.what());
 		return 2;
 	}
+	log_info("finish and exit");
     return 0;
 }
 

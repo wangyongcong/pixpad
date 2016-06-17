@@ -27,13 +27,13 @@ namespace wyc
 		std::string path;
 		if (!wstr2str(path, w_file_path))
 		{
-			error("Invalid file path");
+			log_error("Invalid file path");
 			return false;
 		}
 		std::ifstream fin(path, std::ios_base::in);
 		if (!fin.is_open())
 		{
-			error("Can't open file: %d, %s", 100, path.c_str());
+			log_error("Can't open file: %d, %s", 100, path.c_str());
 			return false;
 		}
 		std::string token;
@@ -119,7 +119,7 @@ namespace wyc
 				if (fin.fail())
 				{
 					++err;
-					error("Buffer overflow, line [%d] maybe too long", line_no);
+					log_error("Buffer overflow, line [%d] maybe too long", line_no);
 					break;
 				}
 			}
@@ -129,7 +129,7 @@ namespace wyc
 			if (ss.fail())
 			{
 				++err;
-				error("Bad token: [%d] %s", line_no, line);
+				log_error("Bad token: [%d] %s", line_no, line);
 				break;
 			}
 			if (token[0] == '#')
@@ -142,7 +142,7 @@ namespace wyc
 				if (ss.fail())
 				{
 					++err;
-					error("Expect mtl name: [%d] %s", line_no, line);
+					log_error("Expect mtl name: [%d] %s", line_no, line);
 					break;
 				}
 				size_t pos = name.rfind('.');
@@ -153,7 +153,7 @@ namespace wyc
 				else
 				{
 					++err;
-					error("Invalid mtl name: [%d] %s", line_no, line);
+					log_error("Invalid mtl name: [%d] %s", line_no, line);
 					break;
 				}
 			}
@@ -179,7 +179,7 @@ namespace wyc
 				if (ss.fail())
 				{
 					++err;
-					error("Expect object name: [%d] %s", line_no, line);
+					log_error("Expect object name: [%d] %s", line_no, line);
 					break;
 				}
 			}
@@ -189,7 +189,7 @@ namespace wyc
 				if (ss.fail())
 				{
 					++err;
-					error("Expect group name: [%d] %s", line_no, line);
+					log_error("Expect group name: [%d] %s", line_no, line);
 					break;
 				}
 			}
@@ -199,13 +199,13 @@ namespace wyc
 				if (ss.fail())
 				{
 					++err;
-					error("Expect mtl name: [%d] %s", line_no, line);
+					log_error("Expect mtl name: [%d] %s", line_no, line);
 					break;
 				}
 				if (mtl_lib.find(name) == mtl_lib.end())
 				{
 					++err;
-					error("Unknown mtl name: [%d] %s", line_no, line);
+					log_error("Unknown mtl name: [%d] %s", line_no, line);
 					break;
 				}
 			}
@@ -214,14 +214,14 @@ namespace wyc
 				if (read_face() != 3)
 				{
 					++err;
-					error("Face should have 3 vertices: [%d] %s", line_no, line);
+					log_error("Face should have 3 vertices: [%d] %s", line_no, line);
 					break;
 				}
 			}
 			else
 			{
 				++err;
-				error("Unknown token: [%d] %s", line_no, line);
+				log_error("Unknown token: [%d] %s", line_no, line);
 				break;
 			}
 		}
@@ -229,7 +229,7 @@ namespace wyc
 		delete[] line;
 		if (err)
 		{
-			error("Found %d errors", err);
+			log_error("Found %d errors", err);
 			return false;
 		}
 		// interpret data

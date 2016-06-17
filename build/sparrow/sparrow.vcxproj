@@ -71,7 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>..\..\install\libspw\lib;..\..\install\lib;..\..\install\libpng\lib;..\..\install\lib\opencollada;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\install\libspw\lib;..\..\install\lib;..\..\install\libpng\lib;..\..\install\lib\opencollada;..\..\install\zlib\lib;$(LibraryPath)</LibraryPath>
     <IncludePath>..\..\install;..\..\install\include;..\..\install\zlib\include;..\..\install\libpng\include;..\..\install\include\opencollada\COLLADABaseUtils;..\..\install\include\opencollada\COLLADAFramework;..\..\install\include\opencollada\COLLADASaxFrameworkLoader;..\..\install\include\opencollada\COLLADAStreamWriter;..\..\install\include\opencollada\GeneratedSaxParser;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -79,7 +79,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>..\..\install\libspw\lib;..\..\install\lib;..\..\install\libpng\lib;..\..\install\lib\opencollada;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\install\libspw\lib;..\..\install\lib;..\..\install\libpng\lib;..\..\install\lib\opencollada;..\..\install\zlib\lib;$(LibraryPath)</LibraryPath>
     <IncludePath>..\..\install;..\..\install\include;..\..\install\zlib\include;..\..\install\libpng\include;..\..\install\include\opencollada\COLLADABaseUtils;..\..\install\include\opencollada\COLLADAFramework;..\..\install\include\opencollada\COLLADASaxFrameworkLoader;..\..\install\include\opencollada\COLLADAStreamWriter;..\..\install\include\opencollada\GeneratedSaxParser;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

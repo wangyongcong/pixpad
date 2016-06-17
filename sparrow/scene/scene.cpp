@@ -22,7 +22,7 @@ namespace wyc
 			m_mesh_pool[name] = mesh;
 			return mesh;
 		}
-		warn("%s : The mesh with name [%s] already exists", __FUNCTION__, name.c_str());
+		log_warn("%s : The mesh with name [%s] already exists", __FUNCTION__, name.c_str());
 		return it->second;
 	}
 
@@ -31,7 +31,7 @@ namespace wyc
 		auto it = m_material_lib.find(name);
 		if (it != m_material_lib.end())
 		{
-			warn("%s : The material with name [%s] already exists", __FUNCTION__, name.c_str());
+			log_warn("%s : The material with name [%s] already exists", __FUNCTION__, name.c_str());
 			return it->second;
 		}
 		// todo: we need a material factory
@@ -42,7 +42,7 @@ namespace wyc
 		}
 		else
 		{
-			error("%s : Unknown material [%s]", __FUNCTION__, type.c_str());
+			log_error("%s : Unknown material [%s]", __FUNCTION__, type.c_str());
 			return nullptr;
 		}
 		auto ret = material_ptr(ptr);
@@ -59,7 +59,7 @@ namespace wyc
 			m_camera_pool[name] = camera;
 			return camera;
 		}
-		debug("%s : The camera with name [%s] already exists", __FUNCTION__, name.c_str());
+		log_debug("%s : The camera with name [%s] already exists", __FUNCTION__, name.c_str());
 		return it->second;
 	}
 

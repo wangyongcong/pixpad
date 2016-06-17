@@ -24,7 +24,7 @@ namespace wyc
 		m_chunk_count = 0;
 		m_root = nullptr;
 		new_chunk();
-		debug("grain: %d, capacity: %d, chunk size: %d", m_grain, m_capacity, m_chunk_size);
+		log_debug("grain: %d, capacity: %d, chunk size: %d", m_grain, m_capacity, m_chunk_size);
 	}
 
 	CCommandAllocator::~CCommandAllocator()
@@ -84,7 +84,7 @@ namespace wyc
 		ptr->next = m_root;
 		m_root = ptr;
 		m_chunk_count += 1;
-		debug("new chunk %d", m_chunk_count);
+		log_debug("new chunk %d", m_chunk_count);
 		return ptr;
 	}
 

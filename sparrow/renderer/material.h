@@ -101,11 +101,11 @@ namespace wyc
 	{
 		const CUniform *u = find_uniform(name);
 		if (!u) {
-			warn("Uniform not found: %s", name.c_str());
+			log_warn("Uniform not found: %s", name.c_str());
 			return false;
 		}
 		if (u->tid != typeid(T)) {
-			warn("Uniform type error: %s (%s)", name.c_str(), u->tid.name());
+			log_warn("Uniform type error: %s (%s)", name.c_str(), u->tid.name());
 			return false;
 		}
 		u->set(this, &val);
@@ -117,11 +117,11 @@ namespace wyc
 	{
 		const CUniform *u = find_uniform(name);
 		if (!u) {
-			warn("Uniform not found: %s", name.c_str());
+			log_warn("Uniform not found: %s", name.c_str());
 			return false;
 		}
 		if (u->tid != typeid(T)) {
-			warn("Uniform type error: %s (%s)", name.c_str(), u->tid.name());
+			log_warn("Uniform type error: %s (%s)", name.c_str(), u->tid.name());
 			return false;
 		}
 		u->get(this, &val);

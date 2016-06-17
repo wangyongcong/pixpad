@@ -94,7 +94,7 @@ namespace wyc
 		HRESULT result = D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, options, &ptr_factory);
 		if (result != S_OK)
 		{
-			error("Failed to initialize Direct2D factory.");
+			log_error("Failed to initialize Direct2D factory.");
 			return false;
 		}
 
@@ -103,7 +103,7 @@ namespace wyc
 
 		if (!rebuild_resource())
 		{
-			error("Failed to create graphic resource.");
+			log_error("Failed to create graphic resource.");
 			return false;
 		}
 		
@@ -111,7 +111,7 @@ namespace wyc
 		if (!m_target->create(w, h, SPR_COLOR_B8G8R8A8 | SPR_DEPTH_16))
 		{
 			m_target = nullptr;
-			error("Failed to create sparrow render target.");
+			log_error("Failed to create sparrow render target.");
 			return false;
 		}
 		m_renderer = std::make_shared<CSpwRenderer>();
@@ -125,7 +125,7 @@ namespace wyc
 		EnableWindow(target_wnd, FALSE);
 		ShowWindow(target_wnd, SW_NORMAL);
 
-		debug("Sparrow view at (%d, %d, %d, %d)", x, y, x + w, y + h);
+		log_debug("Sparrow view at (%d, %d, %d, %d)", x, y, x + w, y + h);
 
 		return true;
 	}
@@ -150,7 +150,7 @@ namespace wyc
 	void CViewSparrow::on_render()
 	{
 		auto thread_id = std::this_thread::get_id();
-		debug("start render on thread[0x%X], sparrow view", thread_id);
+		log_debug("start render on thread[0x%X], sparrow view", thread_id);
 
 		// register present function
 		m_renderer->spw_present = [=] { this->present(); };
@@ -168,7 +168,7 @@ namespace wyc
 			m_renderer->process();
 		}
 
-		debug("exit thread[0x%X]", thread_id);
+		log_debug("exit thread[0x%X]", thread_id);
 	}
 
 	void CViewSparrow::set_text(const wchar_t * text)
@@ -219,7 +219,7 @@ namespace wyc
 		HRESULT result = m_d2d_factory->CreateHwndRenderTarget(render_property, window_property, &ptr_render_target);
 		if (result != S_OK)
 		{
-			error("Failed to create Direct2D render target.");
+			log_error("Failed to create Direct2D render target.");
 			return false;
 		}
 
@@ -231,7 +231,7 @@ namespace wyc
 		result = ptr_render_target->CreateBitmap({ w, h }, 0, 0, { bitmap_fmt , 0, 0 }, &m_bitmap);
 		if (result != S_OK)
 		{
-			error("Failed to create D2D bitmap.");
+			log_error("Failed to create D2D bitmap.");
 			return false;
 		}
 
@@ -255,7 +255,7 @@ namespace wyc
 		HRESULT result = m_bitmap->CopyFromMemory(&src_rect, color_buffer.get_buffer(), pitch);
 		if (result != S_OK) 
 		{
-			debug("CViewSparrow::present: error", result);
+			log_debug("CViewSparrow::present: error", result);
 		}
 	}
 
@@ -276,13 +276,13 @@ namespace wyc
 			}
 			if (result == D2DERR_RECREATE_TARGET)
 			{
-				warn("Render target lost!");
+				log_warn("Render target lost!");
 				rebuild_resource();
 				// todo: we need present again
 			}
 			else
 			{
-				warn("D2D end draw error: %d", result);
+				log_warn("D2D end draw error: %d", result);
 			}
 		}
 	}

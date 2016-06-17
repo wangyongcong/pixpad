@@ -58,17 +58,17 @@ public:
 	@param errorMessage A message containing informations about the error that occurred.
 	*/
 	virtual void cancel(const COLLADAFW::String& errorMessage) {
-		error("cancel loading with error:\n%s", errorMessage.c_str());
+		log_error("cancel loading with error:\n%s", errorMessage.c_str());
 	}
 
 	/** This is the method called. The writer hast to prepare to receive data.*/
 	virtual void start() {
-		debug("start loading");
+		log_debug("start loading");
 	}
 
 	/** This method is called after the last write* method. No other methods will be called after this.*/
 	virtual void finish() {
-		debug("finish loading");
+		log_debug("finish loading");
 	}
 
 	/** When this method is called, the writer must write the global document asset.
@@ -89,7 +89,7 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeVisualScene(const COLLADAFW::VisualScene* visualScene)
 	{
-		debug("\tvisual scene: %s", visualScene->getName().c_str());
+		log_debug("\tvisual scene: %s", visualScene->getName().c_str());
 		auto &node_array = visualScene->getRootNodes();
 		for (size_t i = 0; i < node_array.getCount(); ++i)
 		{
@@ -104,7 +104,7 @@ public:
 	virtual bool writeLibraryNodes(const COLLADAFW::LibraryNodes* libraryNodes)
 	{
 		auto &nodes = libraryNodes->getNodes();
-		debug("\tlibrary nodes: %d", nodes.getCount());
+		log_debug("\tlibrary nodes: %d", nodes.getCount());
 		return true;
 	}
 
@@ -119,7 +119,7 @@ public:
 		}
 		else
 		{
-			debug("\tgeometry: %s (%s)", geometry->getName().c_str(), str(geometry->getUniqueId()));
+			log_debug("\tgeometry: %s (%s)", geometry->getName().c_str(), str(geometry->getUniqueId()));
 		}
 		return true;
 	}
@@ -128,7 +128,7 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeMaterial(const COLLADAFW::Material* dae_material)
 	{
-		debug("\tmateiral: %s (%s)", str(dae_material->getName()), str(dae_material->getUniqueId()));
+		log_debug("\tmateiral: %s (%s)", str(dae_material->getName()), str(dae_material->getUniqueId()));
 		std::string unique_name = dae_material->getUniqueId().toAscii();
 		std::string name = str(dae_material->getName());
 		std::string material_class;
@@ -140,7 +140,7 @@ public:
 			material_name = name.substr(pos + 1);
 		}
 		else {
-			error("%s : Unknown material [%s]", __FUNCTION__, name.c_str());
+			log_error("%s : Unknown material [%s]", __FUNCTION__, name.c_str());
 		}
 		m_scene->create_material(unique_name, material_class);
 		return true;
@@ -158,7 +158,7 @@ public:
 	virtual bool writeCamera(const COLLADAFW::Camera* camera)
 	{
 		std::string unique_name = camera->getUniqueId().toAscii();
-		debug("\tcamera: %s (%s)", str(camera->getName()), unique_name.c_str());
+		log_debug("\tcamera: %s (%s)", str(camera->getName()), unique_name.c_str());
 		auto scn_camera = m_scene->create_camera(unique_name);
 		auto camera_type = camera->getCameraType();
 		if (COLLADAFW::Camera::ORTHOGRAPHIC == camera_type)
@@ -186,7 +186,7 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeLight(const COLLADAFW::Light* light)
 	{
-		debug("\tlight: %s (%s)", str(light->getName()), str(light->getUniqueId()));
+		log_debug("\tlight: %s (%s)", str(light->getName()), str(light->getUniqueId()));
 		return true;
 	}
 
@@ -245,16 +245,16 @@ private:
 	void writeMesh(const COLLADAFW::Mesh *colla_mesh)
 	{
 		std::string unique_name = colla_mesh->getUniqueId().toAscii();
-		debug("\tmesh: %s (%s)", colla_mesh->getName().c_str(), unique_name.c_str());
+		log_debug("\tmesh: %s (%s)", colla_mesh->getName().c_str(), unique_name.c_str());
 		const COLLADAFW::MeshVertexData &pos_data = colla_mesh->getPositions();
 		if (pos_data.empty())
 		{
-			warn("Empty mesh");
+			log_warn("Empty mesh");
 			return;
 		}
 		if (COLLADAFW::FloatOrDoubleArray::DATA_TYPE_FLOAT != pos_data.getType())
 		{
-			warn("Invalid data type, we only support single precision floating point value");
+			log_warn("Invalid data type, we only support single precision floating point value");
 			return;
 		}
 		auto scn_mesh = m_scene->create_mesh(unique_name);
@@ -276,7 +276,7 @@ private:
 				vb.set_attribute(EAttribUsage::ATTR_NORMAL, 3);
 			}
 			else {
-				warn("Normal count dosen't match vertex count. It could be face normal which we don't support.");
+				log_warn("Normal count dosen't match vertex count. It could be face normal which we don't support.");
 			}
 		}
 		// todo: apply other vertex attribute
@@ -318,13 +318,13 @@ private:
 			case COLLADAFW::MeshPrimitive::PrimitiveType::TRIANGLES:
 			case COLLADAFW::MeshPrimitive::PrimitiveType::TRIANGLE_FANS:
 			case COLLADAFW::MeshPrimitive::PrimitiveType::TRIANGLE_STRIPS:
-				error("%s : not support primitive type: %d", __FUNCTION__, prim_type);
+				log_error("%s : not support primitive type: %d", __FUNCTION__, prim_type);
 				break;
 			case COLLADAFW::MeshPrimitive::PrimitiveType::POLYLIST:
 				writePolyList(scn_mesh.get(), colla_mesh, prim);
 				break;
 			default:
-				error("%s : undefined primitive type: %d", __FUNCTION__, prim_type);
+				log_error("%s : undefined primitive type: %d", __FUNCTION__, prim_type);
 				break;
 			}
 		}
@@ -337,7 +337,7 @@ private:
 		const auto &pos_indices = primitive->getPositionIndices();
 		if (pos_indices.getCount() != index_cnt)
 		{
-			warn("Must be triangular mesh");
+			log_warn("Must be triangular mesh");
 			return;
 		}
 		size_t vertex_cnt = scn_mesh->vertex_count();
@@ -361,7 +361,7 @@ private:
 
 	void writeVisualSceneNode(const COLLADAFW::Node *node, const COLLADABU::Math::Matrix4& parent_transform)
 	{
-		debug("\t\tobj: %s (%s)", node->getName().c_str(), str(node->getUniqueId()));
+		log_debug("\t\tobj: %s (%s)", node->getName().c_str(), str(node->getUniqueId()));
 		COLLADABU::Math::Matrix4 colla_transofrm = node->getTransformationMatrix() * parent_transform;
 		Matrix44f transform;
 		to_transform(transform, colla_transofrm);
@@ -374,12 +374,12 @@ private:
 				unique_name = camera_list[j]->getInstanciatedObjectId().toAscii();
 				auto scn_camera = m_scene->get_camera(unique_name);
 				if (!scn_camera) {
-					debug("\t\t\tinstance camera %s not found", unique_name.c_str());
+					log_debug("\t\t\tinstance camera %s not found", unique_name.c_str());
 					continue;
 				}
 				scn_camera->set_transform(transform);
 				m_scene->set_active_camera(unique_name);
-				debug("\t\t\tinstance camera %s", unique_name.c_str());
+				log_debug("\t\t\tinstance camera %s", unique_name.c_str());
 			}
 		}
 
@@ -390,7 +390,7 @@ private:
 				auto geometry = geometry_list[j];
 				unique_name = geometry->getInstanciatedObjectId().toAscii();
 				auto obj = m_scene->add_object(unique_name, transform);
-				debug("\t\t\tinstance geometry %s (PID=%d)", unique_name.c_str(), obj->get_pid());
+				log_debug("\t\t\tinstance geometry %s (PID=%d)", unique_name.c_str(), obj->get_pid());
 				auto &material_array = geometry->getMaterialBindings();
 				for (size_t k = 0; k < material_array.getCount(); ++k)
 				{
@@ -398,7 +398,7 @@ private:
 					unique_name = binding.getReferencedMaterial().toAscii();
 					auto material = m_scene->get_material(unique_name);
 					obj->set_material(material);
-					debug("\t\t\tuse material %s", unique_name.c_str());
+					log_debug("\t\t\tuse material %s", unique_name.c_str());
 				}
 			}
 		}
@@ -420,7 +420,7 @@ bool CScene::load_collada(const std::wstring & w_file_path)
 	std::string path;
 	if (!wstr2str(path, w_file_path))
 	{
-		error("Invalid file path");
+		log_error("Invalid file path");
 		return false;
 	}
 	COLLADASaxFWL::Loader collada;
@@ -428,7 +428,7 @@ bool CScene::load_collada(const std::wstring & w_file_path)
 	COLLADAFW::Root root(&collada, &writer);
 	if (!root.loadDocument(path))
 	{
-		error("Fail to load file: %s", path);
+		log_error("Fail to load file: %s", path);
 		return false;
 	}
 	return true;
