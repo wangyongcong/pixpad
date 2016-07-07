@@ -40,8 +40,9 @@ namespace wyc
 		typedef std::pair<const char*, size_t> AttribStream;
 		struct RasterTask {
 			const CMaterial *material;
-			const unsigned* index_stream;
+			const char* index_stream;
 			size_t index_size;
+			size_t index_stride;
 			const AttribStream* in_stream;
 			size_t in_count;
 			size_t in_stride;

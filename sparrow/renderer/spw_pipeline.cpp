@@ -43,8 +43,10 @@ namespace wyc
 		assert(mesh && material);
 		const CVertexBuffer &vb = mesh->vertex_buffer();
 		const CIndexBuffer &ib = mesh->index_buffer();
-		if (ib.stride() != sizeof(unsigned))
+		if (ib.stride() != sizeof(unsigned)) {
+			log_warn("Vertex index should be 32bit integer.");
 			return;
+		}
 		// setup render target
 		unsigned surfw, surfh;
 		m_rt->get_size(surfw, surfh);
@@ -71,8 +73,9 @@ namespace wyc
 		// todo: work parallel
 		RasterTask task;
 		task.material = material;
-		task.index_stream = reinterpret_cast<const unsigned*>(ib.get_index_stream());
+		task.index_stream = ib.get_index_stream();
 		task.index_size = ib.size() / 3 * 3;
+		task.index_stride = ib.stride();
 		task.in_stream = &attrib_stream[0];
 		task.in_count = attrib_stream.size();
 		task.in_stride = attrib_def.in_stride;
@@ -111,11 +114,13 @@ namespace wyc
 
 	void CSpwPipeline::process(RasterTask &task) const
 	{
+		typedef unsigned index_t;
+		const index_t *index_stream = reinterpret_cast<const index_t*>(task.index_stream);
 		std::vector<const char*> attrib_ptr(task.in_count, nullptr);
 		const void* in_vertex = &attrib_ptr[0];
 		for (size_t i = 0; i < task.index_size; ++i)
 		{
-			auto idx_vert = task.index_stream[i];
+			index_t idx_vert = index_stream[i];
 			for (size_t j = 0; j < task.in_count; ++j)
 			{
 				auto &stream = task.in_stream[j];
