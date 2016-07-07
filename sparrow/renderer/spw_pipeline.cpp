@@ -86,10 +86,10 @@ namespace wyc
 		// use triangle as the basic primitive (3 vertex)
 		// clipping may produce 7 more vertex
 		// so the maximum vertex count is 10
-		// and we use double buffer to swap input/output
-		constexpr int max_count = 10 * 2;
+		constexpr int max_count = 10;
 		// cache for vertex attributes 
-		size_t cache_vert = sizeof(float) * attrib_def.out_stride * max_count;
+		// we use double buffer to swap input/output
+		size_t cache_vert = sizeof(float) * attrib_def.out_stride * max_count * 2;
 		// cache for clipping position
 		size_t cache_frag = sizeof(float) * (task.out_stride - 4);
 		task.cache_size = cache_vert + cache_frag;
@@ -127,10 +127,10 @@ namespace wyc
 				attrib_ptr[j] = stream.first + stream.second * idx_vert;
 			}
 			size_t vcnt = i % 3;
-			task.material->vertex_shader(in_vertex, task.vert_cache0);
+			task.material->vertex_shader(in_vertex, task.vert_cache0 + task.out_stride * vcnt);
 			if (vcnt == 2)
 			{
-				size_t clip_count;
+				size_t clip_count = 3;
 				float *clip_result = clip_polygon_stream(task.vert_cache0, task.vert_cache1, clip_count, task.out_stride);
 				if (clip_count >= 3)
 				{

@@ -18,6 +18,7 @@ namespace wyc
 
 	void CSceneObj::render(std::shared_ptr<CRenderer> renderer, std::shared_ptr<CCamera> camera)
 	{
+		log_debug("render: %s", m_name.c_str());
 		if (!m_mesh)
 			return;
 		if (!m_material)

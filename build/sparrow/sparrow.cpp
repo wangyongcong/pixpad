@@ -45,7 +45,7 @@ void do_render(const std::string & scn_file, const std::string & img_file)
 		return;
 	}
 	auto cmd = renderer->new_command<wyc::cmd_clear>();
-	cmd->color = { 0.0f, 1.0f, 0.0f };
+	cmd->color = { 0.0f, 0.0f, 0.0f };
 	renderer->enqueue(cmd);
 	scn.render(renderer);
 	renderer->process();

@@ -355,6 +355,7 @@ private:
 			for (auto &i : ib) {
 				i = (uint32_t)(*index_data++);
 			}
+			assert(index_data == pos_indices.getData() + pos_indices.getCount());
 		}
 		else {
 			assert(0 && "Vertex count overflow");
@@ -393,6 +394,7 @@ private:
 				auto geometry = geometry_list[j];
 				unique_name = geometry->getInstanciatedObjectId().toAscii();
 				auto obj = m_scene->add_object(unique_name, transform);
+				obj->set_name(node->getName().c_str());
 				log_debug("\t\t\tinstance geometry %s (PID=%d)", unique_name.c_str(), obj->get_pid());
 				auto &material_array = geometry->getMaterialBindings();
 				for (size_t k = 0; k < material_array.getCount(); ++k)

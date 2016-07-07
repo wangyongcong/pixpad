@@ -1,6 +1,7 @@
 #include "clipping.h"
 #include "ImathVecExt.h"
 #include "floatmath.h"
+#include <cassert>
 
 namespace wyc
 {
@@ -131,13 +132,11 @@ namespace wyc
 			pos = cur_vert/* + pos_offset*/;
 			dot = pos[3] - w_epsilon;
 			if (pdot * dot < 0) {
-				//assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
 				intersect(prev_vert, pdot, cur_vert, dot, stride, out_vert);
 				out_vert += stride;
 				vertex_count += 1;
 			}
 			if (dot >= 0) {
-				//assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
 				memcpy(out_vert, cur_vert, sizeof(float) * stride);
 				out_vert += stride;
 				vertex_count += 1;
