@@ -4,11 +4,11 @@ namespace wyc
 {
 	CMaterial::CMaterial()
 	{
-		std::string name = "material";
-		this->set_uniform("name", name);
-		Matrix44f m;
-		m.makeIdentity();
-		this->set_uniform("mvp_matrix", m);
+	}
+
+	CMaterial::CMaterial(const char * name)
+		: m_name(name)
+	{
 	}
 
 	CMaterial::~CMaterial()

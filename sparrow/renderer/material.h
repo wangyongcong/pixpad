@@ -77,6 +77,7 @@ namespace wyc
 	{
 	public:
 		CMaterial();
+		CMaterial(const char *name);
 		virtual ~CMaterial();
 		virtual const AttribDefine& get_attrib_define() const = 0;
 		virtual void vertex_shader(const void *vertex_in, void *vertex_out) const = 0;
@@ -92,6 +93,9 @@ namespace wyc
 		template<typename T>
 		bool get_uniform(const std::string &name, T &val) const;
 		const CUniform* find_uniform(const std::string &name) const;
+	
+	protected:
+		std::string m_name;
 	};
 
 	typedef std::shared_ptr<CMaterial> material_ptr;

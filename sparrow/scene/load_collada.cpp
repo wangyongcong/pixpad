@@ -396,15 +396,15 @@ private:
 				auto obj = m_scene->add_object(unique_name, transform);
 				obj->set_name(node->getName().c_str());
 				log_debug("\t\t\tinstance geometry %s (PID=%d)", unique_name.c_str(), obj->get_pid());
-				auto &material_array = geometry->getMaterialBindings();
-				for (size_t k = 0; k < material_array.getCount(); ++k)
-				{
-					auto &binding = material_array[k];
-					unique_name = binding.getReferencedMaterial().toAscii();
-					auto material = m_scene->get_material(unique_name);
-					obj->set_material(material);
-					log_debug("\t\t\tuse material %s", unique_name.c_str());
-				}
+				//auto &material_array = geometry->getMaterialBindings();
+				//for (size_t k = 0; k < material_array.getCount(); ++k)
+				//{
+				//	auto &binding = material_array[k];
+				//	unique_name = binding.getReferencedMaterial().toAscii();
+				//	auto material = m_scene->get_material(unique_name);
+				//	obj->set_material(material);
+				//	log_debug("\t\t\tuse material %s", unique_name.c_str());
+				//}
 			}
 		}
 

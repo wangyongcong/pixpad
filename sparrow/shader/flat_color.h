@@ -9,6 +9,13 @@ namespace wyc
 	class CMaterialFlatColor : public CMaterial
 	{
 	public:
+		CMaterialFlatColor() 
+			: CMaterial("FlatColor")
+		{
+			mvp_matrix.makeIdentity();
+			color.setValue(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+
 		struct VertexIn {
 			const Vec3f *pos;
 		};

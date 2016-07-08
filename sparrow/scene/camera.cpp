@@ -16,7 +16,7 @@ namespace wyc
 	void CCamera::update_transform()
 	{
 		m_view_transform = m_transform.inverse();
-		m_view_proj = m_view_transform * m_projection;
+		m_view_proj =  m_projection * m_view_transform;
 	}
 
 	void CCamera::set_orthographic(float x_range_radius, float y_range_radius, float znear, float zfar)

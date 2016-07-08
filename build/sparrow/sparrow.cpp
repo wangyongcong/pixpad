@@ -28,7 +28,7 @@ void do_render(const std::string & scn_file, const std::string & img_file)
 	log_debug("max thread count: %d", core_count);
 
 	auto render_target = std::make_shared<wyc::CSpwRenderTarget>();
-	render_target->create(800, 600, wyc::SPR_COLOR_R8G8B8A8);
+	render_target->create(960, 540, wyc::SPR_COLOR_R8G8B8A8);
 	auto renderer = std::make_shared<wyc::CSpwRenderer>();
 	renderer->set_render_target(render_target);
 	wyc::CScene scn;
