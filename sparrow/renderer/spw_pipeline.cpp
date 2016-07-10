@@ -82,7 +82,8 @@ namespace wyc
 		task.out_count = attrib_def.out_count;
 		task.out_stride = attrib_def.out_stride;
 		// assign surface block
-		task.block = { { 0, 0 },{ halfw, halfh } };
+		task.block = { { -halfw, -halfh },{ halfw, halfh } };
+		task.block_center = { halfw, halfh };
 		// use triangle as the basic primitive (3 vertex)
 		// clipping may produce 7 more vertex
 		// so the maximum vertex count is 10
@@ -139,28 +140,6 @@ namespace wyc
 				}
 			}
 		}
-		//const float *vert = task.in_vertex;
-		//const float *end = vert + task.in_size * task.in_stride;
-		//float *vert_out = task.out_vertex;
-		//size_t vcnt = 0;
-		//std::pair<Imath::V4f*, float*> clip_result;
-		//for (; vert != end; vert += task.in_stride)
-		//{
-		//	task.program->vertex_shader(vert, vert_out, task.clip_pos[vcnt++]);
-		//	if (vcnt < 3) {
-		//		vert_out += task.out_stride;
-		//		continue;
-		//	}
-		//	clip_result = clip_polygon_stream(task.clip_pos, task.clip_out,
-		//		task.out_vertex, task.out_cache, vcnt, task.out_stride, 10);
-		//	if (vcnt >= 3) {
-		//		viewport_transform(clip_result.first, vcnt);
-		//		draw_triangles(clip_result.first, clip_result.second, vcnt, task);
-		//	}
-		//	// next triangle
-		//	vcnt = 0;
-		//	vert_out = task.out_vertex;
-		//}
 	}
 
 	void CSpwPipeline::viewport_transform(float* vert_pos, size_t size, size_t stride) const
@@ -177,24 +156,12 @@ namespace wyc
 		}
 	}
 
-	//void CSpwPipeline::viewport_transform(Imath::V4f* vertex_pos, size_t size) const
-	//{
-	//	for (size_t i = 0; i < size; ++i)
-	//	{
-	//		auto &pos = vertex_pos[i];
-	//		// we keep pos.w to correct interpolation
-	//		// perspective projection: pos.w == -pos.z 
-	//		// orthographic projection: pos.w == 1
-	//		pos.x = m_vp_translate.x + m_vp_scale.x * (pos.x / pos.w);
-	//		pos.y = m_vp_translate.y + m_vp_scale.y * (pos.y / pos.w);
-	//		pos.z /= pos.w;
-	//	}
-	//}
-
 	void CSpwPipeline::draw_triangles(float *vertices, size_t count, RasterTask &task) const
 	{
 		Vec4f *p0 = (Vec4f*)vertices, *p1 = (Vec4f*)(vertices + task.out_stride), *p2 = (Vec4f*)(vertices + task.out_stride * 2);
-		auto center = task.block.center();
+		log_debug("triangle: (%f, %f, %f), (%f, %f, %f), (%f, %f, %f)", p0->x, p0->y, p0->z, p1->x, p1->y, p1->z, p2->x, p2->y, p2->z);
+		//auto center = task.block.center();
+		auto center = task.block_center;
 		p0->x -= center.x;
 		p0->y -= center.y;
 		p1->x -= center.x;
@@ -209,18 +176,18 @@ namespace wyc
 			Imath::V2f v10(p0->x - p1->x, p0->y - p1->y);
 			Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
 			if (v10.cross(v12) * m_clock_wise > 0) {
-				//if (m_draw_mode == LINE_MODE)
-				//{
-				//	draw_triangle_frame(*p0, *p1, *p2, plt);
-				//	continue;
-				//}
+			//	if (m_draw_mode == LINE_MODE)
+			//	{
+			//		draw_triangle_frame(*p0, *p1, *p2, plt);
+			//		continue;
+			//	}
 				// calculate triangle bounding box and intersection of region block
 				Imath::bounding(bounding, p0, p1, p2);
 				Imath::intersection(bounding, task.block);
 				if (!bounding.isEmpty()) {
-					plt.v0 = (float*)(p0 + 1);
-					plt.v1 = (float*)(p1 + 1);
-					plt.v2 = (float*)(p2 + 1);
+					plt.v0 = (float*)(p0);
+					plt.v1 = (float*)(p1);
+					plt.v2 = (float*)(p2);
 					fill_triangle(bounding, *p0, *p1, *p2, plt);
 				}
 			}

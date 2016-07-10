@@ -58,7 +58,7 @@ namespace wyc
 			const VertexIn* in = reinterpret_cast<const VertexIn*>(vertex_in);
 			VertexOut* out = reinterpret_cast<VertexOut*>(vertex_out);
 			Vec4f pos(*in->pos);
-			pos.z = -1.0f;
+			log_debug("vert: (%f, %f, %f)", pos.x, pos.y, pos.z);
 			out->pos = mvp_matrix * pos;
 		}
 

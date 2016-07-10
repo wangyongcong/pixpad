@@ -23,7 +23,7 @@ namespace wyc
 			return;
 		if (!m_material)
 			load_default_material();
-		Matrix44f mvp = m_transform * camera->get_view_projection();
+		Matrix44f mvp = camera->get_view_projection() * m_transform;
 		m_material->set_uniform("mvp_matrix", mvp);
 		auto cmd = renderer->new_command<cmd_draw_mesh>();
 		cmd->mesh = m_mesh.get();

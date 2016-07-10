@@ -204,7 +204,7 @@ namespace wyc
 					t0 /= t_sum;
 					t1 /= t_sum;
 					t2 /= t_sum;
-					plot(x, y, pos0.z * t0 + pos1.z * t1 + pos2.z *t2, t0, t1, t2);
+					plot(x, y, pos0.z * t0 + pos1.z * t1 + pos2.z * t2, t0, t1, t2);
 				}
 				w0 += edge_a12;
 				w1 += edge_a20;

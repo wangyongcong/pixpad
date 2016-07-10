@@ -57,6 +57,7 @@ namespace wyc
 			float *frag_cache;
 			size_t frag_stride;
 			Imath::Box2i block;
+			Imath::V2i block_center;
 		};
 		bool check_material(const AttribDefine &attrib_def) const;
 		void process(RasterTask &stream) const;

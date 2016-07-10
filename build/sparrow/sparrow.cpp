@@ -7,6 +7,7 @@
 #include "scene.h"
 #include "spw_renderer.h"
 #include "image.h"
+#include "flat_color.h"
 
 #ifdef _DEBUG
 	#pragma comment(lib, "libspw_staticd.lib")
@@ -44,9 +45,9 @@ void do_render(const std::string & scn_file, const std::string & img_file)
 		log_error("Failed to load scene file");
 		return;
 	}
-	auto cmd = renderer->new_command<wyc::cmd_clear>();
-	cmd->color = { 0.0f, 0.0f, 0.0f };
-	renderer->enqueue(cmd);
+	auto clr = renderer->new_command<wyc::cmd_clear>();
+	clr->color = { 0.0f, 0.0f, 0.0f };
+	renderer->enqueue(clr);
 	scn.render(renderer);
 	renderer->process();
 	auto &buffer = render_target->get_color_buffer();
