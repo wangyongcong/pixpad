@@ -85,6 +85,7 @@
     <ClInclude Include="..\..\sparrow\common\logger.h" />
     <ClInclude Include="..\..\sparrow\common\unitest.h" />
     <ClInclude Include="..\..\sparrow\common\util.h" />
+    <ClInclude Include="..\..\sparrow\material\mtl_flat_color.h" />
     <ClInclude Include="..\..\sparrow\mathex\floatmath.h" />
     <ClInclude Include="..\..\sparrow\mathex\ImathBoxAlgoExt.h" />
     <ClInclude Include="..\..\sparrow\mathex\ImathMatrixExt.h" />
@@ -102,6 +103,7 @@
     <ClInclude Include="..\..\sparrow\renderer\render_target.h" />
     <ClInclude Include="..\..\sparrow\renderer\spw_command.h" />
     <ClInclude Include="..\..\sparrow\renderer\spw_pipeline.h" />
+    <ClInclude Include="..\..\sparrow\renderer\spw_pipeline_wireframe.h" />
     <ClInclude Include="..\..\sparrow\renderer\spw_rasterizer.h" />
     <ClInclude Include="..\..\sparrow\renderer\spw_renderer.h" />
     <ClInclude Include="..\..\sparrow\renderer\spw_render_target.h" />
@@ -112,8 +114,6 @@
     <ClInclude Include="..\..\sparrow\scene\camera.h" />
     <ClInclude Include="..\..\sparrow\scene\scene.h" />
     <ClInclude Include="..\..\sparrow\scene\scene_obj.h" />
-    <ClInclude Include="..\..\sparrow\shader\flat_color.h" />
-    <ClInclude Include="..\..\sparrow\shader\phone_color.h" />
     <ClInclude Include="..\..\sparrow\thread\platform_info.h" />
     <ClInclude Include="..\..\sparrow\thread\ring_queue.h" />
   </ItemGroup>
@@ -130,6 +130,7 @@
     <ClCompile Include="..\..\sparrow\renderer\render_command.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\spw_command.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\spw_pipeline.cpp" />
+    <ClCompile Include="..\..\sparrow\renderer\spw_pipeline_wireframe.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\spw_renderer.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\spw_render_target.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\spw_texture.cpp" />
@@ -210,7 +211,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\sparrow\common;..\..\sparrow\mathex;..\..\sparrow\renderer;..\..\sparrow\scene;..\..\sparrow\shader;..\..\sparrow\thread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\sparrow\common;..\..\sparrow\mathex;..\..\sparrow\renderer;..\..\sparrow\scene;..\..\sparrow\material;..\..\sparrow\thread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -256,7 +257,7 @@ xcopy /Y /D $(TargetPath) %TARGET_PATH%
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\sparrow\common;..\..\sparrow\mathex;..\..\sparrow\renderer;..\..\sparrow\scene;..\..\sparrow\shader;..\..\sparrow\thread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\sparrow\common;..\..\sparrow\mathex;..\..\sparrow\renderer;..\..\sparrow\scene;..\..\sparrow\material;..\..\sparrow\thread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>

@@ -49,9 +49,9 @@ namespace wyc
 		const CMesh *mesh = cmd->mesh;
 		if (!mesh)
 			return;
-		auto &pipeline = renderer->m_pipeline;
-		pipeline.setup(renderer->m_rt);
-		pipeline.feed(mesh, cmd->material);
+		auto pipeline = renderer->get_pipeline();
+		pipeline->setup(renderer->m_rt);
+		pipeline->feed(mesh, cmd->material);
 	}
 
 

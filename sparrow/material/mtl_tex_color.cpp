@@ -1,4 +1,4 @@
-#include "tex_color.h"
+#include "mtl_tex_color.h"
 #include "ImathVecExt.h"
 #include "ImathMatrixExt.h"
 

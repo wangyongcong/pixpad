@@ -14,11 +14,11 @@ namespace wyc
 	public:
 		CSpwRenderer();
 		virtual ~CSpwRenderer() override;
-		
 		virtual void set_render_target(std::shared_ptr<CRenderTarget> rt) override;
 		virtual std::shared_ptr<CRenderTarget> get_render_target() override;
 		virtual void process() override;
-
+		void set_pipeline(std::shared_ptr<CSpwPipeline> pipeline);
+		std::shared_ptr<CSpwPipeline> get_pipeline();
 		// Internal implementation of render result presentation.
 		std::function<void(void)> spw_present;
 	
@@ -29,8 +29,8 @@ namespace wyc
 		friend void spw_handler(CSpwRenderer*, RenderCommand*);
 
 		std::shared_ptr<CSpwRenderTarget> m_rt;
+		std::shared_ptr<CSpwPipeline> m_pipeline;
 		std::vector<RenderCommand*> m_cmd_buffer;
-		CSpwPipeline m_pipeline;
 	};
 
 	template<class Command>
@@ -40,5 +40,15 @@ namespace wyc
 	}
 
 	using spw_command_handler = void(*) (CSpwRenderer*, RenderCommand*);
+
+	inline void CSpwRenderer::set_pipeline(std::shared_ptr<CSpwPipeline> pipeline)
+	{
+		m_pipeline = pipeline;
+	}
+
+	inline std::shared_ptr<CSpwPipeline> wyc::CSpwRenderer::get_pipeline()
+	{
+		return m_pipeline;
+	}
 
 } // namespace wyc

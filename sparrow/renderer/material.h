@@ -76,6 +76,7 @@ namespace wyc
 	class CMaterial
 	{
 	public:
+		typedef std::unordered_map<std::string, CUniform> UniformMap;
 		CMaterial();
 		CMaterial(const char *name);
 		virtual ~CMaterial();
@@ -83,7 +84,7 @@ namespace wyc
 		virtual void vertex_shader(const void *vertex_in, void *vertex_out) const = 0;
 		virtual bool fragment_shader(const void *vertex_out, Color4f &frag_color) const = 0;
 		// access uniform properties
-		virtual const std::unordered_map<std::string, CUniform>& get_uniform_define() const {
+		virtual const UniformMap& get_uniform_define() const {
 			DECLARE_UNIFORM_MAP(CMaterial) {
 			};
 			return UNIFORM_MAP;

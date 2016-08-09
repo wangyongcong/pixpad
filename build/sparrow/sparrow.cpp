@@ -7,7 +7,8 @@
 #include "scene.h"
 #include "spw_renderer.h"
 #include "image.h"
-#include "flat_color.h"
+#include "mtl_flat_color.h"
+#include "spw_pipeline_wireframe.h"
 
 #ifdef _DEBUG
 	#pragma comment(lib, "libspw_staticd.lib")
@@ -23,15 +24,20 @@
 
 wyc::CLogger *g_log = nullptr;
 
-void do_render(const std::string & scn_file, const std::string & img_file)
+void do_render(const std::string & scn_file, const std::string & img_file, bool is_wireframe)
 {
 	unsigned core_count = std::thread::hardware_concurrency();
 	log_debug("max thread count: %d", core_count);
-
 	auto render_target = std::make_shared<wyc::CSpwRenderTarget>();
 	render_target->create(960, 540, wyc::SPR_COLOR_R8G8B8A8);
 	auto renderer = std::make_shared<wyc::CSpwRenderer>();
 	renderer->set_render_target(render_target);
+	std::shared_ptr<wyc::CSpwPipeline> pipeline;
+	if (is_wireframe)
+		pipeline = std::make_shared<wyc::CSpwPipelineWireFrame>();
+	else
+		pipeline = std::make_shared<wyc::CSpwPipeline>();
+	renderer->set_pipeline(pipeline);
 	wyc::CScene scn;
 	std::wstring w_scn_file;
 	wyc::CCamera camera;
@@ -66,6 +72,7 @@ int main(int argc, char *argv[])
 		cmd.add(input_file);
 		TCLAP::UnlabeledValueArg<std::string> output_file("output_file", "Output image file", false, "", "path string");
 		cmd.add(output_file);
+		TCLAP::SwitchArg is_wireframe("w", "wireframe", "Enable wireframe mode", cmd);
 		cmd.parse(argc, argv);
 		std::string scn_file = input_file.getValue();
 		std::string img_file = output_file.getValue();
@@ -80,7 +87,7 @@ int main(int argc, char *argv[])
 			}
 		}
 		g_log = new wyc::CDebugLogger();
-		do_render(scn_file, img_file);
+		do_render(scn_file, img_file, is_wireframe.getValue());
 	}
 	catch (TCLAP::ArgException &e)
 	{

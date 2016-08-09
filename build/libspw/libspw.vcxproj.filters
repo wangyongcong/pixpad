@@ -17,15 +17,15 @@
     <Filter Include="3rd\OpenEXR">
       <UniqueIdentifier>{f8491983-65bf-48e7-b86f-ca77895fd98c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="shader">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="thread">
       <UniqueIdentifier>{89f1e9bd-c3e5-4713-b1b9-63040269467e}</UniqueIdentifier>
     </Filter>
     <Filter Include="mathex">
       <UniqueIdentifier>{ba0fe0a6-6e6e-4091-9b60-d2eb9434103c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="material">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -275,12 +275,6 @@
     <ClInclude Include="..\..\install\include\OpenEXR\ImathVecAlgo.h">
       <Filter>3rd\OpenEXR</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\sparrow\shader\flat_color.h">
-      <Filter>shader</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\sparrow\shader\phone_color.h">
-      <Filter>shader</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\sparrow\scene\scene_obj.h">
       <Filter>scene</Filter>
     </ClInclude>
@@ -313,6 +307,12 @@
     </ClInclude>
     <ClInclude Include="..\..\sparrow\mathex\xs_float.h">
       <Filter>mathex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\spw_pipeline_wireframe.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\material\mtl_flat_color.h">
+      <Filter>material</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -384,6 +384,9 @@
     </ClCompile>
     <ClCompile Include="..\..\sparrow\mathex\vecmath.cpp">
       <Filter>mathex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\spw_pipeline_wireframe.cpp">
+      <Filter>renderer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

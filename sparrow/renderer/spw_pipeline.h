@@ -16,25 +16,16 @@ namespace wyc
 		COUNTER_CLOCK_WISE = -1
 	};
 
-	enum POLYGON_DRAW_MODE
-	{
-		FILL_MODE,
-		LINE_MODE,
-	};
-
 	class CSpwPipeline
 	{
 	public:
 		CSpwPipeline();
-		~CSpwPipeline();
+		virtual ~CSpwPipeline();
 		CSpwPipeline(const CSpwPipeline &other) = delete;
 		CSpwPipeline& operator = (const CSpwPipeline &other) = delete;
-		void setup(std::shared_ptr<CSpwRenderTarget> rt);
-		void feed(const CMesh *mesh, const CMaterial *program);
+		virtual void setup(std::shared_ptr<CSpwRenderTarget> rt);
+		virtual void feed(const CMesh *mesh, const CMaterial *material);
 		void set_viewport(const Imath::Box2i &view);
-		inline void set_draw_mode(POLYGON_DRAW_MODE m) {
-			m_draw_mode = m;
-		}
 
 	protected:
 		typedef std::pair<const char*, size_t> AttribStream;
@@ -60,15 +51,14 @@ namespace wyc
 			Imath::V2i block_center;
 		};
 		bool check_material(const AttribDefine &attrib_def) const;
-		void process(RasterTask &stream) const;
+		virtual void process(RasterTask &task) const;
 		void viewport_transform(float* vert_pos, size_t size, size_t stride) const;
-		void draw_triangles(float *vertices, size_t count, RasterTask &task) const;
+		virtual void draw_triangles(float *vertices, size_t count, RasterTask &task) const;
 		//void viewport_transform(Imath::V4f* vertex_pos, size_t size) const;
 		//void draw_triangles(Imath::V4f* vertex_pos, const float *vertices, size_t count, RasterTask &task) const;
 
 		unsigned m_num_core;
 		POLYGON_WINDING m_clock_wise;
-		POLYGON_DRAW_MODE m_draw_mode;
 		std::shared_ptr<CSpwRenderTarget> m_rt;
 		Imath::V2f m_vp_translate;
 		Imath::V2f m_vp_scale;

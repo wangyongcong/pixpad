@@ -13,8 +13,9 @@ namespace wyc
 
 	extern spw_command_handler spw_cmd_map[];
 
-	CSpwRenderer::CSpwRenderer() :
-		m_rt(nullptr)
+	CSpwRenderer::CSpwRenderer()
+		: m_rt(nullptr)
+		, m_pipeline(nullptr)
 	{
 		m_cmd_buffer.reserve(128);
 	}
@@ -22,6 +23,7 @@ namespace wyc
 	CSpwRenderer::~CSpwRenderer()
 	{
 		m_rt = nullptr;
+		m_pipeline = nullptr;
 	}
 
 	void CSpwRenderer::set_render_target(std::shared_ptr<CRenderTarget> rt)
@@ -40,6 +42,10 @@ namespace wyc
 
 	void CSpwRenderer::process()
 	{
+		if (!m_pipeline)
+		{
+			m_pipeline = std::make_shared<CSpwPipeline>();
+		}
 		if (m_cmd_queue.batch_dequeue(m_cmd_buffer, m_cmd_buffer.capacity()))
 		{
 			for (auto &cmd : m_cmd_buffer)

@@ -43,7 +43,7 @@ namespace wyc
 			return ls_attrib_define;
 		}
 
-		virtual const std::unordered_map<std::string, CUniform>& get_uniform_define() const override
+		virtual const UniformMap& get_uniform_define() const override
 		{
 			DECLARE_UNIFORM_MAP(CMaterialFlatColor) {
 				MAKE_UNIFORM(Matrix44f, mvp_matrix),
@@ -58,7 +58,6 @@ namespace wyc
 			const VertexIn* in = reinterpret_cast<const VertexIn*>(vertex_in);
 			VertexOut* out = reinterpret_cast<VertexOut*>(vertex_out);
 			Vec4f pos(*in->pos);
-			log_debug("vert: (%f, %f, %f)", pos.x, pos.y, pos.z);
 			out->pos = mvp_matrix * pos;
 		}
 

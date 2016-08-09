@@ -6,7 +6,7 @@
 #include "camera.h"
 #include "renderer.h"
 #include "material.h"
-#include "flat_color.h"
+#include "mtl_flat_color.h"
 #include "scene_obj.h"
 
 namespace wyc
