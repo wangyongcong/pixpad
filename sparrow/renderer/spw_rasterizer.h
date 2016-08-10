@@ -7,14 +7,9 @@
 namespace wyc
 {
 	// bresenham line rasterization
-	template<typename Vector, typename Plotter>
-	void line_bresenham(Plotter &plot, const Vector &v0, const Vector &v1)
+	template<typename Plotter>
+	void line_bresenham(Plotter &plot, int x0, int y0, int x1, int y1)
 	{
-		int x0, y0, x1, y1;
-		x0 = fast_round(v0.x);
-		y0 = fast_round(v0.y);
-		x1 = fast_round(v1.x);
-		y1 = fast_round(v1.y);
 		if (x0>x1) {
 			std::swap(x0, x1);
 			std::swap(y0, y1);
@@ -62,14 +57,6 @@ namespace wyc
 				plot(x0, y0);
 			}
 		}
-	}
-
-	template<typename Vector, typename Plotter>
-	void draw_triangle_frame(const Vector &pos0, const Vector &pos1, const Vector &pos2, Plotter &plot)
-	{
-		line_bresenham(plot, pos0, pos1);
-		line_bresenham(plot, pos1, pos2);
-		line_bresenham(plot, pos2, pos0);
 	}
 
 	// calculate the signed-area * 2 of triangle (v0, v1, v2)
