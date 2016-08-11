@@ -2,9 +2,53 @@
 #include "ImathVecExt.h"
 #include "floatmath.h"
 #include <cassert>
+#include <algorithm>
 
 namespace wyc
 {
+	// Liang-Barsky line clipping algorithm
+	bool clip_line(Imath::V2f &v0, Imath::V2f &v1, const Imath::Box2i &clip_window)
+	{
+		float t1 = 0, t2 = 1.0f;
+		float dx = v1.x - v0.x, dy = v1.y - v0.y;
+		float p[4] = { -dx, dx, -dy, dy };
+		float q[4] = {
+			v0.x - clip_window.min.x,
+			clip_window.max.x - v0.x,
+			v0.y - clip_window.min.y,
+			clip_window.max.y - v0.y
+		};
+		for (int i = 0; i < 4; ++i)
+		{
+			if (p[i] == 0) {
+				if (q[i] < 0)
+					return false;
+			}
+			else if (p[i] < 0)
+			{
+				t1 = std::max<float>(t1, q[i] / p[i]);
+			}
+			else
+			{
+				t2 = std::min<float>(t2, q[i] / p[i]);
+			}
+		}
+		if (t1 > t2)
+			return false;
+		if (t1 > 0)
+		{
+			v0.x += dx * t1;
+			v0.y += dy * t1;
+		}
+		if (t2 < 1)
+		{
+			t2 = 1 - t2;
+			v1.x -= dx * t2;
+			v1.y -= dy * t2;
+		}
+		return true;
+	}
+
 	void clip_polygon_by_plane(const Vec4f &plane, const std::vector<Vec3f> &vertices, std::vector<Vec3f> &out)
 	{
 		Vec3f prev = vertices.back();
