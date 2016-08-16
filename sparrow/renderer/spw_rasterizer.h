@@ -59,6 +59,12 @@ namespace wyc
 		}
 	}
 
+	template<typename Plotter, typename Vec>
+	void draw_line(Plotter &plot, const Vec &v1, const Vec &v2)
+	{
+		line_bresenham(plot, fast_floor(v1.x), fast_floor(v1.y), fast_floor(v2.x), fast_floor(v2.y));
+	}
+
 	// calculate the signed-area * 2 of triangle (v0, v1, v2)
 	// return positive value if counter-clockwise, 
 	// negative value for clockwise, 

@@ -29,6 +29,12 @@
     <ClCompile Include="sparrow.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="test_line.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="test_collada.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="README" />

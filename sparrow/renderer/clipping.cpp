@@ -7,7 +7,7 @@
 namespace wyc
 {
 	// Liang-Barsky line clipping algorithm
-	bool clip_line(Imath::V2f &v0, Imath::V2f &v1, const Imath::Box2i &clip_window)
+	bool clip_line(Imath::V2f &v0, Imath::V2f &v1, const Imath::Box2f &clip_window)
 	{
 		float t1 = 0, t2 = 1.0f;
 		float dx = v1.x - v0.x, dy = v1.y - v0.y;

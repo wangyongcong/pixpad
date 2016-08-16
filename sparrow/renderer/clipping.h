@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <OpenEXR/ImathVec.h>
+#include <OpenEXR/ImathBox.h>
 #include "mathfwd.h"
 #include "floatmath.h"
 
@@ -52,4 +53,5 @@ namespace wyc
 	std::pair<Imath::V4f*, float*> clip_polygon_stream(Imath::V4f *clip_in, Imath::V4f *clip_out, 
 		float *vertex_in, float *vertex_out, unsigned &size, unsigned stride, unsigned max_size);
 
+	bool clip_line(Imath::V2f &v0, Imath::V2f &v1, const Imath::Box2f &clip_window);
 } // namespace wyc
