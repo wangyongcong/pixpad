@@ -85,6 +85,7 @@
     <ClInclude Include="..\..\sparrow\common\logger.h" />
     <ClInclude Include="..\..\sparrow\common\unitest.h" />
     <ClInclude Include="..\..\sparrow\common\util.h" />
+    <ClInclude Include="..\..\sparrow\material\mtl_collada.h" />
     <ClInclude Include="..\..\sparrow\material\mtl_flat_color.h" />
     <ClInclude Include="..\..\sparrow\mathex\floatmath.h" />
     <ClInclude Include="..\..\sparrow\mathex\ImathBoxAlgoExt.h" />

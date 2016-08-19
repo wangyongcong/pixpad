@@ -3,11 +3,36 @@
 #include "vertex_layout.h"
 #include "material.h"
 #include "ImathMatrixExt.h"
+#include <tuple>
 
 namespace wyc
 {
+	template<EAttribUsage U, int C>
+	struct VTypetrait
+	{
+	};
+
+	template<> struct VTypetrait<ATTR_POSITION, 3>
+	{
+	public:
+		typedef Imath::V3f vertex_t;
+	};
+
 	class CMaterialFlatColor : public CMaterial
 	{
+		INPUT_ATTRIBUTE_LIST
+			ATTRIBUTE_SLOT(ATTR_POSITION, 3)
+		INPUT_ATTRIBUTE_LIST_END
+
+		OUTPUT_ATTRIBUTE_LIST
+			ATTRIBUTE_SLOT(ATTR_POSITION, 4)
+		OUTPUT_ATTRIBUTE_LIST_END
+
+		UNIFORM_MAP
+			UNIFORM_SLOT(Matrix44f, mvp_matrix)
+			UNIFORM_SLOT(Color4f, color)
+		UNIFORM_MAP_END
+
 	public:
 		CMaterialFlatColor() 
 			: CMaterial("FlatColor")
@@ -15,42 +40,14 @@ namespace wyc
 			mvp_matrix.makeIdentity();
 			color.setValue(1.0f, 1.0f, 1.0f, 1.0f);
 		}
-
+		
 		struct VertexIn {
-			const Vec3f *pos;
+			const Imath::V3f *pos;
 		};
 
 		struct VertexOut {
-			Vec4f pos;
+			Imath::V4f pos;
 		};
-
-		virtual const AttribDefine& get_attrib_define() const override
-		{
-			static AttribSlot ls_in_attribs[] = {
-				{ ATTR_POSITION, 3 },
-			};
-			static AttribSlot ls_out_attirbs[] = {
-				{ ATTR_POSITION, 4 },
-			};
-			static AttribDefine ls_attrib_define = {
-				ls_in_attribs, // attribute slot binding
-				1, // attribute count
-				3, // total attribute components
-				ls_out_attirbs,
-				1,
-				4,
-			};
-			return ls_attrib_define;
-		}
-
-		virtual const UniformMap& get_uniform_define() const override
-		{
-			DECLARE_UNIFORM_MAP(CMaterialFlatColor) {
-				MAKE_UNIFORM(Matrix44f, mvp_matrix),
-				MAKE_UNIFORM(Color4f, color)
-			};
-			return UNIFORM_MAP;
-		}
 
 		// shader interface
 		virtual void vertex_shader(const void *vertex_in, void *vertex_out) const override

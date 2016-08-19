@@ -314,6 +314,9 @@
     <ClInclude Include="..\..\sparrow\material\mtl_flat_color.h">
       <Filter>material</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\sparrow\material\mtl_collada.h">
+      <Filter>material</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sparrow\common\image.cpp">

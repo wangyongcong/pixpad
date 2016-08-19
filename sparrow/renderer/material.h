@@ -11,19 +11,29 @@
 namespace wyc
 {
 
-#define DECLARE_UNIFORM_MAP(cls_type) using cls = cls_type;\
-	static std::unordered_map<std::string, CUniform> ls_uniform_map = 
+#define UNIFORM_MAP protected: virtual const UniformMap& get_uniform_define() const override {\
+	using cls_type = std::remove_const_t<std::remove_reference_t<decltype(*this)>>;\
+	static std::unordered_map<std::string, CUniform> ls_uniform_map = {
+#define UNIFORM_MAP_END }; return ls_uniform_map; }
 
-#define UNIFORM_MAP ls_uniform_map
-
-#define MAKE_UNIFORM(type, name) { #name, { typeid(type),\
+#define UNIFORM_SLOT(type, name) { #name, { typeid(type),\
 	[](const CMaterial* self, void* val) {\
-		*((type*)(val)) = ((cls*)(self))->##name;\
+		*((type*)(val)) = ((const cls_type*)(self))->##name;\
 	},\
 	[](CMaterial *self, const void *val) {\
-		((cls*)(self))->##name = *((const type*)(val));\
+		((cls_type*)(self))->##name = *((const type*)(val));\
 	}\
-} }
+} },
+
+#define INPUT_ATTRIBUTE_LIST protected: virtual const AttribSlot* get_attrib_input() const override { \
+	static const AttribSlot ls_input_attribs[] = {
+#define INPUT_ATTRIBUTE_LIST_END {EAttribUsage(0), 0} }; return  ls_input_attribs; }
+
+#define OUTPUT_ATTRIBUTE_LIST protected: virtual const AttribSlot* get_attrib_ouput() const override { \
+	static const AttribSlot ls_output_attribs[] = {
+#define OUTPUT_ATTRIBUTE_LIST_END {EAttribUsage(0), 0} }; return ls_output_attribs; }
+
+#define ATTRIBUTE_SLOT(usage, component) { EAttribUsage(usage), uint8_t(component) },
 
 	class CMaterial;
 
@@ -31,15 +41,6 @@ namespace wyc
 	{
 		EAttribUsage usage;
 		unsigned char component;
-	};
-
-	struct AttribSlotList
-	{
-		const AttribSlot *data;
-		unsigned size;
-		inline const AttribSlot& operator[] (size_t idx) const {
-			return data[idx];
-		}
 	};
 
 	struct AttribDefine
@@ -80,22 +81,24 @@ namespace wyc
 		CMaterial();
 		CMaterial(const char *name);
 		virtual ~CMaterial();
-		virtual const AttribDefine& get_attrib_define() const = 0;
 		virtual void vertex_shader(const void *vertex_in, void *vertex_out) const = 0;
 		virtual bool fragment_shader(const void *vertex_out, Color4f &frag_color) const = 0;
-		// access uniform properties
-		virtual const UniformMap& get_uniform_define() const {
-			DECLARE_UNIFORM_MAP(CMaterial) {
-			};
-			return UNIFORM_MAP;
-		}
 		template<typename T>
 		bool set_uniform(const std::string &name, const T &val);
 		template<typename T>
 		bool get_uniform(const std::string &name, T &val) const;
 		const CUniform* find_uniform(const std::string &name) const;
-	
+		// get attribute define
+		virtual const AttribDefine& get_attrib_define() const;
+		// get uniform define
+		virtual const UniformMap& get_uniform_define() const;
 	protected:
+		// define attribute layout
+		typedef std::pair<const AttribSlot*, size_t> AttribSlotList;
+		virtual const AttribSlot* get_attrib_input() const { return nullptr; }
+		virtual const AttribSlot* get_attrib_ouput() const { return nullptr; }
+		AttribDefine create_attrib_define() const;
+		// members
 		std::string m_name;
 	};
 
@@ -130,6 +133,7 @@ namespace wyc
 			return false;
 		}
 		u->get(this, &val);
+		using t1 = std::remove_const<std::remove_reference_t<decltype(*this)>>::type;
 		return true;
 	}
 
