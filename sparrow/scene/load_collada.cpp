@@ -137,18 +137,26 @@ public:
 		log_debug("\tmateiral: %s (%s)", str(material->getName()), str(material->getUniqueId()));
 		std::string unique_name = material->getUniqueId().toAscii();
 		auto spw_mtl = m_scene->create_material(unique_name, m_def_mtl);
+		if (spw_mtl)
+		{
+			std::string effect_name = material->getInstantiatedEffect().toAscii();
+			m_effect_to_mtl[effect_name] = unique_name;
+		}
+		return true;
+	}
+
+	/** When this method is called, the writer must write the effect.
+	@return The writer should return true, if writing succeeded, false otherwise.*/
+	virtual bool writeEffect(const COLLADAFW::Effect* effect)
+	{
+		log_debug("\teffect: %s (%s)", str(effect->getName()), str(effect->getUniqueId()));
+		std::string unique_name = effect->getUniqueId().toAscii();
+		auto it = m_effect_to_mtl.find(unique_name);
+		if (it == m_effect_to_mtl.end())
+			return true;
+		auto spw_mtl = m_scene->get_material(it->second);
 		if (!spw_mtl)
 			return true;
-		std::string effect_name = material->getInstantiatedEffect().toAscii();
-		auto &it = m_effects.find(effect_name);
-		if (it == m_effects.end())
-		{
-			std::string name = str(material->getName());
-			log_error("%s : Material [%s] with unknown effect [ID: %s]", __FUNCTION__, name.c_str(), effect_name.c_str());
-			return true;
-		}
-		auto effect = it->second;
-		// write common profile
 		auto &common_profile = effect->getCommonEffects();
 		const COLLADAFW::EffectCommon *common_effect;
 		for (unsigned i = 0, cnt = common_profile.getCount(); i < cnt; ++i)
@@ -169,16 +177,6 @@ public:
 			auto &shininess = common_effect->getShininess();
 			spw_mtl->set_uniform("shininess", shininess.getFloatValue());
 		}
-
-		return true;
-	}
-
-	/** When this method is called, the writer must write the effect.
-	@return The writer should return true, if writing succeeded, false otherwise.*/
-	virtual bool writeEffect(const COLLADAFW::Effect* effect)
-	{
-		std::string unique_name = effect->getUniqueId().toAscii();
-		m_effects[unique_name] = effect;
 		return true;
 	}
 
@@ -443,13 +441,12 @@ private:
 			writeVisualSceneNode(child_nodes[i], colla_transofrm);
 		}
 	}
-	
+
 	// private data declarations
 private:
 	CScene *m_scene;
 	std::string m_def_mtl;
-	std::unordered_map<std::string, const COLLADAFW::Effect*> m_effects;
-
+	std::unordered_map<std::string, std::string> m_effect_to_mtl;
 };
 
 bool CScene::load_collada(const std::wstring & w_file_path)

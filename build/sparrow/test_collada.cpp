@@ -71,7 +71,7 @@ void test_collada_execute(int argc, char *argv[])
 		//		img_file = base_name + ".png";
 		//	}
 		//}
-		std::string scn_file = "res/helloworld.dae";
+		std::string scn_file = "res/cube.dae";
 		std::string img_file = "test_collada.png";
 		bool is_wireframe = true;
 		do_render(scn_file, img_file, is_wireframe);
