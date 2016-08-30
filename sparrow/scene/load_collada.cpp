@@ -37,6 +37,11 @@ namespace wyc
 		}
 	}
 
+	inline Imath::C4f to_color(const COLLADAFW::Color &c)
+	{
+		return Imath::C4f(float(c.getRed()), float(c.getGreen()), float(c.getBlue()), float(c.getAlpha()));
+	}
+
 class CColladaSceneWriter : public COLLADAFW::IWriter
 {
 	// member declarations
@@ -44,6 +49,7 @@ public:
 	CColladaSceneWriter(CScene *scn) 
 		: IWriter()
 		, m_scene(scn)
+		, m_def_mtl("Collada")
 	{
 		assert(scn && "CColladaSceneWriter: Need a valid scene to write to");
 	}
@@ -126,23 +132,44 @@ public:
 
 	/** When this method is called, the writer must write the material.
 	@return The writer should return true, if writing succeeded, false otherwise.*/
-	virtual bool writeMaterial(const COLLADAFW::Material* dae_material)
+	virtual bool writeMaterial(const COLLADAFW::Material* material)
 	{
-		log_debug("\tmateiral: %s (%s)", str(dae_material->getName()), str(dae_material->getUniqueId()));
-		std::string unique_name = dae_material->getUniqueId().toAscii();
-		std::string name = str(dae_material->getName());
-		std::string material_class;
-		std::string material_name;
-		size_t pos = name.find_first_of("-");
-		if (pos != std::string::npos)
+		log_debug("\tmateiral: %s (%s)", str(material->getName()), str(material->getUniqueId()));
+		std::string unique_name = material->getUniqueId().toAscii();
+		auto spw_mtl = m_scene->create_material(unique_name, m_def_mtl);
+		if (!spw_mtl)
+			return true;
+		std::string effect_name = material->getInstantiatedEffect().toAscii();
+		auto &it = m_effects.find(effect_name);
+		if (it == m_effects.end())
 		{
-			material_class = name.substr(0, pos);
-			material_name = name.substr(pos + 1);
+			std::string name = str(material->getName());
+			log_error("%s : Material [%s] with unknown effect [ID: %s]", __FUNCTION__, name.c_str(), effect_name.c_str());
+			return true;
 		}
-		else {
-			log_error("%s : Unknown material [%s]", __FUNCTION__, name.c_str());
+		auto effect = it->second;
+		// write common profile
+		auto &common_profile = effect->getCommonEffects();
+		const COLLADAFW::EffectCommon *common_effect;
+		for (unsigned i = 0, cnt = common_profile.getCount(); i < cnt; ++i)
+		{
+			common_effect = common_profile[i];
+			auto &emission = common_effect->getEmission();
+			if (emission.isColor()) {
+				spw_mtl->set_uniform("emission", to_color(emission.getColor()));
+			}
+			auto &diffuse = common_effect->getDiffuse();
+			if (diffuse.isColor()) {
+				spw_mtl->set_uniform("diffuse", to_color(diffuse.getColor()));
+			}
+			auto &specular = common_effect->getSpecular();
+			if (specular.isColor()) {
+				spw_mtl->set_uniform("specular", to_color(specular.getColor()));
+			}
+			auto &shininess = common_effect->getShininess();
+			spw_mtl->set_uniform("shininess", shininess.getFloatValue());
 		}
-		m_scene->create_material(unique_name, material_class);
+
 		return true;
 	}
 
@@ -150,6 +177,8 @@ public:
 	@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeEffect(const COLLADAFW::Effect* effect)
 	{
+		std::string unique_name = effect->getUniqueId().toAscii();
+		m_effects[unique_name] = effect;
 		return true;
 	}
 
@@ -418,6 +447,9 @@ private:
 	// private data declarations
 private:
 	CScene *m_scene;
+	std::string m_def_mtl;
+	std::unordered_map<std::string, const COLLADAFW::Effect*> m_effects;
+
 };
 
 bool CScene::load_collada(const std::wstring & w_file_path)

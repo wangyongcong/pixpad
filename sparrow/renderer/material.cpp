@@ -30,7 +30,7 @@ namespace wyc
 		return ls_attrib_define;
 	}
 
-	const UniformMap & CMaterial::get_uniform_define() const
+	const CMaterial::UniformMap & CMaterial::get_uniform_define() const
 	{
 		static UniformMap ls_material_uniform;
 		return ls_material_uniform;

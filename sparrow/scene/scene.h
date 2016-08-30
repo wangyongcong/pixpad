@@ -6,7 +6,6 @@
 #include "camera.h"
 #include "renderer.h"
 #include "material.h"
-#include "mtl_flat_color.h"
 #include "scene_obj.h"
 
 namespace wyc
@@ -31,6 +30,7 @@ namespace wyc
 		}
 
 		material_ptr create_material(const std::string &name, const std::string &type);
+		bool add_material(const std::string &name, material_ptr mtl);
 		inline material_ptr get_material(const std::string &name) const
 		{
 			auto &it = m_material_lib.find(name);

@@ -44,7 +44,7 @@ namespace wyc
 
 		virtual bool fragment_shader(const void *vertex_out, Color4f &frag_color) const override
 		{
-
+			return false;
 		}
 
 	protected:

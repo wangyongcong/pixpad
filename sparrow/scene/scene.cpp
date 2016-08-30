@@ -1,6 +1,8 @@
 #include "scene.h"
 #include "util.h"
 #include "log.h"
+#include "mtl_flat_color.h"
+#include "mtl_collada.h"
 
 namespace wyc
 {
@@ -18,7 +20,7 @@ namespace wyc
 		auto it = m_mesh_pool.find(name);
 		if(it == m_mesh_pool.end())
 		{
-			std::shared_ptr<CMesh> mesh(new CMesh);
+			auto mesh = std::make_shared<CMesh>();
 			m_mesh_pool[name] = mesh;
 			return mesh;
 		}
@@ -35,19 +37,30 @@ namespace wyc
 			return it->second;
 		}
 		// todo: we need a material factory
-		CMaterial *ptr;
+		material_ptr mtl;
 		if (type == "FlatColor")
 		{
-			ptr = new CMaterialFlatColor;
+			mtl = std::make_shared<CMaterialFlatColor>();
+		}
+		else if (type == "Collada")
+		{
+			mtl = std::make_shared<CMaterialCollada>();
 		}
 		else
 		{
 			log_error("%s : Unknown material [%s]", __FUNCTION__, type.c_str());
 			return nullptr;
 		}
-		auto ret = material_ptr(ptr);
-		m_material_lib[name] = ret;
-		return ret;
+		m_material_lib[name] = mtl;
+		return mtl;
+	}
+
+	bool CScene::add_material(const std::string &name, material_ptr mtl)
+	{
+		if (m_material_lib.find(name) != m_material_lib.end())
+			return false;
+		m_material_lib[name] = mtl;
+		return true;
 	}
 
 	std::shared_ptr<CCamera> CScene::create_camera(const std::string & name)
@@ -55,7 +68,7 @@ namespace wyc
 		auto it = m_camera_pool.find(name);
 		if (it == m_camera_pool.end())
 		{
-			std::shared_ptr<CCamera> camera(new CCamera);
+			auto camera = std::make_shared<CCamera>();
 			m_camera_pool[name] = camera;
 			return camera;
 		}
@@ -66,7 +79,7 @@ namespace wyc
 	std::shared_ptr<CSceneObj> CScene::add_object(const std::string & mesh_name, const Matrix44f & transform)
 	{
 		m_cur_pid += 1;
-		auto obj = std::shared_ptr<CSceneObj>(new CSceneObj(m_cur_pid));
+		auto obj = std::make_shared<CSceneObj>(m_cur_pid);
 		m_objs[m_cur_pid] = obj;
 		auto it = m_mesh_pool.find(mesh_name);
 		if(it != m_mesh_pool.end())
