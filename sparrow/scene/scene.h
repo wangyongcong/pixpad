@@ -20,25 +20,6 @@ namespace wyc
 
 		bool load_collada(const std::wstring &file);
 		
-		std::shared_ptr<CMesh> create_mesh(const std::string &name);
-		inline std::shared_ptr<CMesh> get_mesh(const std::string &name) const
-		{
-			auto &it = m_mesh_pool.find(name);
-			if (it != m_mesh_pool.end())
-				return it->second;
-			return nullptr;
-		}
-
-		material_ptr create_material(const std::string &name, const std::string &type);
-		bool add_material(const std::string &name, material_ptr mtl);
-		inline material_ptr get_material(const std::string &name) const
-		{
-			auto &it = m_material_lib.find(name);
-			if (it != m_material_lib.end())
-				return it->second;
-			return nullptr;
-		}
-
 		std::shared_ptr<CCamera> create_camera(const std::string &name);
 		inline std::shared_ptr<CCamera> get_camera(const std::string &name) const
 		{
@@ -54,16 +35,15 @@ namespace wyc
 			return get_camera(m_active_camera);
 		}
 
-		std::shared_ptr<CSceneObj> add_object(const std::string &mesh_name, const Matrix44f &transform);
+		//std::shared_ptr<CSceneObj> add_object(const std::string &mesh_name, const Matrix44f &transform);
+		void add_object(std::shared_ptr<CSceneObj> obj);
 		std::shared_ptr<CSceneObj> get_object(unsigned pid);
 
 		void render(std::shared_ptr<CRenderer> renderer);
 
 	private:
-		std::unordered_map<std::string, std::shared_ptr<CMesh>> m_mesh_pool;
 		std::unordered_map<std::string, std::shared_ptr<CCamera>> m_camera_pool;
 		std::unordered_map<unsigned, std::shared_ptr<CSceneObj>> m_objs;
-		std::unordered_map<std::string, material_ptr> m_material_lib;
 		unsigned m_cur_pid;
 		std::string m_active_camera;
 	};

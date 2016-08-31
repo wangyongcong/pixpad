@@ -113,8 +113,10 @@
     <ClInclude Include="..\..\sparrow\renderer\vertex_buffer.h" />
     <ClInclude Include="..\..\sparrow\renderer\vertex_layout.h" />
     <ClInclude Include="..\..\sparrow\scene\camera.h" />
+    <ClInclude Include="..\..\sparrow\scene\light.h" />
     <ClInclude Include="..\..\sparrow\scene\scene.h" />
     <ClInclude Include="..\..\sparrow\scene\scene_obj.h" />
+    <ClInclude Include="..\..\sparrow\scene\static_mesh.h" />
     <ClInclude Include="..\..\sparrow\thread\platform_info.h" />
     <ClInclude Include="..\..\sparrow\thread\ring_queue.h" />
   </ItemGroup>
@@ -139,9 +141,11 @@
     <ClCompile Include="..\..\sparrow\renderer\vertex_buffer.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\vertex_layout.cpp" />
     <ClCompile Include="..\..\sparrow\scene\camera.cpp" />
+    <ClCompile Include="..\..\sparrow\scene\light.cpp" />
     <ClCompile Include="..\..\sparrow\scene\load_collada.cpp" />
     <ClCompile Include="..\..\sparrow\scene\scene.cpp" />
     <ClCompile Include="..\..\sparrow\scene\scene_obj.cpp" />
+    <ClCompile Include="..\..\sparrow\scene\static_mesh.cpp" />
     <ClCompile Include="..\..\sparrow\thread\platform_info.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

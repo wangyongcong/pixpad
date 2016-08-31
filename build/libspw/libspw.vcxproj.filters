@@ -317,6 +317,12 @@
     <ClInclude Include="..\..\sparrow\material\mtl_collada.h">
       <Filter>material</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\sparrow\scene\light.h">
+      <Filter>scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\scene\static_mesh.h">
+      <Filter>scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sparrow\common\image.cpp">
@@ -390,6 +396,12 @@
     </ClCompile>
     <ClCompile Include="..\..\sparrow\renderer\spw_pipeline_wireframe.cpp">
       <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\scene\static_mesh.cpp">
+      <Filter>scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\scene\light.cpp">
+      <Filter>scene</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

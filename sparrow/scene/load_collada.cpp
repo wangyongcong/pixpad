@@ -4,6 +4,9 @@
 #include <COLLADAFWIWriter.h>
 #include "util.h"
 #include "log.h"
+#include "static_mesh.h"
+#include "mtl_collada.h"
+#include "light.h"
 
 #pragma comment(lib, "GeneratedSaxParser.lib")
 #pragma comment(lib, "OpenCOLLADABaseUtils.lib")
@@ -136,12 +139,10 @@ public:
 	{
 		log_debug("\tmateiral: %s (%s)", str(material->getName()), str(material->getUniqueId()));
 		std::string unique_name = material->getUniqueId().toAscii();
-		auto spw_mtl = m_scene->create_material(unique_name, m_def_mtl);
-		if (spw_mtl)
-		{
-			std::string effect_name = material->getInstantiatedEffect().toAscii();
-			m_effect_to_mtl[effect_name] = unique_name;
-		}
+		auto spw_mtl = std::make_shared<CMaterialCollada>();
+		m_materials[unique_name] = spw_mtl;
+		std::string effect_name = material->getInstantiatedEffect().toAscii();
+		m_effect_to_mtl[effect_name] = unique_name;
 		return true;
 	}
 
@@ -151,12 +152,13 @@ public:
 	{
 		log_debug("\teffect: %s (%s)", str(effect->getName()), str(effect->getUniqueId()));
 		std::string unique_name = effect->getUniqueId().toAscii();
-		auto it = m_effect_to_mtl.find(unique_name);
-		if (it == m_effect_to_mtl.end())
+		auto it_effect = m_effect_to_mtl.find(unique_name);
+		if (it_effect == m_effect_to_mtl.end())
 			return true;
-		auto spw_mtl = m_scene->get_material(it->second);
-		if (!spw_mtl)
+		auto it_mtl = m_materials.find(it_effect->second);
+		if (it_mtl == m_materials.end())
 			return true;
+		auto spw_mtl = it_mtl->second;
 		auto &common_profile = effect->getCommonEffects();
 		const COLLADAFW::EffectCommon *common_effect;
 		for (unsigned i = 0, cnt = common_profile.getCount(); i < cnt; ++i)
@@ -214,6 +216,10 @@ public:
 	virtual bool writeLight(const COLLADAFW::Light* light)
 	{
 		log_debug("\tlight: %s (%s)", str(light->getName()), str(light->getUniqueId()));
+		std::string unique_name = light->getUniqueId().toAscii();
+		auto lit = std::make_shared<CLight>();
+		lit->set_name(unique_name);
+		m_lights[unique_name] = lit;
 		return true;
 	}
 
@@ -269,11 +275,11 @@ public:
 	// private function declarations
 private:
 	
-	void writeMesh(const COLLADAFW::Mesh *colla_mesh)
+	void writeMesh(const COLLADAFW::Mesh *collada_mesh)
 	{
-		std::string unique_name = colla_mesh->getUniqueId().toAscii();
-		log_debug("\tmesh: %s (%s)", colla_mesh->getName().c_str(), unique_name.c_str());
-		const COLLADAFW::MeshVertexData &pos_data = colla_mesh->getPositions();
+		std::string unique_name = collada_mesh->getUniqueId().toAscii();
+		log_debug("\tmesh: %s (%s)", collada_mesh->getName().c_str(), unique_name.c_str());
+		const COLLADAFW::MeshVertexData &pos_data = collada_mesh->getPositions();
 		if (pos_data.empty())
 		{
 			log_warn("Empty mesh");
@@ -284,19 +290,20 @@ private:
 			log_warn("Invalid data type, we only support single precision floating point value");
 			return;
 		}
-		auto scn_mesh = m_scene->create_mesh(unique_name);
+		auto scn_mesh = std::make_shared<CMesh>();
+		m_mesh[unique_name] = scn_mesh;
 		auto &vb = scn_mesh->vertex_buffer();
 		// Position: {x, y, z}
 		size_t vertex_count = pos_data.getValuesCount() / 3;
 		vb.set_attribute(EAttribUsage::ATTR_POSITION, 3);
 		// Color: {x, y, z}
-		auto &color_data = colla_mesh->getColors();
+		auto &color_data = collada_mesh->getColors();
 		if (!color_data.empty()) {
 			assert(color_data.getValuesCount() == pos_data.getValuesCount());
 			vb.set_attribute(EAttribUsage::ATTR_COLOR, 3);
 		}
 		// Normal: {x, y, z}
-		auto &normal_data = colla_mesh->getNormals();
+		auto &normal_data = collada_mesh->getNormals();
 		if (!normal_data.empty()) {
 			// Notice: COLLADA could have face normal, but we only support vertex normal
 			if (normal_data.getValuesCount() == pos_data.getValuesCount()) {
@@ -331,7 +338,7 @@ private:
 			}
 		}
 		// setup indices
-		auto &prim_array = colla_mesh->getMeshPrimitives();
+		auto &prim_array = collada_mesh->getMeshPrimitives();
 		for (size_t i = 0; i < prim_array.getCount(); ++i)
 		{
 			const COLLADAFW::MeshPrimitive * prim = prim_array[i];
@@ -348,7 +355,7 @@ private:
 				log_error("%s : not support primitive type: %d", __FUNCTION__, prim_type);
 				break;
 			case COLLADAFW::MeshPrimitive::PrimitiveType::POLYLIST:
-				writePolyList(scn_mesh.get(), colla_mesh, prim);
+				writePolyList(scn_mesh.get(), collada_mesh, prim);
 				break;
 			default:
 				log_error("%s : undefined primitive type: %d", __FUNCTION__, prim_type);
@@ -357,7 +364,7 @@ private:
 		}
 	}
 
-	void writePolyList(CMesh *scn_mesh, const COLLADAFW::Mesh *colla_mesh, const COLLADAFW::MeshPrimitive *primitive)
+	void writePolyList(CMesh *scn_mesh, const COLLADAFW::Mesh *collada_mesh, const COLLADAFW::MeshPrimitive *primitive)
 	{
 		size_t face_cnt = primitive->getFaceCount();
 		size_t index_cnt = face_cnt * 3;
@@ -420,18 +427,21 @@ private:
 			for (size_t j = 0; j < geometry_list.getCount(); ++j) {
 				auto geometry = geometry_list[j];
 				unique_name = geometry->getInstanciatedObjectId().toAscii();
-				auto obj = m_scene->add_object(unique_name, transform);
+				auto mesh = m_mesh[unique_name];
+				auto obj = std::make_shared<CStaticMesh>();
 				obj->set_name(node->getName().c_str());
+				obj->set_mesh(mesh);
+				auto &material_array = geometry->getMaterialBindings();
+				for (size_t k = 0; k < material_array.getCount(); ++k)
+				{
+					auto &binding = material_array[k];
+					unique_name = binding.getReferencedMaterial().toAscii();
+					auto it_mtl = m_materials.find(unique_name);
+					if(it_mtl != m_materials.end())
+						obj->set_material(it_mtl->second);
+				}
+				m_scene->add_object(obj);
 				log_debug("\t\t\tinstance geometry %s (PID=%d)", unique_name.c_str(), obj->get_pid());
-				//auto &material_array = geometry->getMaterialBindings();
-				//for (size_t k = 0; k < material_array.getCount(); ++k)
-				//{
-				//	auto &binding = material_array[k];
-				//	unique_name = binding.getReferencedMaterial().toAscii();
-				//	auto material = m_scene->get_material(unique_name);
-				//	obj->set_material(material);
-				//	log_debug("\t\t\tuse material %s", unique_name.c_str());
-				//}
 			}
 		}
 
@@ -446,7 +456,10 @@ private:
 private:
 	CScene *m_scene;
 	std::string m_def_mtl;
+	std::unordered_map<std::string, std::shared_ptr<CMesh>> m_mesh;
+	std::unordered_map<std::string, std::shared_ptr<CMaterial>> m_materials;
 	std::unordered_map<std::string, std::string> m_effect_to_mtl;
+	std::unordered_map<std::string, std::shared_ptr<CLight>> m_lights;
 };
 
 bool CScene::load_collada(const std::wstring & w_file_path)
