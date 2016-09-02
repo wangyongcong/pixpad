@@ -26,17 +26,17 @@ namespace wyc
 		inline const std::string& get_name() const {
 			return m_name;
 		}
-		inline void set_transform(const Matrix44f& transform) {
+		inline void set_transform(const Imath::M44f& transform) {
 			m_transform = transform;
 		}
-		inline const Matrix44f& get_transform() const {
+		inline const Imath::M44f& get_transform() const {
 			return m_transform;
 		}
 
 	protected:
 		unsigned m_pid;
 		std::string m_name;
-		Matrix44f m_transform;
+		Imath::M44f m_transform;
 	};
 
 } // namespace wyc

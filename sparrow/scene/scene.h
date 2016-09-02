@@ -7,6 +7,7 @@
 #include "renderer.h"
 #include "material.h"
 #include "scene_obj.h"
+#include "light.h"
 
 namespace wyc
 {
@@ -35,17 +36,20 @@ namespace wyc
 			return get_camera(m_active_camera);
 		}
 
-		//std::shared_ptr<CSceneObj> add_object(const std::string &mesh_name, const Matrix44f &transform);
 		void add_object(std::shared_ptr<CSceneObj> obj);
 		std::shared_ptr<CSceneObj> get_object(unsigned pid);
+
+		void add_light(std::shared_ptr<CLight> light);
+		std::shared_ptr<CLight> get_light(unsigned pid);
 
 		void render(std::shared_ptr<CRenderer> renderer);
 
 	private:
-		std::unordered_map<std::string, std::shared_ptr<CCamera>> m_camera_pool;
-		std::unordered_map<unsigned, std::shared_ptr<CSceneObj>> m_objs;
 		unsigned m_cur_pid;
 		std::string m_active_camera;
+		std::unordered_map<std::string, std::shared_ptr<CCamera>> m_camera_pool;
+		std::unordered_map<unsigned, std::shared_ptr<CSceneObj>> m_objs;
+		std::unordered_map<unsigned, std::shared_ptr<CLight>> m_lights;
 	};
 
 } // namespace wyc

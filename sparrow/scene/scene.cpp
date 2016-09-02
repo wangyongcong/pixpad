@@ -43,6 +43,23 @@ namespace wyc
 		return nullptr;
 	}
 
+	void CScene::add_light(std::shared_ptr<CLight> light)
+	{
+		if (light->get_pid() != 0)
+			return;
+		m_cur_pid += 1;
+		light->set_pid(m_cur_pid);
+		m_lights[m_cur_pid] = light;
+	}
+
+	std::shared_ptr<CLight> CScene::get_light(unsigned pid)
+	{
+		auto it = m_lights.find(pid);
+		if (it != m_lights.end()) 
+			return it->second;
+		return nullptr;
+	}
+
 	void CScene::render(std::shared_ptr<CRenderer> renderer)
 	{
 		CSceneObj *obj;

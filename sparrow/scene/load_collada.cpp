@@ -45,6 +45,11 @@ namespace wyc
 		return Imath::C4f(float(c.getRed()), float(c.getGreen()), float(c.getBlue()), float(c.getAlpha()));
 	}
 
+	inline Imath::C3f to_color3(const COLLADAFW::Color &c)
+	{
+		return Imath::C3f(float(c.getRed()), float(c.getGreen()), float(c.getBlue()));
+	}
+
 class CColladaSceneWriter : public COLLADAFW::IWriter
 {
 	// member declarations
@@ -217,9 +222,10 @@ public:
 	{
 		log_debug("\tlight: %s (%s)", str(light->getName()), str(light->getUniqueId()));
 		std::string unique_name = light->getUniqueId().toAscii();
-		auto lit = std::make_shared<CLight>();
-		lit->set_name(unique_name);
-		m_lights[unique_name] = lit;
+		m_lights[unique_name] = light;
+		//auto scn_light = std::make_shared<CLight>();
+		//scn_light->set_name(unique_name);
+		//m_scene->add_light(scn_light);
 		return true;
 	}
 
@@ -445,6 +451,24 @@ private:
 			}
 		}
 
+		auto &light_list = node->getInstanceLights();
+		if (!light_list.empty())
+		{
+			for (size_t j = 0; j < light_list.getCount(); ++j)
+			{
+				auto inst_light = light_list[j];
+				unique_name = inst_light->getInstanciatedObjectId().toAscii();
+				auto light = m_lights[unique_name];
+				auto scn_light = std::make_shared<CLight>();
+				scn_light->set_name(node->getName().c_str());
+				scn_light->set_transform(transform);
+				scn_light->set_color(to_color3(light->getColor()));
+				scn_light->set_intensity(light->getConstantAttenuation());
+				m_scene->add_light(scn_light);
+				log_debug("\t\t\tinstance light %s (PID=%d)", unique_name.c_str(), scn_light->get_pid());
+			}
+		}
+
 		auto &child_nodes = node->getChildNodes();
 		for (size_t i = 0; i < child_nodes.getCount(); ++i)
 		{
@@ -459,7 +483,7 @@ private:
 	std::unordered_map<std::string, std::shared_ptr<CMesh>> m_mesh;
 	std::unordered_map<std::string, std::shared_ptr<CMaterial>> m_materials;
 	std::unordered_map<std::string, std::string> m_effect_to_mtl;
-	std::unordered_map<std::string, std::shared_ptr<CLight>> m_lights;
+	std::unordered_map<std::string, const COLLADAFW::Light*> m_lights;
 };
 
 bool CScene::load_collada(const std::wstring & w_file_path)
