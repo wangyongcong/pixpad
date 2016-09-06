@@ -1,9 +1,10 @@
 #pragma once
 #include "renderer.h"
-#include "camera.h"
 
 namespace wyc
 {
+	class CScene;
+	class CCamera;
 	class CSceneObj
 	{
 	public:
@@ -15,7 +16,7 @@ namespace wyc
 		inline unsigned get_pid() const {
 			return m_pid;
 		}
-		virtual void render(std::shared_ptr<CRenderer> renderer, std::shared_ptr<CCamera> camera);
+		virtual void render(CRenderer* renderer, const CCamera* camera);
 
 		inline void set_name(const char* name) {
 			m_name = name;
@@ -32,11 +33,15 @@ namespace wyc
 		inline const Imath::M44f& get_transform() const {
 			return m_transform;
 		}
+		inline void join_scene(CScene *scn) {
+			m_scene = scn;
+		}
 
 	protected:
 		unsigned m_pid;
 		std::string m_name;
 		Imath::M44f m_transform;
+		CScene* m_scene;
 	};
 
 } // namespace wyc

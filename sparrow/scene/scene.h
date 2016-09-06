@@ -2,11 +2,9 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
-#include "mesh.h"
-#include "camera.h"
 #include "renderer.h"
-#include "material.h"
 #include "scene_obj.h"
+#include "camera.h"
 #include "light.h"
 
 namespace wyc
@@ -21,19 +19,11 @@ namespace wyc
 
 		bool load_collada(const std::wstring &file);
 		
-		std::shared_ptr<CCamera> create_camera(const std::string &name);
-		inline std::shared_ptr<CCamera> get_camera(const std::string &name) const
-		{
-			auto &it = m_camera_pool.find(name);
-			if (it != m_camera_pool.end())
-				return it->second;
-			return nullptr;
-		}
-		inline void set_active_camera(const std::string &name) {
-			m_active_camera = name;
-		}
+		void add_camera(std::shared_ptr<CCamera> camera);
+		std::shared_ptr<CCamera> get_camera(unsigned pid) const;
+		void set_active_camera(std::shared_ptr<CCamera> camera);
 		inline std::shared_ptr<CCamera> get_active_camera() const {
-			return get_camera(m_active_camera);
+			return m_active_camera;
 		}
 
 		void add_object(std::shared_ptr<CSceneObj> obj);
@@ -45,9 +35,11 @@ namespace wyc
 		void render(std::shared_ptr<CRenderer> renderer);
 
 	private:
+		bool _add_object(CSceneObj *obj);
+
 		unsigned m_cur_pid;
-		std::string m_active_camera;
-		std::unordered_map<std::string, std::shared_ptr<CCamera>> m_camera_pool;
+		std::shared_ptr<CCamera> m_active_camera;
+		std::unordered_map<unsigned, std::shared_ptr<CCamera>> m_cameras;
 		std::unordered_map<unsigned, std::shared_ptr<CSceneObj>> m_objs;
 		std::unordered_map<unsigned, std::shared_ptr<CLight>> m_lights;
 	};

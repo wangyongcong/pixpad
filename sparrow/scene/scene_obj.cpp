@@ -13,7 +13,7 @@ namespace wyc
 	{
 	}
 
-	void CSceneObj::render(std::shared_ptr<CRenderer> renderer, std::shared_ptr<CCamera> camera)
+	void CSceneObj::render(CRenderer* renderer, const CCamera* camera)
 	{
 	}
 

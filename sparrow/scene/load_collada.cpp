@@ -193,19 +193,7 @@ public:
 	{
 		std::string unique_name = camera->getUniqueId().toAscii();
 		log_debug("\tcamera: %s (%s)", str(camera->getName()), unique_name.c_str());
-		auto scn_camera = m_scene->create_camera(unique_name);
-		auto camera_type = camera->getCameraType();
-		if (COLLADAFW::Camera::ORTHOGRAPHIC == camera_type)
-		{
-			scn_camera->set_orthographic(float(camera->getXMag()), float(camera->getYMag()), 
-				float(camera->getNearClippingPlane()), float(camera->getFarClippingPlane()));
-		}
-		else if (COLLADAFW::Camera::PERSPECTIVE == camera_type)
-		{
-			float yfov = float(camera->getXFov() / camera->getAspectRatio());
-			scn_camera->set_perspective(yfov, float(camera->getAspectRatio()),
-				float(camera->getNearClippingPlane()), float(camera->getFarClippingPlane()));
-		}
+		m_collada_objs[unique_name] = camera;
 		return true;
 	}
 
@@ -412,18 +400,40 @@ private:
 		
 		std::string unique_name;
 		auto &camera_list = node->getInstanceCameras();
+		const COLLADAFW::Object *collada_obj;
 		if (!camera_list.empty())
 		{
 			for (size_t j = 0; j < camera_list.getCount(); ++j) {
 				unique_name = camera_list[j]->getInstanciatedObjectId().toAscii();
-				auto scn_camera = m_scene->get_camera(unique_name);
+				auto it = m_collada_objs.find(unique_name);
+				if (it == m_collada_objs.end())
+					continue;
+				const COLLADAFW::Camera* camera = dynamic_cast<const COLLADAFW::Camera*>(it->second);
+				if (!camera)
+					continue;
+				auto scn_camera = std::make_shared<CCamera>();
 				if (!scn_camera) {
-					log_debug("\t\t\tinstance camera %s not found", unique_name.c_str());
+					log_debug("\t\t\tcreate camera %s failed", unique_name.c_str());
 					continue;
 				}
+				auto camera_type = camera->getCameraType();
+				if (COLLADAFW::Camera::ORTHOGRAPHIC == camera_type)
+				{
+					scn_camera->set_orthographic(float(camera->getXMag()), float(camera->getYMag()),
+						float(camera->getNearClippingPlane()), float(camera->getFarClippingPlane()));
+				}
+				else if (COLLADAFW::Camera::PERSPECTIVE == camera_type)
+				{
+					float yfov = float(camera->getXFov() / camera->getAspectRatio());
+					scn_camera->set_perspective(yfov, float(camera->getAspectRatio()),
+						float(camera->getNearClippingPlane()), float(camera->getFarClippingPlane()));
+				}
 				scn_camera->set_transform(transform);
-				m_scene->set_active_camera(unique_name);
+				m_scene->add_camera(scn_camera);
+				m_scene->set_active_camera(scn_camera);
 				log_debug("\t\t\tinstance camera %s", unique_name.c_str());
+				// todo: for now we support one camera only
+				break;
 			}
 		}
 
@@ -463,7 +473,7 @@ private:
 				scn_light->set_name(node->getName().c_str());
 				scn_light->set_transform(transform);
 				scn_light->set_color(to_color3(light->getColor()));
-				scn_light->set_intensity(light->getConstantAttenuation());
+				scn_light->set_intensity(float(light->getConstantAttenuation()));
 				m_scene->add_light(scn_light);
 				log_debug("\t\t\tinstance light %s (PID=%d)", unique_name.c_str(), scn_light->get_pid());
 			}
@@ -484,6 +494,7 @@ private:
 	std::unordered_map<std::string, std::shared_ptr<CMaterial>> m_materials;
 	std::unordered_map<std::string, std::string> m_effect_to_mtl;
 	std::unordered_map<std::string, const COLLADAFW::Light*> m_lights;
+	std::unordered_map<std::string, const COLLADAFW::Object*> m_collada_objs;
 };
 
 bool CScene::load_collada(const std::wstring & w_file_path)

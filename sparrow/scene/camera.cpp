@@ -4,6 +4,7 @@
 namespace wyc
 {
 	CCamera::CCamera()
+		: CSceneObj()
 	{
 		m_transform.makeIdentity();
 		m_projection.makeIdentity();

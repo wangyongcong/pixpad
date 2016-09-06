@@ -7,7 +7,7 @@ namespace wyc
 	{
 	public:
 		CStaticMesh();
-		virtual void render(std::shared_ptr<CRenderer> renderer, std::shared_ptr<CCamera> camera);
+		virtual void render(CRenderer* renderer, const CCamera* camera);
 		inline void set_mesh(std::shared_ptr<CMesh> mesh) {
 			m_mesh = mesh;
 		}

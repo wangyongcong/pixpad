@@ -137,4 +137,11 @@ namespace wyc
 		return true;
 	}
 
+	struct MtlLight
+	{
+		Imath::V3f color;
+		Imath::V3f position;
+		float intensity;
+	};
+
 } // namespace wyc

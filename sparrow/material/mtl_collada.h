@@ -3,7 +3,6 @@
 
 namespace wyc
 {
-
 	class CMaterialCollada : public CMaterial
 	{
 		INPUT_ATTRIBUTE_LIST
@@ -23,6 +22,8 @@ namespace wyc
 			UNIFORM_SLOT(Imath::C4f, diffuse)
 			UNIFORM_SLOT(Imath::C4f, specular)
 			UNIFORM_SLOT(float, shininess)
+			UNIFORM_SLOT(unsigned, light_count)
+			UNIFORM_SLOT(const MtlLight*, lights)
 		UNIFORM_MAP_END
 
 	public:
@@ -51,6 +52,8 @@ namespace wyc
 		Imath::M44f mvp_matrix;
 		Imath::C4f emission, ambient, diffuse, specular;
 		float shininess;
+		unsigned light_count;
+		const MtlLight* lights;
 	};
 
 
