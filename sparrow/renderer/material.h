@@ -144,4 +144,9 @@ namespace wyc
 		float intensity;
 	};
 
+	struct MtlUniformData
+	{
+		std::vector<MtlLight> lights;
+	};
+
 } // namespace wyc

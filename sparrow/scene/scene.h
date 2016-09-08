@@ -42,6 +42,7 @@ namespace wyc
 		std::unordered_map<unsigned, std::shared_ptr<CCamera>> m_cameras;
 		std::unordered_map<unsigned, std::shared_ptr<CSceneObj>> m_objs;
 		std::unordered_map<unsigned, std::shared_ptr<CLight>> m_lights;
+		MtlUniformData m_udata;
 	};
 
 } // namespace wyc

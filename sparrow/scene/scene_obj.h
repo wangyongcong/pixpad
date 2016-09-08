@@ -36,12 +36,16 @@ namespace wyc
 		inline void join_scene(CScene *scn) {
 			m_scene = scn;
 		}
+		inline Imath::V3f get_position() const {
+			auto &x = m_transform.x;
+			return Imath::V3f(x[3][0], x[3][1], x[3][2]);
+		}
 
 	protected:
 		unsigned m_pid;
 		std::string m_name;
-		Imath::M44f m_transform;
 		CScene* m_scene;
+		Imath::M44f m_transform;
 	};
 
 } // namespace wyc

@@ -1,6 +1,8 @@
 #include "scene.h"
 #include "util.h"
 #include "log.h"
+#include "ImathMatrixExt.h"
+#include "ImathVecExt.h"
 
 namespace wyc
 {
@@ -73,6 +75,17 @@ namespace wyc
 		if (!camera)
 			return;
 		camera->update_transform();
+		auto &world_to_camera = camera->get_view_transform();
+		m_udata.lights.resize(m_lights.size());
+		unsigned idx = 0;
+		for (auto &it : m_lights)
+		{
+			auto light_obj = it.second;
+			auto &lit = m_udata.lights[idx++];
+			lit.color = light_obj->get_color();
+			lit.intensity = light_obj->get_intensity();
+			lit.position = world_to_camera * light_obj->get_position();
+		}
 		CRenderer *rd = renderer.get();
 		CCamera *cam = camera.get();
 		for (auto it : m_objs)
