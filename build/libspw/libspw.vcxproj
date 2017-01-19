@@ -224,7 +224,7 @@
     </Link>
     <PostBuildEvent>
       <Command>set TARGET_FILE=$(TargetFileName)
-set INSTALL_DIR=$(InstallPath)libspw\lib
+set INSTALL_DIR=..\..\install\libspw\lib
 if $(Configuration)==Debug (set TARGET_FILE=$(TargetName)d$(TargetExt))
 if $(Configuration)==Release (set TARGET_FILE=$(TargetName)$(TargetExt))
 if not exist %INSTALL_DIR% (mkdir %INSTALL_DIR%)
@@ -272,7 +272,7 @@ xcopy /Y /D $(TargetPath) %TARGET_PATH%
     </Link>
     <PostBuildEvent>
       <Command>set TARGET_FILE=$(TargetFileName)
-set INSTALL_DIR=$(InstallPath)libspw\lib
+set INSTALL_DIR=..\..\install\libspw\lib
 if $(Configuration)==Debug (set TARGET_FILE=$(TargetName)d$(TargetExt))
 if $(Configuration)==Release (set TARGET_FILE=$(TargetName)$(TargetExt))
 if not exist %INSTALL_DIR% (mkdir %INSTALL_DIR%)
