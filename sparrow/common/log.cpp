@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
-#include "logger.h"
+#include "log.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -9,8 +9,11 @@
 
 #define TEXT_BUFF_SIZE 255
 
+
 namespace wyc
 {
+
+CLogger *g_log = nullptr;
 
 const char* s_log_lvl_tag[wyc::LOG_LEVEL_COUNT] = {
 	"DEBUG",		
@@ -43,6 +46,27 @@ void CLogger::format_write(ELogLevel lvl, const char *fmt, va_list args)
 	write(m_buff, cnt);
 }
 
+//-----------------------------------------------------
+
+class CFileLogger : public CLogger
+{
+public:
+	CFileLogger(const char* log_name, const char* save_path = 0, size_t rotate_size = 0, ELogLevel lvl = LOG_DEBUG);
+	virtual ~CFileLogger();
+	virtual void write(const char* record, size_t size);
+	virtual void flush();
+private:
+	FILE *m_hfile;
+	std::string m_path;
+	std::string m_logname;
+	std::string m_curfile;
+	size_t m_cur_size;
+	size_t m_rotate_size;
+	unsigned m_rotate_cnt;
+
+	bool create(const char* log_name, const char* save_path = 0, size_t rotate_size = 0);
+	void rotate();
+};
 
 CFileLogger::CFileLogger(const char* log_name, const char* save_path, size_t rotate_size, ELogLevel lvl) : CLogger(lvl)
 {
@@ -143,13 +167,35 @@ void CFileLogger::flush()
 		fflush(m_hfile);
 }
 
-void CDebugLogger::write(const char * record, size_t size)
+//-----------------------------------------------------
+
+class CDebugLogger : public CLogger
 {
+public:
+	virtual void write(const char* record, size_t size)
+	{
 #ifdef WIN32
-	OutputDebugStringA(record);
+		OutputDebugStringA(record);
 #else
-	printf(record);
+		printf(record);
 #endif
+	}
+};
+
+void init_debug_log()
+{
+	if (g_log) {
+		delete g_log;
+	}
+	g_log = new CDebugLogger();
+}
+
+void init_file_log(const char * log_name)
+{
+	if (g_log) {
+		delete g_log;
+	}
+	g_log = new CFileLogger(log_name);
 }
 
 }; // end of namesapce wyc

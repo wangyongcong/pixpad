@@ -38,12 +38,6 @@
     <ClInclude Include="..\..\sparrow\common\image.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\sparrow\common\log.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\sparrow\common\logger.h">
-      <Filter>common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\sparrow\common\unitest.h">
       <Filter>common</Filter>
     </ClInclude>
@@ -323,12 +317,12 @@
     <ClInclude Include="..\..\sparrow\scene\static_mesh.h">
       <Filter>scene</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\sparrow\common\log.h">
+      <Filter>common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sparrow\common\image.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\sparrow\common\logger.cpp">
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\sparrow\common\util.cpp">
@@ -402,6 +396,9 @@
     </ClCompile>
     <ClCompile Include="..\..\sparrow\scene\light.cpp">
       <Filter>scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\common\log.cpp">
+      <Filter>common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
