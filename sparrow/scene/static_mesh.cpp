@@ -2,6 +2,7 @@
 #include "material.h"
 #include "mesh.h"
 #include "camera.h"
+#include "scene.h"
 
 namespace wyc
 {
@@ -19,6 +20,8 @@ namespace wyc
 			return;
 		Imath::M44f mvp = camera->get_view_projection() * m_transform;
 		m_material->set_uniform("mvp_matrix", mvp);
+		auto lights = m_scene->get_mtl_lights();
+		m_material->set_uniform("lights", lights);
 		auto cmd = renderer->new_command<cmd_draw_mesh>();
 		cmd->mesh = m_mesh.get();
 		cmd->material = m_material.get();

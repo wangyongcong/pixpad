@@ -31,6 +31,9 @@ namespace wyc
 
 		void add_light(std::shared_ptr<CLight> light);
 		std::shared_ptr<CLight> get_light(unsigned pid);
+		inline const MtlLight* get_mtl_lights() const {
+			return &m_udata.lights[0];
+		}
 
 		void render(std::shared_ptr<CRenderer> renderer);
 

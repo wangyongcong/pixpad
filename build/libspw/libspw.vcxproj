@@ -208,6 +208,16 @@
     <IncludePath>..\..\install\include;..\..\install\zlib\include;..\..\install\libpng\include;..\..\install\include\opencollada\COLLADABaseUtils;..\..\install\include\opencollada\COLLADAFramework;..\..\install\include\opencollada\COLLADASaxFrameworkLoader;..\..\install\include\opencollada\COLLADAStreamWriter;..\..\install\include\opencollada\GeneratedSaxParser;$(IncludePath)</IncludePath>
     <LibraryPath>..\..\install\lib;..\..\install\zlib\lib;..\..\install\libpng\lib;..\..\install\libspw\lib;..\..\install\lib\opencollada</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>..\..\install\include;$(IncludePath)</IncludePath>
+    <ReferencePath>..\install\lib;..\install\zlib\lib;..\install\libpng\lib;..\install\lib\opencollada;$(ReferencePath)</ReferencePath>
+    <LibraryPath>..\install\lib;..\install\zlib\lib;..\install\libpng\lib;..\install\lib\opencollada;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>..\..\install\include;$(IncludePath)</IncludePath>
+    <ReferencePath>..\install\lib;..\install\zlib\lib;..\install\libpng\lib;..\install\lib\opencollada;$(ReferencePath)</ReferencePath>
+    <LibraryPath>..\install\lib;..\install\zlib\lib;..\install\libpng\lib;..\install\lib\opencollada;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
@@ -247,6 +257,7 @@ xcopy /Y /D $(TargetPath) %TARGET_PATH%
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\sparrow;..\..\sparrow\common;..\..\sparrow\material;..\..\sparrow\mathex;..\..\sparrow\renderer;..\..\sparrow\scene;..\..\sparrow\thread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -297,6 +308,7 @@ xcopy /Y /D $(TargetPath) %TARGET_PATH%
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\sparrow;..\..\sparrow\common;..\..\sparrow\material;..\..\sparrow\mathex;..\..\sparrow\renderer;..\..\sparrow\scene;..\..\sparrow\thread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

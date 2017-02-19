@@ -38,13 +38,27 @@ namespace wyc
 			mvp_matrix.makeIdentity();
 		}
 
+		struct VertexIn
+		{
+			Imath::V3f *position;
+			Imath::V3f *normal;
+		};
+
+		struct VertexOut
+		{
+			Imath::V4f position;
+			Imath::V3f normal;
+		};
+
 		virtual void vertex_shader(const void *vertex_in, void *vertex_out) const override
 		{
-
+			const VertexIn *v0 = (const VertexIn*)vertex_in;
+			VertexOut *vout = (VertexOut*)vertex_out;
 		}
 
 		virtual bool fragment_shader(const void *vertex_out, Color4f &frag_color) const override
 		{
+			const VertexOut *vert_out = (const VertexOut*)vertex_out;
 			return false;
 		}
 

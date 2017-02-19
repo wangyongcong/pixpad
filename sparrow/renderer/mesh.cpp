@@ -277,54 +277,90 @@ namespace wyc
 		return true;
 	}
 
-	CTriangleMesh::CTriangleMesh(float size)
+	void CMesh::create_triangle(float r)
 	{
 		const float sin30 = 0.5f, cos30 = 0.866f;
 		set_vertices<VertexP3C3>({
 			{
-				{ 0, size, 0 },
+				{ 0, r, 0 },
 				{ 1.0f, 0, 0 },
 			},
 			{
-				{ -size * cos30, -size * sin30, 0 },
+				{ -r * cos30, -r * sin30, 0 },
 				{ 0, 1.0f, 0 },
 			},
 			{
-				{ size * cos30, -size * sin30, 0 },
+				{ r * cos30, -r * sin30, 0 },
 				{ 0, 0, 1.0f },
 			},
 		});
 	}
 
-	CQuadMesh::CQuadMesh(float w, float h)
+	void CMesh::create_quad(float r)
 	{
-		float x = w * 0.5f, y = h * 0.5f;
 		set_vertices<VertexP3C3>({
 			{
-				{ -x, -y, 0 },
+				{ -r, -r, 0 },
 				{ 0, 1, 1 },
 			},
 			{
-				{ x, -y, 0 },
+				{ r, -r, 0 },
 				{ 1, 0, 1 },
 			},
 			{
-				{ x, y, 0 },
+				{ r, r, 0 },
 				{ 1, 1, 0 },
 			},
 			{
-				{ -x, -y, 0 },
+				{ -r, -r, 0 },
 				{ 0, 1, 1 },
 			},
 			{
-				{ x, y, 0 },
+				{ r, r, 0 },
 				{ 1, 1, 0 },
 			},
 			{
-				{ -x, y, 0 },
+				{ -r, r, 0 },
 				{ 0, 0, 0 },
 			},
 		});
+	}
+
+	void CMesh::create_box(float r)
+	{
+		Imath::V3f verts[] = {
+			// front face
+			{ -r, -r,  r }, { r, -r,  r }, { r, r,  r }, { -r, r,  r },
+			// back face
+			{ -r, -r, -r }, { r, -r, -r }, { r, r, -r }, { -r, r, -r }
+		};
+		unsigned indices[] = {
+			// front face
+			0, 1, 2, 0, 2, 3,
+			// right face
+			1, 5, 6, 1, 6, 2,
+			// back face
+			5, 4, 7, 5, 7, 6,
+			// left face
+			4, 0, 3, 4, 3, 7,
+			// top face
+			3, 2, 6, 3, 6, 7,
+			// bottom face
+			4, 5, 1, 4, 1, 0,
+		};
+		m_vb.clear();
+		m_vb.set_attribute(ATTR_POSITION, 3);
+		m_vb.resize(8);
+		auto pos = m_vb.get_attribute(ATTR_POSITION).begin();
+		for (int i = 0; i < 8; ++i, ++pos)
+		{
+			*pos = verts[i];
+		}
+		m_ib.resize(36, indices);
+	}
+
+	void CMesh::create_sphere(float r)
+	{
 	}
 
 } // namespace wyc

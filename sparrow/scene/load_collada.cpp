@@ -400,7 +400,6 @@ private:
 		
 		std::string unique_name;
 		auto &camera_list = node->getInstanceCameras();
-		const COLLADAFW::Object *collada_obj;
 		if (!camera_list.empty())
 		{
 			for (size_t j = 0; j < camera_list.getCount(); ++j) {

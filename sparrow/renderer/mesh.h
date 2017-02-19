@@ -32,6 +32,12 @@ namespace wyc
 		// load from .obj file
 		bool load_obj(const std::wstring &filepath);
 
+		// create simple geometry mesh
+		void create_triangle(float r);
+		void create_quad(float r);
+		void create_box(float r);
+		void create_sphere(float r);
+
 	private:
 		CVertexBuffer m_vb;
 		CIndexBuffer m_ib;
@@ -88,17 +94,5 @@ namespace wyc
 	{
 		return m_ib;
 	}
-
-	class CTriangleMesh : public CMesh
-	{
-	public:
-		CTriangleMesh(float size);
-	};
-
-	class CQuadMesh : public CMesh
-	{
-	public:
-		CQuadMesh(float w, float h);
-	};
 
 } // namespace wyc
