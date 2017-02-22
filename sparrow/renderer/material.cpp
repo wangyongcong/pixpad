@@ -26,7 +26,7 @@ namespace wyc
 
 	const AttribDefine & CMaterial::get_attrib_define() const
 	{
-		static AttribDefine ls_attrib_define;
+		static AttribDefine ls_attrib_define = create_attrib_define();
 		return ls_attrib_define;
 	}
 

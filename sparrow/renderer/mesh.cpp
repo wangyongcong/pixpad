@@ -350,11 +350,15 @@ namespace wyc
 		};
 		m_vb.clear();
 		m_vb.set_attribute(ATTR_POSITION, 3);
+		m_vb.set_attribute(ATTR_COLOR, 3);
 		m_vb.resize(8);
 		auto pos = m_vb.get_attribute(ATTR_POSITION).begin();
-		for (int i = 0; i < 8; ++i, ++pos)
+		auto color = m_vb.get_attribute(ATTR_COLOR).begin();
+		Imath::V3f c = { 1, 1, 1 };
+		for (int i = 0; i < 8; ++i, ++pos, ++color)
 		{
 			*pos = verts[i];
+			*color = c;
 		}
 		m_ib.resize(36, indices);
 	}

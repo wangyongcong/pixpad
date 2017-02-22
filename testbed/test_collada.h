@@ -18,8 +18,8 @@ public:
 		return new CTestCollada();
 	}
 	CTestCollada() {
-		m_img_file = "res/cube.dae";
-		m_scn_file = "test_collada.png";
+		m_scn_file = "res/cube.dae";
+		m_img_file = "test_collada.png";
 		m_is_wireframe = true;
 	}
 	virtual void init(int argc, char *argv[])
