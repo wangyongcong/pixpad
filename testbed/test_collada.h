@@ -1,11 +1,10 @@
 #pragma once
-#include "stdafx.h"
+#include "test.h"
 #include "scene.h"
 #include "spw_renderer.h"
 #include "image.h"
 #include "mtl_flat_color.h"
 #include "spw_pipeline_wireframe.h"
-#include "test.h"
 
 
 class CTestCollada : public CTest

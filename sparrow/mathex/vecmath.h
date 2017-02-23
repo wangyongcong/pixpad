@@ -8,16 +8,14 @@
 
 namespace wyc
 {
-	template<class T>
-	inline T deg2rad(T angle)
+	inline float deg2rad(float angle)
 	{
-		return T(angle * M_PI / 180.0);
+		return float(angle * M_PI / 180.0);
 	}
 
-	template<class T>
-	inline T rad2deg(T rad)
+	inline float rad2deg(float rad)
 	{
-		return T(rad * 180.0 / M_PI);
+		return float(rad * 180.0 / M_PI);
 	}
 
 	// OpenGL orthograph matrix

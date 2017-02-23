@@ -338,15 +338,15 @@ namespace wyc
 			// front face
 			0, 1, 2, 0, 2, 3,
 			// right face
-			1, 5, 6, 1, 6, 2,
+			1, 5, 2, 5, 6, 2,
 			// back face
 			5, 4, 7, 5, 7, 6,
 			// left face
-			4, 0, 3, 4, 3, 7,
+			4, 0, 7, 0, 3, 7,
 			// top face
-			3, 2, 6, 3, 6, 7,
+			3, 2, 7, 2, 6, 7,
 			// bottom face
-			4, 5, 1, 4, 1, 0,
+			4, 5, 0, 5, 1, 0,
 		};
 		m_vb.clear();
 		m_vb.set_attribute(ATTR_POSITION, 3);

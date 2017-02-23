@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 #include <cmath>
 #include "test.h"
 #include "image.h"
@@ -25,16 +24,15 @@ public:
 		// setup transform
 		Imath::M44f proj;
 		wyc::set_perspective(proj, 45, float(img_w) / img_h, 1, 100);
-		Imath::M44f mw;
-		mw.makeIdentity();
-		//wyc::set_rotate_y(mw, wyc::deg2rad(45));
-		//wyc::set_rotate_x(mw, wyc::deg2rad(30));
-		//wyc::set_translate(mw, 0, 0, -3);
-		Imath::M44f mvp = proj * mw;
+		Imath::M44f mrx, mry, mt;
+		wyc::set_rotate_y(mry, wyc::deg2rad(60));
+		wyc::set_rotate_x(mrx, wyc::deg2rad(30));
+		wyc::set_translate(mt, 0, 0, -5);
+		Imath::M44f mvp = proj * mt * mrx * mry;
 		// material
 		auto *mtl = new wyc::CMaterialFlatColor();
 		mtl->set_uniform("mvp_matrix", mvp);
-		mtl->set_uniform("color", Imath::V4f{ 1, 1, 1, 1 });
+		mtl->set_uniform("color", Imath::C4f{ 0, 1, 0, 1 });
 		// setup pipeline
 		auto render_target = std::make_shared<wyc::CSpwRenderTarget>();
 		render_target->create(img_w, img_h, wyc::SPR_COLOR_R8G8B8A8);
