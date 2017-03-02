@@ -7,6 +7,7 @@
 #include "vecmath.h"
 #include "spw_pipeline_wireframe.h"
 #include "mtl_flat_color.h"
+#include "metric.h"
 
 class CTestBox : public CTest
 {
@@ -48,13 +49,15 @@ public:
 		draw->mesh = mesh;
 		draw->material = mtl;
 		renderer->enqueue(draw);
+		TIMER_BEG(1)
 		renderer->process();
+		TIMER_END
+		wyc::CSpwMetric::singleton()->report();
 		auto &buffer = render_target->get_color_buffer();
 		wyc::CImage image(buffer.get_buffer(), buffer.row_length(), buffer.row(), buffer.pitch());
 		if (!image.save(img_file))
 		{
 			log_error("Failed to save image file");
 		}
-
 	}
 };

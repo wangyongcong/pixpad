@@ -98,6 +98,7 @@
     <ClInclude Include="..\..\sparrow\renderer\index_buffer.h" />
     <ClInclude Include="..\..\sparrow\renderer\material.h" />
     <ClInclude Include="..\..\sparrow\renderer\mesh.h" />
+    <ClInclude Include="..\..\sparrow\renderer\metric.h" />
     <ClInclude Include="..\..\sparrow\renderer\renderer.h" />
     <ClInclude Include="..\..\sparrow\renderer\render_command.h" />
     <ClInclude Include="..\..\sparrow\renderer\render_target.h" />
@@ -128,6 +129,7 @@
     <ClCompile Include="..\..\sparrow\renderer\index_buffer.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\material.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\mesh.cpp" />
+    <ClCompile Include="..\..\sparrow\renderer\metric.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\renderer.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\render_command.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\spw_command.cpp" />

@@ -6,6 +6,7 @@
 #include "vecmath.h"
 #include "spw_rasterizer.h"
 #include "clipping.h"
+#include "metric.h"
 
 namespace wyc
 {
@@ -127,6 +128,7 @@ namespace wyc
 				attrib_ptr[j] = stream.first + stream.second * idx_vert;
 			}
 			size_t vcnt = i % 3;
+			COUNT_VERTEX
 			task.material->vertex_shader(in_vertex, task.vert_cache0 + task.out_stride * vcnt);
 			if (vcnt == 2)
 			{
@@ -231,6 +233,7 @@ namespace wyc
 	{
 		// write render target
 		Imath::C4f frag_color;
+		COUNT_FRAGMENT
 		if (!m_task.material->fragment_shader(m_task.frag_cache, frag_color))
 			return;
 		frag_color.r *= frag_color.a;

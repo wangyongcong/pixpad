@@ -77,6 +77,7 @@ namespace wyc
 			RasterTask &m_task;
 			Imath::V2i m_center;
 		};
+
 	};
 
 } // namespace wyc
