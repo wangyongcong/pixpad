@@ -2,6 +2,8 @@
 // Distributed under the simplified BSD license (see the license file that
 // should have come with this header).
 
+// From: https://github.com/cameron314/readerwriterqueue
+
 #pragma once
 
 #include "atomicops.h"

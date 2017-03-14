@@ -1,4 +1,3 @@
-// Adapted from https://github.com/facebook/folly/blob/master/folly/ProducerConsumerQueue.h
 /*
  * Copyright 2013 Facebook, Inc.
  *
@@ -17,6 +16,8 @@
 
 // @author Bo Hu (bhu@fb.com)
 // @author Jordan DeLong (delong.j@fb.com)
+
+// Adapted from https://github.com/facebook/folly/blob/master/folly/ProducerConsumerQueue.h
 
 #ifndef PRODUCER_CONSUMER_QUEUE_H_
 #define PRODUCER_CONSUMER_QUEUE_H_

@@ -22,6 +22,10 @@
 * GNU Lesser General Public License for more details.
 * See http://www.gnu.org/licenses/lgpl.html .
 */
+
+// Adapted from: https://github.com/natsys/blog/blob/master/lockfree_rb_q.cc
+// More info: http://natsys-lab.blogspot.hk/2013/05/lock-free-multi-producer-multi-consumer.html
+
 #ifdef _MSC_VER
 #if !defined(_M_IX86) && !defined(_M_X64)
 	#pragma message("The program is developed for x86-64 architecture only.")
