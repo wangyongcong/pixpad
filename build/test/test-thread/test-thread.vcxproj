@@ -18,6 +18,28 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\sparrow\thread\atomicops.h" />
+    <ClInclude Include="..\..\..\sparrow\thread\disruptor.h" />
+    <ClInclude Include="..\..\..\sparrow\thread\folly_queue.h" />
+    <ClInclude Include="..\..\..\sparrow\thread\lockfree_rb_q.h" />
+    <ClInclude Include="..\..\..\sparrow\thread\mpmc_queue.h" />
+    <ClInclude Include="..\..\..\sparrow\thread\platform_info.h" />
+    <ClInclude Include="..\..\..\sparrow\thread\readerwriterqueue.h" />
+    <ClInclude Include="..\..\..\sparrow\thread\ring_queue.h" />
+    <ClInclude Include="..\..\..\sparrow\thread\spsc_queue.h" />
+    <ClInclude Include="..\..\..\sparrow\thread\test\common.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\sparrow\thread\platform_info.cpp" />
+    <ClCompile Include="..\..\..\sparrow\thread\test\main.cpp" />
+    <ClCompile Include="..\..\..\sparrow\thread\test\test_disruptor.cpp" />
+    <ClCompile Include="..\..\..\sparrow\thread\test\test_folly_queue.cpp" />
+    <ClCompile Include="..\..\..\sparrow\thread\test\test_lockfree_rb_q.cpp" />
+    <ClCompile Include="..\..\..\sparrow\thread\test\test_mpmc_queue.cpp" />
+    <ClCompile Include="..\..\..\sparrow\thread\test\test_ring_queue.cpp" />
+    <ClCompile Include="..\..\..\sparrow\thread\test\test_spsc_queue.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A9A9C42E-1FCE-4D18-9931-01525C375D27}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -93,6 +115,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>F:\Github\pixpad\sparrow\common;F:\Github\pixpad\sparrow\thread;F:\Github\pixpad\sparrow\thread\test;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -107,6 +130,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>F:\Github\pixpad\sparrow\common;F:\Github\pixpad\sparrow\thread;F:\Github\pixpad\sparrow\thread\test;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -123,6 +147,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>F:\Github\pixpad\sparrow\common;F:\Github\pixpad\sparrow\thread;F:\Github\pixpad\sparrow\thread\test;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,6 +166,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>F:\Github\pixpad\sparrow\common;F:\Github\pixpad\sparrow\thread;F:\Github\pixpad\sparrow\thread\test;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,26 +175,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\..\thread\platform_info.cpp" />
-    <ClCompile Include="..\..\..\thread\test\test_folly_queue.cpp" />
-    <ClCompile Include="..\..\..\thread\test\test_mpmc_queue.cpp" />
-    <ClCompile Include="..\..\..\thread\test\test_ring_queue.cpp" />
-    <ClCompile Include="..\..\..\thread\test\test_spsc_queue.cpp" />
-    <ClInclude Include="..\..\..\thread\atomicops.h" />
-    <ClInclude Include="..\..\..\thread\folly_queue.h" />
-    <ClInclude Include="..\..\..\thread\lockfree_rb_q.h" />
-    <ClInclude Include="..\..\..\thread\mpmc_queue.h" />
-    <ClInclude Include="..\..\..\thread\platform_info.h" />
-    <ClInclude Include="..\..\..\thread\readerwriterqueue.h" />
-    <ClInclude Include="..\..\..\thread\ring_queue.h" />
-    <ClInclude Include="..\..\..\thread\spsc_queue.h" />
-    <ClCompile Include="..\..\..\thread\test\test_lockfree_rb_q.cpp" />
-    <ClInclude Include="..\..\..\thread\test\common.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\..\thread\test\main.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

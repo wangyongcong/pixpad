@@ -323,6 +323,12 @@
     <ClInclude Include="..\..\sparrow\renderer\metric.h">
       <Filter>renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\sparrow\thread\disruptor.hpp">
+      <Filter>thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sparrow\thread\thread.hpp">
+      <Filter>thread</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sparrow\common\image.cpp">
@@ -405,6 +411,12 @@
     </ClCompile>
     <ClCompile Include="..\..\sparrow\renderer\metric.cpp">
       <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\thread\thread.cpp">
+      <Filter>thread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\thread\disruptor.cpp">
+      <Filter>thread</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
