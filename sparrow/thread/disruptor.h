@@ -50,7 +50,6 @@ namespace disruptor
 			store(tmp);
 			return tmp;
 		}
-
 	private:
 		std::atomic<int64_t> _sequence;
 		volatile int64_t     _alert;
@@ -206,8 +205,8 @@ namespace disruptor
 	class event_cursor
 	{
 	public:
-		event_cursor(int64_t b = -1) :_name(""), _begin(b), _end(b) {}
-		event_cursor(const char* n, int64_t b = 0) :_name(n), _begin(b), _end(b) {}
+		event_cursor(int64_t b = -1) :_name(""), _begin(b), _end(b), _cursor(-1) {}
+		event_cursor(const char* n, int64_t b = 0) :_name(n), _begin(b), _end(b), _cursor(-1) {}
 
 		/** this event processor will process every event
 		 *  upto, but not including s
@@ -385,14 +384,16 @@ namespace disruptor
 		 *  required to do proper wrap detection
 		 **/
 		shared_write_cursor(int64_t s)
-			:write_cursor(s) {}
+			:write_cursor(s)
+			,_pub_cursor(-1) {}
 
 		/**
 		 * @param n - name of the cursor for debug purposes
 		 * @param s - the size of the buffer.
 		 */
 		shared_write_cursor(const char* n, int64_t s)
-			:write_cursor(n, s) {}
+			:write_cursor(n, s)
+			,_pub_cursor(-1) {}
 
 		/** When there are multiple writers they cannot both
 		 *  assume the right to write to begin() to end(),
@@ -413,13 +414,18 @@ namespace disruptor
 			return pos - num_slots;
 		}
 
-		// TODO: it's wrong!
 		void publish_after(int64_t pos, int64_t after_pos)
 		{
 			try {
 				assert(pos > after_pos);
-				_barrier.wait_for(after_pos);
+				//_barrier.wait_for(after_pos);
+				while(_pub_cursor.aquire() != after_pos)
+				{
+					std::this_thread::sleep_for(std::chrono::milliseconds(0));
+				}
 				publish(pos);
+				_pub_cursor.store(pos);
+				//printf("pub %d\n", pos);
 			}
 			catch (const eof&) { _cursor.set_eof(); throw; }
 			catch (...) { set_alert(std::current_exception()); throw; }
@@ -427,6 +433,7 @@ namespace disruptor
 
 	private:
 		sequence      _claim_cursor;
+		sequence	  _pub_cursor;
 	};
 	typedef std::shared_ptr<shared_write_cursor> shared_write_cursor_ptr;
 

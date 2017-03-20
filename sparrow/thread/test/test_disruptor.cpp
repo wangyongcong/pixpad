@@ -3,6 +3,7 @@
 #include <iostream>
 #include <thread>
 #include <future>
+#include <cinttypes>
 
 UNIT_TEST_BEG(disruptor_queue)
 
@@ -19,8 +20,8 @@ void test()
 {
 	using namespace disruptor;
 	
-	constexpr int SIZE = 256;
-	constexpr int COUNT = 4096;
+	constexpr int SIZE = 32;
+	constexpr int COUNT = 64;
 
 	ring_buffer<int, SIZE> buff;
 
@@ -47,7 +48,7 @@ void test()
 			auto start = sw->claim(1);
 			data[i].id = i + 1;
 			buff.at(start) = i;
-			printf("p1 publish %d\n", start);
+			//printf("p1 publish %d\n", start);
 			sw->publish_after(start, start - 1);
 		}
 	});
@@ -60,24 +61,30 @@ void test()
 			auto start = sw->claim(1);
 			data[i].id = i + 1;
 			buff.at(start) = i;
-			printf("p2 publish %d\n", start);
+			//printf("p2 publish %d\n", start);
 			sw->publish_after(start, start - 1);
 		}
 	});
 
 	auto c1 = std::thread([&, c_wait_start] {
-		c_wait_start.wait();
+		//c_wait_start.wait();
+		p_wait_start.wait();
 		printf("c1 start\n");
 		auto pos = r1->begin();
 		auto end = r1->end();
 		int i = 0;
-		while (i < COUNT - 1)
+		while (i < COUNT)
 		{
 			if (pos == end)
 			{
-				r1->publish(end - 1);
-				printf("c1 wait for %d\n", end);
+				if(end > 0) {
+					r1->publish(end - 1);
+					//printf("c1 pub %" PRId64 "\n", end - 1);
+					if (end == COUNT)
+						break;
+				}
 				end = r1->wait_for(end);
+				//printf("c1 wait end [%" PRId64 ", %" PRId64 ")\n", pos, end);
 			}
 			i = buff.at(pos);
 			data[i].c1 = 1;
@@ -87,18 +94,24 @@ void test()
 	});
 
 	auto c2 = std::thread([&, c_wait_start] {
-		c_wait_start.wait();
+		//c_wait_start.wait();
+		p_wait_start.wait();
 		printf("c2 start\n");
 		auto pos = r2->begin();
 		auto end = r2->end();
 		int i = 0;
-		while (i < COUNT - 1)
+		while (i < COUNT)
 		{
 			if (pos == end)
 			{
-				r2->publish(end - 1);
-				printf("c2 wait for %d\n", end);
+				if (end > 0) {
+					r2->publish(end - 1);
+					//printf("c2 pub %" PRId64 "\n", end - 1);
+					if (end == COUNT)
+						break;
+				}
 				end = r2->wait_for(end);
+				//printf("c2 wait end [%" PRId64 ", %" PRId64 ")\n", pos, end);
 			}
 			i = buff.at(pos);
 			data[i].c2 = 1;
