@@ -11,9 +11,14 @@ UNIT_TEST_BEG(disruptor_queue)
 
 struct Event
 {
-	alignas(64) int id;
-	alignas(64) int c1;
-	alignas(64) int c2;
+	alignas(64) int64_t index;
+};
+
+struct Result
+{
+	alignas(64) int64_t id;
+	alignas(64) int64_t c1;
+	alignas(64) int64_t c2;
 };
 
 void test()
@@ -21,9 +26,9 @@ void test()
 	using namespace disruptor;
 	
 	constexpr int SIZE = 32;
-	constexpr int COUNT = 64;
+	constexpr int COUNT = 4096;
 
-	ring_buffer<int, SIZE> buff;
+	ring_buffer<Event, SIZE> buff;
 
 	auto sw = std::make_shared<shared_write_cursor>("SW", SIZE);
 	auto r1 = std::make_shared<read_cursor>("r1");
@@ -33,8 +38,8 @@ void test()
 	sw->follows(r1);
 	sw->follows(r2);
 
-	Event data[COUNT];
-	memset(data, sizeof(Event)*COUNT, 0);
+	Result data[COUNT];
+	memset(data, sizeof(Result)*COUNT, 0);
 
 	std::promise<void> p_start, c_start;
 	std::shared_future<void> p_wait_start(p_start.get_future());
@@ -47,9 +52,9 @@ void test()
 		{
 			auto start = sw->claim(1);
 			data[i].id = i + 1;
-			buff.at(start) = i;
+			buff.at(start).index = i;
 			//printf("p1 publish %d\n", start);
-			sw->publish_after(start, start - 1);
+			sw->publish_after(start, start - 1); 
 		}
 	});
 
@@ -60,7 +65,7 @@ void test()
 		{
 			auto start = sw->claim(1);
 			data[i].id = i + 1;
-			buff.at(start) = i;
+			buff.at(start).index = i;
 			//printf("p2 publish %d\n", start);
 			sw->publish_after(start, start - 1);
 		}
@@ -72,7 +77,7 @@ void test()
 		printf("c1 start\n");
 		auto pos = r1->begin();
 		auto end = r1->end();
-		int i = 0;
+		int64_t i = 0;
 		while (i < COUNT)
 		{
 			if (pos == end)
@@ -86,7 +91,7 @@ void test()
 				end = r1->wait_for(end);
 				//printf("c1 wait end [%" PRId64 ", %" PRId64 ")\n", pos, end);
 			}
-			i = buff.at(pos);
+			i = buff.at(pos).index;
 			data[i].c1 = 1;
 			//printf("c1: %d\n", data[i].id);
 			++pos;
@@ -99,7 +104,7 @@ void test()
 		printf("c2 start\n");
 		auto pos = r2->begin();
 		auto end = r2->end();
-		int i = 0;
+		int64_t i = 0;
 		while (i < COUNT)
 		{
 			if (pos == end)
@@ -113,7 +118,7 @@ void test()
 				end = r2->wait_for(end);
 				//printf("c2 wait end [%" PRId64 ", %" PRId64 ")\n", pos, end);
 			}
-			i = buff.at(pos);
+			i = buff.at(pos).index;
 			data[i].c2 = 1;
 			//printf("c2: %d\n", data[i].id);
 			++pos;
