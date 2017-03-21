@@ -33,6 +33,8 @@ namespace wyc
 
 #define CACHE_LINE_SIZE 64
 
+#define CACHE_LINE_ALIGN alignas(CACHE_LINE_SIZE)
+
 #define PAGE_SIZE 4096
 
 } // namespace wyc

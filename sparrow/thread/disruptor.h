@@ -6,6 +6,7 @@
 #include <atomic>
 #include <assert.h>
 #include <iostream>
+#include "platform_info.h"
 
 namespace disruptor
 {
@@ -13,7 +14,7 @@ namespace disruptor
 	class eof : public std::exception
 	{
 	public:
-		virtual const char* what()const noexcept { return "eof"; }
+		virtual const char* what() const noexcept { return "eof"; }
 	};
 
 
@@ -27,7 +28,7 @@ namespace disruptor
 	 *  extra state includes whether or not this sequence number is 'EOF' and
 	 *  whether or not any alerts have been published.
 	 */
-	class alignas(64) sequence
+	class CACHE_LINE_ALIGN sequence
 	{
 	public:
 		sequence(int64_t v = 0) :_sequence(v), _alert(0) {}
@@ -39,21 +40,14 @@ namespace disruptor
 		bool    eof()const { return _alert == 1; }
 		bool    alert()const { return _alert != 0; }
 
-		int64_t atomic_increment_and_get(uint64_t inc)
-		{
-			return _sequence.fetch_add(inc, std::memory_order::memory_order_release) + inc;
-		}
-
 		int64_t increment_and_get(uint64_t inc)
 		{
-			auto tmp = aquire() + inc;
-			store(tmp);
-			return tmp;
+			return _sequence.fetch_add(inc, std::memory_order::memory_order_release) + inc;
 		}
 	private:
 		std::atomic<int64_t> _sequence;
 		volatile int64_t     _alert;
-		int64_t              _post_pad[6];
+		int64_t              _post_pad[CACHE_LINE_SIZE / sizeof(int64_t) - 2];
 	};
 
 	class event_cursor;
@@ -107,10 +101,13 @@ namespace disruptor
 		typedef EventType event_type;
 
 		static_assert(((Size != 0) && ((Size & (~Size + 1)) == Size)),
-			"Ring buffer's must be a power of 2");
+			"Ring buffer's size must be a power of 2");
+
+		static_assert(alignof(EventType) == CACHE_LINE_SIZE,
+			"Event should align on cache line to prevent false sharing");
 
 		/** @return a read-only reference to the event at pos */
-		const EventType& at(int64_t pos)const
+		const EventType& at(int64_t pos) const
 		{
 			return _buffer[pos & (Size - 1)];
 		}
@@ -126,8 +123,8 @@ namespace disruptor
 		 *  by a socket dumping raw bytes in.  In which case memcpy
 		 *  would have to use to ranges instead of 1.
 		 */
-		int64_t get_buffer_index(int64_t pos)const { return pos & (Size - 1); }
-		int64_t get_buffer_size()const { return Size; }
+		int64_t get_index(int64_t pos) const { return pos & (Size - 1); }
+		int64_t size() const { return Size; }
 
 	private:
 		EventType            _buffer[Size];
@@ -205,8 +202,8 @@ namespace disruptor
 	class event_cursor
 	{
 	public:
-		event_cursor(int64_t b = -1) :_name(""), _begin(b), _end(b), _cursor(-1) {}
-		event_cursor(const char* n, int64_t b = 0) :_name(n), _begin(b), _end(b), _cursor(-1) {}
+		event_cursor() :_name(""), _begin(0), _end(0), _cursor(-1) {}
+		event_cursor(const char* n) :_name(n), _begin(0), _end(0), _cursor(-1) {}
 
 		/** this event processor will process every event
 		 *  upto, but not including s
@@ -222,8 +219,10 @@ namespace disruptor
 
 
 		/** makes the event at p available to those following this cursor */
-		void     publish(int64_t p)
+		void publish(int64_t p)
 		{
+			// never publish an invalid negative pos
+			assert(p >= 0);
 			check_alert();
 			_begin = p + 1;
 			_cursor.store(p);
@@ -236,7 +235,7 @@ namespace disruptor
 		 *  alert that will be thrown whenever another cursor attempts to wait
 		 *  on this cursor.
 		 */
-		void  set_alert(std::exception_ptr e)
+		void set_alert(std::exception_ptr e)
 		{
 			_alert = std::move(e);
 			_cursor.set_alert();
@@ -247,7 +246,10 @@ namespace disruptor
 
 
 		/** If an alert has been set, throw! */
-		inline void check_alert()const;
+		void check_alert()const
+		{
+			if (_alert != std::exception_ptr()) std::rethrow_exception(_alert);
+		}
 
 		/** the last sequence number this processor has
 		 *  completed.
@@ -273,8 +275,8 @@ namespace disruptor
 	class read_cursor : public event_cursor
 	{
 	public:
-		read_cursor(int64_t p = 0) :event_cursor(p) {}
-		read_cursor(const char* n, int64_t p = 0) :event_cursor(n, p) {}
+		read_cursor() {}
+		read_cursor(const char* n) :event_cursor(n) {}
 
 		/** @return end() which is > pos */
 		int64_t wait_for(int64_t pos)
@@ -307,11 +309,10 @@ namespace disruptor
 		 *  required to do proper wrap detection
 		 **/
 		write_cursor(int64_t s)
-			:_size(s), _size_m1(s - 1)
+			:event_cursor(), _size(s)
 		{
 			_begin = 0;
 			_end = _size;
-			_cursor.store(-1);
 		}
 
 		/**
@@ -319,11 +320,10 @@ namespace disruptor
 		 * @param s - the size of the buffer.
 		 */
 		write_cursor(const char* n, int64_t s)
-			:event_cursor(n), _size(s), _size_m1(s - 1)
+			:event_cursor(n), _size(s)
 		{
 			_begin = 0;
 			_end = _size;
-			_cursor.store(-1);
 		}
 
 		/** waits for begin() to be valid and then
@@ -361,7 +361,6 @@ namespace disruptor
 		}
 	private:
 		const int64_t _size;
-		const int64_t _size_m1;
 	};
 
 	typedef std::shared_ptr<write_cursor> write_cursor_ptr;
@@ -384,22 +383,23 @@ namespace disruptor
 		 *  required to do proper wrap detection
 		 **/
 		shared_write_cursor(int64_t s)
-			:write_cursor(s)
-			,_pub_cursor(-1) {}
+			: write_cursor(s)
+			, _claim_cursor(0)
+			, _publish_cursor(-1) {}
 
 		/**
 		 * @param n - name of the cursor for debug purposes
 		 * @param s - the size of the buffer.
 		 */
 		shared_write_cursor(const char* n, int64_t s)
-			:write_cursor(n, s)
-			,_pub_cursor(-1) {}
+			: write_cursor(n, s)
+			, _claim_cursor(0)
+			, _publish_cursor(-1) {}
 
 		/** When there are multiple writers they cannot both
 		 *  assume the right to write to begin() to end(),
 		 *  instead they must first claim some slots in an
 		 *  atomic manner.
-		 *
 		 *
 		 *  After pos().aquire() == claim( slots ) -1 the claimer
 		 *  is free to call publish up to start + slots -1
@@ -408,23 +408,27 @@ namespace disruptor
 		 */
 		int64_t claim(size_t num_slots)
 		{
-			auto pos = _claim_cursor.atomic_increment_and_get(num_slots);
-			// make sure there is enough space to write
-			wait_for(pos - 1); // TODO: -1????
+			auto pos = _claim_cursor.increment_and_get(num_slots);
+			// claim to write to buffer range [pos - num_slots, pos)
+			// make sure the last slot[pos - 1] is ready to write
+			wait_for(pos - 1);
 			return pos - num_slots;
 		}
 
+		/**
+		 * Publish the pos when after_pos is publised by other writer threads
+		 *
+		 */
 		void publish_after(int64_t pos, int64_t after_pos)
 		{
+			assert(pos > after_pos);
 			try {
-				assert(pos > after_pos);
-				//_barrier.wait_for(after_pos);
-				while(_pub_cursor.aquire() != after_pos)
+				while (_publish_cursor.aquire() != after_pos)
 				{
 					std::this_thread::sleep_for(std::chrono::milliseconds(0));
 				}
 				publish(pos);
-				_pub_cursor.store(pos);
+				_publish_cursor.store(pos);
 				//printf("pub %d\n", pos);
 			}
 			catch (const eof&) { _cursor.set_eof(); throw; }
@@ -433,10 +437,9 @@ namespace disruptor
 
 	private:
 		sequence      _claim_cursor;
-		sequence	  _pub_cursor;
+		sequence	  _publish_cursor;
 	};
 	typedef std::shared_ptr<shared_write_cursor> shared_write_cursor_ptr;
-
 
 
 	inline void barrier::follows(std::shared_ptr<const event_cursor> e)
@@ -464,40 +467,40 @@ namespace disruptor
 		for (auto itr = _limit_seq.begin(); itr != _limit_seq.end(); ++itr)
 		{
 			int64_t itr_pos = 0;
-			itr_pos = (*itr)->pos().aquire();
-			// spin for a bit 
-			for (int i = 0; itr_pos < pos && i < 10000; ++i)
-			{
-				itr_pos = (*itr)->pos().aquire();
-				if ((*itr)->pos().alert()) break;
-			}
-			// yield for a while, queue slowing down
-			for (int y = 0; itr_pos < pos && y < 10000; ++y)
-			{
-				//usleep(0);
-				std::this_thread::sleep_for(std::chrono::milliseconds(0));
-				itr_pos = (*itr)->pos().aquire();
-				if ((*itr)->pos().alert()) break;
+			const sequence &seq = (*itr)->pos();
+			itr_pos = seq.aquire();
+
+			if (itr_pos < pos) {
+				// spin for a bit 
+				for (int i = 0; itr_pos < pos && i < 10000; ++i)
+				{
+					itr_pos = seq.aquire();
+					if (seq.alert()) break;
+				}
+				// yield for a while, queue slowing down
+				for (int y = 0; itr_pos < pos && y < 10000; ++y)
+				{
+					std::this_thread::sleep_for(std::chrono::milliseconds(0));
+					itr_pos = seq.aquire();
+					if (seq.alert()) break;
+				}
+
+				// queue stalled, don't peg the CPU but don't wait
+				// too long either...
+				while (itr_pos < pos)
+				{
+					std::this_thread::sleep_for(std::chrono::milliseconds(10));
+					itr_pos = seq.aquire();
+					if (seq.alert()) break;
+				}
 			}
 
-			// queue stalled, don't peg the CPU but don't wait
-			// too long either...
-			while (itr_pos < pos)
-			{
-				//usleep( 10*1000 );
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-				itr_pos = (*itr)->pos().aquire();
-				if ((*itr)->pos().alert()) break;
-			}
-
-			if ((*itr)->pos().alert())
+			if (seq.alert())
 			{
 				(*itr)->check_alert();
-				if (itr_pos > pos)
-					return itr_pos - 1; // process everything up to itr_pos
-				throw eof();
+				if (itr_pos < pos)
+					throw eof();
 			}
-
 
 			if (itr_pos < min_pos)
 				min_pos = itr_pos;
@@ -505,12 +508,6 @@ namespace disruptor
 		assert(min_pos != 0x7fffffffffffffff);
 		return _last_min = min_pos;
 	}
-
-	inline void event_cursor::check_alert()const
-	{
-		if (_alert != std::exception_ptr()) std::rethrow_exception(_alert);
-	}
-
 
 } // namespace disruptor
 

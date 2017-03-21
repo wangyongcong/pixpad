@@ -11,14 +11,14 @@ UNIT_TEST_BEG(disruptor_queue)
 
 struct Event
 {
-	alignas(64) int64_t index;
+	CACHE_LINE_ALIGN int64_t index;
 };
 
 struct Result
 {
-	alignas(64) int64_t id;
-	alignas(64) int64_t c1;
-	alignas(64) int64_t c2;
+	CACHE_LINE_ALIGN int64_t id;
+	CACHE_LINE_ALIGN int64_t c1;
+	CACHE_LINE_ALIGN int64_t c2;
 };
 
 void test()
