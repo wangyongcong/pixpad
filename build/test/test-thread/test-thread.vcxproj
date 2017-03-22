@@ -27,10 +27,12 @@
     <ClInclude Include="..\..\..\sparrow\thread\platform_info.h" />
     <ClInclude Include="..\..\..\sparrow\thread\readerwriterqueue.h" />
     <ClInclude Include="..\..\..\sparrow\thread\ring_queue.h" />
+    <ClInclude Include="..\..\..\sparrow\thread\spin_lock.h" />
     <ClInclude Include="..\..\..\sparrow\thread\spsc_queue.h" />
     <ClInclude Include="..\..\..\sparrow\thread\test\common.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\sparrow\thread\disruptor.cpp" />
     <ClCompile Include="..\..\..\sparrow\thread\platform_info.cpp" />
     <ClCompile Include="..\..\..\sparrow\thread\test\main.cpp" />
     <ClCompile Include="..\..\..\sparrow\thread\test\test_disruptor.cpp" />

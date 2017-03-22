@@ -45,6 +45,9 @@
     <ClInclude Include="..\..\..\sparrow\thread\disruptor.h">
       <Filter>Thread</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\sparrow\thread\spin_lock.h">
+      <Filter>Thread</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\sparrow\thread\test\main.cpp">
@@ -70,6 +73,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\sparrow\thread\test\test_disruptor.cpp">
       <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\sparrow\thread\disruptor.cpp">
+      <Filter>Thread</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

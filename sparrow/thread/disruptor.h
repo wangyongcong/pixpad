@@ -33,17 +33,18 @@ namespace disruptor
 	public:
 		sequence(int64_t v = 0) :_sequence(v), _alert(0) {}
 
+		int64_t get() const { return _sequence.load(std::memory_order_relaxed); }
 		int64_t aquire()const { return _sequence.load(std::memory_order_acquire); }
 		void    store(int64_t value) { _sequence.store(value, std::memory_order_release); }
+
+		int64_t increment_and_get(uint64_t inc) {
+			return _sequence.fetch_add(inc, std::memory_order::memory_order_release) + inc;
+		}
+
 		void    set_eof() { _alert = 1; }
 		void    set_alert() { _alert = -1; }
 		bool    eof()const { return _alert == 1; }
 		bool    alert()const { return _alert != 0; }
-
-		int64_t increment_and_get(uint64_t inc)
-		{
-			return _sequence.fetch_add(inc, std::memory_order::memory_order_release) + inc;
-		}
 	private:
 		std::atomic<int64_t> _sequence;
 		volatile int64_t     _alert;
@@ -445,68 +446,6 @@ namespace disruptor
 	inline void barrier::follows(std::shared_ptr<const event_cursor> e)
 	{
 		_limit_seq.push_back(std::move(e));
-	}
-
-	inline int64_t barrier::get_min()
-	{
-		int64_t min_pos = 0x7fffffffffffffff;
-		for (auto itr = _limit_seq.begin(); itr != _limit_seq.end(); ++itr)
-		{
-			auto itr_pos = (*itr)->pos().aquire();
-			if (itr_pos < min_pos) min_pos = itr_pos;
-		}
-		return _last_min = min_pos;
-	}
-
-	inline int64_t barrier::wait_for(int64_t pos)const
-	{
-		if (_last_min >= pos)
-			return _last_min;
-
-		int64_t min_pos = 0x7fffffffffffffff;
-		for (auto itr = _limit_seq.begin(); itr != _limit_seq.end(); ++itr)
-		{
-			int64_t itr_pos = 0;
-			const sequence &seq = (*itr)->pos();
-			itr_pos = seq.aquire();
-
-			if (itr_pos < pos) {
-				// spin for a bit 
-				for (int i = 0; itr_pos < pos && i < 10000; ++i)
-				{
-					itr_pos = seq.aquire();
-					if (seq.alert()) break;
-				}
-				// yield for a while, queue slowing down
-				for (int y = 0; itr_pos < pos && y < 10000; ++y)
-				{
-					std::this_thread::sleep_for(std::chrono::milliseconds(0));
-					itr_pos = seq.aquire();
-					if (seq.alert()) break;
-				}
-
-				// queue stalled, don't peg the CPU but don't wait
-				// too long either...
-				while (itr_pos < pos)
-				{
-					std::this_thread::sleep_for(std::chrono::milliseconds(10));
-					itr_pos = seq.aquire();
-					if (seq.alert()) break;
-				}
-			}
-
-			if (seq.alert())
-			{
-				(*itr)->check_alert();
-				if (itr_pos < pos)
-					throw eof();
-			}
-
-			if (itr_pos < min_pos)
-				min_pos = itr_pos;
-		}
-		assert(min_pos != 0x7fffffffffffffff);
-		return _last_min = min_pos;
 	}
 
 } // namespace disruptor
