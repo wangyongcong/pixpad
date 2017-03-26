@@ -2,6 +2,8 @@
 #include <cassert>
 #include <functional>
 #include <OpenEXR/ImathColorAlgo.h>
+#include <future>
+#include "disruptor.h"
 #include "ImathBoxAlgoExt.h"
 #include "vecmath.h"
 #include "spw_rasterizer.h"
@@ -43,10 +45,6 @@ namespace wyc
 		assert(mesh && material);
 		const CVertexBuffer &vb = mesh->vertex_buffer();
 		const CIndexBuffer &ib = mesh->index_buffer();
-		if (ib.stride() != sizeof(unsigned)) {
-			log_warn("Vertex index should be 32bit integer.");
-			return;
-		}
 		// setup render target
 		unsigned surfw, surfh;
 		m_rt->get_size(surfw, surfh);
@@ -73,9 +71,8 @@ namespace wyc
 		// todo: work parallel
 		RasterTask task;
 		task.material = material;
-		task.index_stream = ib.get_index_stream();
+		task.index_stream = ib.data();
 		task.index_size = ib.size() / 3 * 3;
-		task.index_stride = ib.stride();
 		task.in_stream = &attrib_stream[0];
 		task.in_count = attrib_stream.size();
 		task.in_stride = attrib_def.in_stride;
@@ -105,6 +102,171 @@ namespace wyc
 		process(task);
 	}
 
+	void CSpwPipeline::feed_async(const CMesh * mesh, const CMaterial * material)
+	{
+		assert(mesh && material);
+		const CVertexBuffer &vb = mesh->vertex_buffer();
+		const CIndexBuffer &ib = mesh->index_buffer();
+		// setup render target
+		unsigned surfw, surfh;
+		m_rt->get_size(surfw, surfh);
+		int halfw = surfw >> 1, halfh = surfh >> 1;
+
+		// bind stream
+		auto &attrib_def = material->get_attrib_define();
+		if (!check_material(attrib_def))
+			return;
+
+		constexpr unsigned NUM_CORES = 2;
+		constexpr unsigned NUM_FRAGMENT_CORES = 2;
+		unsigned triangle_count = ib.size() / 3;
+		unsigned index_per_core = (triangle_count / NUM_CORES) * 3;
+		unsigned beg = 0, end = index_per_core + (triangle_count % NUM_CORES) * 3;
+
+		std::vector<const float*> attribs;
+		for (unsigned i = 0; i < attrib_def.in_count; ++i)
+		{
+			auto &slot = attrib_def.in_attribs[i];
+			if (!vb.has_attribute(slot.usage)
+				|| vb.attrib_component(slot.usage) < slot.component)
+				return;
+			attribs[i] = (const float*)vb.attrib_stream(slot.usage);
+		}
+		unsigned vertex_stride = vb.vertex_component();
+		unsigned out_stride = attrib_def.out_stride;
+
+		struct Event {
+			CACHE_LINE_ALIGN std::vector<float> vec;
+		};
+
+		disruptor::ring_buffer<Event, 256> out_buff;
+		for (auto i = 0; i < out_buff.size(); ++i)
+		{
+			auto &e = out_buff.at(i);
+			e.vec.resize(out_stride * 3, 0);
+		}
+		auto sw = std::make_shared<disruptor::shared_write_cursor>(256);
+		std::vector<disruptor::read_cursor_ptr> readers(NUM_FRAGMENT_CORES);
+
+		for (auto i = 0; i < NUM_FRAGMENT_CORES; ++i) {
+			auto r = std::make_shared<disruptor::read_cursor>();
+			r->follows(sw);
+			sw->follows(r);
+			readers[i] = r;
+		}
+
+		// generate vertex processors
+		std::vector<std::future<void>> producers;
+		while (end < ib.size())
+		{
+			producers.push_back(std::async(std::launch::async, [this, beg, end, &ib, &attribs, vertex_stride, &material, out_stride, sw, &out_buff] {
+				auto attrib_count = attribs.size();
+				std::vector<const float*> attrib_ptrs(attrib_count, nullptr);
+				auto vertex_in = &attrib_ptrs[0];
+				// use triangle as the basic primitive (3 vertex)
+				// clipping may produce 7 more vertex
+				// so the maximum vertex count is 10
+				constexpr int max_count = 10;
+				// cache for vertex attributes 
+				size_t cache_vert = out_stride * max_count;
+				// cache for clipping position
+				size_t cache_frag = out_stride - 4;
+				// we use double buffer to swap input/output
+				float *vert_cache0 = new float[cache_vert + cache_vert + cache_frag];
+				float *vert_cache1 = vert_cache0 + cache_vert;
+				float *frag_cache = vert_cache0 + cache_vert * 2;
+				float *vertex_out = vert_cache0;
+				int vcnt = 0;
+				for (auto i = beg; i < end; ++i)
+				{
+					auto offset = ib[i] * vertex_stride;
+					for (size_t j = 0; j < attrib_count; ++j)
+					{
+						attrib_ptrs[j] = attribs[j] + offset;
+					}
+					material->vertex_shader(vertex_in, vertex_out);
+					vertex_out += out_stride;
+					vcnt += 1;
+					if (vcnt == 2) {
+						size_t clip_count = 3;
+						float *clip_result = clip_polygon_stream(vert_cache0, vert_cache1, clip_count, out_stride);
+						if (clip_count >= 3)
+						{
+							viewport_transform(clip_result, clip_count, out_stride);
+							Vec4f *p0 = (Vec4f*)clip_result, *p1 = (Vec4f*)(clip_result + out_stride), *p2 = (Vec4f*)(clip_result + out_stride * 2);
+							//log_debug("triangle: (%f, %f, %f), (%f, %f, %f), (%f, %f, %f)", p0->x, p0->y, p0->z, p1->x, p1->y, p1->z, p2->x, p2->y, p2->z);
+							for (size_t j = 2; j < clip_count; ++j)
+							{
+								// backface culling
+								Imath::V2f v10(p0->x - p1->x, p0->y - p1->y);
+								Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
+								if (v10.cross(v12) * m_clock_wise > 0) {
+									auto pos = sw->claim(1);
+									auto &e = out_buff.at(pos);
+									auto p = reinterpret_cast<const float*>(p0);
+									e.vec.assign(p, p + out_stride);
+									p = reinterpret_cast<const float*>(p1);
+									e.vec.insert(e.vec.end(), p, p + out_stride);
+									p = reinterpret_cast<const float*>(p2);
+									e.vec.insert(e.vec.end(), p, p + out_stride);
+									sw->publish_after(pos, pos - 1);
+								}
+								// next one
+								p1 = p2;
+								p2 = (Vec4f*)(((float*)p2) + out_stride);
+							}
+							//draw_triangles(clip_result, clip_count, task);
+						}
+						vcnt = 0;
+						vertex_out = vert_cache0;
+					}
+				}
+			}));
+			beg = end;
+			end += index_per_core;
+		}
+
+		// generate fragement processors
+		std::vector<std::future<void>> consumers;
+		for (auto i = 0; i < NUM_FRAGMENT_CORES; ++i) {
+			auto cursor = readers[i];
+			consumers.push_back(std::async(std::launch::async, [this, cursor, &out_buff] {
+				auto beg = cursor->begin();
+				auto end = cursor->end();
+				while (1) {
+					if (beg == end)
+					{
+						if (end > 0)
+							cursor->publish(end - 1);
+						end = cursor->wait_for(end);
+					}
+					auto &v = out_buff.at(beg).vec;
+					if (std::isnan(v[0]))
+						break;
+					// process fragments
+					++beg;
+				}
+			}));
+		}
+
+		// wait for producers
+		for (auto &h : producers)
+		{
+			h.get();
+		}
+
+		// use NAN to indicate EOF
+		auto pos = sw->claim(1);
+		out_buff.at(pos).vec.assign(1, NAN);
+		sw->publish_after(pos, pos - 1);
+
+		// wait for consumers
+		for (auto &h : consumers)
+		{
+			h.get();
+		}
+	}
+
 	void CSpwPipeline::set_viewport(const Imath::Box2i & view)
 	{
 		auto _tmp = view.max + view.min;
@@ -115,13 +277,12 @@ namespace wyc
 
 	void CSpwPipeline::process(RasterTask &task) const
 	{
-		typedef unsigned index_t;
-		const index_t *index_stream = reinterpret_cast<const index_t*>(task.index_stream);
+		const unsigned *index_stream = task.index_stream;
 		std::vector<const char*> attrib_ptr(task.in_count, nullptr);
 		const void* in_vertex = &attrib_ptr[0];
 		for (size_t i = 0; i < task.index_size; ++i)
 		{
-			index_t idx_vert = index_stream[i];
+			auto idx_vert = index_stream[i];
 			for (size_t j = 0; j < task.in_count; ++j)
 			{
 				auto &stream = task.in_stream[j];

@@ -334,7 +334,7 @@ namespace wyc
 			// back face
 			{ -r, -r, -r }, { r, -r, -r }, { r, r, -r }, { -r, r, -r }
 		};
-		unsigned indices[] = {
+		m_ib = {
 			// front face
 			0, 1, 2, 0, 2, 3,
 			// right face
@@ -360,7 +360,6 @@ namespace wyc
 			*pos = verts[i];
 			*color = c;
 		}
-		m_ib.resize(36, indices);
 	}
 
 	void CMesh::create_sphere(float r)

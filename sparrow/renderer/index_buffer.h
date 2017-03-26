@@ -7,21 +7,65 @@
 
 namespace wyc
 {
-	class CIndexBuffer
+	template<typename IndexType>
+	class CIndexBufferT
 	{
 	public:
-		CIndexBuffer();
-		~CIndexBuffer();
-		template<typename IndexType>
-		void resize(size_t count);
-		template<typename IndexType>
-		void resize(size_t count, const IndexType* data);
-		void clear();
-		size_t size() const;
-		uint8_t stride() const;
+		static_assert(std::is_integral<IndexType>::value, "Index type is not integral");
+		CIndexBufferT()
+			: m_data(nullptr)
+			, m_data_size(0)
+			, m_count(0)
+			, m_stride(0)
+			, m_max_val(0)
+		{
+		}
+
+		~CIndexBufferT()
+		{
+			if (m_data) {
+				delete[] m_data;
+				m_data = nullptr;
+			}
+		}
+
+		void resize(size_t count) {
+			if (m_data)
+				clear();
+			size_t sz = sizeof(IndexType) * count;
+			if (!sz)
+				return;
+			m_data = new char[sz];
+			m_data_size = sz;
+			m_count = count;
+			m_stride = sizeof(IndexType);
+			m_max_val = (unsigned long)std::numeric_limits<IndexType>::max();
+		}
+
+		void clear()
+		{
+			if (m_data)
+			{
+				delete[] m_data;
+				m_data = nullptr;
+			}
+			m_data_size = 0;
+			m_count = 0;
+			m_stride = 0;
+		}
+
+		size_t size() const {
+			return m_count;
+		}
+
+		uint8_t stride() const {
+			return m_stride;
+		}
+
 		inline const char* get_index_stream() const {
 			return m_data;
 		}
+
 		using const_iterator = CAnyStrideIterator<unsigned, CAnyReader>;
 		using iterator = CAnyStrideIterator<unsigned, CAnyAccessor&>;
 		inline iterator begin() {
@@ -32,8 +76,6 @@ namespace wyc
 		}
 
 	protected:
-		void _resize(size_t count, uint8_t stride);
-
 		char *m_data;
 		size_t m_data_size;
 		size_t m_count;
@@ -41,31 +83,7 @@ namespace wyc
 		unsigned long m_max_val;
 	};
 
-	inline size_t CIndexBuffer::size() const
-	{
-		return m_count;
-	}
-
-	inline unsigned char CIndexBuffer::stride() const
-	{
-		return m_stride;
-	}
-
-	template<typename IndexType>
-	inline void CIndexBuffer::resize(size_t count)
-	{
-		static_assert(std::is_integral<IndexType>(), "Index type is not integral");
-		_resize(count, sizeof(IndexType));
-		m_max_val = (unsigned long)std::numeric_limits<IndexType>::max();
-	}
-
-	template<typename IndexType>
-	inline void CIndexBuffer::resize(size_t count, const IndexType * data)
-	{
-		static_assert(std::is_integral<IndexType>(), "Index type is not integral");
-		_resize(count, sizeof(IndexType));
-		m_max_val = (unsigned long)std::numeric_limits<IndexType>::max();
-		memcpy(m_data, data, m_data_size);
-	}
+	//typedef CIndexBufferT<uint32_t> CIndexBuffer;
+	typedef std::vector<uint32_t> CIndexBuffer;
 
 } // namespace wyc

@@ -371,19 +371,8 @@ private:
 		size_t vertex_cnt = scn_mesh->vertex_count();
 		auto &ib = scn_mesh->index_buffer();
 		const unsigned int *index_data = pos_indices.getData();
-		//if (vertex_cnt < std::numeric_limits<uint16_t>::max()) {
-		//	ib.resize<uint16_t>(index_cnt);
-		//	for (auto &i : ib) {
-		//		i = (uint16_t)(*index_data++);
-		//	}
-		//	assert(index_data == pos_indices.getData() + pos_indices.getCount());
-		//}
 		if (vertex_cnt < std::numeric_limits<uint32_t>::max()) {
-			ib.resize<uint32_t>(index_cnt, index_data);
-			for (auto &i : ib) {
-				i = (uint32_t)(*index_data++);
-			}
-			assert(index_data == pos_indices.getData() + pos_indices.getCount());
+			ib.assign(index_data, index_data + index_cnt);
 		}
 		else {
 			assert(0 && "Vertex count overflow");

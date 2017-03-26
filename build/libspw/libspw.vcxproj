@@ -117,10 +117,9 @@
     <ClInclude Include="..\..\sparrow\scene\scene.h" />
     <ClInclude Include="..\..\sparrow\scene\scene_obj.h" />
     <ClInclude Include="..\..\sparrow\scene\static_mesh.h" />
-    <ClInclude Include="..\..\sparrow\thread\disruptor.hpp" />
+    <ClInclude Include="..\..\sparrow\thread\disruptor.h" />
     <ClInclude Include="..\..\sparrow\thread\platform_info.h" />
     <ClInclude Include="..\..\sparrow\thread\ring_queue.h" />
-    <ClInclude Include="..\..\sparrow\thread\thread.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sparrow\common\image.cpp" />
@@ -128,7 +127,6 @@
     <ClCompile Include="..\..\sparrow\common\util.cpp" />
     <ClCompile Include="..\..\sparrow\mathex\vecmath.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\clipping.cpp" />
-    <ClCompile Include="..\..\sparrow\renderer\index_buffer.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\material.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\mesh.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\metric.cpp" />
@@ -151,7 +149,6 @@
     <ClCompile Include="..\..\sparrow\scene\static_mesh.cpp" />
     <ClCompile Include="..\..\sparrow\thread\disruptor.cpp" />
     <ClCompile Include="..\..\sparrow\thread\platform_info.cpp" />
-    <ClCompile Include="..\..\sparrow\thread\thread.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{09481871-B2D2-44FD-B806-89061A1DAEA6}</ProjectGuid>

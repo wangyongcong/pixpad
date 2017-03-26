@@ -25,15 +25,15 @@ namespace wyc
 		CSpwPipeline& operator = (const CSpwPipeline &other) = delete;
 		virtual void setup(std::shared_ptr<CSpwRenderTarget> rt);
 		virtual void feed(const CMesh *mesh, const CMaterial *material);
+		void feed_async(const CMesh *mesh, const CMaterial *material);
 		void set_viewport(const Imath::Box2i &view);
 
 	protected:
 		typedef std::pair<const char*, size_t> AttribStream;
 		struct RasterTask {
 			const CMaterial *material;
-			const char* index_stream;
+			const unsigned* index_stream;
 			size_t index_size;
-			size_t index_stride;
 			const AttribStream* in_stream;
 			size_t in_count;
 			size_t in_stride;
