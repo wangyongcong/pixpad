@@ -21,10 +21,8 @@ namespace wyc
 	
 	private:		
 		CSpwMetric();
-		unsigned m_cur_timer_tid;
 		typedef std::chrono::steady_clock::time_point time_point_t;
-		std::vector<time_point_t> m_timers;
-
+		std::vector<std::pair<unsigned, time_point_t>> m_timers;
 	};
 
 } // namespace wyc

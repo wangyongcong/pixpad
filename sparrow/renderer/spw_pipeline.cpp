@@ -42,9 +42,9 @@ namespace wyc
 
 	void CSpwPipeline::feed(const CMesh *mesh, const CMaterial *material)
 	{
-		//process_async(mesh, material);
-		clear_async();
-		return;
+		process_async(mesh, material);
+		//clear_async();
+		//return;
 
 		assert(mesh && material);
 		const CVertexBuffer &vb = mesh->vertex_buffer();
@@ -152,23 +152,27 @@ namespace wyc
 			frag_color.b *= frag_color.a;
 			unsigned v = Imath::rgb2packed(frag_color);
 			x += center.x;
-			y = center.y - y;
+			y = rt->height() - (y + center.y) - 1;
 			auto &surf = rt->get_color_buffer();
 			//unsigned v2 = *surf.get<unsigned>(x, y);
 			//assert(v2 == 0xff000000);
 			surf.set(x, y, v);
 		}
 
-		void clear(const Imath::C4f &c)
+		void clear(const Imath::C3f &c)
 		{
 			Imath::Box2i b = bounding;
 			b.min += center;
 			b.max += center;
 			int h = rt->height();
+			unsigned v = Imath::rgb2packed(c);
+			unsigned bg = Imath::rgb2packed(Color3f{ 0, 0, 0});
 			auto &surf = rt->get_color_buffer();
 			for (auto y = b.min.y; y < b.max.y; ++y) {
 				for (auto x = b.min.x; x < b.max.x; ++x) {
-					surf.set(x, h - y - 1, c);
+					auto ty = h - y - 1;
+					//assert(bg == *surf.get<unsigned>(x, ty));
+					surf.set(x, ty, v);
 				}
 			}
 		}
@@ -229,7 +233,7 @@ namespace wyc
 
 		// generate vertex processors
 		std::vector<std::future<void>> producers;
-		while (end < ib.size())
+		while (end <= ib.size())
 		{
 			producers.push_back(std::async(std::launch::async, [this, beg, end, &ib, &attribs, vertex_stride, &material, out_stride, sw, &out_buff] {
 				auto attrib_count = attribs.size();
@@ -241,12 +245,9 @@ namespace wyc
 				constexpr int max_count = 10;
 				// cache for vertex attributes 
 				size_t cache_vert = out_stride * max_count;
-				// cache for clipping position
-				size_t cache_frag = out_stride - 4;
 				// we use double buffer to swap input/output
-				float *vert_cache0 = new float[cache_vert + cache_vert + cache_frag];
+				float *vert_cache0 = new float[cache_vert + cache_vert];
 				float *vert_cache1 = vert_cache0 + cache_vert;
-				float *frag_cache = vert_cache0 + cache_vert * 2;
 				float *vertex_out = vert_cache0;
 				int vcnt = 0;
 				for (auto i = beg; i < end; ++i)
@@ -299,7 +300,7 @@ namespace wyc
 		}
 
 		// generate fragement processors
-		constexpr int TILE_W = 256, TILE_H = 256;
+		constexpr int TILE_W = 32, TILE_H = 32;
 		constexpr int HALF_TILE_W = TILE_W >> 1, HALF_TILE_H = TILE_H >> 1;
 		int tile_x = (surfw + TILE_W - 1) / TILE_W, tile_y = (surfh + TILE_H - 1) / TILE_H;
 		int margin_x = surfw & (TILE_W - 1), margin_y = surfh & (TILE_H - 1);
@@ -314,14 +315,14 @@ namespace wyc
 			// last column
 			if (margin_x > 0) 
 			{
-				tiles.back().bounding.max.x -= margin_x;
+				tiles.back().bounding.max.x -= TILE_W - margin_x;
 			}
 		}
 		// last row
 		if (margin_y > 0) {
 			for (auto i = tiles.size() - tile_x, end = tiles.size(); i < end; ++i)
 			{
-				tiles[i].bounding.max.y -= margin_y;
+				tiles[i].bounding.max.y -= TILE_H - margin_y;
 			}
 		}
 		int tile_per_core = tiles.size() / NUM_FRAGMENT_CORES;
@@ -340,11 +341,10 @@ namespace wyc
 							cursor->publish(end - 1);
 						end = cursor->wait_for(end);
 					}
-					auto v = out_buff.at(beg).vec.data();
+					const float* v = out_buff.at(beg).vec.data();
 					if (std::isnan(v[0]))
 						break; // EOF
-					Vec4f *p0 = (Vec4f*)v, *p1 = (Vec4f*)(v + out_stride), *p2 = (Vec4f*)(v + out_stride * 2);
-					Vec4f origin_p0 = *p0, origin_p1 = *p1, origin_p2 = *p2;
+					const Vec4f *p0 = (Vec4f*)v, *p1 = (Vec4f*)(v + out_stride), *p2 = (Vec4f*)(v + out_stride * 2);
 					Imath::bounding(vertex_bounding, p0, p1, p2);
 					for (auto i = tile_beg; i < tile_end; ++i) {
 						auto &tile = tiles[i];
@@ -353,20 +353,12 @@ namespace wyc
 						local_bounding.max -= tile.center;
 						Imath::intersection(local_bounding, tile.bounding);
 						if (!local_bounding.isEmpty()) {
+							tile.clear({ 1, 1, 0 });
 							// fill triangles
-							p0->x -= tile.center.x;
-							p0->y -= tile.center.y;
-							p1->x -= tile.center.x;
-							p1->y -= tile.center.y;
-							p2->x -= tile.center.x;
-							p2->y -= tile.center.y;
-							tile.v0 = (float*)p0;
-							tile.v1 = (float*)p1;
-							tile.v2 = (float*)p2;
-							fill_triangle(local_bounding, *p0, *p1, *p2, tile);
-							*p0 = origin_p0;
-							*p1 = origin_p1;
-							*p2 = origin_p2;
+							//tile.v0 = (float*)p0;
+							//tile.v1 = (float*)p1;
+							//tile.v2 = (float*)p2;
+							//fill_triangle(local_bounding, *p0, *p1, *p2, tile);
 						}
 					}
 					++beg;
@@ -400,7 +392,7 @@ namespace wyc
 		unsigned surfw, surfh;
 		m_rt->get_size(surfw, surfh);
 		// generate fragement processors
-		constexpr int TILE_W = 256, TILE_H = 256;
+		constexpr int TILE_W = 32, TILE_H = 32;
 		constexpr int HALF_TILE_W = TILE_W >> 1, HALF_TILE_H = TILE_H >> 1;
 		int tile_x = (surfw + TILE_W - 1) / TILE_W, tile_y = (surfh + TILE_H - 1) / TILE_H;
 		int margin_x = surfw & (TILE_W - 1), margin_y = surfh & (TILE_H - 1);
@@ -428,13 +420,18 @@ namespace wyc
 		int tile_per_core = tiles.size() / NUM_FRAGMENT_CORES;
 		int tile_beg = 0, tile_end = tile_per_core + tiles.size() % NUM_FRAGMENT_CORES;
 		std::vector<std::future<void>> consumers;
+		constexpr int COLOR_COUNT = 6;
+		const Imath::C3f colors[COLOR_COUNT] = {
+			{ 1, 0, 0 },{ 0, 1, 0 },{ 0, 0, 1 },
+			{ 1, 1, 0 },{ 1, 0, 1 },{ 0, 1, 1 },
+		};
+		TIMER_BEG(2)
 		for (auto c = 0; c < NUM_FRAGMENT_CORES; ++c) {
-			Imath::C4f color = { 0, 1, 0, 1 };
-			consumers.push_back(std::async(std::launch::async, [this, &tiles, tile_beg, tile_end, color] {
+			consumers.push_back(std::async(std::launch::async, [this, &tiles, tile_beg, tile_end, &colors, COLOR_COUNT] {
 				for (auto i = tile_beg; i < tile_end; ++i)
 				{
 					auto &tile = tiles[i];
-					tile.clear(color);
+					tile.clear(colors[i % COLOR_COUNT]);
 				}
 			}));
 			tile_beg = tile_end;
@@ -445,6 +442,7 @@ namespace wyc
 		{
 			h.get();
 		}
+		TIMER_END
 	}
 
 	void CSpwPipeline::set_viewport(const Imath::Box2i & view)

@@ -14,17 +14,16 @@ namespace wyc
 	void CSpwMetric::time_beg(unsigned tid)
 	{
 		auto now = std::chrono::steady_clock::now();
-		m_timers.push_back(now);
-		m_cur_timer_tid = tid;
+		m_timers.push_back({ tid, now });
 	}
 
 	void CSpwMetric::time_end()
 	{
 		auto end = std::chrono::steady_clock::now();
-		auto beg = m_timers.back();
+		auto &t = m_timers.back();
+		auto dt = std::chrono::duration<float, std::milli>(end - t.second).count();
+		time_records.push_back({ t.first, dt});
 		m_timers.pop_back();
-		auto dt = std::chrono::duration<float, std::milli>(end - beg).count();
-		time_records.push_back({ m_cur_timer_tid, dt});
 	}
 
 	void CSpwMetric::report()
