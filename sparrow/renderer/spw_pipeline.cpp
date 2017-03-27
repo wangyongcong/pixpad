@@ -68,7 +68,6 @@ namespace wyc
 			};
 		}
 
-		// todo: work parallel
 		RasterTask task;
 		task.material = material;
 		task.index_stream = ib.data();
@@ -102,7 +101,7 @@ namespace wyc
 		process(task);
 	}
 
-	void CSpwPipeline::feed_async(const CMesh * mesh, const CMaterial * material)
+	void CSpwPipeline::process_async(const CMesh * mesh, const CMaterial * material)
 	{
 		assert(mesh && material);
 		const CVertexBuffer &vb = mesh->vertex_buffer();
@@ -117,11 +116,11 @@ namespace wyc
 		if (!check_material(attrib_def))
 			return;
 
-		constexpr unsigned NUM_CORES = 2;
+		constexpr unsigned NUM_VERTEX_CORES = 2;
 		constexpr unsigned NUM_FRAGMENT_CORES = 2;
 		unsigned triangle_count = ib.size() / 3;
-		unsigned index_per_core = (triangle_count / NUM_CORES) * 3;
-		unsigned beg = 0, end = index_per_core + (triangle_count % NUM_CORES) * 3;
+		unsigned index_per_core = (triangle_count / NUM_VERTEX_CORES) * 3;
+		unsigned beg = 0, end = index_per_core + (triangle_count % NUM_VERTEX_CORES) * 3;
 
 		std::vector<const float*> attribs;
 		for (unsigned i = 0; i < attrib_def.in_count; ++i)
@@ -227,10 +226,46 @@ namespace wyc
 		}
 
 		// generate fragement processors
+		constexpr int TILE_W = 256, TILE_H = 256;
+		constexpr int HALF_TILE_W = TILE_W >> 1, HALF_TILE_H = TILE_H >> 1;
+		int tile_x = (surfw + TILE_W - 1) / TILE_W, tile_y = (surfh + TILE_H - 1) / TILE_H;
+		int margin_x = surfw & (TILE_W - 1), margin_y = surfh & (TILE_H - 1);
+		struct Tile {
+			Imath::Box2i bounding;
+			Imath::V2i center;
+			Tile(Imath::Box2i &b, Imath::V2i &c)
+				: bounding(b)
+				, center(c)
+			{}
+		};
+		std::vector<Tile> tiles;
+		for (auto i = 0; i < tile_y; ++i) {
+			for (auto j = 0; j < tile_x; ++j)
+			{
+				Imath::Box2i bounding = { {-HALF_TILE_W, -HALF_TILE_H}, {HALF_TILE_W, HALF_TILE_H} };
+				Imath::V2i center = { HALF_TILE_W + j * TILE_W, HALF_TILE_H + i * TILE_H };
+				tiles.emplace_back(bounding, center);
+			}
+			// last column
+			if (margin_x > 0) 
+			{
+				tiles.back().bounding.max.x -= margin_x;
+			}
+		}
+		// last row
+		if (margin_y > 0) {
+			for (auto i = tiles.size() - tile_x, end = tiles.size(); i < end; ++i)
+			{
+				tiles[i].bounding.max.y -= margin_y;
+			}
+		}
+		int tile_per_core = tiles.size() / NUM_FRAGMENT_CORES;
+		int tile_beg = 0, tile_end = tile_per_core + tiles.size() % NUM_FRAGMENT_CORES;
 		std::vector<std::future<void>> consumers;
 		for (auto i = 0; i < NUM_FRAGMENT_CORES; ++i) {
 			auto cursor = readers[i];
-			consumers.push_back(std::async(std::launch::async, [this, cursor, &out_buff] {
+			consumers.push_back(std::async(std::launch::async, [this, cursor, &out_buff, out_stride, &tiles, tile_beg, tile_end] {
+				Imath::Box2i bounding;
 				auto beg = cursor->begin();
 				auto end = cursor->end();
 				while (1) {
@@ -240,13 +275,23 @@ namespace wyc
 							cursor->publish(end - 1);
 						end = cursor->wait_for(end);
 					}
-					auto &v = out_buff.at(beg).vec;
+					auto v = out_buff.at(beg).vec.data();
 					if (std::isnan(v[0]))
-						break;
-					// process fragments
+						break; // EOF
+					Vec4f *p0 = (Vec4f*)v, *p1 = (Vec4f*)(v + out_stride), *p2 = (Vec4f*)(v + out_stride * 2);
+					Imath::bounding(bounding, p0, p1, p2);
+					for (auto i = tile_beg; i < tile_end; ++i) {
+						auto &tile = tiles[i];
+						Imath::intersection(bounding, tile.bounding);
+						if (!bounding.isEmpty()) {
+							// fill triangles
+						}
+					}
 					++beg;
 				}
 			}));
+			tile_beg = tile_end;
+			tile_end += tile_per_core;
 		}
 
 		// wait for producers
