@@ -42,6 +42,10 @@ namespace wyc
 
 	void CSpwPipeline::feed(const CMesh *mesh, const CMaterial *material)
 	{
+		//process_async(mesh, material);
+		clear_async();
+		return;
+
 		assert(mesh && material);
 		const CVertexBuffer &vb = mesh->vertex_buffer();
 		const CIndexBuffer &ib = mesh->index_buffer();
@@ -101,6 +105,75 @@ namespace wyc
 		process(task);
 	}
 
+	class CTile {
+	public:
+		CSpwRenderTarget *rt;
+		const CMaterial *mtl;
+		Imath::Box2i bounding;
+		Imath::V2i center;
+		const float *v0, *v1, *v2;
+		std::vector<float> frag_cache;
+		CTile(CSpwRenderTarget *prt, Imath::Box2i &b, Imath::V2i &c, const CMaterial *pmtl, size_t out_stride)
+			: rt(prt)
+			, mtl(pmtl)
+			, bounding(b)
+			, center(c)
+			, v0(nullptr)
+			, v1(nullptr)
+			, v2(nullptr)
+		{
+			if (out_stride > 4) {
+				size_t cache_frag = out_stride - 4;
+				frag_cache.resize(cache_frag, 0);
+			}
+		}
+		// plot mode
+		void operator() (int x, int y) {
+
+		}
+		// fill mode
+		void operator() (int x, int y, float z, float w1, float w2, float w3) {
+			// todo: z-test first
+
+			// interpolate vertex attributes
+			float *fragment = frag_cache.data();
+			const float *i0 = v0, *i1 = v1, *i2 = v2;
+			for (float *out = fragment, *end = fragment + frag_cache.size(); out != end; ++out, ++i0, ++i1, ++i2)
+			{
+				*out = *i0 * w1 + *i1 * w2 + *i2 * w3;
+			}
+			// write render target
+			Imath::C4f frag_color;
+			if (!mtl->fragment_shader(fragment, frag_color))
+				return;
+			// write fragment buffer
+			frag_color.r *= frag_color.a;
+			frag_color.g *= frag_color.a;
+			frag_color.b *= frag_color.a;
+			unsigned v = Imath::rgb2packed(frag_color);
+			x += center.x;
+			y = center.y - y;
+			auto &surf = rt->get_color_buffer();
+			//unsigned v2 = *surf.get<unsigned>(x, y);
+			//assert(v2 == 0xff000000);
+			surf.set(x, y, v);
+		}
+
+		void clear(const Imath::C4f &c)
+		{
+			Imath::Box2i b = bounding;
+			b.min += center;
+			b.max += center;
+			int h = rt->height();
+			auto &surf = rt->get_color_buffer();
+			for (auto y = b.min.y; y < b.max.y; ++y) {
+				for (auto x = b.min.x; x < b.max.x; ++x) {
+					surf.set(x, h - y - 1, c);
+				}
+			}
+		}
+	};
+
 	void CSpwPipeline::process_async(const CMesh * mesh, const CMaterial * material)
 	{
 		assert(mesh && material);
@@ -116,13 +189,13 @@ namespace wyc
 		if (!check_material(attrib_def))
 			return;
 
-		constexpr unsigned NUM_VERTEX_CORES = 2;
-		constexpr unsigned NUM_FRAGMENT_CORES = 2;
+		constexpr unsigned NUM_VERTEX_CORES = 4;
+		constexpr unsigned NUM_FRAGMENT_CORES = 4;
 		unsigned triangle_count = ib.size() / 3;
 		unsigned index_per_core = (triangle_count / NUM_VERTEX_CORES) * 3;
 		unsigned beg = 0, end = index_per_core + (triangle_count % NUM_VERTEX_CORES) * 3;
 
-		std::vector<const float*> attribs;
+		std::vector<const float*> attribs(attrib_def.in_count, nullptr);
 		for (unsigned i = 0; i < attrib_def.in_count; ++i)
 		{
 			auto &slot = attrib_def.in_attribs[i];
@@ -230,21 +303,13 @@ namespace wyc
 		constexpr int HALF_TILE_W = TILE_W >> 1, HALF_TILE_H = TILE_H >> 1;
 		int tile_x = (surfw + TILE_W - 1) / TILE_W, tile_y = (surfh + TILE_H - 1) / TILE_H;
 		int margin_x = surfw & (TILE_W - 1), margin_y = surfh & (TILE_H - 1);
-		struct Tile {
-			Imath::Box2i bounding;
-			Imath::V2i center;
-			Tile(Imath::Box2i &b, Imath::V2i &c)
-				: bounding(b)
-				, center(c)
-			{}
-		};
-		std::vector<Tile> tiles;
+		std::vector<CTile> tiles;
 		for (auto i = 0; i < tile_y; ++i) {
 			for (auto j = 0; j < tile_x; ++j)
 			{
 				Imath::Box2i bounding = { {-HALF_TILE_W, -HALF_TILE_H}, {HALF_TILE_W, HALF_TILE_H} };
 				Imath::V2i center = { HALF_TILE_W + j * TILE_W, HALF_TILE_H + i * TILE_H };
-				tiles.emplace_back(bounding, center);
+				tiles.emplace_back(m_rt.get(), bounding, center, material, out_stride);
 			}
 			// last column
 			if (margin_x > 0) 
@@ -265,7 +330,7 @@ namespace wyc
 		for (auto i = 0; i < NUM_FRAGMENT_CORES; ++i) {
 			auto cursor = readers[i];
 			consumers.push_back(std::async(std::launch::async, [this, cursor, &out_buff, out_stride, &tiles, tile_beg, tile_end] {
-				Imath::Box2i bounding;
+				Imath::Box2i vertex_bounding;
 				auto beg = cursor->begin();
 				auto end = cursor->end();
 				while (1) {
@@ -279,12 +344,29 @@ namespace wyc
 					if (std::isnan(v[0]))
 						break; // EOF
 					Vec4f *p0 = (Vec4f*)v, *p1 = (Vec4f*)(v + out_stride), *p2 = (Vec4f*)(v + out_stride * 2);
-					Imath::bounding(bounding, p0, p1, p2);
+					Vec4f origin_p0 = *p0, origin_p1 = *p1, origin_p2 = *p2;
+					Imath::bounding(vertex_bounding, p0, p1, p2);
 					for (auto i = tile_beg; i < tile_end; ++i) {
 						auto &tile = tiles[i];
-						Imath::intersection(bounding, tile.bounding);
-						if (!bounding.isEmpty()) {
+						Imath::Box2i local_bounding = vertex_bounding;
+						local_bounding.min -= tile.center;
+						local_bounding.max -= tile.center;
+						Imath::intersection(local_bounding, tile.bounding);
+						if (!local_bounding.isEmpty()) {
 							// fill triangles
+							p0->x -= tile.center.x;
+							p0->y -= tile.center.y;
+							p1->x -= tile.center.x;
+							p1->y -= tile.center.y;
+							p2->x -= tile.center.x;
+							p2->y -= tile.center.y;
+							tile.v0 = (float*)p0;
+							tile.v1 = (float*)p1;
+							tile.v2 = (float*)p2;
+							fill_triangle(local_bounding, *p0, *p1, *p2, tile);
+							*p0 = origin_p0;
+							*p1 = origin_p1;
+							*p2 = origin_p2;
 						}
 					}
 					++beg;
@@ -305,6 +387,59 @@ namespace wyc
 		out_buff.at(pos).vec.assign(1, NAN);
 		sw->publish_after(pos, pos - 1);
 
+		// wait for consumers
+		for (auto &h : consumers)
+		{
+			h.get();
+		}
+	}
+
+	void CSpwPipeline::clear_async()
+	{
+		constexpr int NUM_FRAGMENT_CORES = 4;
+		unsigned surfw, surfh;
+		m_rt->get_size(surfw, surfh);
+		// generate fragement processors
+		constexpr int TILE_W = 256, TILE_H = 256;
+		constexpr int HALF_TILE_W = TILE_W >> 1, HALF_TILE_H = TILE_H >> 1;
+		int tile_x = (surfw + TILE_W - 1) / TILE_W, tile_y = (surfh + TILE_H - 1) / TILE_H;
+		int margin_x = surfw & (TILE_W - 1), margin_y = surfh & (TILE_H - 1);
+		std::vector<CTile> tiles;
+		for (auto i = 0; i < tile_y; ++i) {
+			for (auto j = 0; j < tile_x; ++j)
+			{
+				Imath::Box2i bounding = { { -HALF_TILE_W, -HALF_TILE_H },{ HALF_TILE_W, HALF_TILE_H } };
+				Imath::V2i center = { HALF_TILE_W + j * TILE_W, HALF_TILE_H + i * TILE_H };
+				tiles.emplace_back(m_rt.get(), bounding, center, nullptr, 0);
+			}
+			// last column
+			if (margin_x > 0)
+			{
+				tiles.back().bounding.max.x -= TILE_W - margin_x;
+			}
+		}
+		// last row
+		if (margin_y > 0) {
+			for (auto i = tiles.size() - tile_x, end = tiles.size(); i < end; ++i)
+			{
+				tiles[i].bounding.max.y -= TILE_H - margin_y;
+			}
+		}
+		int tile_per_core = tiles.size() / NUM_FRAGMENT_CORES;
+		int tile_beg = 0, tile_end = tile_per_core + tiles.size() % NUM_FRAGMENT_CORES;
+		std::vector<std::future<void>> consumers;
+		for (auto c = 0; c < NUM_FRAGMENT_CORES; ++c) {
+			Imath::C4f color = { 0, 1, 0, 1 };
+			consumers.push_back(std::async(std::launch::async, [this, &tiles, tile_beg, tile_end, color] {
+				for (auto i = tile_beg; i < tile_end; ++i)
+				{
+					auto &tile = tiles[i];
+					tile.clear(color);
+				}
+			}));
+			tile_beg = tile_end;
+			tile_end += tile_per_core;
+		}
 		// wait for consumers
 		for (auto &h : consumers)
 		{

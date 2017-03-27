@@ -51,11 +51,13 @@ namespace wyc
 		};
 		bool check_material(const AttribDefine &attrib_def) const;
 		virtual void process(RasterTask &task) const;
-		void process_async(const CMesh *mesh, const CMaterial *material);
 		void viewport_transform(float* vert_pos, size_t size, size_t stride) const;
 		virtual void draw_triangles(float *vertices, size_t count, RasterTask &task) const;
 		//void viewport_transform(Imath::V4f* vertex_pos, size_t size) const;
 		//void draw_triangles(Imath::V4f* vertex_pos, const float *vertices, size_t count, RasterTask &task) const;
+
+		void process_async(const CMesh *mesh, const CMaterial *material);
+		void clear_async();
 
 		unsigned m_num_core;
 		POLYGON_WINDING m_clock_wise;

@@ -39,7 +39,8 @@ public:
 		render_target->create(img_w, img_h, wyc::SPR_COLOR_R8G8B8A8);
 		auto renderer = std::make_shared<wyc::CSpwRenderer>();
 		renderer->set_render_target(render_target);
-		auto pipeline = std::make_shared<wyc::CSpwPipelineWireFrame>();
+		//auto pipeline = std::make_shared<wyc::CSpwPipelineWireFrame>();
+		auto pipeline = std::make_shared<wyc::CSpwPipeline>();
 		renderer->set_pipeline(pipeline);
 		// draw
 		auto clr = renderer->new_command<wyc::cmd_clear>();

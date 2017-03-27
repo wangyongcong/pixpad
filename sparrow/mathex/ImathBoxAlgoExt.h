@@ -46,4 +46,14 @@ void intersection(Box<T> &left, const Box<T> &other)
 	left.max.y = std::min(left.max.y, other.max.y);
 }
 
+template <class T>
+void intersection(Box<T> &ret, const Box<T> &left, const Box<T> &other)
+{
+	ret.min.x = std::max(left.min.x, other.min.x);
+	ret.min.y = std::max(left.min.y, other.min.y);
+	ret.max.x = std::min(left.max.x, other.max.x);
+	ret.max.y = std::min(left.max.y, other.max.y);
+}
+
+
 IMATH_INTERNAL_NAMESPACE_HEADER_EXIT
