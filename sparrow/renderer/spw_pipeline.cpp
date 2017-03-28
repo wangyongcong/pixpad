@@ -42,9 +42,9 @@ namespace wyc
 
 	void CSpwPipeline::feed(const CMesh *mesh, const CMaterial *material)
 	{
-		//process_async(mesh, material);
+		process_async(mesh, material);
 		//clear_async();
-		//return;
+		return;
 
 		assert(mesh && material);
 		const CVertexBuffer &vb = mesh->vertex_buffer();
@@ -273,7 +273,7 @@ namespace wyc
 								// backface culling
 								Imath::V2f v10(p0->x - p1->x, p0->y - p1->y);
 								Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
-								if (true || v10.cross(v12) * m_clock_wise > 0) {
+								if (v10.cross(v12) * m_clock_wise > 0) {
 									auto pos = sw->claim(1);
 									auto &e = out_buff.at(pos);
 									auto p = reinterpret_cast<const float*>(p0);
@@ -293,7 +293,8 @@ namespace wyc
 						vcnt = 0;
 						vertex_out = vert_cache0;
 					}
-				}
+				} // end of for-loop
+				delete[] vert_cache0;
 			}));
 			beg = end;
 			end += index_per_core;

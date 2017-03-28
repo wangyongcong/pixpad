@@ -160,7 +160,7 @@ namespace wyc
 
 	float* clip_polygon_stream(float *vertex_in, float *vertex_out, size_t &vertex_count, size_t stride)
 	{
-		// clipped by W=0
+		// TODO: do not copy vertex attribute between in/out cache, instead copy index
 		constexpr float w_epsilon = 0.0001f;
 		float *prev_vert = vertex_in + stride * (vertex_count - 1);
 		float *cur_vert = vertex_in;
@@ -169,6 +169,7 @@ namespace wyc
 		// pos = {x, y, z, w}
 		float *pos = prev_vert/* + pos_offset*/;
 		float pdot, dot;
+		// clipped by W=0
 		pdot = pos[3] - w_epsilon;
 		vertex_count = 0;
 		for (; cur_vert < end; cur_vert += stride)
