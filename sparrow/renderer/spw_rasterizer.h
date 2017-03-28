@@ -176,6 +176,8 @@ namespace wyc
 		int row_w0 = int(hp_w0 >> 8) + bias_v12;
 		int row_w1 = int(hp_w1 >> 8) + bias_v20;
 		int row_w2 = int(hp_w2 >> 8) + bias_v01;
+
+		// .8 sub pixel part which is constant during iteration
 		float fw0 = float(hp_w0 & 0xFF) / 255;
 		float fw1 = float(hp_w1 & 0xFF) / 255;
 		float fw2 = float(hp_w2 & 0xFF) / 255;

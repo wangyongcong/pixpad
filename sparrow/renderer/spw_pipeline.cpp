@@ -42,7 +42,7 @@ namespace wyc
 
 	void CSpwPipeline::feed(const CMesh *mesh, const CMaterial *material)
 	{
-		process_async(mesh, material);
+		//process_async(mesh, material);
 		//clear_async();
 		//return;
 
@@ -260,7 +260,7 @@ namespace wyc
 					material->vertex_shader(vertex_in, vertex_out);
 					vertex_out += out_stride;
 					vcnt += 1;
-					if (vcnt == 2) {
+					if (vcnt == 3) {
 						size_t clip_count = 3;
 						float *clip_result = clip_polygon_stream(vert_cache0, vert_cache1, clip_count, out_stride);
 						if (clip_count >= 3)
@@ -273,7 +273,7 @@ namespace wyc
 								// backface culling
 								Imath::V2f v10(p0->x - p1->x, p0->y - p1->y);
 								Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
-								if (v10.cross(v12) * m_clock_wise > 0) {
+								if (true || v10.cross(v12) * m_clock_wise > 0) {
 									auto pos = sw->claim(1);
 									auto &e = out_buff.at(pos);
 									auto p = reinterpret_cast<const float*>(p0);
@@ -334,6 +334,10 @@ namespace wyc
 				Imath::Box2i vertex_bounding;
 				auto beg = cursor->begin();
 				auto end = cursor->end();
+				std::vector<float> vec0, vec1, vec2;
+				vec0.reserve(out_stride);
+				vec1.reserve(out_stride);
+				vec2.reserve(out_stride);
 				while (1) {
 					if (beg == end)
 					{
@@ -344,6 +348,11 @@ namespace wyc
 					const float* v = out_buff.at(beg).vec.data();
 					if (std::isnan(v[0]))
 						break; // EOF
+					// input stream is accessed by multiple fragment processors, must be read only
+					vec0.assign(v, v + out_stride);
+					vec1.assign(v + out_stride, v + out_stride * 2);
+					vec2.assign(v + out_stride * 2, v + out_stride * 3);
+					Vec4f *v0 = (Vec4f*)vec0.data(), *v1 = (Vec4f*)vec1.data(), *v2 = (Vec4f*)vec2.data();
 					const Vec4f *p0 = (Vec4f*)v, *p1 = (Vec4f*)(v + out_stride), *p2 = (Vec4f*)(v + out_stride * 2);
 					Imath::bounding(vertex_bounding, p0, p1, p2);
 					for (auto i = tile_beg; i < tile_end; ++i) {
@@ -353,12 +362,18 @@ namespace wyc
 						local_bounding.max -= tile.center;
 						Imath::intersection(local_bounding, tile.bounding);
 						if (!local_bounding.isEmpty()) {
-							tile.clear({ 1, 1, 0 });
+							//tile.clear({ 1, 1, 0 });
 							// fill triangles
-							//tile.v0 = (float*)p0;
-							//tile.v1 = (float*)p1;
-							//tile.v2 = (float*)p2;
-							//fill_triangle(local_bounding, *p0, *p1, *p2, tile);
+							v0->x = p0->x - tile.center.x;
+							v0->y = p0->y - tile.center.y;
+							v1->x = p1->x - tile.center.x;
+							v1->y = p1->y - tile.center.y;
+							v2->x = p2->x - tile.center.x;
+							v2->y = p2->y - tile.center.y;
+							tile.v0 = (float*)v0;
+							tile.v1 = (float*)v1;
+							tile.v2 = (float*)v2;
+							fill_triangle(local_bounding, *v0, *v1, *v2, tile);
 						}
 					}
 					++beg;
