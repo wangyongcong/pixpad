@@ -42,8 +42,8 @@ namespace wyc
 
 	void CSpwPipeline::feed(const CMesh *mesh, const CMaterial *material)
 	{
-		process_async(mesh, material);
 		//clear_async();
+		process_async(mesh, material);
 		return;
 
 		assert(mesh && material);
@@ -213,6 +213,7 @@ namespace wyc
 
 		struct Event {
 			CACHE_LINE_ALIGN std::vector<float> vec;
+			std::vector<int> indices;
 		};
 
 		disruptor::ring_buffer<Event, 256> out_buff;
@@ -249,6 +250,8 @@ namespace wyc
 				float *vert_cache0 = new float[cache_vert + cache_vert];
 				float *vert_cache1 = vert_cache0 + cache_vert;
 				float *vertex_out = vert_cache0;
+				std::vector<int> indices;
+				indices.reserve(max_count - 3 + 1);
 				int vcnt = 0;
 				for (auto i = beg; i < end; ++i)
 				{
@@ -267,28 +270,37 @@ namespace wyc
 						{
 							viewport_transform(clip_result, clip_count, out_stride);
 							Vec4f *p0 = (Vec4f*)clip_result, *p1 = (Vec4f*)(clip_result + out_stride), *p2 = (Vec4f*)(clip_result + out_stride * 2);
-							//log_debug("triangle: (%f, %f, %f), (%f, %f, %f), (%f, %f, %f)", p0->x, p0->y, p0->z, p1->x, p1->y, p1->z, p2->x, p2->y, p2->z);
 							for (size_t j = 2; j < clip_count; ++j)
 							{
 								// backface culling
 								Imath::V2f v10(p0->x - p1->x, p0->y - p1->y);
 								Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
 								if (v10.cross(v12) * m_clock_wise > 0) {
-									auto pos = sw->claim(1);
-									auto &e = out_buff.at(pos);
-									auto p = reinterpret_cast<const float*>(p0);
-									e.vec.assign(p, p + out_stride);
-									p = reinterpret_cast<const float*>(p1);
-									e.vec.insert(e.vec.end(), p, p + out_stride);
-									p = reinterpret_cast<const float*>(p2);
-									e.vec.insert(e.vec.end(), p, p + out_stride);
-									sw->publish_after(pos, pos - 1);
+									//auto pos = sw->claim(1);
+									//auto &e = out_buff.at(pos);
+									//auto p = reinterpret_cast<const float*>(p0);
+									//e.vec.assign(p, p + out_stride);
+									//p = reinterpret_cast<const float*>(p1);
+									//e.vec.insert(e.vec.end(), p, p + out_stride);
+									//p = reinterpret_cast<const float*>(p2);
+									//e.vec.insert(e.vec.end(), p, p + out_stride);
+									//sw->publish_after(pos, pos - 1);
+									indices.push_back(0);
+									indices.push_back(j - 1);
+									indices.push_back(j);
 								}
 								// next one
 								p1 = p2;
 								p2 = (Vec4f*)(((float*)p2) + out_stride);
 							}
-							//draw_triangles(clip_result, clip_count, task);
+							if (!indices.empty()) {
+								auto pos = sw->claim(1);
+								auto &e = out_buff.at(pos);
+								e.vec.assign(clip_result, clip_result + clip_count * out_stride);
+								e.indices.assign(indices.begin(), indices.end());
+								sw->publish_after(pos, pos - 1);
+								indices.clear();
+							}
 						}
 						vcnt = 0;
 						vertex_out = vert_cache0;
@@ -346,37 +358,47 @@ namespace wyc
 							cursor->publish(end - 1);
 						end = cursor->wait_for(end);
 					}
-					const float* v = out_buff.at(beg).vec.data();
-					if (std::isnan(v[0]))
+					auto &ev = out_buff.at(beg);
+					const float* vec = ev.vec.data();
+					if (std::isnan(vec[0]))
 						break; // EOF
-					// input stream is accessed by multiple fragment processors, must be read only
-					vec0.assign(v, v + out_stride);
-					vec1.assign(v + out_stride, v + out_stride * 2);
-					vec2.assign(v + out_stride * 2, v + out_stride * 3);
-					Vec4f *v0 = (Vec4f*)vec0.data(), *v1 = (Vec4f*)vec1.data(), *v2 = (Vec4f*)vec2.data();
-					const Vec4f *p0 = (Vec4f*)v, *p1 = (Vec4f*)(v + out_stride), *p2 = (Vec4f*)(v + out_stride * 2);
-					Imath::bounding(vertex_bounding, p0, p1, p2);
-					for (auto i = tile_beg; i < tile_end; ++i) {
-						auto &tile = tiles[i];
-						Imath::Box2i local_bounding = vertex_bounding;
-						local_bounding.min -= tile.center;
-						local_bounding.max -= tile.center;
-						Imath::intersection(local_bounding, tile.bounding);
-						if (!local_bounding.isEmpty()) {
-							//tile.clear({ 1, 1, 0 });
-							// fill triangles
-							v0->x = p0->x - tile.center.x;
-							v0->y = p0->y - tile.center.y;
-							v1->x = p1->x - tile.center.x;
-							v1->y = p1->y - tile.center.y;
-							v2->x = p2->x - tile.center.x;
-							v2->y = p2->y - tile.center.y;
-							tile.v0 = (float*)v0;
-							tile.v1 = (float*)v1;
-							tile.v2 = (float*)v2;
-							fill_triangle(local_bounding, *v0, *v1, *v2, tile);
-						}
-					}
+					const int *indices = ev.indices.data();
+					for (size_t idx = 2; idx < ev.indices.size(); idx += 3) {
+						int i1 = ev.indices[idx - 2];
+						int i2 = ev.indices[idx - 1];
+						int i3 = ev.indices[idx];
+						// input stream is accessed by multiple fragment processors, must be read only
+						const float *v = vec + i1 * out_stride;
+						vec0.assign(v, v + out_stride);
+						v = vec + i2 * out_stride;
+						vec1.assign(v, v + out_stride);
+						v = vec + i3 * out_stride;
+						vec2.assign(v, v + out_stride);
+						Vec4f *v0 = (Vec4f*)vec0.data(), *v1 = (Vec4f*)vec1.data(), *v2 = (Vec4f*)vec2.data();
+						const Vec4f *p0 = (Vec4f*)vec, *p1 = (Vec4f*)(vec + out_stride), *p2 = (Vec4f*)(vec + out_stride * 2);
+						Imath::bounding(vertex_bounding, p0, p1, p2);
+						for (auto i = tile_beg; i < tile_end; ++i) {
+							auto &tile = tiles[i];
+							Imath::Box2i local_bounding = vertex_bounding;
+							local_bounding.min -= tile.center;
+							local_bounding.max -= tile.center;
+							Imath::intersection(local_bounding, tile.bounding);
+							if (!local_bounding.isEmpty()) {
+								//tile.clear({ 1, 1, 0 });
+								// fill triangles
+								v0->x = p0->x - tile.center.x;
+								v0->y = p0->y - tile.center.y;
+								v1->x = p1->x - tile.center.x;
+								v1->y = p1->y - tile.center.y;
+								v2->x = p2->x - tile.center.x;
+								v2->y = p2->y - tile.center.y;
+								tile.v0 = (float*)v0;
+								tile.v1 = (float*)v1;
+								tile.v2 = (float*)v2;
+								fill_triangle(local_bounding, *v0, *v1, *v2, tile);
+							} // bounding not empty
+						} // tile loop
+					} // index loop
 					++beg;
 				}
 			}));
