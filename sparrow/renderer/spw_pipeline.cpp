@@ -211,9 +211,10 @@ namespace wyc
 		unsigned vertex_stride = vb.vertex_component();
 		unsigned out_stride = attrib_def.out_stride;
 
-		struct Event {
-			CACHE_LINE_ALIGN std::vector<float> vec;
-			std::vector<int> indices;
+		struct CACHE_LINE_ALIGN Event {
+			std::vector<float> vec;
+			int indices[8];
+			int index_size;
 		};
 
 		constexpr int BUFF_SIZE = 32;
@@ -222,7 +223,7 @@ namespace wyc
 		{
 			auto &e = out_buff.at(i);
 			e.vec.resize(out_stride * 3, 0);
-			//e.indices.reserve(8);
+			e.index_size = 0;
 		}
 		auto sw = std::make_shared<disruptor::shared_write_cursor>(BUFF_SIZE);
 		std::vector<disruptor::read_cursor_ptr> readers(NUM_FRAGMENT_CORES);
@@ -291,7 +292,8 @@ namespace wyc
 								auto &e = out_buff.at(pos);
 								// TODO: maybe swap the pointer, no copy
 								e.vec.assign(clip_result, clip_result + clip_count * out_stride);
-								e.indices.assign(indices.begin(), indices.end());
+								e.index_size = indices.size();
+								memcpy(e.indices, indices.data(), sizeof(int) * indices.size());
 								sw->publish_after(pos, pos - 1);
 								indices.clear();
 							}
@@ -353,8 +355,7 @@ namespace wyc
 					const float* vec = ev.vec.data();
 					if (std::isnan(vec[0]))
 						break; // EOF
-					const int *indices = ev.indices.data();
-					for (size_t idx = 2; idx < ev.indices.size(); idx += 3) {
+					for (auto idx = 2; idx < ev.index_size; idx += 3) {
 						int i1 = ev.indices[idx - 2];
 						int i2 = ev.indices[idx - 1];
 						int i3 = ev.indices[idx];
@@ -365,9 +366,6 @@ namespace wyc
 						const Vec4f *p1 = (Vec4f*)v;
 						v = vec + i3 * out_stride;
 						const Vec4f *p2 = (Vec4f*)v;
-						v0 = *p0;
-						v1 = *p1;
-						v2 = *p2;
 						Imath::bounding(vertex_bounding, p0, p1, p2);
 						for (auto i = tile_beg; i < tile_end; ++i) {
 							auto &tile = tiles[i];
