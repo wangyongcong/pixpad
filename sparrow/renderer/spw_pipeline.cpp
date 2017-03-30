@@ -216,13 +216,15 @@ namespace wyc
 			std::vector<int> indices;
 		};
 
-		disruptor::ring_buffer<Event, 256> out_buff;
+		constexpr int BUFF_SIZE = 32;
+		disruptor::ring_buffer<Event, BUFF_SIZE> out_buff;
 		for (auto i = 0; i < out_buff.size(); ++i)
 		{
 			auto &e = out_buff.at(i);
 			e.vec.resize(out_stride * 3, 0);
+			//e.indices.reserve(8);
 		}
-		auto sw = std::make_shared<disruptor::shared_write_cursor>(256);
+		auto sw = std::make_shared<disruptor::shared_write_cursor>(BUFF_SIZE);
 		std::vector<disruptor::read_cursor_ptr> readers(NUM_FRAGMENT_CORES);
 
 		for (auto i = 0; i < NUM_FRAGMENT_CORES; ++i) {
@@ -276,15 +278,6 @@ namespace wyc
 								Imath::V2f v10(p0->x - p1->x, p0->y - p1->y);
 								Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
 								if (v10.cross(v12) * m_clock_wise > 0) {
-									//auto pos = sw->claim(1);
-									//auto &e = out_buff.at(pos);
-									//auto p = reinterpret_cast<const float*>(p0);
-									//e.vec.assign(p, p + out_stride);
-									//p = reinterpret_cast<const float*>(p1);
-									//e.vec.insert(e.vec.end(), p, p + out_stride);
-									//p = reinterpret_cast<const float*>(p2);
-									//e.vec.insert(e.vec.end(), p, p + out_stride);
-									//sw->publish_after(pos, pos - 1);
 									indices.push_back(0);
 									indices.push_back(j - 1);
 									indices.push_back(j);
@@ -296,6 +289,7 @@ namespace wyc
 							if (!indices.empty()) {
 								auto pos = sw->claim(1);
 								auto &e = out_buff.at(pos);
+								// TODO: maybe swap the pointer, no copy
 								e.vec.assign(clip_result, clip_result + clip_count * out_stride);
 								e.indices.assign(indices.begin(), indices.end());
 								sw->publish_after(pos, pos - 1);
@@ -347,10 +341,7 @@ namespace wyc
 				Imath::Box2i vertex_bounding;
 				auto beg = cursor->begin();
 				auto end = cursor->end();
-				std::vector<float> vec0, vec1, vec2;
-				vec0.reserve(out_stride);
-				vec1.reserve(out_stride);
-				vec2.reserve(out_stride);
+				Imath::V4f v0, v1, v2;
 				while (1) {
 					if (beg == end)
 					{
@@ -369,13 +360,14 @@ namespace wyc
 						int i3 = ev.indices[idx];
 						// input stream is accessed by multiple fragment processors, must be read only
 						const float *v = vec + i1 * out_stride;
-						vec0.assign(v, v + out_stride);
+						const Vec4f *p0 = (Vec4f*)v;
 						v = vec + i2 * out_stride;
-						vec1.assign(v, v + out_stride);
+						const Vec4f *p1 = (Vec4f*)v;
 						v = vec + i3 * out_stride;
-						vec2.assign(v, v + out_stride);
-						Vec4f *v0 = (Vec4f*)vec0.data(), *v1 = (Vec4f*)vec1.data(), *v2 = (Vec4f*)vec2.data();
-						const Vec4f *p0 = (Vec4f*)vec, *p1 = (Vec4f*)(vec + out_stride), *p2 = (Vec4f*)(vec + out_stride * 2);
+						const Vec4f *p2 = (Vec4f*)v;
+						v0 = *p0;
+						v1 = *p1;
+						v2 = *p2;
 						Imath::bounding(vertex_bounding, p0, p1, p2);
 						for (auto i = tile_beg; i < tile_end; ++i) {
 							auto &tile = tiles[i];
@@ -384,18 +376,17 @@ namespace wyc
 							local_bounding.max -= tile.center;
 							Imath::intersection(local_bounding, tile.bounding);
 							if (!local_bounding.isEmpty()) {
-								//tile.clear({ 1, 1, 0 });
 								// fill triangles
-								v0->x = p0->x - tile.center.x;
-								v0->y = p0->y - tile.center.y;
-								v1->x = p1->x - tile.center.x;
-								v1->y = p1->y - tile.center.y;
-								v2->x = p2->x - tile.center.x;
-								v2->y = p2->y - tile.center.y;
-								tile.v0 = (float*)v0;
-								tile.v1 = (float*)v1;
-								tile.v2 = (float*)v2;
-								fill_triangle(local_bounding, *v0, *v1, *v2, tile);
+								v0.x = p0->x - tile.center.x;
+								v0.y = p0->y - tile.center.y;
+								v1.x = p1->x - tile.center.x;
+								v1.y = p1->y - tile.center.y;
+								v2.x = p2->x - tile.center.x;
+								v2.y = p2->y - tile.center.y;
+								tile.v0 = (float*)p0;
+								tile.v1 = (float*)p1;
+								tile.v2 = (float*)p2;
+								fill_triangle(local_bounding, v0, v1, v2, tile);
 							} // bounding not empty
 						} // tile loop
 					} // index loop
