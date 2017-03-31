@@ -1,19 +1,21 @@
 #include "spw_pipeline.h"
 #include <cassert>
 #include <functional>
-#include <OpenEXR/ImathColorAlgo.h>
 #include <future>
 #include "disruptor.h"
 #include "ImathBoxAlgoExt.h"
 #include "vecmath.h"
 #include "spw_rasterizer.h"
+#include "platform_info.h"
 #include "clipping.h"
 #include "metric.h"
 
 namespace wyc
 {
 	CSpwPipeline::CSpwPipeline()
-		: m_num_core(1)
+		: m_is_setup(false)
+		, m_num_vertex_unit(1)
+		, m_num_fragment_unit(1)
 		, m_clock_wise(COUNTER_CLOCK_WISE)
 	{
 	}
@@ -23,12 +25,66 @@ namespace wyc
 		m_rt = nullptr;
 	}
 
-	void CSpwPipeline::setup(std::shared_ptr<CSpwRenderTarget> rt)
+	void CSpwPipeline::setup()
+	{
+		if (m_is_setup)
+			return;
+		m_is_setup = true;
+		auto ncore = std::min<unsigned>(MAX_CORE_NUM, wyc::core_num());
+		if (ncore > 1) {
+			m_num_vertex_unit = ncore >> 1;
+			m_num_fragment_unit = ncore - m_num_vertex_unit;
+		}
+		else {
+			m_num_vertex_unit = 1;
+			m_num_fragment_unit = 1;
+		}
+		m_prim_writer = std::make_shared<disruptor::shared_write_cursor>(PRIMITIVE_QUEUE_SIZE);
+		for (int i = 0; i < m_num_fragment_unit; ++i) {
+			auto ptr = std::make_shared<disruptor::read_cursor>();
+			m_prim_readers.push_back(ptr);
+			ptr->follows(m_prim_writer);
+			m_prim_writer->follows(ptr);
+		}
+	}
+
+	void CSpwPipeline::set_render_target(std::shared_ptr<CSpwRenderTarget> rt)
 	{
 		m_rt = rt;
 		unsigned surfw, surfh;
 		rt->get_size(surfw, surfh);
-		set_viewport({ {0, 0}, {int(surfw), int(surfh)} });
+		set_viewport({ { 0, 0 },{ int(surfw), int(surfh) } });
+
+		// split frame buffer into tiles
+		static_assert((SPW_TILE_W & (SPW_TILE_W - 1)) == 0, "tile width should be pow of 2");
+		static_assert((SPW_TILE_H & (SPW_TILE_H - 1)) == 0, "tile height should be pow of 2");
+		constexpr int HALF_TILE_W = SPW_TILE_W >> 1, HALF_TILE_H = SPW_TILE_H >> 1;
+		constexpr int MASK_TILW_W = SPW_TILE_W - 1, MASK_TILE_H = SPW_TILE_H - 1;
+		int tile_x = (surfw + MASK_TILW_W) & ~MASK_TILW_W, tile_y = (surfh + MASK_TILE_H) & ~MASK_TILE_H;
+		int margin_x = surfw & MASK_TILW_W, margin_y = surfh & MASK_TILE_H;
+		Imath::Box2i tile_bounding = { { -HALF_TILE_W, -HALF_TILE_H },{ HALF_TILE_W, HALF_TILE_H } };
+		for (auto i = 0; i < tile_y; ++i) {
+			for (auto j = 0; j < tile_x; ++j)
+			{
+				Imath::V2i center = { HALF_TILE_W + j * SPW_TILE_W, HALF_TILE_H + i * SPW_TILE_H };
+				m_tiles.emplace_back(m_rt.get(), tile_bounding, center);
+			}
+			// adjust last column tiles' bounding
+			if (margin_x > 0)
+			{
+				m_tiles.back().bounding.max.x -= SPW_TILE_W - margin_x;
+			}
+		}
+		// adjust last row tiles' bounding
+		if (margin_y > 0) {
+			for (auto i = m_tiles.size() - tile_x, end = m_tiles.size(); i < end; ++i)
+			{
+				m_tiles[i].bounding.max.y -= SPW_TILE_H - margin_y;
+			}
+		}
+		int tile_per_core = m_tiles.size() / m_num_fragment_unit;
+		int tile_beg = 0, tile_end = tile_per_core + m_tiles.size() % m_num_fragment_unit;
+
 	}
 
 	bool CSpwPipeline::check_material(const AttribDefine & attrib_def) const
@@ -104,79 +160,6 @@ namespace wyc
 
 		process(task);
 	}
-
-	class CTile {
-	public:
-		CSpwRenderTarget *rt;
-		const CMaterial *mtl;
-		Imath::Box2i bounding;
-		Imath::V2i center;
-		const float *v0, *v1, *v2;
-		std::vector<float> frag_cache;
-		CTile(CSpwRenderTarget *prt, Imath::Box2i &b, Imath::V2i &c, const CMaterial *pmtl, size_t out_stride)
-			: rt(prt)
-			, mtl(pmtl)
-			, bounding(b)
-			, center(c)
-			, v0(nullptr)
-			, v1(nullptr)
-			, v2(nullptr)
-		{
-			if (out_stride > 4) {
-				size_t cache_frag = out_stride - 4;
-				frag_cache.resize(cache_frag, 0);
-			}
-		}
-		// plot mode
-		void operator() (int x, int y) {
-
-		}
-		// fill mode
-		void operator() (int x, int y, float z, float w1, float w2, float w3) {
-			// todo: z-test first
-
-			// interpolate vertex attributes
-			float *fragment = frag_cache.data();
-			const float *i0 = v0, *i1 = v1, *i2 = v2;
-			for (float *out = fragment, *end = fragment + frag_cache.size(); out != end; ++out, ++i0, ++i1, ++i2)
-			{
-				*out = *i0 * w1 + *i1 * w2 + *i2 * w3;
-			}
-			// write render target
-			Imath::C4f frag_color;
-			if (!mtl->fragment_shader(fragment, frag_color))
-				return;
-			// write fragment buffer
-			frag_color.r *= frag_color.a;
-			frag_color.g *= frag_color.a;
-			frag_color.b *= frag_color.a;
-			unsigned v = Imath::rgb2packed(frag_color);
-			x += center.x;
-			y = rt->height() - (y + center.y) - 1;
-			auto &surf = rt->get_color_buffer();
-			//unsigned v2 = *surf.get<unsigned>(x, y);
-			//assert(v2 == 0xff000000);
-			surf.set(x, y, v);
-		}
-
-		void clear(const Imath::C3f &c)
-		{
-			Imath::Box2i b = bounding;
-			b.min += center;
-			b.max += center;
-			int h = rt->height();
-			unsigned v = Imath::rgb2packed(c);
-			unsigned bg = Imath::rgb2packed(Color3f{ 0, 0, 0});
-			auto &surf = rt->get_color_buffer();
-			for (auto y = b.min.y; y < b.max.y; ++y) {
-				for (auto x = b.min.x; x < b.max.x; ++x) {
-					auto ty = h - y - 1;
-					//assert(bg == *surf.get<unsigned>(x, ty));
-					surf.set(x, ty, v);
-				}
-			}
-		}
-	};
 
 	void CSpwPipeline::process_async(const CMesh * mesh, const CMaterial * material)
 	{

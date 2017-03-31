@@ -7,34 +7,28 @@ namespace wyc
 	struct PlatformInfo
 	{
 		PlatformInfo();
-		std::string m_architecture;
-		size_t m_num_processor;
-		size_t m_num_core;
-		size_t m_page_size;
-		size_t m_cacheline_size[3];
+		std::string architecture;
+		unsigned num_processor;
+		unsigned num_core;
+		unsigned page_size;
+		unsigned cacheline_size[3];
 	};
 
 	extern PlatformInfo g_platform_info;
 
-	inline size_t page_size()
+	inline unsigned page_size()
 	{
-		return g_platform_info.m_page_size;
+		return g_platform_info.page_size;
 	}
 
-	inline size_t cache_line_size()
+	inline unsigned cache_line_size()
 	{
-		return g_platform_info.m_cacheline_size[0];
+		return g_platform_info.cacheline_size[0];
 	}
 
-	inline size_t core_num()
+	inline unsigned core_num()
 	{
-		return g_platform_info.m_num_core;
+		return g_platform_info.num_core;
 	}
-
-#define CACHE_LINE_SIZE 64
-
-#define CACHE_LINE_ALIGN alignas(CACHE_LINE_SIZE)
-
-#define PAGE_SIZE 4096
 
 } // namespace wyc

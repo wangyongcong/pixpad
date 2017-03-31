@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <iostream>
 #include "platform_info.h"
+#include "spw_config.h"
 
 namespace disruptor
 {

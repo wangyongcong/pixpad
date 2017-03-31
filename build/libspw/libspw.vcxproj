@@ -103,6 +103,7 @@
     <ClInclude Include="..\..\sparrow\renderer\render_command.h" />
     <ClInclude Include="..\..\sparrow\renderer\render_target.h" />
     <ClInclude Include="..\..\sparrow\renderer\spw_command.h" />
+    <ClInclude Include="..\..\sparrow\renderer\spw_config.h" />
     <ClInclude Include="..\..\sparrow\renderer\spw_pipeline.h" />
     <ClInclude Include="..\..\sparrow\renderer\spw_pipeline_wireframe.h" />
     <ClInclude Include="..\..\sparrow\renderer\spw_rasterizer.h" />
