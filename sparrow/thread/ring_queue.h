@@ -3,7 +3,7 @@
 #include <cassert>
 #include <atomic>
 #include <vector>
-
+#include "spw_config.h"
 #include "platform_info.h"
 
 #ifdef DISALLOW_COPY_MOVE_AND_ASSIGN

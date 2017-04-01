@@ -50,7 +50,6 @@ namespace wyc
 		if (!mesh)
 			return;
 		auto pipeline = renderer->get_pipeline();
-		pipeline->setup(renderer->m_rt);
 		pipeline->feed(mesh, cmd->material);
 	}
 

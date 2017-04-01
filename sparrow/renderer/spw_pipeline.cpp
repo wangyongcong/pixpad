@@ -169,19 +169,11 @@ namespace wyc
 		// setup render target
 		unsigned surfw, surfh;
 		m_rt->get_size(surfw, surfh);
-		int halfw = surfw >> 1, halfh = surfh >> 1;
 
 		// bind stream
 		auto &attrib_def = material->get_attrib_define();
 		if (!check_material(attrib_def))
 			return;
-
-		constexpr unsigned NUM_VERTEX_CORES = 4;
-		constexpr unsigned NUM_FRAGMENT_CORES = 4;
-		unsigned triangle_count = ib.size() / 3;
-		unsigned index_per_core = (triangle_count / NUM_VERTEX_CORES) * 3;
-		unsigned beg = 0, end = index_per_core + (triangle_count % NUM_VERTEX_CORES) * 3;
-
 		std::vector<const float*> attribs(attrib_def.in_count, nullptr);
 		for (unsigned i = 0; i < attrib_def.in_count; ++i)
 		{
@@ -192,46 +184,56 @@ namespace wyc
 			attribs[i] = (const float*)vb.attrib_stream(slot.usage);
 		}
 		unsigned vertex_stride = vb.vertex_component();
-		unsigned out_stride = attrib_def.out_stride;
+		unsigned output_stride = attrib_def.out_stride;
 
-		struct CACHE_LINE_ALIGN Event {
-			std::vector<float> vec;
-			int indices[8];
-			int index_size;
-		};
+		//constexpr unsigned NUM_VERTEX_CORES = 4;
+		//constexpr unsigned NUM_FRAGMENT_CORES = 4;
+		//unsigned triangle_count = ib.size() / 3;
+		//unsigned index_per_core = (triangle_count / NUM_VERTEX_CORES) * 3;
+		//unsigned beg = 0, end = index_per_core + (triangle_count % NUM_VERTEX_CORES) * 3;
 
-		constexpr int BUFF_SIZE = 32;
-		disruptor::ring_buffer<Event, BUFF_SIZE> out_buff;
-		for (auto i = 0; i < out_buff.size(); ++i)
-		{
-			auto &e = out_buff.at(i);
-			e.vec.resize(out_stride * 3, 0);
-			e.index_size = 0;
-		}
-		auto sw = std::make_shared<disruptor::shared_write_cursor>(BUFF_SIZE);
-		std::vector<disruptor::read_cursor_ptr> readers(NUM_FRAGMENT_CORES);
+		//struct CACHE_LINE_ALIGN Event {
+		//	std::vector<float> vec;
+		//	int indices[8];
+		//	int index_size;
+		//};
 
-		for (auto i = 0; i < NUM_FRAGMENT_CORES; ++i) {
-			auto r = std::make_shared<disruptor::read_cursor>();
-			r->follows(sw);
-			sw->follows(r);
-			readers[i] = r;
-		}
+		//constexpr int BUFF_SIZE = 32;
+		//disruptor::ring_buffer<Event, BUFF_SIZE> out_buff;
+		//for (auto i = 0; i < out_buff.size(); ++i)
+		//{
+		//	auto &e = out_buff.at(i);
+		//	e.vec.resize(output_stride * 3, 0);
+		//	e.index_size = 0;
+		//}
+		//auto sw = std::make_shared<disruptor::shared_write_cursor>(BUFF_SIZE);
+		//std::vector<disruptor::read_cursor_ptr> readers(NUM_FRAGMENT_CORES);
+
+		//for (auto i = 0; i < NUM_FRAGMENT_CORES; ++i) {
+		//	auto r = std::make_shared<disruptor::read_cursor>();
+		//	r->follows(sw);
+		//	sw->follows(r);
+		//	readers[i] = r;
+		//}
 
 		// generate vertex processors
+		unsigned triangle_count = ib.size() / 3;
+		unsigned index_per_core = (triangle_count / m_num_vertex_unit) * 3;
+		unsigned index_beg = 0, index_end = index_per_core + (triangle_count % m_num_vertex_unit) * 3;
 		std::vector<std::future<void>> producers;
-		while (end <= ib.size())
+		while (index_end <= ib.size())
 		{
-			producers.push_back(std::async(std::launch::async, [this, beg, end, &ib, &attribs, vertex_stride, &material, out_stride, sw, &out_buff] {
+			producers.push_back(std::async(std::launch::async, [this, &attribs, &ib, index_beg, index_end, vertex_stride, material, output_stride] {
 				auto attrib_count = attribs.size();
-				std::vector<const float*> attrib_ptrs(attrib_count, nullptr);
-				auto vertex_in = &attrib_ptrs[0];
+				//std::vector<const float*> attrib_ptrs(attrib_count, nullptr);
+				//auto vertex_in = &attrib_ptrs[0];
+				const float **vertex_in = new float const*[attrib_count];
 				// use triangle as the basic primitive (3 vertex)
 				// clipping may produce 7 more vertex
 				// so the maximum vertex count is 10
 				constexpr int max_count = 10;
 				// cache for vertex attributes 
-				size_t cache_vert = out_stride * max_count;
+				size_t cache_vert = output_stride * max_count;
 				// we use double buffer to swap input/output
 				float *vert_cache0 = new float[cache_vert + cache_vert];
 				float *vert_cache1 = vert_cache0 + cache_vert;
@@ -239,23 +241,23 @@ namespace wyc
 				std::vector<int> indices;
 				indices.reserve(max_count - 3 + 1);
 				int vcnt = 0;
-				for (auto i = beg; i < end; ++i)
+				for (auto i = index_beg; i < index_end; ++i)
 				{
 					auto offset = ib[i] * vertex_stride;
 					for (size_t j = 0; j < attrib_count; ++j)
 					{
-						attrib_ptrs[j] = attribs[j] + offset;
+						vertex_in[j] = attribs[j] + offset;
 					}
 					material->vertex_shader(vertex_in, vertex_out);
-					vertex_out += out_stride;
+					vertex_out += output_stride;
 					vcnt += 1;
 					if (vcnt == 3) {
 						size_t clip_count = 3;
-						float *clip_result = clip_polygon_stream(vert_cache0, vert_cache1, clip_count, out_stride);
+						float *clip_result = clip_polygon_stream(vert_cache0, vert_cache1, clip_count, output_stride);
 						if (clip_count >= 3)
 						{
-							viewport_transform(clip_result, clip_count, out_stride);
-							Vec4f *p0 = (Vec4f*)clip_result, *p1 = (Vec4f*)(clip_result + out_stride), *p2 = (Vec4f*)(clip_result + out_stride * 2);
+							viewport_transform(clip_result, clip_count, output_stride);
+							Vec4f *p0 = (Vec4f*)clip_result, *p1 = (Vec4f*)(clip_result + output_stride), *p2 = (Vec4f*)(clip_result + output_stride * 2);
 							for (size_t j = 2; j < clip_count; ++j)
 							{
 								// backface culling
@@ -268,16 +270,15 @@ namespace wyc
 								}
 								// next one
 								p1 = p2;
-								p2 = (Vec4f*)(((float*)p2) + out_stride);
+								p2 = (Vec4f*)(((float*)p2) + output_stride);
 							}
 							if (!indices.empty()) {
-								auto pos = sw->claim(1);
-								auto &e = out_buff.at(pos);
-								// TODO: maybe swap the pointer, no copy
-								e.vec.assign(clip_result, clip_result + clip_count * out_stride);
-								e.index_size = indices.size();
-								memcpy(e.indices, indices.data(), sizeof(int) * indices.size());
-								sw->publish_after(pos, pos - 1);
+								auto pos = m_prim_writer->claim(1);
+								auto &prim = m_prim_queue.at(pos);
+								prim.vertices.assign(clip_result, clip_result + clip_count * output_stride);
+								prim.indices.assign(indices.begin(), indices.end());
+								prim.stride = output_stride;
+								m_prim_writer->publish_after(pos, pos - 1);
 								indices.clear();
 							}
 						}
@@ -285,44 +286,46 @@ namespace wyc
 						vertex_out = vert_cache0;
 					}
 				} // end of for-loop
+				delete[] vertex_in;
 				delete[] vert_cache0;
 			}));
-			beg = end;
-			end += index_per_core;
+			index_beg = index_end;
+			index_end += index_per_core;
 		}
 
 		// generate fragement processors
-		constexpr int TILE_W = 32, TILE_H = 32;
-		constexpr int HALF_TILE_W = TILE_W >> 1, HALF_TILE_H = TILE_H >> 1;
-		int tile_x = (surfw + TILE_W - 1) / TILE_W, tile_y = (surfh + TILE_H - 1) / TILE_H;
-		int margin_x = surfw & (TILE_W - 1), margin_y = surfh & (TILE_H - 1);
-		std::vector<CTile> tiles;
-		for (auto i = 0; i < tile_y; ++i) {
-			for (auto j = 0; j < tile_x; ++j)
-			{
-				Imath::Box2i bounding = { {-HALF_TILE_W, -HALF_TILE_H}, {HALF_TILE_W, HALF_TILE_H} };
-				Imath::V2i center = { HALF_TILE_W + j * TILE_W, HALF_TILE_H + i * TILE_H };
-				tiles.emplace_back(m_rt.get(), bounding, center, material, out_stride);
-			}
-			// last column
-			if (margin_x > 0) 
-			{
-				tiles.back().bounding.max.x -= TILE_W - margin_x;
-			}
-		}
-		// last row
-		if (margin_y > 0) {
-			for (auto i = tiles.size() - tile_x, end = tiles.size(); i < end; ++i)
-			{
-				tiles[i].bounding.max.y -= TILE_H - margin_y;
-			}
-		}
-		int tile_per_core = tiles.size() / NUM_FRAGMENT_CORES;
-		int tile_beg = 0, tile_end = tile_per_core + tiles.size() % NUM_FRAGMENT_CORES;
+		//constexpr int TILE_W = 32, TILE_H = 32;
+		//constexpr int HALF_TILE_W = TILE_W >> 1, HALF_TILE_H = TILE_H >> 1;
+		//int tile_x = (surfw + TILE_W - 1) / TILE_W, tile_y = (surfh + TILE_H - 1) / TILE_H;
+		//int margin_x = surfw & (TILE_W - 1), margin_y = surfh & (TILE_H - 1);
+		//std::vector<CTile> tiles;
+		//for (auto i = 0; i < tile_y; ++i) {
+		//	for (auto j = 0; j < tile_x; ++j)
+		//	{
+		//		Imath::Box2i bounding = { {-HALF_TILE_W, -HALF_TILE_H}, {HALF_TILE_W, HALF_TILE_H} };
+		//		Imath::V2i center = { HALF_TILE_W + j * TILE_W, HALF_TILE_H + i * TILE_H };
+		//		tiles.emplace_back(m_rt.get(), bounding, center, material, output_stride);
+		//	}
+		//	// last column
+		//	if (margin_x > 0) 
+		//	{
+		//		tiles.back().bounding.max.x -= TILE_W - margin_x;
+		//	}
+		//}
+		//// last row
+		//if (margin_y > 0) {
+		//	for (auto i = tiles.size() - tile_x, end = tiles.size(); i < end; ++i)
+		//	{
+		//		tiles[i].bounding.max.y -= TILE_H - margin_y;
+		//	}
+		//}
+		int tile_per_core = m_tiles.size() / m_num_fragment_unit;
+		int tile_beg = 0, tile_end = tile_per_core + m_tiles.size() % m_num_fragment_unit;
 		std::vector<std::future<void>> consumers;
-		for (auto i = 0; i < NUM_FRAGMENT_CORES; ++i) {
-			auto cursor = readers[i];
-			consumers.push_back(std::async(std::launch::async, [this, cursor, &out_buff, out_stride, &tiles, tile_beg, tile_end] {
+		for(auto &cursor: m_prim_readers) {
+		//for (auto i = 0; i < m_num_fragment_unit; ++i) {
+		//	auto cursor = m_prim_readers[i];
+			consumers.push_back(std::async(std::launch::async, [this, cursor, tile_beg, tile_end, output_stride] {
 				Imath::Box2i vertex_bounding;
 				auto beg = cursor->begin();
 				auto end = cursor->end();
@@ -334,24 +337,26 @@ namespace wyc
 							cursor->publish(end - 1);
 						end = cursor->wait_for(end);
 					}
-					auto &ev = out_buff.at(beg);
-					const float* vec = ev.vec.data();
+					const auto &prim = m_prim_queue.at(beg);
+					const float* vec = prim.vertices.data();
 					if (std::isnan(vec[0]))
 						break; // EOF
-					for (auto idx = 2; idx < ev.index_size; idx += 3) {
-						int i1 = ev.indices[idx - 2];
-						int i2 = ev.indices[idx - 1];
-						int i3 = ev.indices[idx];
+					int index_count = prim.indices.size();
+					auto indices = prim.indices.data();
+					for (auto idx = 2; idx < index_count; idx += 3) {
+						int i1 = indices[idx - 2];
+						int i2 = indices[idx - 1];
+						int i3 = indices[idx];
 						// input stream is accessed by multiple fragment processors, must be read only
-						const float *v = vec + i1 * out_stride;
+						const float *v = vec + i1 * output_stride;
 						const Vec4f *p0 = (Vec4f*)v;
-						v = vec + i2 * out_stride;
+						v = vec + i2 * output_stride;
 						const Vec4f *p1 = (Vec4f*)v;
-						v = vec + i3 * out_stride;
+						v = vec + i3 * output_stride;
 						const Vec4f *p2 = (Vec4f*)v;
 						Imath::bounding(vertex_bounding, p0, p1, p2);
 						for (auto i = tile_beg; i < tile_end; ++i) {
-							auto &tile = tiles[i];
+							auto &tile = m_tiles[i];
 							Imath::Box2i local_bounding = vertex_bounding;
 							local_bounding.min -= tile.center;
 							local_bounding.max -= tile.center;
@@ -385,9 +390,9 @@ namespace wyc
 		}
 
 		// use NAN to indicate EOF
-		auto pos = sw->claim(1);
-		out_buff.at(pos).vec.assign(1, NAN);
-		sw->publish_after(pos, pos - 1);
+		auto pos = m_prim_writer->claim(1);
+		m_prim_queue.at(pos).vertices.assign(1, NAN);
+		m_prim_writer->publish_after(pos, pos - 1);
 
 		// wait for consumers
 		for (auto &h : consumers)

@@ -44,6 +44,8 @@ namespace wyc
 	inline void CSpwRenderer::set_pipeline(std::shared_ptr<CSpwPipeline> pipeline)
 	{
 		m_pipeline = pipeline;
+		if (m_rt)
+			m_pipeline->set_render_target(m_rt);
 	}
 
 	inline std::shared_ptr<CSpwPipeline> wyc::CSpwRenderer::get_pipeline()

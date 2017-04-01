@@ -29,10 +29,10 @@ namespace wyc
 	void CSpwRenderer::set_render_target(std::shared_ptr<CRenderTarget> rt)
 	{
 		m_rt = std::dynamic_pointer_cast<CSpwRenderTarget>(rt);
-		if (!m_rt)
-		{
+		if (!m_rt) 
 			throw std::exception("Expect wyc::spr_render_target.");
-		}
+		if (m_pipeline)
+			m_pipeline->set_render_target(m_rt);
 	}
 
 	std::shared_ptr<CRenderTarget> CSpwRenderer::get_render_target()

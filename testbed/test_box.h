@@ -41,6 +41,7 @@ public:
 		renderer->set_render_target(render_target);
 		//auto pipeline = std::make_shared<wyc::CSpwPipelineWireFrame>();
 		auto pipeline = std::make_shared<wyc::CSpwPipeline>();
+		pipeline->setup();
 		renderer->set_pipeline(pipeline);
 		// draw
 		auto clr = renderer->new_command<wyc::cmd_clear>();
