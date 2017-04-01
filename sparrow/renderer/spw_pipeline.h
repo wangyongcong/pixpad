@@ -21,7 +21,7 @@ namespace wyc
 		Imath::V2i center;
 		const float *v0, *v1, *v2;
 		std::vector<float> frag_cache;
-		CTile(CSpwRenderTarget *prt, Imath::Box2i &b, Imath::V2i &c, const CMaterial *pmtl = nullptr, size_t out_stride = 0)
+		CTile(CSpwRenderTarget *prt, Imath::Box2i &b, Imath::V2i &c, const CMaterial *pmtl = nullptr)
 			: rt(prt)
 			, mtl(pmtl)
 			, bounding(b)
@@ -30,8 +30,11 @@ namespace wyc
 			, v1(nullptr)
 			, v2(nullptr)
 		{
-			if (out_stride > 4) {
-				size_t cache_frag = out_stride - 4;
+		}
+		void set_fragment_input_size(size_t stride)
+		{
+			if (stride > 4) {
+				size_t cache_frag = stride - 4;
 				frag_cache.resize(cache_frag, 0);
 			}
 		}
@@ -106,6 +109,11 @@ namespace wyc
 
 	protected:
 		typedef std::pair<const char*, size_t> AttribStream;
+		POLYGON_WINDING m_clock_wise;
+		std::shared_ptr<CSpwRenderTarget> m_rt;
+		Imath::V2f m_vp_translate;
+		Imath::V2f m_vp_scale;
+
 		struct RasterTask {
 			const CMaterial *material;
 			const unsigned* index_stream;
@@ -119,31 +127,11 @@ namespace wyc
 			size_t cache_size;  // cache size in bytes
 			float *vert_cache0;  // output vertex cache 1
 			float *vert_cache1;  // output vertex cache 2
-			//Vec4f *clip_cache0;  // clip position cache 1
-			//Vec4f *clip_cache1;  // clip position cache 2
 			float *frag_cache;
 			size_t frag_stride;
 			Imath::Box2i block;
 			Imath::V2i block_center;
 		};
-		bool check_material(const AttribDefine &attrib_def) const;
-		virtual void process(RasterTask &task) const;
-		void viewport_transform(float* vert_pos, size_t size, size_t stride) const;
-		virtual void draw_triangles(float *vertices, size_t count, RasterTask &task) const;
-		//void viewport_transform(Imath::V4f* vertex_pos, size_t size) const;
-		//void draw_triangles(Imath::V4f* vertex_pos, const float *vertices, size_t count, RasterTask &task) const;
-
-		void process_async(const CMesh *mesh, const CMaterial *material);
-		void clear_async();
-
-		bool m_is_setup;
-		int m_num_vertex_unit;
-		int m_num_fragment_unit;
-		POLYGON_WINDING m_clock_wise;
-		std::shared_ptr<CSpwRenderTarget> m_rt;
-		Imath::V2f m_vp_translate;
-		Imath::V2f m_vp_scale;
-
 		class CSpwPlotter
 		{
 		public:
@@ -158,7 +146,15 @@ namespace wyc
 			RasterTask &m_task;
 			Imath::V2i m_center;
 		};
+		bool check_material(const AttribDefine &attrib_def) const;
+		virtual void process(RasterTask &task) const;
+		void viewport_transform(float* vert_pos, size_t size, size_t stride) const;
+		virtual void draw_triangles(float *vertices, size_t count, RasterTask &task) const;
 
+		// async render
+		bool m_is_setup;
+		int m_num_vertex_unit;
+		int m_num_fragment_unit;
 		struct CACHE_LINE_ALIGN Primitive {
 			std::vector<float> vertices;
 			std::vector<int> indices;
@@ -168,6 +164,9 @@ namespace wyc
 		disruptor::shared_write_cursor_ptr m_prim_writer;
 		std::vector<disruptor::read_cursor_ptr> m_prim_readers;
 		std::vector<CTile> m_tiles;
+
+		void clear_async();
+		void process_async(const CMesh *mesh, const CMaterial *material);
 	};
 
 } // namespace wyc
