@@ -160,21 +160,20 @@ namespace wyc
 
 	float* clip_polygon_stream(float *vertex_in, float *vertex_out, size_t &vertex_count, size_t stride)
 	{
-		// TODO: do not copy vertex attribute between in/out cache, instead copy index
 		constexpr float w_epsilon = 0.0001f;
 		float *prev_vert = vertex_in + stride * (vertex_count - 1);
 		float *cur_vert = vertex_in;
 		float *out_vert = vertex_out;
 		float *end = cur_vert + (vertex_count * stride);
 		// pos = {x, y, z, w}
-		float *pos = prev_vert/* + pos_offset*/;
+		float *pos;
 		float pdot, dot;
 		// clipped by W=0
-		pdot = pos[3] - w_epsilon;
+		pdot = prev_vert[3] - w_epsilon;
 		vertex_count = 0;
 		for (; cur_vert < end; cur_vert += stride)
 		{
-			pos = cur_vert/* + pos_offset*/;
+			pos = cur_vert;
 			dot = pos[3] - w_epsilon;
 			if (pdot * dot < 0) {
 				intersect(prev_vert, pdot, cur_vert, dot, stride, out_vert);
@@ -200,11 +199,10 @@ namespace wyc
 			cur_vert = vertex_in;
 			out_vert = vertex_out;
 			vertex_count = 0;
-			pos = prev_vert/* + pos_offset*/;
-			pdot = pos[3] - pos[i];
+			pdot = prev_vert[3] - prev_vert[i];
 			for (; cur_vert < end; cur_vert += stride)
 			{
-				pos = cur_vert/* + pos_offset*/;
+				pos = cur_vert;
 				dot = pos[3] - pos[i];
 				if (pdot * dot < 0) {
 					//assert(out_vert < vertex_out + cache_size && "vertex cache overflow");
@@ -233,11 +231,10 @@ namespace wyc
 			cur_vert = vertex_in;
 			out_vert = vertex_out;
 			vertex_count = 0;
-			pos = prev_vert/* + pos_offset*/;
-			pdot = pos[3] + pos[i];
+			pdot = prev_vert[3] + prev_vert[i];
 			for (; cur_vert < end; cur_vert += stride)
 			{
-				pos = cur_vert/* + pos_offset*/;
+				pos = cur_vert;
 				dot = pos[3] + pos[i];
 				if (pdot * dot < 0)
 				{
@@ -262,124 +259,90 @@ namespace wyc
 		return vertex_out;
 	}
 
-	std::pair<Imath::V4f*, float*> clip_polygon_stream(Imath::V4f *clip_in, Imath::V4f *clip_out, 
-		float *vertex_in, float *vertex_out, unsigned &size, unsigned stride, unsigned max_size)
+	void clip_polygon_stream(std::vector<float> &vertices, std::vector<int> &indices_in, std::vector<int> &indices_out, unsigned stride)
 	{
-		// clipped by W=0
 		constexpr float w_epsilon = 0.0001f;
-		float *out_vert = vertex_out;
-		float *cur_vert = vertex_in;
-		float *end = vertex_in + size * stride;
-		float *prev_vert = end - stride;
 		// pos = {x, y, z, w}
-		Imath::V4f *prev_pos = clip_in + size - 1;
-		Imath::V4f *cur_pos = clip_in;
-		Imath::V4f *out_pos = clip_out;
+		float *pos, *prev_pos;
 		float pdot, dot;
-		pdot = prev_pos->w - w_epsilon;
-		size = 0;
-		for (; cur_vert != end; cur_vert += stride, cur_pos += 1)
+		if (!indices_out.empty())
+			indices_out.clear();
+		// clipped by W=0
+		prev_pos = &vertices[indices_in.back() * stride];
+		pdot = prev_pos[3] - w_epsilon;
+		for (auto i : indices_in)
 		{
-			dot = cur_pos->w - w_epsilon;
+			i *= stride;
+			pos = &vertices[i];
+			dot = pos[3] - w_epsilon;
 			if (pdot * dot < 0) {
-				assert(size < max_size && "vertex cache overflow");
-				*out_pos++ = intersect(*prev_pos, pdot, *cur_pos, dot);
-				intersect(prev_vert, pdot, cur_vert, dot, stride, out_vert);
-				out_vert += stride;
-				size += 1;
+				int j = vertices.size();
+				vertices.resize(j + stride);
+				intersect(prev_pos, pdot, pos, dot, stride, &vertices[j]);
+				indices_out.push_back(j);
 			}
 			if (dot >= 0) {
-				assert(size < max_size && "vertex cache overflow");
-				*out_pos++ = *cur_pos;
-				memcpy(out_vert, cur_vert, sizeof(float) * stride);
-				out_vert += stride;
-				size += 1;
+				indices_out.push_back(i);
 			}
-			prev_vert = cur_vert;
-			prev_pos = cur_pos;
+			prev_pos = pos;
 			pdot = dot;
 		}
-		if (!size)
-			return std::make_pair(nullptr, nullptr);
+		if (indices_out.empty())
+			return;
+
 		// clipped by positive plane: W=X, W=Y, W=Z
 		for (int k = 0; k < 3; ++k)
 		{
-			std::swap(vertex_in, vertex_out);
-			end = out_vert;
-			prev_vert = end - stride;
-			cur_vert = vertex_in;
-			out_vert = vertex_out;
-			std::swap(clip_in, clip_out);
-			prev_pos = out_pos - 1;
-			cur_pos = clip_in;
-			out_pos = clip_out;
-			pdot = prev_pos->w - (*prev_pos)[k];
-			size = 0;
-			for (; cur_vert != end; cur_vert += stride, cur_pos += 1)
-			{
-				dot = cur_pos->w - (*cur_pos)[k];
+			indices_in.swap(indices_out);
+			indices_out.clear();
+			prev_pos = &vertices[indices_in.back() * stride];
+			pdot = prev_pos[3] - prev_pos[k];
+			for (auto i : indices_in) {
+				i *= stride;
+				pos = &vertices[i];
+				dot = pos[3] - pos[k];
 				if (pdot * dot < 0) {
-					assert(size < max_size && "vertex cache overflow");
-					*out_pos++ = intersect(*prev_pos, pdot, *cur_pos, dot);
-					intersect(prev_vert, pdot, cur_vert, dot, stride, out_vert);
-					out_vert += stride;
-					size += 1;
+					int j = vertices.size();
+					vertices.resize(j + stride);
+					intersect(prev_pos, pdot, pos, dot, stride, &vertices[j]);
+					indices_out.push_back(j);
 				}
 				if (dot >= 0) {
-					assert(size < max_size && "vertex cache overflow");
-					*out_pos++ = *cur_pos;
-					memcpy(out_vert, cur_vert, sizeof(float) * stride);
-					out_vert += stride;
-					size += 1;
+					indices_out.push_back(i);
 				}
-				prev_vert = cur_vert;
-				prev_pos = cur_pos;
+				prev_pos = pos;
 				pdot = dot;
 			}
-			if (!size)
-				return std::make_pair(nullptr, nullptr);
+			if (indices_out.empty())
+				return;
 		}
+
 		// clipped by negative plane: W=-X, W=-Y, W=-Z
-		for (int i = 0; i < 3; ++i)
+		for (int k = 0; k < 3; ++k)
 		{
-			std::swap(vertex_in, vertex_out);
-			end = out_vert;
-			prev_vert = end - stride;
-			cur_vert = vertex_in;
-			out_vert = vertex_out;
-			std::swap(clip_in, clip_out);
-			prev_pos = out_pos - 1;
-			cur_pos = clip_in;
-			out_pos = clip_out;
-			pdot = prev_pos->w + (*prev_pos)[i];
-			size = 0;
-			for (; cur_vert < end; cur_vert += stride, cur_pos += 1)
-			{
-				dot = cur_pos->w + (*cur_pos)[i];
-				if (pdot * dot < 0)
-				{
-					assert(size < max_size && "vertex cache overflow");
-					*out_pos++ = intersect(*prev_pos, pdot, *cur_pos, dot);
-					intersect(prev_vert, pdot, cur_vert, dot, stride, out_vert);
-					out_vert += stride;
-					size += 1;
+			indices_in.swap(indices_out);
+			indices_out.clear();
+			prev_pos = &vertices[indices_in.back() * stride];
+			pdot = prev_pos[3] + prev_pos[k];
+			for (auto i : indices_in) {
+				i *= stride;
+				pos = &vertices[i];
+				dot = pos[3] + pos[k];
+				if (pdot * dot < 0) {
+					int j = vertices.size();
+					vertices.resize(j + stride);
+					intersect(prev_pos, pdot, pos, dot, stride, &vertices[j]);
+					indices_out.push_back(j);
 				}
-				if (dot >= 0)
-				{
-					assert(size < max_size && "vertex cache overflow");
-					*out_pos++ = *cur_pos;
-					memcpy(out_vert, cur_vert, sizeof(float) * stride);
-					out_vert += stride;
-					size += 1;
+				if (dot >= 0) {
+					indices_out.push_back(i);
 				}
-				prev_vert = cur_vert;
-				prev_pos = cur_pos;
+				prev_pos = pos;
 				pdot = dot;
 			}
-			if (!size)
-				return std::make_pair(nullptr, nullptr);
+			if (indices_out.empty())
+				return;
 		}
-		return std::make_pair(clip_out, vertex_out);
 	}
 
 } // namespace wyc

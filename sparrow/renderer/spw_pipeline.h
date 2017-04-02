@@ -149,6 +149,7 @@ namespace wyc
 		bool check_material(const AttribDefine &attrib_def) const;
 		virtual void process(RasterTask &task) const;
 		void viewport_transform(float* vert_pos, size_t size, size_t stride) const;
+		bool cull_backface(const std::vector<float> &vertices, unsigned stride) const;
 		virtual void draw_triangles(float *vertices, size_t count, RasterTask &task) const;
 
 		// async render

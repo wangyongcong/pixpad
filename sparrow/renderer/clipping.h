@@ -7,9 +7,10 @@
 
 namespace wyc
 {
-	// Represent a plane using vector4
+	// Represent a plane in the form {normal, D} where D = dot(-point, normal)
 	// point: a point on the plane
 	// normal: the plane normal
+	// we can calculate the signed distance between a point C to the plane efficiently: d = dot(C, plane)
 	inline Imath::V4f plane(const Imath::V3f &point, const Imath::V3f &normal)
 	{
 		return Imath::V4f(normal.x, normal.y, normal.z, -point.dot(normal));
@@ -50,8 +51,7 @@ namespace wyc
 	// when return, vertex_count specify the count of resulting vertices.
 	float* clip_polygon_stream(float *vertex_in, float *vertex_out, size_t &vertex_count, size_t stride);
 
-	std::pair<Imath::V4f*, float*> clip_polygon_stream(Imath::V4f *clip_in, Imath::V4f *clip_out, 
-		float *vertex_in, float *vertex_out, unsigned &size, unsigned stride, unsigned max_size);
+	void clip_polygon_stream(std::vector<float> &vertices, std::vector<int> &indices_in, std::vector<int> &indices_out, unsigned stride);
 
 	bool clip_line(Imath::V2f &v0, Imath::V2f &v1, const Imath::Box2f &clip_window);
 } // namespace wyc
