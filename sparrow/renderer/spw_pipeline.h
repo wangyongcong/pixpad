@@ -56,7 +56,6 @@ namespace wyc
 		virtual void process(const CMesh *mesh, const CMaterial *material) const;
 		virtual void process_async(const CMesh *mesh, const CMaterial *material);
 		void clear_async();
-		void viewport_transform(float* vert_pos, size_t size, size_t stride) const;
 		void viewport_transform(std::vector<float> &vertices, const std::vector<unsigned> &indices) const;
 		bool cull_backface(const std::vector<float> &vertices, unsigned stride) const;
 		virtual void draw_triangles(const std::vector<float> &vertices, const std::vector<unsigned> &indices, unsigned stride, CTile &tile) const;

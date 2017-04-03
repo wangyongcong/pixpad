@@ -28,8 +28,10 @@ Build
 Roadmap
 ====
 
-1. ~~VS和FS多线程并行~~
-2. 支持ZBuffer
-3. 支持Texture Unit
-4. 更方便的调试框架
-5. more...
+- ~~VS和FS多线程并行~~
+- ~~基于tile的光栅化~~
+- ~~测试框架~~
+- ZBuffer
+- Sampler
+- 基于tile的内存布局
+- more...

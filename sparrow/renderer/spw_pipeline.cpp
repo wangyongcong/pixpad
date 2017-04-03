@@ -393,20 +393,6 @@ namespace wyc
 		m_vp_scale = { _tmp.x * 0.5f, _tmp.y * 0.5f };
 	}
 
-	void CSpwPipeline::viewport_transform(float* vert_pos, size_t size, size_t stride) const
-	{
-		for (size_t i = 0; i < size; ++i, vert_pos += stride)
-		{
-			Vec4f &pos = *reinterpret_cast<Vec4f*>(vert_pos);
-			// we keep pos.w to correct interpolation
-			// perspective projection: pos.w == -pos.z 
-			// orthographic projection: pos.w == 1
-			pos.x = m_vp_translate.x + m_vp_scale.x * (pos.x / pos.w);
-			pos.y = m_vp_translate.y + m_vp_scale.y * (pos.y / pos.w);
-			pos.z /= pos.w;
-		}
-	}
-
 	void CSpwPipeline::viewport_transform(std::vector<float>& vertices, const std::vector<unsigned>& indices) const
 	{
 		for (auto j : indices)
