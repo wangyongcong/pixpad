@@ -259,7 +259,7 @@ namespace wyc
 		return vertex_out;
 	}
 
-	void clip_polygon_stream(std::vector<float> &vertices, std::vector<int> &indices_in, std::vector<int> &indices_out, unsigned stride)
+	void clip_polygon_stream(std::vector<float> &vertices, std::vector<unsigned> &indices_in, std::vector<unsigned> &indices_out, unsigned stride)
 	{
 		constexpr float w_epsilon = 0.0001f;
 		// pos = {x, y, z, w}
@@ -267,16 +267,16 @@ namespace wyc
 		float pdot, dot;
 		if (!indices_out.empty())
 			indices_out.clear();
+
 		// clipped by W=0
-		prev_pos = &vertices[indices_in.back() * stride];
+		prev_pos = &vertices[indices_in.back()];
 		pdot = prev_pos[3] - w_epsilon;
 		for (auto i : indices_in)
 		{
-			i *= stride;
 			pos = &vertices[i];
 			dot = pos[3] - w_epsilon;
 			if (pdot * dot < 0) {
-				int j = vertices.size();
+				unsigned j = vertices.size();
 				vertices.resize(j + stride);
 				intersect(prev_pos, pdot, pos, dot, stride, &vertices[j]);
 				indices_out.push_back(j);
@@ -295,14 +295,13 @@ namespace wyc
 		{
 			indices_in.swap(indices_out);
 			indices_out.clear();
-			prev_pos = &vertices[indices_in.back() * stride];
+			prev_pos = &vertices[indices_in.back()];
 			pdot = prev_pos[3] - prev_pos[k];
 			for (auto i : indices_in) {
-				i *= stride;
 				pos = &vertices[i];
 				dot = pos[3] - pos[k];
 				if (pdot * dot < 0) {
-					int j = vertices.size();
+					unsigned j = vertices.size();
 					vertices.resize(j + stride);
 					intersect(prev_pos, pdot, pos, dot, stride, &vertices[j]);
 					indices_out.push_back(j);
@@ -322,14 +321,13 @@ namespace wyc
 		{
 			indices_in.swap(indices_out);
 			indices_out.clear();
-			prev_pos = &vertices[indices_in.back() * stride];
+			prev_pos = &vertices[indices_in.back()];
 			pdot = prev_pos[3] + prev_pos[k];
 			for (auto i : indices_in) {
-				i *= stride;
 				pos = &vertices[i];
 				dot = pos[3] + pos[k];
 				if (pdot * dot < 0) {
-					int j = vertices.size();
+					unsigned j = vertices.size();
 					vertices.resize(j + stride);
 					intersect(prev_pos, pdot, pos, dot, stride, &vertices[j]);
 					indices_out.push_back(j);

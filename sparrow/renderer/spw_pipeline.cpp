@@ -206,27 +206,18 @@ namespace wyc
 			producers.push_back(std::async(std::launch::async, [this, &attribs, &ib, index_beg, index_end, vertex_stride, material, output_stride] {
 				auto attrib_count = attribs.size();
 				const float **vertex_in = new float const*[attrib_count];
-				memset(vertex_in, sizeof(float*) * attrib_count, 0);
 				// use triangle as the basic primitive (3 vertex)
 				// clipping may produce 7 more vertex
 				// so the maximum vertex count is 10
 				constexpr int max_count = 10;
 				// cache for vertex attributes 
 				size_t cache_vert = output_stride * max_count;
-				// we use double buffer to swap input/output
-				//float *vert_cache0 = new float[cache_vert + cache_vert];
-				//float *vert_cache1 = vert_cache0 + cache_vert;
-				//float *vertex_out = vert_cache0;
-				std::vector<int> indices;
-				indices.reserve(max_count - 3 + 1);
-
 				std::vector<float> vertex_out;
 				vertex_out.reserve(cache_vert);
-				std::vector<int> indices_in, indices_out;
+				std::vector<unsigned> indices_in, indices_out;
 				indices_in.reserve(max_count);
 				indices_out.reserve(max_count);
 
-				//int vcnt = 0;
 				for (auto i = index_beg; i < index_end; ++i)
 				{
 					auto offset = ib[i] * vertex_stride;
@@ -234,69 +225,39 @@ namespace wyc
 					{
 						vertex_in[j] = attribs[j] + offset;
 					}
-					auto s = vertex_out.size();
-					vertex_out.resize(s + output_stride);
-					material->vertex_shader(vertex_in, &vertex_out[s]);
-					indices_in.push_back(s);
-					//vertex_out += output_stride;
-					//vcnt += 1;
+					auto cur_vert = vertex_out.size();
+					vertex_out.resize(cur_vert + output_stride);
+					material->vertex_shader(vertex_in, &vertex_out[cur_vert]);
+					indices_in.push_back(cur_vert);
 					if (indices_in.size() == 3) {
 						if (cull_backface(vertex_out, output_stride)) {
 							indices_in.clear();
 							continue;
 						}
-						//size_t clip_count = 3;
-						//float *clip_result = clip_polygon_stream(vert_cache0, vert_cache1, clip_count, output_stride);
 						clip_polygon_stream(vertex_out, indices_in, indices_out, output_stride);
 						if(indices_out.size() >= 3)
-						//if (clip_count >= 3)
 						{
-							//viewport_transform(clip_result, clip_count, output_stride);
-							for (int j: indices_out)
-							{
-								j *= output_stride;
-								Imath::V4f &pos = *reinterpret_cast<Imath::V4f*>(&vertex_out[j]);
-								pos.x = m_vp_translate.x + m_vp_scale.x * (pos.x / pos.w);
-								pos.y = m_vp_translate.y + m_vp_scale.y * (pos.y / pos.w);
-								pos.z /= pos.w;
-							}
-							//Vec4f *p0 = (Vec4f*)clip_result, *p1 = (Vec4f*)(clip_result + output_stride), *p2 = (Vec4f*)(clip_result + output_stride * 2);
-							//for (size_t j = 2; j < clip_count; ++j)
-							//{
-							//	// backface culling
-							//	Imath::V2f v10(p0->x - p1->x, p0->y - p1->y);
-							//	Imath::V2f v12(p2->x - p1->x, p2->y - p1->y);
-							//	if (v10.cross(v12) * m_clock_wise > 0) {
-							//		indices.push_back(0);
-							//		indices.push_back(j - 1);
-							//		indices.push_back(j);
-							//	}
-							//	// next one
-							//	p1 = p2;
-							//	p2 = (Vec4f*)(((float*)p2) + output_stride);
-							//}
-							if (!indices.empty()) {
+							viewport_transform(vertex_out, indices_out);
+							// publish primitive
+							if (!indices_out.empty()) {
 								auto pos = m_prim_writer->claim(1);
 								auto &prim = m_prim_queue.at(pos);
-								//prim.vertices.assign(clip_result, clip_result + clip_count * output_stride);
-								//prim.indices.assign(indices.begin(), indices.end());
-								for (int j : indices_out)
+								prim.vertices.clear();
+								for (auto j : indices_out)
 								{
-									j *= output_stride;
-									prim.vertices.assign(&vertex_out[j], &vertex_out[j + output_stride]);
+									auto beg = &vertex_out[j];
+									prim.vertices.insert(prim.vertices.end(), beg, beg + output_stride);
 								}
 								prim.stride = output_stride;
+								prim.material = material;
 								m_prim_writer->publish_after(pos, pos - 1);
-								indices.clear();
+								indices_out.clear();
 							}
 						}
-						//vcnt = 0;
-						//vertex_out = vert_cache0;
 						indices_in.clear();
 					}
 				} // end of for-loop
 				delete[] vertex_in;
-				//delete[] vert_cache0;
 			}));
 			index_beg = index_end;
 			index_end += index_per_core;
@@ -305,10 +266,6 @@ namespace wyc
 		// generate fragement processors
 		int tile_per_core = m_tiles.size() / m_num_fragment_unit;
 		int tile_beg = 0, tile_end = tile_per_core + m_tiles.size() % m_num_fragment_unit;
-		for (auto &tile : m_tiles) {
-			tile.set_fragment_input_size(output_stride);
-			tile.mtl = material;
-		}
 		std::vector<std::future<void>> consumers;
 		for(auto &cursor: m_prim_readers) {
 			consumers.push_back(std::async(std::launch::async, [this, cursor, tile_beg, tile_end, output_stride] {
@@ -328,8 +285,6 @@ namespace wyc
 					if (std::isnan(vec[0]))
 						break; // EOF
 					const float* end = vec + prim.vertices.size();
-					//const float* vec1 = vec0 + prim.stride;
-					//const float* vec2 = vec1 + prim.stride;
 					const Imath::V4f *p0 = (const Imath::V4f*)vec;
 					vec += prim.stride;
 					const Imath::V4f *p1 = (const Imath::V4f*)vec;
@@ -337,19 +292,6 @@ namespace wyc
 					const Imath::V4f *p2 = (const Imath::V4f*)vec;
 					while (vec < end)
 					{
-					//int index_count = prim.indices.size();
-					//auto indices = prim.indices.data();
-					//for (auto idx = 2; idx < index_count; idx += 3) {
-					//	int i1 = indices[idx - 2];
-					//	int i2 = indices[idx - 1];
-					//	int i3 = indices[idx];
-						// input stream is accessed by multiple fragment processors, must be read only
-						//const float *v = vec + i1 * output_stride;
-						//const Vec4f *p0 = (Vec4f*)v;
-						//v = vec + i2 * output_stride;
-						//const Vec4f *p1 = (Vec4f*)v;
-						//v = vec + i3 * output_stride;
-						//const Vec4f *p2 = (Vec4f*)v;
 						Imath::bounding(vertex_bounding, p0, p1, p2);
 						for (auto i = tile_beg; i < tile_end; ++i) {
 							auto &tile = m_tiles[i];
@@ -368,9 +310,7 @@ namespace wyc
 								v2.x = p2->x - tile.center.x;
 								v2.y = p2->y - tile.center.y;
 								v2.z = p2->z;
-								tile.v0 = (float*)p0;
-								tile.v1 = (float*)p1;
-								tile.v2 = (float*)p2;
+								tile.set_triangle((float*)p0, (float*)p1, (float*)p2, prim.stride, prim.material);
 								fill_triangle(local_bounding, v0, v1, v2, tile);
 							} // bounding not empty
 						} // tile loop
@@ -479,6 +419,20 @@ namespace wyc
 			pos.x = m_vp_translate.x + m_vp_scale.x * (pos.x / pos.w);
 			pos.y = m_vp_translate.y + m_vp_scale.y * (pos.y / pos.w);
 			pos.z /= pos.w;
+		}
+	}
+
+	void CSpwPipeline::viewport_transform(std::vector<float>& vertices, const std::vector<unsigned>& indices) const
+	{
+		for (auto j : indices)
+		{
+			Imath::V4f *pos = reinterpret_cast<Imath::V4f*>(&vertices[j]);
+			// we keep pos.w to correct interpolation
+			// perspective projection: pos.w == -pos.z 
+			// orthographic projection: pos.w == 1
+			pos->x = m_vp_translate.x + m_vp_scale.x * (pos->x / pos->w);
+			pos->y = m_vp_translate.y + m_vp_scale.y * (pos->y / pos->w);
+			pos->z /= pos->w;
 		}
 	}
 

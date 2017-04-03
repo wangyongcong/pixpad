@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <None Include="README" />
+    <None Include="..\..\README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\install\include\OpenEXR\half.h" />
@@ -111,6 +111,7 @@
     <ClInclude Include="..\..\sparrow\renderer\spw_render_target.h" />
     <ClInclude Include="..\..\sparrow\renderer\spw_texture.h" />
     <ClInclude Include="..\..\sparrow\renderer\surface.h" />
+    <ClInclude Include="..\..\sparrow\renderer\tile.h" />
     <ClInclude Include="..\..\sparrow\renderer\vertex_buffer.h" />
     <ClInclude Include="..\..\sparrow\renderer\vertex_layout.h" />
     <ClInclude Include="..\..\sparrow\scene\camera.h" />
@@ -140,6 +141,7 @@
     <ClCompile Include="..\..\sparrow\renderer\spw_render_target.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\spw_texture.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\surface.cpp" />
+    <ClCompile Include="..\..\sparrow\renderer\tile.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\vertex_buffer.cpp" />
     <ClCompile Include="..\..\sparrow\renderer\vertex_layout.cpp" />
     <ClCompile Include="..\..\sparrow\scene\camera.cpp" />

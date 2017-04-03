@@ -6,6 +6,8 @@ An experimental software renderer.
 Build
 =====
 
+需要Visual Studio 2015 (or later)，暂未提供CMake
+
 ### 3rd libs
 第三方库全部放在3rd目录下，目前依赖的第三方库有：
 
@@ -26,7 +28,7 @@ Build
 Roadmap
 ====
 
-1. VS和FS多线程并行
+1. ~~VS和FS多线程并行~~
 2. 支持ZBuffer
 3. 支持Texture Unit
 4. 更方便的调试框架

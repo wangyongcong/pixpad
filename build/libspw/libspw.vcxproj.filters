@@ -29,7 +29,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="README" />
+    <None Include="..\..\README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\sparrow\common\any_stride_iterator.h">
@@ -329,6 +329,9 @@
     <ClInclude Include="..\..\sparrow\renderer\spw_config.h">
       <Filter>renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\sparrow\renderer\tile.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sparrow\common\image.cpp">
@@ -411,6 +414,9 @@
     </ClCompile>
     <ClCompile Include="..\..\sparrow\thread\disruptor.cpp">
       <Filter>thread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sparrow\renderer\tile.cpp">
+      <Filter>renderer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
