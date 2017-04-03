@@ -52,6 +52,10 @@ namespace wyc
 	float* clip_polygon_stream(float *vertex_in, float *vertex_out, size_t &vertex_count, size_t stride);
 
 	// Clip polygon in homogeneous clipping space. Each polygon is in the form of float stream
+	// vertex_in: polygon vertices. when clipping, amount of vertices may increase
+	// indices_in: vertex index
+	// indices_out: vertex index after clipping
+	// stride: vertex stride in float component
 	void clip_polygon_stream(std::vector<float> &vertices, std::vector<unsigned> &indices_in, std::vector<unsigned> &indices_out, unsigned stride);
 
 	bool clip_line(Imath::V2f &v0, Imath::V2f &v1, const Imath::Box2f &clip_window);

@@ -12,7 +12,7 @@ namespace wyc
 		virtual void feed(const CMesh *mesh, const CMaterial *material);
 
 	protected:
-		virtual void draw_triangles(float *vertices, size_t count, RasterTask &task) const;
+		virtual void draw_triangles(const std::vector<float> &vertices, const std::vector<unsigned> &indices, unsigned stride, CTile &tile) const;
 	};
 
 } // namespace wyc

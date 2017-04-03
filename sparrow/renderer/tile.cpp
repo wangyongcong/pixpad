@@ -8,22 +8,20 @@ namespace wyc
 		, m_rt(rt)
 		, m_material(nullptr)
 	{
-	}
-
-	void CTile::set_triangle(const float* v0, const float* v1, const float* v2, unsigned vertex_stride, const CMaterial *material)
-	{
-		m_v0 = v0;
-		m_v1 = v1;
-		m_v2 = v2;
-		if (vertex_stride != m_fragment_input.size())
-		{
-			m_fragment_input.resize(vertex_stride, 0);
-		}
-		m_material = material;
+		m_transform_y = m_rt->height() - center.y - 1;
 	}
 
 	void CTile::operator() (int x, int y) {
-
+		Imath::C4f out_color;
+		if (!m_material->fragment_shader(m_fragment_input.data(), out_color))
+			return;
+		out_color.r *= out_color.a;
+		out_color.g *= out_color.a;
+		out_color.b *= out_color.a;
+		y = m_rt->height() - y - 1;
+		unsigned v = Imath::rgb2packed(out_color);
+		auto &surf = m_rt->get_color_buffer();
+		surf.set(x, y, v);
 	}
 
 	void CTile::operator() (int x, int y, float z, float w1, float w2, float w3) {
@@ -49,7 +47,8 @@ namespace wyc
 		out_color.b *= out_color.a;
 		unsigned v = Imath::rgb2packed(out_color);
 		x += center.x;
-		y = m_rt->height() - (y + center.y) - 1;
+		//y = m_rt->height() - (y + center.y) - 1;
+		y = m_transform_y - y;
 		auto &surf = m_rt->get_color_buffer();
 		//unsigned v2 = *surf.get<unsigned>(x, y);
 		//assert(v2 == 0xff000000);
