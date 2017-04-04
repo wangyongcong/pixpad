@@ -28,10 +28,12 @@ Build
 Roadmap
 ====
 
-- ~~VS和FS多线程并行~~
-- ~~基于tile的光栅化~~
-- ~~测试框架~~
-- ZBuffer
-- Sampler
-- 基于tile的内存布局
+- ~~Parallel vertex/fragment processing~~
+- ~~Tile based rasterization~~
+- ~~Testing framewrok~~
+- ~~Depth test~~
+- Move to CMake
+- Bilinear Sampler
+- Tile based memory layout
+- Metrics with threading
 - more...
