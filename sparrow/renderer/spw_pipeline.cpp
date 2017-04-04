@@ -214,8 +214,11 @@ namespace wyc
 					}
 					const auto &prim = m_prim_queue.at(beg);
 					const float* vec = prim.vertices.data();
-					if (std::isnan(vec[0]))
-						break; // EOF
+					if (std::isnan(vec[0])) {
+						// EOF
+						cursor->publish(beg);
+						break;
+					}
 					const float* end = vec + prim.vertices.size();
 					const Imath::V4f *p0 = (const Imath::V4f*)vec;
 					vec += prim.stride;

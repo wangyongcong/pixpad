@@ -28,29 +28,41 @@ public:
 		Imath::M44f mrx, mry, mt;
 		wyc::set_rotate_y(mry, wyc::deg2rad(60));
 		wyc::set_rotate_x(mrx, wyc::deg2rad(30));
-		wyc::set_translate(mt, 0, 0, -5);
-		Imath::M44f mvp = proj * mt * mrx * mry;
-		// material
-		auto *mtl = new wyc::CMaterialFlatColor();
-		mtl->set_uniform("mvp_matrix", mvp);
-		mtl->set_uniform("color", Imath::C4f{ 0, 1, 0, 1 });
+		Imath::M44f mvp;
 		// setup pipeline
 		auto render_target = std::make_shared<wyc::CSpwRenderTarget>();
-		render_target->create(img_w, img_h, wyc::SPR_COLOR_R8G8B8A8);
+		render_target->create(img_w, img_h, wyc::SPR_COLOR_R8G8B8A8 | wyc::SPR_DEPTH_32);
 		auto renderer = std::make_shared<wyc::CSpwRenderer>();
 		renderer->set_render_target(render_target);
 		//auto pipeline = std::make_shared<wyc::CSpwPipelineWireFrame>();
 		auto pipeline = std::make_shared<wyc::CSpwPipeline>();
 		pipeline->setup();
 		renderer->set_pipeline(pipeline);
-		// draw
+		// clear
 		auto clr = renderer->new_command<wyc::cmd_clear>();
 		clr->color = { 0.0f, 0.0f, 0.0f };
 		renderer->enqueue(clr);
+
 		auto draw = renderer->new_command<wyc::cmd_draw_mesh>();
 		draw->mesh = mesh;
+		auto *mtl = new wyc::CMaterialFlatColor();
+		wyc::set_translate(mt, 0, 0, -5);
+		mvp = proj * mt * mrx * mry;
+		mtl->set_uniform("mvp_matrix", mvp);
+		mtl->set_uniform("color", Imath::C4f{ 0, 1, 0, 1 });
 		draw->material = mtl;
 		renderer->enqueue(draw);
+
+		auto draw2 = renderer->new_command<wyc::cmd_draw_mesh>();
+		draw2->mesh = mesh;
+		auto *mtl2 = new wyc::CMaterialFlatColor();
+		wyc::set_translate(mt, 0, 1, -6);
+		mvp = proj * mt * mrx * mry;
+		mtl2->set_uniform("mvp_matrix", mvp);
+		mtl2->set_uniform("color", Imath::C4f{ 1, 0, 0, 1 });
+		draw2->material = mtl2;
+		renderer->enqueue(draw2);
+
 		TIMER_BEG(1)
 		renderer->process();
 		TIMER_END

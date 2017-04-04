@@ -30,10 +30,8 @@ namespace wyc
 		switch (depth_format)
 		{
 		case wyc::SPR_DEPTH_16:
-			frag_size = 2;
-			break;
 		case wyc::SPR_DEPTH_32:
-			frag_size = 2;
+			frag_size = 4;
 			break;
 		default:
 			frag_size = 0;

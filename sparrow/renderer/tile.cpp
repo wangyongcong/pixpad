@@ -25,8 +25,15 @@ namespace wyc
 	}
 
 	void CTile::operator() (int x, int y, float z, float w1, float w2, float w3) {
-		// todo: z-test first
-
+		x += center.x;
+		//y = m_rt->height() - (y + center.y) - 1;
+		y = m_transform_y - y;
+		// z-test first
+		auto &depth = m_rt->get_depth_buffer();
+		auto d = *depth.get<float>(x, y);
+		if (z >= d)
+			return;
+		depth.set(x, y, z);
 		// interpolate vertex attributes
 		const float *i0 = m_v0, *i1 = m_v1, *i2 = m_v2;
 		//for(float *out = m_fragment_input.data(), *end = out + m_fragment_input.size(); out < end; ++out)
@@ -46,9 +53,6 @@ namespace wyc
 		out_color.g *= out_color.a;
 		out_color.b *= out_color.a;
 		unsigned v = Imath::rgb2packed(out_color);
-		x += center.x;
-		//y = m_rt->height() - (y + center.y) - 1;
-		y = m_transform_y - y;
 		auto &surf = m_rt->get_color_buffer();
 		//unsigned v2 = *surf.get<unsigned>(x, y);
 		//assert(v2 == 0xff000000);

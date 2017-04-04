@@ -39,6 +39,10 @@ namespace wyc
 		CSurface& surf = renderer->m_rt->get_color_buffer();
 		uint32_t v = Imath::rgb2packed(cmd->color);
 		surf.clear(v);
+		if (renderer->m_rt->has_depth()) {
+			CSurface &depth = renderer->m_rt->get_depth_buffer();
+			depth.clear<float>(1);
+		}
 	}
 
 	SPW_CMD_HANDLER(cmd_draw_mesh)
