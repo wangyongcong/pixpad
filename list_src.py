@@ -1,53 +1,88 @@
 # coding: utf8
-
-import sys
+import argparse
 import os
 import os.path
+import re
 
 #-------------------------------------------------
 # List all source files and add to CMakeLists
 #-------------------------------------------------
 
-HEADER_EXT = set((".h", ".hpp"))
-SOURCE_EXT = set((".c", ".cpp"))
+HEADER_EXT = {".h", ".hpp"}
+SOURCE_EXT = {".h", ".hpp", ".c", ".cpp", ".cxx"}
 
-IDX_HDR = 0
-IDX_SRC = 1
 
-def src_filter(ret, top, names):
-	top = top.replace("\\", "/")
-	for name in names:
-		ext = os.path.splitext(name)[1]
-		if ext in HEADER_EXT:
-			i = IDX_HDR
-		elif ext in SOURCE_EXT:
-			i = IDX_SRC
-		else:
-			continue
-		name = "/".join((top, name))
-		if not os.path.isfile(name):
-			continue
-		ret[i].append(name)
+def replace_text(text, rep_map):
+	rep = dict((re.escape(k), v) for k, v in rep_map.items())
+	pattern = re.compile("|".join(rep.keys()))
+	result = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
+	return result
 
-def main(argv):
-	base = "3rd/include"
-	subdirs = os.listdir(base)
-	for name in subdirs:
-		hdr = []
-		src = []
-		os.path.walk("/".join((base, name)), src_filter, (hdr, src))
-		f = open(name + ".txt", "w")
-		f.write("".join(("set(", name, "_src\n")))
-		for v in src:
-			f.write("".join(("\t", v, "\n")))
-		f.write(")\n")
-		f.write("".join(("set(", name, "_hdr\n")))
-		for v in hdr:
-			f.write("".join(("\t", v, "\n")))
-		f.write(")\n")
-		f.write("source_group(%s FILES ${%s_hdr} ${%s_src})" % (name, name, name))
-		f.close()
+# list all source files in sub directories
+def list_files(src_path, *lst_subdir):
+	src_lst = []
+	if not lst_subdir:
+		for fname in os.listdir(src_path):
+			ext = os.path.splitext(fname)[1]
+			if ext in SOURCE_EXT:
+				src_lst.append('"%s"' % fname)
+	else:
+		for subdir in lst_subdir:
+			path = "/".join([src_path, subdir])
+			if not os.path.isdir(path):
+				print("direcotry not found", path)
+				continue
+			for fname in os.listdir(path):
+				ext = os.path.splitext(fname)[1]
+				if ext in SOURCE_EXT:
+					src_lst.append('"%s"' % "/".join([subdir, fname]))
+	src_lst.sort()
+	return "\n\t".join(src_lst)
+
+
+# function(dir_to_search, *list_of_subdirs) -> string_to_replace_with
+CMAKE_FUNCTIONS = {
+	"LIST_FILES": list_files
+}
+
+
+def parse_cmake(makefile, src_path):
+	f = open(makefile, "r")
+	full_text = f.read()
+	f.close()
+	src_path = src_path.replace("\\", "/")
+	pat = re.compile('\"\$(\w+\([\w\s,]*\))\"')
+	all_calls = pat.findall(full_text)
+	rep_map = {}
+	for func_call in all_calls:
+		sep = func_call.find("(")
+		func_name = func_call[:sep]
+		func_args = func_call[sep + 1:-1]
+		handler = CMAKE_FUNCTIONS.get(func_name)
+		if handler:
+			if func_args:
+				args = filter(None, [v.strip() for v in func_args.split(",")])
+				ret = handler(src_path, *args)
+			else:
+				ret = handler(src_path)
+			rep_map['"$%s"' % func_call] = ret
+	if rep_map:
+		full_text = replace_text(full_text, rep_map)
+		with open(makefile, "w") as fout:
+			fout.write(full_text)
+
+
+def main():
+	parser = argparse.ArgumentParser(description="Add source files to CMakeLists")
+	parser.add_argument("src_dir", type=str, help="source directory that contains CMakeLists.txt")
+	args = parser.parse_args()
+	
+	makefile = os.path.join(args.src_dir, "CMakeLists.txt")
+	if not os.path.isfile(makefile):
+		print("[ERROR] can't find CMakeLists.txt")
+		return
+	parse_cmake(makefile, args.src_dir)
 
 
 if __name__ == '__main__':
-	main(sys.argv[1:])
+	main()

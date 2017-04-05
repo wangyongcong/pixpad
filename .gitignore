@@ -224,3 +224,4 @@ build/zlib-1.2.8
 build/libpng-1.6.21
 build/openexr
 build/OpenCOLLADA
+cmake_build
