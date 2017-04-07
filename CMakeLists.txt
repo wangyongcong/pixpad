@@ -45,14 +45,15 @@ set(OPENEXR_LIBS Imath-2_2 Half IexMath-2_2 Iex-2_2)
 
 #--------------------------------------------------
 
+set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
+set(SRC_ROOT "${CMAKE_SOURCE_DIR}/src")
+
 include_directories(
     ${3RD_INSTALL_PATH}
     ${PNG_INCLUDE_DIR}
     ${OPENEXR_INCLUDE_DIR}
+    ${SRC_ROOT}
 )
-
-set(SRC_ROOT "${CMAKE_SOURCE_DIR}/src")
-include_directories(src)
 
 # setup targets
 add_subdirectory(src/sparrow)
@@ -68,6 +69,9 @@ set(SPARROW_INCLUDE_DIR "${SRC_ROOT}/sparrow"
 include_directories(${SPARROW_INCLUDE_DIR})
 
 # tests
-enable_testing()
 add_subdirectory(src/testbed)
+
+enable_testing()
+add_test(test_line ${BIN_DIR}/testbed line)
+add_test(test_box ${BIN_DIR}/testbed box)
 
