@@ -12,24 +12,23 @@ set(3RD_PATH "${CMAKE_SOURCE_DIR}/3rd")
 set(3RD_INSTALL_PATH "${CMAKE_SOURCE_DIR}/install")
 
 # zlib
-set(ZLIB_PATH "${3RD_PATH}/zlib")
 ExternalProject_Add(zlib
     URL ${3RD_PATH}/zlib-1.2.8.tar.gz
-    PREFIX ${ZLIB_PATH}
-    INSTALL_DIR ${3RD_INSTALL_PATH}/zlib
+    CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${3RD_INSTALL_PATH}/zlib"
 )
 set(ZLIB_INCLUDE_DIR "${3RD_INSTALL_PATH}/zlib/include")
 set(ZLIB_LIBRARY "${3RD_INSTALL_PATH}/zlib/lib")
 
-# execute_process(
-#     COMMAND cmake
-# )
-
 # OpenEXR
-set(OPENEXR_PATH "${3RD_PATH}/openexr")
+ExternalProject_Add(openexr
+    URL ${3RD_PATH}/openexr.zip
+    CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${3RD_INSTALL_PATH}/OpenEXR"
+)
+set(OPENEXR_INCLUDE_DIR "${3RD_INSTALL_PATH}/OpenEXR")
+set(OPENEXR_LIBRARY "${3RD_INSTALL_PATH}/OpenEXR")
 
 add_subdirectory(sparrow)
-add_dependencies(sparrow zlib)
+add_dependencies(sparrow zlib openexr)
 
 add_subdirectory(testbed)
 
