@@ -220,8 +220,5 @@ baregrep.exe
 *.udm
 3rd/
 install/
-build/zlib-1.2.8
-build/libpng-1.6.21
-build/openexr
-build/OpenCOLLADA
-cmake_build
+build/
+cmake_build/

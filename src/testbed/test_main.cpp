@@ -1,31 +1,12 @@
-// sparrow.cpp : 定义控制台应用程序的入口点。
-//
-
-#include "stdafx.h"
 #include <unordered_map>
 #include <functional>
 #include "log.h"
 #include "test_line.h"
-#include "test_collada.h"
 #include "test_box.h"
-
-
-#ifdef _DEBUG
-	#pragma comment(lib, "libspw_staticd.lib")
-	#pragma comment(lib, "Imath-2_2.lib")
-	#pragma comment(lib, "IexMath-2_2.lib")
-	#pragma comment(lib, "Iex-2_2.lib")
-	#pragma comment(lib, "Half.lib")
-	#pragma comment(lib, "libpng16_staticd.lib")
-	#pragma comment(lib, "zlibstaticd.lib")
-#else
-	#pragma comment(lib, "libspw_static.lib")
-#endif
 
 std::unordered_map<std::string, std::function<CTest*()>> cmd_lst =
 {
 	{"line", &CTestLine::create},
-	{"collada", &CTestCollada::create},
 	{"box", &CTestBox::create},
 };
 

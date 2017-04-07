@@ -1,7 +1,7 @@
 #pragma once
-
 #include <cstdint>
 #include <numeric>
+#include <vector>
 #include <type_traits>
 #include "any_stride_iterator.h"
 
