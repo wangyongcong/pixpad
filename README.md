@@ -5,10 +5,10 @@ An experimental software renderer.
 Build
 =====
 Dependent 3rd libs:
+* boost
 * zlib
 * libpng
-* tcplap
-* openexr
+* openexr (IlmBase)
 
 ### Windows
 Use CMake (at least 3.3) to configure the build.
