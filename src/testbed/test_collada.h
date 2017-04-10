@@ -21,7 +21,7 @@ public:
 		m_img_file = "test_collada.png";
 		m_is_wireframe = true;
 	}
-	virtual void init(int argc, char *argv[])
+	virtual void init()
 	{
 		//TCLAP::CmdLine cmd("Generate image using Sparrow renderer.", ' ', "0.0.1");
 		//TCLAP::UnlabeledValueArg<std::string> input_file("input_file", "Input scene file", true, "", "path string");

@@ -12,7 +12,7 @@ set(3RD_INSTALL_PATH "${CMAKE_SOURCE_DIR}/install")
 
 # boost
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.5 REQUIRED)
+find_package(Boost 1.5 REQUIRED COMPONENTS program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # zlib

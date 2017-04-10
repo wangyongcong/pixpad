@@ -16,4 +16,5 @@ target_link_libraries(testbed
 	sparrow 
 	${PNG_LIBS}
 	${OPENEXR_LIBS}
+	${Boost_PROGRAM_OPTIONS_LIBRARY}
 )

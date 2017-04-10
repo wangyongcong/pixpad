@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <tclap/CmdLine.h>
 
 class CTest
 {
@@ -10,7 +9,7 @@ public:
 	}
 	virtual ~CTest() {
 	}
-	virtual void init(int argc, char *argv[]) {
+	virtual void init() {
 	}
 	virtual void run() {
 	}
