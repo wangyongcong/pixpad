@@ -1,5 +1,6 @@
 #include <unordered_map>
 #include <functional>
+#include <strstream>
 #include "boost/program_options.hpp"
 #include "log.h"
 #include "test_line.h"
@@ -13,10 +14,16 @@ std::unordered_map<std::string, std::function<CTest*()>> cmd_lst =
 	{"box", &CTestBox::create},
 };
 
+inline void show_help(const po::options_description &desc)
+{
+	std::stringstream ss;
+	ss << desc;
+	log_info(ss.str().c_str());
+}
+
 int main(int argc, char *argv[])
 {
 	wyc::init_debug_log();
-	std::cout << "argc=" << argc << std::endl;
 	using string_list = std::vector<std::string>;
 	po::options_description desc("Testbed for Sparrow renderer: testbed name [-o output_file]");
 	desc.add_options()
@@ -28,20 +35,20 @@ int main(int argc, char *argv[])
 	pos_desc.add("name", 1);
 
 	po::variables_map args_table;
-	po::store(po::command_line_parser(argc, argv).options(desc).positional(pos_desc).run(), args_table);
-	po::notify(args_table);
-
-	if (args_table.count("help")) {
-		std::cout << desc << std::endl;
-		return 0;
-	}
-
-	if (!args_table.count("name")) {
-		log_error("Test name is not specified.");
-		return 1;
-	}
-
 	try {
+		po::store(po::command_line_parser(argc, argv).options(desc).positional(pos_desc).run(), args_table);
+		po::notify(args_table);
+
+		if (args_table.count("help")) {
+			show_help(desc);
+			return 0;
+		}
+
+		if (!args_table.count("name")) {
+			log_error("test name is not specified.");
+			return 1;
+		}
+
 		const std::string &test_name = args_table["name"].as<std::string>();
 		std::string out_file;
 		if (args_table.count("out")) {
@@ -49,16 +56,21 @@ int main(int argc, char *argv[])
 		}
 		auto it = cmd_lst.find(test_name.c_str());
 		if (it == cmd_lst.end()) {
-			log_error("Invalid command: %s", argv[1]);
+			log_error("invalid command: %s", test_name.c_str());
 			return 1;
 		}
-		log_info("Running [%s]...", test_name.c_str());
+		log_info("running [%s]...", test_name.c_str());
 		CTest *test = it->second();
 		test->init();
 		test->run();
 	}
 	catch (const po::error &exp) {
-		log_error("Command line argument error: %s", exp.what());
+		log_error("command line argument error: %s", exp.what());
+		show_help(desc);
+		return 1;
+	}
+	catch(...) {
+		log_error("ERROR");
 		return 1;
 	}
 	log_info("finish and exit");
