@@ -171,11 +171,24 @@ void CFileLogger::flush()
 
 class CDebugLogger : public CLogger
 {
+	bool m_is_debug_mode;
 public:
+	CDebugLogger() 
+		: CLogger()
+		, m_is_debug_mode(false)
+	{
+#ifdef WIN32
+		m_is_debug_mode = IsDebuggerPresent() ? true : false;
+#endif
+	}
+
 	virtual void write(const char* record, size_t size)
 	{
 #ifdef WIN32
-		OutputDebugStringA(record);
+		if (m_is_debug_mode)
+			OutputDebugStringA(record);
+		else
+			printf(record);
 #else
 		printf(record);
 #endif
