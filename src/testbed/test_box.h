@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include "boost/filesystem.hpp"
 #include "test.h"
 #include "image.h"
 #include "spw_renderer.h"
@@ -15,10 +16,12 @@ public:
 	static CTest* create() {
 		return new CTestBox();
 	}
+
 	virtual void run() {
 		printf("draw box");
 		unsigned img_w = 960, img_h = 540;
-		std::string img_file = "box.png";
+		if(m_outfile.empty())
+			m_outfile = "box.png";
 		// create mesh
 		wyc::CMesh *mesh = new wyc::CMesh();
 		mesh->create_box(1);
@@ -53,23 +56,36 @@ public:
 		draw->material = mtl;
 		renderer->enqueue(draw);
 
-		auto draw2 = renderer->new_command<wyc::cmd_draw_mesh>();
-		draw2->mesh = mesh;
-		auto *mtl2 = new wyc::CMaterialFlatColor();
-		wyc::set_translate(mt, 0, 1, -6);
-		mvp = proj * mt * mrx * mry;
-		mtl2->set_uniform("mvp_matrix", mvp);
-		mtl2->set_uniform("color", Imath::C4f{ 1, 0, 0, 1 });
-		draw2->material = mtl2;
-		renderer->enqueue(draw2);
+		if (has_param("two")) {
+			std::string s;
+			Imath::C4f color_two;
+			if (get_param("color", s)) {
+				auto v = std::strtoul(s.c_str(), 0, 16);
+				color_two = { (v >> 24) / 255.0f, ((v >> 16) & 0xFF) / 255.0f, ((v >> 8) & 0xFF) / 255.0f, (v & 0xFF) / 255.0f };
+			}
+			else {
+				color_two = { 1, 0, 0, 1 };
+			}
+
+			auto draw2 = renderer->new_command<wyc::cmd_draw_mesh>();
+			draw2->mesh = mesh;
+			auto *mtl2 = new wyc::CMaterialFlatColor();
+			wyc::set_translate(mt, 0, 1, -6);
+			mvp = proj * mt * mrx * mry;
+			mtl2->set_uniform("mvp_matrix", mvp);
+			mtl2->set_uniform("color", color_two);
+			draw2->material = mtl2;
+			renderer->enqueue(draw2);
+		}
 
 		TIMER_BEG(1)
 		renderer->process();
 		TIMER_END
 		wyc::CSpwMetric::singleton()->report();
+
 		auto &buffer = render_target->get_color_buffer();
 		wyc::CImage image(buffer.get_buffer(), buffer.row_length(), buffer.row(), buffer.pitch());
-		if (!image.save(img_file))
+		if (!image.save(m_outfile))
 		{
 			log_error("Failed to save image file");
 		}

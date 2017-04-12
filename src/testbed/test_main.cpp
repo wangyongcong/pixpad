@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
 		("help", "show help message")
 		("name", po::value<std::string>(), "test to execute")
 		("out,o", po::value<std::string>(), "output file path")
+		("param,p", po::value<std::vector<std::string>>(), "render params, e.g -p wireframe -p color=0xFFFFFFFF")
 		;
 	po::positional_options_description pos_desc;
 	pos_desc.add("name", 1);
@@ -50,18 +51,14 @@ int main(int argc, char *argv[])
 		}
 
 		const std::string &test_name = args_table["name"].as<std::string>();
-		std::string out_file;
-		if (args_table.count("out")) {
-			out_file = args_table["out"].as<std::string>();
-		}
 		auto it = cmd_lst.find(test_name.c_str());
 		if (it == cmd_lst.end()) {
 			log_error("invalid command: %s", test_name.c_str());
 			return 1;
 		}
-		log_info("running [%s]...", test_name.c_str());
+		log_info("running %s...", test_name.c_str());
 		CTest *test = it->second();
-		test->init();
+		test->init(args_table);
 		test->run();
 	}
 	catch (const po::error &exp) {
