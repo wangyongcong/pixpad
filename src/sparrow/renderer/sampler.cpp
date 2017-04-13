@@ -3,8 +3,8 @@
 
 namespace wyc
 {
-	CSpwSampler::CSpwSampler()
-		: m_image(nullptr)
+	CSpwSampler::CSpwSampler(const CImage *image)
+		: m_image(image)
 	{
 	}
 

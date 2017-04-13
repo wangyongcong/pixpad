@@ -15,7 +15,7 @@ namespace wyc
 	class CSpwSampler : public CSampler
 	{
 	public:
-		CSpwSampler();
+		CSpwSampler(const CImage *image);
 		virtual ~CSpwSampler();
 		virtual void sample2d(const Imath::V2f &uv, Imath::C4f &color) override;
 
