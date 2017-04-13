@@ -242,14 +242,14 @@ namespace wyc
 		m_vb.set_attribute(ATTR_POSITION, 3);
 		bool has_uv = vi.y != null_index, has_normal = vi.z != null_index;
 		if (has_uv) 
-			m_vb.set_attribute(ATTR_TEXTURE, 2);
+			m_vb.set_attribute(ATTR_UV0, 2);
 		if (has_normal)
 			m_vb.set_attribute(ATTR_NORMAL, 3);
 		// alloc buffer
 		m_vb.resize(faces.size());
 		// copy data
 		auto pos = m_vb.get_attribute(ATTR_POSITION).begin();
-		auto uv = m_vb.get_attribute(ATTR_TEXTURE).begin();
+		auto uv = m_vb.get_attribute(ATTR_UV0).begin();
 		auto normal = m_vb.get_attribute(ATTR_NORMAL).begin();
 		int i = 0;
 		for (const Imath::V3i &index : faces)

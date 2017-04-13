@@ -7,7 +7,7 @@
 #include "mesh.h"
 #include "vecmath.h"
 #include "spw_pipeline_wireframe.h"
-#include "mtl_flat_color.h"
+#include "mtl_color.h"
 #include "metric.h"
 
 class CTestBox : public CTest
@@ -18,7 +18,6 @@ public:
 	}
 
 	virtual void run() {
-		printf("draw box");
 		unsigned img_w = 960, img_h = 540;
 		if(m_outfile.empty())
 			m_outfile = "box.png";
@@ -48,7 +47,7 @@ public:
 
 		auto draw = renderer->new_command<wyc::cmd_draw_mesh>();
 		draw->mesh = mesh;
-		auto *mtl = new wyc::CMaterialFlatColor();
+		auto *mtl = new wyc::CMaterialColor();
 		wyc::set_translate(mt, 0, 0, -5);
 		mvp = proj * mt * mrx * mry;
 		mtl->set_uniform("mvp_matrix", mvp);
@@ -69,7 +68,7 @@ public:
 
 			auto draw2 = renderer->new_command<wyc::cmd_draw_mesh>();
 			draw2->mesh = mesh;
-			auto *mtl2 = new wyc::CMaterialFlatColor();
+			auto *mtl2 = new wyc::CMaterialColor();
 			wyc::set_translate(mt, 0, 1, -6);
 			mvp = proj * mt * mrx * mry;
 			mtl2->set_uniform("mvp_matrix", mvp);

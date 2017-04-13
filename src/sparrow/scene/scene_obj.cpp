@@ -1,5 +1,5 @@
 #include "scene_obj.h"
-#include "mtl_flat_color.h"
+#include "mtl_color.h"
 
 namespace wyc
 {

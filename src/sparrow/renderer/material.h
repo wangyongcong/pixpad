@@ -6,6 +6,7 @@
 #include <OpenEXR/ImathMatrix.h>
 #include "mathfwd.h"
 #include "vertex_buffer.h"
+#include "vertex_layout.h"
 #include "log.h"
 
 namespace wyc

@@ -3,7 +3,7 @@
 #include "scene.h"
 #include "spw_renderer.h"
 #include "image.h"
-#include "mtl_flat_color.h"
+#include "mtl_color.h"
 #include "spw_pipeline_wireframe.h"
 
 

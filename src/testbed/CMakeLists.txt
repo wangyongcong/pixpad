@@ -1,5 +1,6 @@
 set(SRC_TESTBED
 	"test_main.cpp"
+	"test_texture.h"
 	"test_box.h"
 	"test_collada.h"
 	"test_line.h"
@@ -17,4 +18,5 @@ target_link_libraries(testbed
 	${PNG_LIBS}
 	${OPENEXR_LIBS}
 	${Boost_PROGRAM_OPTIONS_LIBRARY}
+	${Boost_SYSTEM_LIBRARY}
 )

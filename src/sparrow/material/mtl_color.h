@@ -1,9 +1,7 @@
 #pragma once
-#include <OpenEXR/ImathMatrix.h>
-#include "vertex_layout.h"
-#include "material.h"
+#include "OpenEXR/ImathMatrix.h"
 #include "ImathMatrixExt.h"
-#include <tuple>
+#include "material.h"
 
 namespace wyc
 {
@@ -18,7 +16,7 @@ namespace wyc
 		typedef Imath::V3f vertex_t;
 	};
 
-	class CMaterialFlatColor : public CMaterial
+	class CMaterialColor : public CMaterial
 	{
 		INPUT_ATTRIBUTE_LIST
 			ATTRIBUTE_SLOT(ATTR_POSITION, 3)
@@ -34,8 +32,8 @@ namespace wyc
 		UNIFORM_MAP_END
 
 	public:
-		CMaterialFlatColor() 
-			: CMaterial("FlatColor")
+		CMaterialColor()
+			: CMaterial("Color")
 		{
 			mvp_matrix.makeIdentity();
 			color.setValue(1.0f, 1.0f, 1.0f, 1.0f);

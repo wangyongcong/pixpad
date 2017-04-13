@@ -11,7 +11,8 @@ set(SRC_COMMON
 
 set(SRC_MATERIAL 
 	"material/mtl_collada.h"
-	"material/mtl_flat_color.h"
+	"material/mtl_color.h"
+	"material/mtl_diffuse.h"
 ) 
 
 set(SRC_MATHEX 
@@ -33,6 +34,8 @@ set(SRC_RENDERER
 	"renderer/material.h"
 	"renderer/mesh.cpp"
 	"renderer/mesh.h"
+	"renderer/sampler.h"
+	"renderer/sampler.cpp"
 	"renderer/metric.cpp"
 	"renderer/metric.h"
 	# "renderer/raster.cpp"
