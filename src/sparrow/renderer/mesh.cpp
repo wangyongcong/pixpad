@@ -362,6 +362,10 @@ namespace wyc
 		}
 	}
 
+	void CMesh::create_uv_box(float r)
+	{
+	}
+
 	void CMesh::create_sphere(float r)
 	{
 	}

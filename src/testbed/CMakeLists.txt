@@ -1,9 +1,11 @@
 set(SRC_TESTBED
 	"test_main.cpp"
-	"test_texture.h"
-	"test_box.h"
-	"test_collada.h"
+	"test.h"
+	"test.cpp"
 	"test_line.h"
+	"test_collada.h"
+	"test_box.h"
+	"test_texture.h"
 )
 
 add_executable("testbed" ${SRC_TESTBED})

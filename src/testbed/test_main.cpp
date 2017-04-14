@@ -5,6 +5,7 @@
 #include "log.h"
 #include "test_line.h"
 #include "test_box.h"
+#include "test_texture.h"
 
 namespace po = boost::program_options;
 
@@ -12,6 +13,7 @@ std::unordered_map<std::string, std::function<CTest*()>> cmd_lst =
 {
 	{"line", &CTestLine::create},
 	{"box", &CTestBox::create},
+	{"texture", &CTestTexture::create},
 };
 
 inline void show_help(const po::options_description &desc)
@@ -31,6 +33,8 @@ int main(int argc, char *argv[])
 		("name", po::value<std::string>(), "test to execute")
 		("out,o", po::value<std::string>(), "output file path")
 		("param,p", po::value<std::vector<std::string>>(), "render params, e.g -p wireframe -p color=0xFFFFFFFF")
+		("width,w", po::value<unsigned>()->default_value(960), "image width")
+		("height,h", po::value<unsigned>()->default_value(540), "image height")
 		;
 	po::positional_options_description pos_desc;
 	pos_desc.add("name", 1);
