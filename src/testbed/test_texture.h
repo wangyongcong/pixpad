@@ -36,10 +36,11 @@ public:
 		wyc::set_translate(mt, 0, 0, -5);
 		mvp = proj * mt * mrx * mry;
 		mtl->set_uniform("mvp_matrix", mvp);
-		mtl->set_uniform("diffuse", sampler);
+		mtl->set_uniform("diffuse", (wyc::CSampler*)sampler.get());
 		draw->material = mtl;
 		m_renderer->enqueue(draw);
 
+		m_renderer->process();
 		save_image("textured_box.png");
 
 	}

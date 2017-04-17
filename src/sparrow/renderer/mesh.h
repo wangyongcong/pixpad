@@ -21,6 +21,8 @@ namespace wyc
 		~CMesh();
 		template<typename Vertex>
 		void set_vertices(std::initializer_list<Vertex>&& verts);
+		template<typename Vertex>
+		void set_vertices(const VertexAttrib *attrib_array, unsigned attrib_count, const Vertex* vertices, unsigned vertex_count);
 		size_t vertex_count() const;
 		CVertexBuffer& vertex_buffer();
 		const CVertexBuffer& vertex_buffer() const;
@@ -68,6 +70,21 @@ namespace wyc
 		{
 			*out = v;
 			++out;
+		}
+	}
+
+	template<typename Vertex>
+	inline void CMesh::set_vertices(const VertexAttrib * attrib_array, unsigned attrib_count, const Vertex * vertices, unsigned vertex_count)
+	{
+		m_vb.clear();
+		for (auto i = 0u; i < attrib_count; ++i) {
+			auto &attrib = attrib_array[i];
+			m_vb.set_attribute(attrib.usage, attrib.component);
+		}
+		m_vb.resize(vertex_count);
+		auto out = m_vb.begin();
+		for (auto i = 0u; i < vertex_count; ++i, ++out) {
+			*out = vertices[i];
 		}
 	}
 

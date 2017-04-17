@@ -15,14 +15,16 @@ namespace wyc
 	void CSpwSampler::sample2d(const Imath::V2f & uv, Imath::C4f & color)
 	{
 		float u, v, s, t;
-		u = uv.x * (m_image->width() - 1);
-		v = uv.y * (m_image->height() - 1);
+		auto img_w = m_image->width();
+		auto img_h = m_image->height();
+		u = uv.x * (img_w - 1);
+		v = uv.y * (img_h - 1);
 
 		int x0, y0, x1, y1;
-		x0 = fast_floor(u);
-		y0 = fast_floor(v);
-		x1 = fast_ceil(u);
-		y1 = fast_ceil(v);
+		x0 = fast_floor(u) % img_w;
+		y0 = fast_floor(v) % img_h;
+		x1 = fast_ceil(u) % img_w;
+		y1 = fast_ceil(v) % img_h;
 
 		Imath::C4f c1, c2, c3, c4;
 		c1 = m_image->get_color(x0, y0);

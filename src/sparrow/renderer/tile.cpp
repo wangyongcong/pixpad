@@ -39,7 +39,8 @@ namespace wyc
 		//for(float *out = m_fragment_input.data(), *end = out + m_fragment_input.size(); out < end; ++out)
 		for(auto &out: m_fragment_input)
 		{
-			out = *i0 * w1 + *i1 * w2 + *i2 * w3;
+			float inv_z = m_inv_z0 * w1 + m_inv_z1 * w2 + m_inv_z2 * w3;
+			out = (*i0 * m_inv_z0 * w1 + *i1 * m_inv_z1 * w2 + *i2 * m_inv_z2 * w3) / inv_z;
 			i0 += 1;
 			i1 += 1;
 			i2 += 1;
