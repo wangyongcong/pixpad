@@ -19,7 +19,7 @@ namespace wyc
 
 	CMesh::~CMesh()
 	{
-		
+
 	}
 
 	bool CMesh::load_obj(const std::wstring & w_file_path)
@@ -51,7 +51,7 @@ namespace wyc
 		constexpr int null_index = std::numeric_limits<int>::max();
 		int err = 0;
 
-		auto read_vector3 = [&ss] (std::vector<Imath::V3f> &pool) {
+		auto read_vector3 = [&ss](std::vector<Imath::V3f> &pool) {
 			Imath::V3f vec = { 0, 0, 0 };
 			int i = 0;
 			while (ss && i < 3)
@@ -71,7 +71,7 @@ namespace wyc
 			pool.push_back(vec);
 		};
 
-		auto read_face = [&ss, &token, &faces, null_index] () {
+		auto read_face = [&ss, &token, &faces, null_index]() {
 			std::string str;
 			std::istringstream tmp;
 			int vert_cnt = 0;
@@ -241,7 +241,7 @@ namespace wyc
 		m_vb.clear();
 		m_vb.set_attribute(ATTR_POSITION, 3);
 		bool has_uv = vi.y != null_index, has_normal = vi.z != null_index;
-		if (has_uv) 
+		if (has_uv)
 			m_vb.set_attribute(ATTR_UV0, 2);
 		if (has_normal)
 			m_vb.set_attribute(ATTR_NORMAL, 3);
@@ -256,7 +256,7 @@ namespace wyc
 		{
 			if (index.x <= 0)
 				i = index.x + vertices.size();
-			else 
+			else
 				i -= 1;
 			*pos++ = vertices[i];
 			if (has_uv) {
@@ -279,8 +279,16 @@ namespace wyc
 
 	void CMesh::create_triangle(float r)
 	{
+		struct Vertex {
+			Imath::V3f pos;
+			Imath::C3f color;
+		};
+		VertexAttrib attrib_array[] = {
+			{ATTR_POSITION, 3, offsetof(Vertex, pos)},
+			{ATTR_COLOR, 3, offsetof(Vertex, color)},
+		};
 		const float sin30 = 0.5f, cos30 = 0.866f;
-		set_vertices<VertexP3C3>({
+		Vertex vertices[] = {
 			{
 				{ 0, r, 0 },
 				{ 1.0f, 0, 0 },
@@ -293,12 +301,21 @@ namespace wyc
 				{ r * cos30, -r * sin30, 0 },
 				{ 0, 0, 1.0f },
 			},
-		});
+		};
+		set_vertices(attrib_array, 2, vertices, 3);
 	}
 
 	void CMesh::create_quad(float r)
 	{
-		set_vertices<VertexP3C3>({
+		struct Vertex {
+			Imath::V3f pos;
+			Imath::C3f color;
+		};
+		VertexAttrib attrib_array[] = {
+			{ ATTR_POSITION, 3, offsetof(Vertex, pos) },
+			{ ATTR_COLOR, 3, offsetof(Vertex, color) },
+		};
+		Vertex vertices[] = {
 			{
 				{ -r, -r, 0 },
 				{ 0, 1, 1 },
@@ -323,18 +340,35 @@ namespace wyc
 				{ -r, r, 0 },
 				{ 0, 0, 0 },
 			},
-		});
+		};
+		set_vertices(attrib_array, 2, vertices, 3);
 	}
 
 	void CMesh::create_box(float r)
 	{
-		Imath::V3f verts[] = {
-			// front face
-			{ -r, -r,  r }, { r, -r,  r }, { r, r,  r }, { -r, r,  r },
-			// back face
-			{ -r, -r, -r }, { r, -r, -r }, { r, r, -r }, { -r, r, -r }
+		struct Vertex {
+			Imath::V3f pos;
+			Imath::C3f color;
 		};
-		m_ib = {
+		VertexAttrib attrib_array[] = {
+			{ ATTR_POSITION, 3, offsetof(Vertex, pos) },
+			{ ATTR_COLOR, 3, offsetof(Vertex, color) },
+		};
+
+		Vertex vertices[] = {
+			// front face
+			{ { -r, -r,  r },{ 1, 1, 1 } },
+			{ { r, -r,  r },{ 1, 1, 1 } },
+			{ { r, r,  r },{ 1, 1, 1 } },
+			{ { -r, r,  r },{ 1, 1, 1 } },
+			// back face
+			{ { -r, -r, -r },{ 1, 1, 1 } },
+			{ { r, -r, -r },{ 1, 1, 1 } },
+			{ { r, r, -r },{ 1, 1, 1 } },
+			{ { -r, r, -r },{ 1, 1, 1 } }
+		};
+		set_vertices(attrib_array, 2, vertices, 8);
+		set_indices({
 			// front face
 			0, 1, 2, 0, 2, 3,
 			// right face
@@ -347,19 +381,7 @@ namespace wyc
 			3, 2, 7, 2, 6, 7,
 			// bottom face
 			4, 5, 0, 5, 1, 0,
-		};
-		m_vb.clear();
-		m_vb.set_attribute(ATTR_POSITION, 3);
-		m_vb.set_attribute(ATTR_COLOR, 3);
-		m_vb.resize(8);
-		auto pos = m_vb.get_attribute(ATTR_POSITION).begin();
-		auto color = m_vb.get_attribute(ATTR_COLOR).begin();
-		Imath::V3f c = { 1, 1, 1 };
-		for (int i = 0; i < 8; ++i, ++pos, ++color)
-		{
-			*pos = verts[i];
-			*color = c;
-		}
+		});
 	}
 
 	void CMesh::create_uv_box(float r)
@@ -370,11 +392,11 @@ namespace wyc
 			Imath::V2f uv;
 		};
 		VertexAttrib attrib_array[] = {
-			VertexAttrib{ATTR_POSITION, 3, offsetof(Vertex, pos)},
-			VertexAttrib{ATTR_COLOR, 4, offsetof(Vertex, color)},
-			VertexAttrib{ATTR_UV0, 2, offsetof(Vertex, color)},
+			{ATTR_POSITION, 3, offsetof(Vertex, pos)},
+			{ATTR_COLOR, 4, offsetof(Vertex, color)},
+			{ATTR_UV0, 2, offsetof(Vertex, color)},
 		};
-		Vertex verts[16] = {
+		Vertex vertices[16] = {
 			{ { -r, -r, -r },{ 1, 1, 1, 1 },{ 0, 0 } },
 			{ { -r,  r, -r },{ 1, 1, 1, 1 },{ 0, 1 } },
 			{ { -r, -r,  r },{ 1, 1, 1, 1 },{ 1, 0 } },
@@ -393,15 +415,15 @@ namespace wyc
 			{ { -r, -r,  r },{ 1, 1, 1, 1 },{ 1, 0 } },
 			{ {  r, -r,  r },{ 1, 1, 1, 1 },{ 1, 1 } },
 		};
-		set_vertices(attrib_array, 3, verts, 16);
-		m_ib = {
+		set_vertices(attrib_array, 3, vertices, 16);
+		set_indices({
 			0, 2, 3, 0, 3, 1,
 			2, 4, 5, 2, 5, 3,
 			4, 6, 7, 4, 7, 5,
 			8, 9, 11, 8, 11, 10,
 			13, 12, 10, 13, 10, 11,
 			15, 14, 12, 15, 12, 13,
-		};
+		});
 	}
 
 	void CMesh::create_sphere(float r)

@@ -1,6 +1,6 @@
 pixpad
 ======
-An experimental software renderer.
+Computer graphic experiment framework.
 
 Build
 =====
@@ -15,18 +15,16 @@ Use CMake (at least 3.3) to configure the build.
 
 Feature
 ====
-- Sparrow: multi-thread software renderer.
+- Sparrow: multi-threading software renderer for CG experiment.
+	- Command based renderer with easily extended command set. Send command from one thread, render in another thread. 
+	- Programmable pipeline with multi-threading support. All processings are run in parallel to speed up.
+	- Flexible material system. It's very easy to write your own vertex/fragment shader. 
+	- Basic render features, such as depth test, texture mapping, etc. More are coming.
 
 Roadmap
 ====
 
-- ~~Parallel vertex/fragment processing~~
-- ~~Tile based rasterization~~
-- ~~Testing framewrok~~
-- ~~Depth test~~
-- ~~Move to CMake~~
-- ~~Bilinear sampler~~
 - Mipmap & trilinear sampler
 - Tile based memory layout
-- Metrics with threading
-- more...
+- Improved metrics
+- more are coming...

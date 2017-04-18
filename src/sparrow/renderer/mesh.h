@@ -20,17 +20,15 @@ namespace wyc
 		CMesh& operator = (const CMesh& rhs) = delete;
 		~CMesh();
 		template<typename Vertex>
-		void set_vertices(std::initializer_list<Vertex>&& verts);
-		template<typename Vertex>
 		void set_vertices(const VertexAttrib *attrib_array, unsigned attrib_count, const Vertex* vertices, unsigned vertex_count);
 		size_t vertex_count() const;
 		CVertexBuffer& vertex_buffer();
 		const CVertexBuffer& vertex_buffer() const;
+		void set_indices(std::initializer_list<unsigned>&& indices);
 		CIndexBuffer& index_buffer();
 		const CIndexBuffer& index_buffer() const;
-		inline bool has_index() const {
-			return m_ib.size() > 0;
-		}
+		bool has_index() const;
+
 		// load from .obj file
 		bool load_obj(const std::wstring &filepath);
 
@@ -46,32 +44,6 @@ namespace wyc
 		CIndexBuffer m_ib;
 		Matrix44f m_transform;
 	};
-
-	template<typename Vertex>
-	inline void CMesh::set_vertices(std::initializer_list<Vertex>&& verts)
-	{
-		using layout_t = Vertex::Layout;
-		using vertex_t = Vertex;
-
-		m_vb.clear();
-
-		if (!layout_t::attr_count || !verts.size())
-		{
-			return;
-		}
-		for (auto &attr : layout_t::attr_table)
-		{
-			m_vb.set_attribute(attr.usage, attr.component);
-		}
-		m_vb.resize(verts.size());
-		assert(m_vb.vertex_size() == sizeof(vertex_t));
-		auto out = m_vb.begin();
-		for (auto &v : verts)
-		{
-			*out = v;
-			++out;
-		}
-	}
 
 	template<typename Vertex>
 	inline void CMesh::set_vertices(const VertexAttrib * attrib_array, unsigned attrib_count, const Vertex * vertices, unsigned vertex_count)
@@ -103,6 +75,11 @@ namespace wyc
 		return m_vb;
 	}
 
+	inline void CMesh::set_indices(std::initializer_list<unsigned>&& indices)
+	{
+		m_ib = indices;
+	}
+
 	inline CIndexBuffer & CMesh::index_buffer()
 	{
 		return m_ib;
@@ -111,6 +88,11 @@ namespace wyc
 	inline const CIndexBuffer & CMesh::index_buffer() const
 	{
 		return m_ib;
+	}
+
+	inline bool CMesh::has_index() const
+	{
+		return !m_ib.empty();
 	}
 
 } // namespace wyc

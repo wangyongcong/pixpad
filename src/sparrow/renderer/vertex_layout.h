@@ -28,41 +28,4 @@ namespace wyc
 		uint16_t offset;
 	};
 
-#define VERTEX_LAYOUT(comp, pos, attr)	struct Layout {\
-	public:\
-		static const unsigned component = comp;\
-		static const unsigned offset_pos = pos;\
-		static const unsigned attr_count = attr;\
-		static const VertexAttrib attr_table[attr];\
-	};
-
-	struct VertexP3C3
-	{
-		Imath::V3f pos;
-		Imath::C3f color;
-		VERTEX_LAYOUT(6, 0, 2)
-	};
-
-	struct VertexP4C3
-	{
-		Imath::V4f pos;
-		Imath::C3f color;
-		VERTEX_LAYOUT(7, 0, 2)
-	};
-
-	struct VertexP3Tex2N3
-	{
-		Imath::V3f pos;
-		Imath::V2f uv;
-		Imath::V3f normal;
-		VERTEX_LAYOUT(8, 0, 3)
-	};
-
-	struct VertexTex2N3
-	{
-		Imath::V2f uv;
-		Imath::V3f normal;
-		VERTEX_LAYOUT(5, 0, 2)
-	};
-
 } // namespace wyc
