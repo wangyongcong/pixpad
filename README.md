@@ -24,7 +24,13 @@ Feature
 Roadmap
 ====
 
-- Mipmap & trilinear sampler
-- Tile based memory layout
-- Improved metrics
+- mipmap & trilinear sampler
+- anitaliasing
+- improved metrics
+- tile based memory layout
 - more are coming...
+
+Gallery
+====
+<img alt="depth test" src="gallery/depth_test.png" width=336 height=189>
+<img alt="textured box" src="gallery/textured_box.png" width=336 height=189>
