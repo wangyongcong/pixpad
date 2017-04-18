@@ -24,6 +24,9 @@ namespace wyc
 			m_v0 = v0;
 			m_v1 = v1;
 			m_v2 = v2;
+			m_inv_z0 = 1 / v0[3];
+			m_inv_z1 = 1 / v1[3];
+			m_inv_z2 = 1 / v2[3];
 		}
 		// clear the tile
 		void clear(const Imath::C3f &c);
@@ -36,6 +39,7 @@ namespace wyc
 		CSpwRenderTarget *m_rt;
 		const CMaterial *m_material;
 		const float *m_v0, *m_v1, *m_v2;
+		float m_inv_z0, m_inv_z1, m_inv_z2;
 		std::vector<float> m_fragment_input;
 		int m_transform_y;
 	};

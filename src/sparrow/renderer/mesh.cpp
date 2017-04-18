@@ -364,6 +364,44 @@ namespace wyc
 
 	void CMesh::create_uv_box(float r)
 	{
+		struct Vertex {
+			Imath::V3f pos;
+			Imath::C4f color;
+			Imath::V2f uv;
+		};
+		VertexAttrib attrib_array[] = {
+			VertexAttrib{ATTR_POSITION, 3, offsetof(Vertex, pos)},
+			VertexAttrib{ATTR_COLOR, 4, offsetof(Vertex, color)},
+			VertexAttrib{ATTR_UV0, 2, offsetof(Vertex, color)},
+		};
+		Vertex verts[16] = {
+			{ { -r, -r, -r },{ 1, 1, 1, 1 },{ 0, 0 } },
+			{ { -r,  r, -r },{ 1, 1, 1, 1 },{ 0, 1 } },
+			{ { -r, -r,  r },{ 1, 1, 1, 1 },{ 1, 0 } },
+			{ { -r,  r,  r },{ 1, 1, 1, 1 },{ 1, 1 } },
+			{ {  r, -r,  r },{ 1, 1, 1, 1 },{ 0, 0 } },
+			{ {  r,  r,  r },{ 1, 1, 1, 1 },{ 0, 1 } },
+			{ {  r, -r, -r },{ 1, 1, 1, 1 },{ 1, 0 } },
+			{ {  r,  r, -r },{ 1, 1, 1, 1 },{ 1, 1 } },
+
+			{ { -r,  r,  r },{ 1, 1, 1, 1 },{ 0, 0 } },
+			{ {  r,  r,  r },{ 1, 1, 1, 1 },{ 0, 1 } },
+			{ { -r,  r, -r },{ 1, 1, 1, 1 },{ 1, 0 } },
+			{ {  r,  r, -r },{ 1, 1, 1, 1 },{ 1, 1 } },
+			{ { -r, -r, -r },{ 1, 1, 1, 1 },{ 0, 0 } },
+			{ {  r, -r, -r },{ 1, 1, 1, 1 },{ 0, 1 } },
+			{ { -r, -r,  r },{ 1, 1, 1, 1 },{ 1, 0 } },
+			{ {  r, -r,  r },{ 1, 1, 1, 1 },{ 1, 1 } },
+		};
+		set_vertices(attrib_array, 3, verts, 16);
+		m_ib = {
+			0, 2, 3, 0, 3, 1,
+			2, 4, 5, 2, 5, 3,
+			4, 6, 7, 4, 7, 5,
+			8, 9, 11, 8, 11, 10,
+			13, 12, 10, 13, 10, 11,
+			15, 14, 12, 15, 12, 13,
+		};
 	}
 
 	void CMesh::create_sphere(float r)
