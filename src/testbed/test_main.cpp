@@ -6,6 +6,7 @@
 #include "test_line.h"
 #include "test_box.h"
 #include "test_texture.h"
+#include "test_mipmap.h"
 
 namespace po = boost::program_options;
 
@@ -14,6 +15,7 @@ std::unordered_map<std::string, std::function<CTest*()>> cmd_lst =
 	{"line", &CTestLine::create},
 	{"box", &CTestBox::create},
 	{"texture", &CTestTexture::create},
+	{"mipmap", &CTestMipmap::create},
 };
 
 inline void show_help(const po::options_description &desc)

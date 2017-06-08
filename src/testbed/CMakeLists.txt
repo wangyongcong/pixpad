@@ -6,6 +6,7 @@ set(SRC_TESTBED
 	"test_collada.h"
 	"test_box.h"
 	"test_texture.h"
+	"test_mipmap.h"
 )
 
 add_executable("testbed" ${SRC_TESTBED})

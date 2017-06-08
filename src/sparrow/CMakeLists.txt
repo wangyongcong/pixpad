@@ -65,7 +65,6 @@ set(SRC_RENDERER
 	"renderer/tile.h"
 	"renderer/vertex_buffer.cpp"
 	"renderer/vertex_buffer.h"
-	"renderer/vertex_layout.cpp"
 	"renderer/vertex_layout.h"
 ) 
 set(SRC_THREAD 

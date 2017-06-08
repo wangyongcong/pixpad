@@ -14,7 +14,7 @@ public:
 
 	virtual void run() {
 		// create mesh
-		wyc::CMesh *mesh = new wyc::CMesh();
+		auto mesh = std::make_shared<wyc::CMesh>();
 		mesh->create_uv_box(1);
 		// setup transform
 		Imath::M44f proj;
@@ -31,13 +31,13 @@ public:
 		auto sampler = std::make_shared<wyc::CSpwSampler>(diffuse_img.get());
 
 		auto draw = m_renderer->new_command<wyc::cmd_draw_mesh>();
-		draw->mesh = mesh;
-		auto *mtl = new wyc::CMaterialDiffuse();
+		draw->mesh = mesh.get();
+		auto mtl = std::make_shared<wyc::CMaterialDiffuse>();
 		wyc::set_translate(mt, 0, 0, -5);
 		mvp = proj * mt * mrx * mry;
 		mtl->set_uniform("mvp_matrix", mvp);
 		mtl->set_uniform("diffuse", (wyc::CSampler*)sampler.get());
-		draw->material = mtl;
+		draw->material = mtl.get();
 		m_renderer->enqueue(draw);
 
 		m_renderer->process();
