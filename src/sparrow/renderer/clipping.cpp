@@ -263,28 +263,27 @@ namespace wyc
 	{
 		constexpr float w_epsilon = 0.0001f;
 		// pos = {x, y, z, w}
-		float *pos, *prev_pos;
 		float pdot, dot;
+		unsigned prev_i;
 		if (!indices_out.empty())
 			indices_out.clear();
 
 		// clipped by W=0
-		prev_pos = &vertices[indices_in.back()];
-		pdot = prev_pos[3] - w_epsilon;
+		prev_i = indices_in.back();
+		pdot = vertices[prev_i + 3] - w_epsilon;
 		for (auto i : indices_in)
 		{
-			pos = &vertices[i];
-			dot = pos[3] - w_epsilon;
+			dot = vertices[i + 3] - w_epsilon;
 			if (pdot * dot < 0) {
 				unsigned j = vertices.size();
 				vertices.resize(j + stride);
-				intersect(prev_pos, pdot, pos, dot, stride, &vertices[j]);
+				intersect(&vertices[prev_i], pdot, &vertices[i], dot, stride, &vertices[j]);
 				indices_out.push_back(j);
 			}
 			if (dot >= 0) {
 				indices_out.push_back(i);
 			}
-			prev_pos = pos;
+			prev_i = i;
 			pdot = dot;
 		}
 		if (indices_out.empty())
@@ -295,21 +294,20 @@ namespace wyc
 		{
 			indices_in.swap(indices_out);
 			indices_out.clear();
-			prev_pos = &vertices[indices_in.back()];
-			pdot = prev_pos[3] - prev_pos[k];
+			prev_i = indices_in.back();
+			pdot = vertices[prev_i + 3] - vertices[prev_i + k];
 			for (auto i : indices_in) {
-				pos = &vertices[i];
-				dot = pos[3] - pos[k];
+				dot = vertices[i + 3] - vertices[i + k];
 				if (pdot * dot < 0) {
 					unsigned j = vertices.size();
 					vertices.resize(j + stride);
-					intersect(prev_pos, pdot, pos, dot, stride, &vertices[j]);
+					intersect(&vertices[prev_i], pdot, &vertices[i], dot, stride, &vertices[j]);
 					indices_out.push_back(j);
 				}
 				if (dot >= 0) {
 					indices_out.push_back(i);
 				}
-				prev_pos = pos;
+				prev_i = i;
 				pdot = dot;
 			}
 			if (indices_out.empty())
@@ -321,21 +319,20 @@ namespace wyc
 		{
 			indices_in.swap(indices_out);
 			indices_out.clear();
-			prev_pos = &vertices[indices_in.back()];
-			pdot = prev_pos[3] + prev_pos[k];
+			prev_i = indices_in.back();
+			pdot = vertices[prev_i + 3] + vertices[prev_i + k];
 			for (auto i : indices_in) {
-				pos = &vertices[i];
-				dot = pos[3] + pos[k];
+				dot = vertices[i + 3] + vertices[i + k];
 				if (pdot * dot < 0) {
 					unsigned j = vertices.size();
 					vertices.resize(j + stride);
-					intersect(prev_pos, pdot, pos, dot, stride, &vertices[j]);
+					intersect(&vertices[prev_i], pdot, &vertices[i], dot, stride, &vertices[j]);
 					indices_out.push_back(j);
 				}
 				if (dot >= 0) {
 					indices_out.push_back(i);
 				}
-				prev_pos = pos;
+				prev_i = i;
 				pdot = dot;
 			}
 			if (indices_out.empty())
