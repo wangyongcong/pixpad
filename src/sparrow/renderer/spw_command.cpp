@@ -41,7 +41,7 @@ namespace wyc
 		surf.clear(v);
 		if (renderer->m_rt->has_depth()) {
 			CSurface &depth = renderer->m_rt->get_depth_buffer();
-			depth.clear<float>(1);
+			depth.clear<float>(cmd->clear_z);
 		}
 	}
 

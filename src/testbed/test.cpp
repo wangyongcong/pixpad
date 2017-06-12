@@ -45,7 +45,6 @@ void CTest::setup_renderer(unsigned img_w, unsigned img_h)
 	m_renderer->set_pipeline(pipeline);
 	// clear
 	auto clr = m_renderer->new_command<wyc::cmd_clear>();
-	clr->color = { 0.0f, 0.0f, 0.0f };
 	m_renderer->enqueue(clr);
 }
 

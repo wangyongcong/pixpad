@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #include <string>
 #include <OpenEXR/ImathColorAlgo.h>
 
@@ -15,6 +16,7 @@ namespace wyc
 		CImage& operator = (const CImage&) = delete;
 		CImage(CImage &&other);
 		CImage& operator = (CImage&& other);
+		void clear();
 		bool load(const std::wstring &file_name);
 		bool save(const std::wstring &file_name);
 		bool load(const std::string &file_name);
@@ -26,12 +28,14 @@ namespace wyc
 			return m_height;
 		}
 		inline Imath::C4f get_color(int x, int y) const {
-			uint32_t *pixels = reinterpret_cast<uint32_t*>(m_data);
-			Imath::PackedColor packed = pixels[y * m_width + x];
+			assert(x < int(m_width) && y < int(m_height));
 			Imath::C4f color;
-			Imath::packed2rgb(packed, color);
+			auto row = reinterpret_cast<uint32_t*>(m_data + y * m_pitch);
+			Imath::packed2rgb(row[x], color);
 			return color;
 		}
+		// create checker board pattern image
+		void create_checkerboard(unsigned size, const Imath::C3f &color1, const Imath::C3f &color2);
 	private:
 		unsigned char* m_data;
 		unsigned m_width;

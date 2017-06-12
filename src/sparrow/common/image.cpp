@@ -52,6 +52,15 @@ namespace wyc
 		return *this;
 	}
 
+	void CImage::clear()
+	{
+		if (m_data) {
+			delete[] m_data;
+			m_data = nullptr;
+			m_width = m_height = m_pitch = 0;
+		}
+	}
+
 	bool CImage::load(const std::wstring &w_file_path)
 	{
 		std::string file_name;
@@ -79,6 +88,7 @@ namespace wyc
 			log_error("load_image: Unknown image format");
 			return false;
 		}
+		clear();
 		std::string ext = file_name.substr(pos + 1);
 		if (ext == "png")
 		{
@@ -102,6 +112,32 @@ namespace wyc
 		}
 		log_error("load_image: Unsupported image format [.%s]", ext);
 		return false;
+	}
+
+	void CImage::create_checkerboard(unsigned size, const Imath::C3f &color1, const Imath::C3f &color2)
+	{
+		clear();
+		size = wyc::next_power2(size);
+		m_width = m_height = size;
+		m_pitch = size * sizeof(uint32_t);
+		m_data = new unsigned char[m_pitch * size];
+		int half = size >> 1;
+		auto p1 = (uint32_t*)m_data;
+		auto p2 = p1 + half;
+		uint32_t c1 = Imath::rgb2packed(color1);
+		uint32_t c2 = Imath::rgb2packed(color2);
+		for (auto k = 0; k < 2; ++k) {
+			for (auto j = 0; j < half; ++j) {
+				for (auto i = 0; i < half; ++i) {
+					p1[i] = c1;
+					p2[i] = c2;
+				}
+				p1 += size;
+				p2 += size;
+			}
+			std::swap(c1, c2);
+		}
+
 	}
 
 	bool CImage::read_png(const std::string &file_name)

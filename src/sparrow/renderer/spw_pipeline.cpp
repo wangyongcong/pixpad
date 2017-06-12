@@ -33,6 +33,7 @@ namespace wyc
 		auto ncore = wyc::core_num();
 		if (MAX_CORE_NUM > 0 && ncore > MAX_CORE_NUM)
 			ncore = MAX_CORE_NUM;
+		ncore = 1;
 		if (ncore > 1) {
 			m_num_vertex_unit = ncore >> 1;
 			m_num_fragment_unit = ncore - m_num_vertex_unit;

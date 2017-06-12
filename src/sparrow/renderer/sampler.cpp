@@ -17,14 +17,19 @@ namespace wyc
 		float u, v, s, t;
 		auto img_w = m_image->width();
 		auto img_h = m_image->height();
-		u = uv.x * (img_w - 1);
-		v = uv.y * (img_h - 1);
+		u = uv.x * img_w;
+		v = uv.y * img_h;
 
 		int x0, y0, x1, y1;
-		x0 = fast_floor(u) % img_w;
-		y0 = fast_floor(v) % img_h;
-		x1 = fast_ceil(u) % img_w;
-		y1 = fast_ceil(v) % img_h;
+		x0 = fast_floor(u);
+		y0 = fast_floor(v);
+		u -= x0;
+		v -= y0;
+
+		x0 %= img_w;
+		y0 %= img_h;
+		x1 = (x0 + 1) % img_w;
+		y1 = (y0 + 1) % img_h;
 
 		Imath::C4f c1, c2, c3, c4;
 		c1 = m_image->get_color(x0, y0);
@@ -32,8 +37,6 @@ namespace wyc
 		c3 = m_image->get_color(x1, y1);
 		c4 = m_image->get_color(x0, y1);
 
-		u -= x0;
-		v -= y0;
 		s = 1 - u;
 		t = 1 - v;
 

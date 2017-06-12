@@ -93,7 +93,8 @@ namespace wyc
 	{
 		CMD_TID(CMD_CLEAR);
 		unsigned type = 0;
-		Imath::C3f color;
+		Imath::C3f color = { 0, 0, 0 };
+		float clear_z = 1;
 	};
 
 	RENDER_CMD(cmd_draw_mesh)
