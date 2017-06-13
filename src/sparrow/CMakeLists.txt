@@ -7,6 +7,9 @@ set(SRC_COMMON
 	"common/unitest.h"
 	"common/util.cpp"
 	"common/util.h"
+	"common/stb_image.h"
+	"common/stb_image_resize.h"
+	"common/stb_image_write.h"
 ) 
 
 set(SRC_MATERIAL 
