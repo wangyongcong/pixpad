@@ -22,7 +22,7 @@ public:
 		return it != m_params.end();
 	}
 	bool get_param(const std::string &name, std::string &value) const;
-	void setup_renderer(unsigned img_w, unsigned img_h);
+	void setup_renderer(unsigned img_w, unsigned img_h, unsigned max_core=0);
 	void save_image(const char *name);
 
 protected:

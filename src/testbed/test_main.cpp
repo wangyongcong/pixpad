@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
 		("param,p", po::value<std::vector<std::string>>(), "render params, e.g -p wireframe -p color=0xFFFFFFFF")
 		("width,w", po::value<unsigned>()->default_value(960), "image width")
 		("height,h", po::value<unsigned>()->default_value(540), "image height")
+		("core", po::value<unsigned>()->default_value(0), "number of CPU core")
 		;
 	po::positional_options_description pos_desc;
 	pos_desc.add("name", 1);

@@ -25,15 +25,14 @@ namespace wyc
 		m_rt = nullptr;
 	}
 
-	void CSpwPipeline::setup()
+	void CSpwPipeline::setup(unsigned max_core)
 	{
 		if (m_is_setup)
 			return;
 		m_is_setup = true;
 		auto ncore = wyc::core_num();
-		if (MAX_CORE_NUM > 0 && ncore > MAX_CORE_NUM)
-			ncore = MAX_CORE_NUM;
-		ncore = 1;
+		if (max_core > 0 && ncore > max_core)
+			ncore = max_core;
 		if (ncore > 1) {
 			m_num_vertex_unit = ncore >> 1;
 			m_num_fragment_unit = ncore - m_num_vertex_unit;

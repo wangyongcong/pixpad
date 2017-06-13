@@ -8,9 +8,10 @@ void CTest::init(const boost::program_options::variables_map &args) {
 	if (args.count("param")) {
 		m_params = args["param"].as<std::vector<std::string>>();
 	}
+	auto max_core = args["core"].as<unsigned>();
 	m_image_w = std::min<int>(2048, args["width"].as<unsigned>());
 	m_image_h = std::min<int>(2048, args["height"].as<unsigned>());
-	setup_renderer(m_image_w, m_image_h);
+	setup_renderer(m_image_w, m_image_h, max_core);
 }
 
 bool CTest::get_param(const std::string &name, std::string &value) const {
@@ -32,7 +33,7 @@ bool CTest::get_param(const std::string &name, std::string &value) const {
 	return false;
 }
 
-void CTest::setup_renderer(unsigned img_w, unsigned img_h)
+void CTest::setup_renderer(unsigned img_w, unsigned img_h, unsigned max_core)
 {
 	m_renderer = std::make_shared<wyc::CSpwRenderer>();
 	// create render target
@@ -41,7 +42,7 @@ void CTest::setup_renderer(unsigned img_w, unsigned img_h)
 	m_renderer->set_render_target(render_target);
 	// create pipeline
 	auto pipeline = std::make_shared<wyc::CSpwPipeline>();
-	pipeline->setup();
+	pipeline->setup(max_core);
 	m_renderer->set_pipeline(pipeline);
 	// clear
 	auto clr = m_renderer->new_command<wyc::cmd_clear>();

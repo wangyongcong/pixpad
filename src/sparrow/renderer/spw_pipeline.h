@@ -27,7 +27,7 @@ namespace wyc
 		virtual ~CSpwPipeline();
 		CSpwPipeline(const CSpwPipeline &other) = delete;
 		CSpwPipeline& operator = (const CSpwPipeline &other) = delete;
-		void setup();
+		void setup(unsigned max_core=MAX_CORE_NUM);
 		void set_render_target(std::shared_ptr<CSpwRenderTarget> rt);
 		virtual void feed(const CMesh *mesh, const CMaterial *material);
 		void set_viewport(const Imath::Box2i &view);

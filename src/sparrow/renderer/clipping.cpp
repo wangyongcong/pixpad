@@ -147,11 +147,14 @@ namespace wyc
 	void intersect(float *v1, float d1, float *v2, float d2, size_t stride, float *out)
 	{
 		float t = d1 / (d1 - d2);
-		if (d1 < 0)
-			t = fast_ceil(t * 1000) * 0.001f;
-		else
-			t = fast_floor(t * 1000) * 0.001f;
-		// v1 + (v2 - v1) * t;
+		/*
+		// adjust t to make sure the intersection point is inside clipping plane
+		if (d1 < 0) // go inside
+			t = fast_ceil(t * 10000) * 0.0001f;
+		else // // go outside
+			t = fast_floor(t * 10000) * 0.0001f;
+		*/
+		// interpolate: v1 + (v2 - v1) * t;
 		for (float *end = out + stride; out != end; ++out, ++v1, ++v2)
 		{
 			*out = (*v1) + (*v2 - *v1) * t;
