@@ -34,6 +34,8 @@ namespace wyc
 			Imath::packed2rgb(row[x], color);
 			return color;
 		}
+		// resize image and save to result
+		void resize(CImage &result, unsigned width, unsigned height);
 		// create checker board pattern image
 		void create_checkerboard(unsigned size, const Imath::C3f &color1, const Imath::C3f &color2);
 	private:

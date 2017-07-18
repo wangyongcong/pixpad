@@ -121,6 +121,10 @@ namespace wyc
 		return false;
 	}
 
+	void CImage::resize(CImage & result, unsigned width, unsigned height)
+	{
+	}
+
 	void CImage::create_checkerboard(unsigned size, const Imath::C3f &color1, const Imath::C3f &color2)
 	{
 		clear();
