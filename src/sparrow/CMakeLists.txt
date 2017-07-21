@@ -60,8 +60,6 @@ set(SRC_RENDERER
 	"renderer/spw_render_target.h"
 	"renderer/spw_renderer.cpp"
 	"renderer/spw_renderer.h"
-	"renderer/spw_texture.cpp"
-	"renderer/spw_texture.h"
 	"renderer/surface.cpp"
 	"renderer/surface.h"
 	"renderer/tile.cpp"

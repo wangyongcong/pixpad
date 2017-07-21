@@ -1,6 +1,8 @@
 #pragma once
 #include <cassert>
 #include <string>
+#include <vector>
+#include <memory>
 #include <OpenEXR/ImathColorAlgo.h>
 
 namespace wyc
@@ -34,10 +36,12 @@ namespace wyc
 			Imath::packed2rgb(row[x], color);
 			return color;
 		}
-		// resize image and save to result
-		void resize(CImage &result, unsigned width, unsigned height);
+		// create empty image
+		void create_empty(unsigned width, unsigned height);
 		// create checker board pattern image
 		void create_checkerboard(unsigned size, const Imath::C3f &color1, const Imath::C3f &color2);
+		// create mipmap chain
+		static bool generate_mipmap(std::vector<std::shared_ptr<CImage>> &image_chain);
 	private:
 		unsigned char* m_data;
 		unsigned m_width;

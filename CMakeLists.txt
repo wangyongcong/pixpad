@@ -13,7 +13,7 @@ set(3RD_INSTALL_PATH "${CMAKE_SOURCE_DIR}/install")
 # boost
 set(Boost_USE_STATIC_LIBS ON)
 add_definitions(-DBOOST_ALL_NO_LIB)  # disable boost auto link
-find_package(Boost 1.5 REQUIRED COMPONENTS program_options system)
+find_package(Boost 1.5 REQUIRED COMPONENTS program_options system filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # zlib

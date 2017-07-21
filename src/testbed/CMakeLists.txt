@@ -22,4 +22,5 @@ target_link_libraries(testbed
 	${OPENEXR_LIBS}
 	${Boost_PROGRAM_OPTIONS_LIBRARY}
 	${Boost_SYSTEM_LIBRARY}
+	${Boost_FILESYSTEM_LIBRARY}
 )

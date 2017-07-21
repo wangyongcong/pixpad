@@ -3,6 +3,7 @@
 #include "vecmath.h"
 #include "mesh.h"
 #include "mtl_diffuse.h"
+#include <boost/filesystem.hpp>
 
 void create_floor(wyc::CMesh* mesh, float r, float w=1)
 {
@@ -27,6 +28,35 @@ void create_floor(wyc::CMesh* mesh, float r, float w=1)
 	mesh->set_indices({
 		0, 1, 2, 0, 2, 3,
 	});
+}
+
+bool generate_mipmap(const std::string &image_file)
+{
+	auto base_img = std::make_shared<wyc::CImage>();
+	boost::filesystem::path file_path(image_file);
+	if (!base_img->load(image_file)) {
+		return false;
+	}
+	std::vector<std::shared_ptr<wyc::CImage>> mipmap_chain;
+	mipmap_chain.push_back(base_img);
+	if (wyc::CImage::generate_mipmap(mipmap_chain))
+	{
+		log_info("create mipmap OK");
+		int lod = 0;
+		char name[256];
+		auto base_name = file_path.stem();
+		boost::filesystem::create_directory(base_name);
+		for (auto img : mipmap_chain)
+		{
+			std::sprintf(name, "%s/%d.png", base_name.string().c_str(), lod);
+			img->save(name);
+			lod += 1;
+		}
+	}
+	else {
+		log_error("fail to create mipmap!");
+	}
+	return true;
 }
 
 class CTestMipmap : public CTest

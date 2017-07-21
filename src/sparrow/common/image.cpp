@@ -16,6 +16,7 @@ namespace wyc
 		: m_data(nullptr)
 		, m_width(0)
 		, m_height(0)
+		, m_pitch(0)
 	{
 	}
 
@@ -121,8 +122,15 @@ namespace wyc
 		return false;
 	}
 
-	void CImage::resize(CImage & result, unsigned width, unsigned height)
+	void CImage::create_empty(unsigned width, unsigned height)
 	{
+		clear();
+		unsigned pitch = width * 4;
+		unsigned size = pitch * height;
+		m_data = new unsigned char[size];
+		m_width = width;
+		m_height = height;
+		m_pitch = pitch;
 	}
 
 	void CImage::create_checkerboard(unsigned size, const Imath::C3f &color1, const Imath::C3f &color2)
@@ -148,7 +156,32 @@ namespace wyc
 			}
 			std::swap(c1, c2);
 		}
+	}
 
+	bool CImage::generate_mipmap(std::vector<std::shared_ptr<CImage>>& image_chain)
+	{
+		if (image_chain.empty())
+			return false;
+		auto img0 = image_chain[0];
+		auto w = img0->width();
+		auto h = img0->height();
+		if ((w & (w - 1)) || (h & (h - 1)))
+			// size should be power of 2
+			return false;
+		image_chain.resize(1);
+		while (w > 1 && h > 1)
+		{
+			w >>= 1;
+			h >>= 1;
+			auto new_img = std::make_shared<CImage>();
+			new_img->create_empty(w, h);
+			int ret = stbir_resize_uint8(img0->m_data, img0->m_width, img0->m_height, img0->m_pitch,
+				new_img->m_data, new_img->m_width, new_img->m_height, new_img->m_pitch, 4);
+			if (ret != 1)
+				return false;
+			image_chain.push_back(new_img);
+		}
+		return true;
 	}
 
 	bool CImage::read_png(const std::string &file_name)
