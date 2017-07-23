@@ -47,9 +47,7 @@ namespace wyc
 		unsigned m_width;
 		unsigned m_height;
 		unsigned m_pitch;
-
-		bool read_png(const std::string &file_name);
-		bool write_png(const std::string &file_name);
+		bool m_is_stbi_mem;
 	};
 
 } // namespace wyc

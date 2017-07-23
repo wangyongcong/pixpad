@@ -67,6 +67,9 @@ public:
 	}
 
 	virtual void run() {
+		//generate_mipmap("res/lenna.png");
+		//return;
+
 		auto mesh = std::make_shared<wyc::CMesh>();
 		create_floor(mesh.get(), 16, 32);
 
