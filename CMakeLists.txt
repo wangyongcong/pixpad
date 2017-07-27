@@ -17,23 +17,23 @@ find_package(Boost 1.5 REQUIRED COMPONENTS program_options system filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # zlib
-ExternalProject_Add(zlib
-    URL ${3RD_PATH}/zlib-1.2.8.tar.gz
-    CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${3RD_INSTALL_PATH}/zlib"
-)
-set(ZLIB_INCLUDE_DIR "${3RD_INSTALL_PATH}/zlib/include")
-link_directories(${3RD_INSTALL_PATH}/zlib/lib)
+# ExternalProject_Add(zlib
+#     URL ${3RD_PATH}/zlib-1.2.8.tar.gz
+#     CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${3RD_INSTALL_PATH}/zlib"
+# )
+# set(ZLIB_INCLUDE_DIR "${3RD_INSTALL_PATH}/zlib/include")
+# link_directories(${3RD_INSTALL_PATH}/zlib/lib)
 
 # libpng
-ExternalProject_Add(libpng
-    URL ${3RD_PATH}/libpng-1.6.21.tar.gz
-    CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${3RD_INSTALL_PATH}/libpng"
-    CMAKE_CACHE_DEFAULT_ARGS "-DZLIB_ROOT:string=${3RD_INSTALL_PATH}/zlib"
-)
-set(PNG_INCLUDE_DIR "${3RD_INSTALL_PATH}/libpng/include")
-link_directories(${3RD_INSTALL_PATH}/libpng/lib)
-set(PNG_LIBS libpng16_staticd zlibstaticd)
-add_dependencies(libpng zlib)
+# ExternalProject_Add(libpng
+#     URL ${3RD_PATH}/libpng-1.6.21.tar.gz
+#     CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${3RD_INSTALL_PATH}/libpng"
+#     CMAKE_CACHE_DEFAULT_ARGS "-DZLIB_ROOT:string=${3RD_INSTALL_PATH}/zlib"
+# )
+# set(PNG_INCLUDE_DIR "${3RD_INSTALL_PATH}/libpng/include")
+# link_directories(${3RD_INSTALL_PATH}/libpng/lib)
+# set(PNG_LIBS libpng16_staticd zlibstaticd)
+# add_dependencies(libpng zlib)
 
 # openexr
 ExternalProject_Add(IlmBase
@@ -58,7 +58,7 @@ include_directories(
 
 # setup targets
 add_subdirectory(src/sparrow)
-add_dependencies(sparrow zlib IlmBase libpng)
+add_dependencies(sparrow IlmBase)
 set(SPARROW_INCLUDE_DIR "${SRC_ROOT}/sparrow"
 	"${SRC_ROOT}/sparrow/common" 
 	"${SRC_ROOT}/sparrow/material" 
