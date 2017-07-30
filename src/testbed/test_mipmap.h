@@ -43,13 +43,15 @@ bool generate_mipmap(const std::string &image_file)
 	{
 		log_info("create mipmap OK");
 		int lod = 0;
-		char name[256];
-		auto base_name = file_path.stem();
-		boost::filesystem::create_directory(base_name);
+		boost::filesystem::path base_name = file_path.stem(), file_path;
+		boost::filesystem::create_directory(base_name);	
+		std::string ext = ".png";
 		for (auto img : mipmap_chain)
 		{
-			std::sprintf(name, "%s/%d.png", base_name.string().c_str(), lod);
-			img->save(name);
+
+			file_path = base_name / std::to_string(lod);
+			file_path += ext;
+			img->save(file_path.string());
 			lod += 1;
 		}
 	}

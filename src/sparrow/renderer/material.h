@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <memory>
 #include <OpenEXR/ImathMatrix.h>
-#include "mathfwd.h"
 #include "vertex_buffer.h"
 #include "vertex_layout.h"
 #include "log.h"
@@ -83,7 +82,7 @@ namespace wyc
 		CMaterial(const char *name);
 		virtual ~CMaterial();
 		virtual void vertex_shader(const void *vertex_in, void *vertex_out) const = 0;
-		virtual bool fragment_shader(const void *vertex_out, Color4f &frag_color) const = 0;
+		virtual bool fragment_shader(const void *vertex_out, Imath::C4f &frag_color) const = 0;
 		template<typename T>
 		bool set_uniform(const std::string &name, const T &val);
 		template<typename T>

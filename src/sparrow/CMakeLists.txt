@@ -23,7 +23,6 @@ set(SRC_MATHEX
 	"mathex/ImathMatrixExt.h"
 	"mathex/ImathVecExt.h"
 	"mathex/floatmath.h"
-	"mathex/mathfwd.h"
 	"mathex/vecmath.cpp"
 	"mathex/vecmath.h"
 	"mathex/xs_config.h"

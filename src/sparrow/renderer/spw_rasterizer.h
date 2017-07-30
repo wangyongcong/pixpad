@@ -1,7 +1,6 @@
 #pragma once
 #include <OpenEXR/ImathExc.h>
 #include <OpenEXR/ImathBox.h>
-#include "mathfwd.h"
 #include "floatmath.h"
 
 namespace wyc
@@ -108,12 +107,12 @@ namespace wyc
 	}
 
 	template<uint16 N, typename Position>
-	inline Vec2i snap_to_subpixel(const Position &v)
+	inline Imath::V2i snap_to_subpixel(const Position &v)
 	{
-		return Vec2i(fast_to_fixed<N>(v.x), fast_to_fixed<N>(v.y));
+		return Imath::V2i(fast_to_fixed<N>(v.x), fast_to_fixed<N>(v.y));
 	}
 
-	inline int64_t edge_function_fixed(const Vec2i &v0, const Vec2i &v1, const Vec2i &v2)
+	inline int64_t edge_function_fixed(const Imath::V2i &v0, const Imath::V2i &v1, const Imath::V2i &v2)
 	{
 		return int64_t(v1.x - v0.x) * int64_t(v2.y - v0.y) - int64_t(v1.y - v0.y) * int64_t(v2.x - v0.x);
 	}
@@ -137,7 +136,7 @@ namespace wyc
 	// plot: functor with following declaration 
 	//   void plot(int x, int y, float z, t0, t1, t2)
 	template<typename Vector, typename Plotter>
-	void fill_triangle(const Imath::Box<Vec2i> &block, const Vector &pos0, const Vector &pos1, const Vector &pos2, Plotter &plot)
+	void fill_triangle(const Imath::Box<Imath::V2i> &block, const Vector &pos0, const Vector &pos1, const Vector &pos2, Plotter &plot)
 	{
 		// 11.8 sub pixel precision
 		// max render target is 2048 x 2048
@@ -149,13 +148,13 @@ namespace wyc
 		ASSERT_INSIDE(pos2, 1024);
 		
 		// snap to .8 sub pixel
-		Vec2i v0 = snap_to_subpixel<8>(pos0);
-		Vec2i v1 = snap_to_subpixel<8>(pos1);
-		Vec2i v2 = snap_to_subpixel<8>(pos2);
+		Imath::V2i v0 = snap_to_subpixel<8>(pos0);
+		Imath::V2i v1 = snap_to_subpixel<8>(pos1);
+		Imath::V2i v2 = snap_to_subpixel<8>(pos2);
 
 		// initial edge function with high precision
 		// sample point is at pixel center
-		Vec2i p = block.min;
+		Imath::V2i p = block.min;
 		p.x = (p.x << 8) | 0x80;
 		p.y = (p.y << 8) | 0x80;
 		int64_t hp_w0 = edge_function_fixed(v1, v2, p);

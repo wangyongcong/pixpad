@@ -56,7 +56,7 @@ namespace wyc
 			VertexOut *vout = (VertexOut*)vertex_out;
 		}
 
-		virtual bool fragment_shader(const void *vertex_out, Color4f &frag_color) const override
+		virtual bool fragment_shader(const void *vertex_out, Imath::C4f &frag_color) const override
 		{
 			const VertexOut *vert_out = (const VertexOut*)vertex_out;
 			return false;

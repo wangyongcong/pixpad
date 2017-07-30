@@ -67,7 +67,7 @@ namespace wyc
 		b.max += center;
 		int h = m_rt->height();
 		unsigned v = Imath::rgb2packed(c);
-		unsigned bg = Imath::rgb2packed(Color3f{ 0, 0, 0 });
+		unsigned bg = Imath::rgb2packed(Imath::C3f{ 0, 0, 0 });
 		auto &surf = m_rt->get_color_buffer();
 		for (auto y = b.min.y; y < b.max.y; ++y) {
 			for (auto x = b.min.x; x < b.max.x; ++x) {

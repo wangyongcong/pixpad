@@ -2,7 +2,6 @@
 #include <vector>
 #include <OpenEXR/ImathVec.h>
 #include <OpenEXR/ImathBox.h>
-#include "mathfwd.h"
 #include "floatmath.h"
 
 namespace wyc
@@ -32,10 +31,10 @@ namespace wyc
 	// Clip polygon by planes
 	// planes: planes used to clip the polygon
 	// vertices: vertices of the polygon, when return, it will contain the result
-	void clip_polygon(const std::vector<Vec4f> &planes, std::vector<Vec3f> &vertices);
+	void clip_polygon(const std::vector<Imath::V4f> &planes, std::vector<Imath::V3f> &vertices);
 
 	// Clip polygon in homogeneous clipping space
-	void clip_polygon_homo(std::vector<Vec4f> &vertices);
+	void clip_polygon_homo(std::vector<Imath::V4f> &vertices);
 
 	// Clip polygon in homogeneous clipping space
 	// the polygon is treated as float stream

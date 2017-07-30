@@ -49,9 +49,9 @@ namespace wyc
 		return true;
 	}
 
-	void clip_polygon_by_plane(const Vec4f &plane, const std::vector<Vec3f> &vertices, std::vector<Vec3f> &out)
+	void clip_polygon_by_plane(const Imath::V4f &plane, const std::vector<Imath::V3f> &vertices, std::vector<Imath::V3f> &out)
 	{
-		Vec3f prev = vertices.back();
+		Imath::V3f prev = vertices.back();
 		float pdot = prev ^ plane;
 		out.reserve(vertices.size() + 1);
 		for (auto &vert : vertices)
@@ -66,11 +66,11 @@ namespace wyc
 		}
 	}
 
-	void clip_polygon(const std::vector<Vec4f> &planes, std::vector<Vec3f> &vertices)
+	void clip_polygon(const std::vector<Imath::V4f> &planes, std::vector<Imath::V3f> &vertices)
 	{
 		for (auto plane : planes)
 		{
-			std::vector<Vec3f> tmp;
+			std::vector<Imath::V3f> tmp;
 			clip_polygon_by_plane(plane, vertices, tmp);
 			vertices = std::move(tmp);
 			if (vertices.empty())
@@ -78,15 +78,15 @@ namespace wyc
 		}
 	}
 
-	void clip_polygon_homo(std::vector<Vec4f> &vertices)
+	void clip_polygon_homo(std::vector<Imath::V4f> &vertices)
 	{
-		std::vector<Vec4f> out;
+		std::vector<Imath::V4f> out;
 		// clipped by 7 planes may result 7 more vertices at most
 		out.reserve(vertices.size() + 7);
 		// clipped by W=0
 		constexpr float w_epsilon = 0.0001f;
 		float pdot, dot;
-		Vec4f prev = vertices.back();
+		Imath::V4f prev = vertices.back();
 		pdot = prev.w - w_epsilon;
 		for (auto &vert : vertices)
 		{

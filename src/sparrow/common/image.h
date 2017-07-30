@@ -19,10 +19,10 @@ namespace wyc
 		CImage(CImage &&other);
 		CImage& operator = (CImage&& other);
 		void clear();
-		bool load(const std::wstring &file_name);
-		bool save(const std::wstring &file_name);
 		bool load(const std::string &file_name);
+		bool load(const std::wstring &file_name);
 		bool save(const std::string &file_name);
+		bool save(const std::wstring &file_name);
 		inline unsigned width() const {
 			return m_width;
 		}
