@@ -6,7 +6,36 @@
 #ifndef _xs_FLOAT_H_
 #define _xs_FLOAT_H_
 
-#include "xs_config.h"
+// ====================================================================================================================
+// Types
+// ====================================================================================================================
+#ifndef _xs_Types_
+#define _xs_Types_                  1
+	typedef char                    int8;
+	typedef unsigned char           uint8;
+	typedef short                   int16;
+	typedef unsigned short          uint16;
+	typedef long                    int32;
+	typedef unsigned long           uint32;
+	typedef float                   real32;
+	typedef double                  real64;
+#endif //_xs_Types_
+
+
+// ====================================================================================================================
+// Basic stuff
+// ====================================================================================================================
+#ifndef _xs_BigEndian_
+#define _xs_BigEndian_              0       //intel is little endian
+#endif
+
+#define finline                     __forceinline
+#define xs_MAXINT                   0x7ffffff
+#define xs_NULL                     0
+#define xs_Min(a,b)			        (((a)<(b))	? (a) : (b))
+#define xs_Max(a,b)			        (((a)>(b))	? (a) : (b))
+#define xs_Clamp(a,b,c)		         xs_Min(xs_Max(a,b), c)
+
 
 // ====================================================================================================================
 //  Defines

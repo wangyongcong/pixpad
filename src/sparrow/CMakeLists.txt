@@ -25,7 +25,6 @@ set(SRC_MATHEX
 	"mathex/floatmath.h"
 	"mathex/vecmath.cpp"
 	"mathex/vecmath.h"
-	"mathex/xs_config.h"
 	"mathex/xs_float.h"
 ) 
 set(SRC_RENDERER 
