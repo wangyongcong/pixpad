@@ -58,8 +58,9 @@ namespace wyc
 		set_viewport({ { 0, 0 },{ int(surfw), int(surfh) } });
 
 		// split frame buffer into tiles
-		static_assert((SPW_TILE_W & (SPW_TILE_W - 1)) == 0, "tile width should be pow of 2");
-		static_assert((SPW_TILE_H & (SPW_TILE_H - 1)) == 0, "tile height should be pow of 2");
+		static_assert(SPW_TILE_W >= 2 && SPW_TILE_H >= 2, "tile size must be at least 2x2");
+		static_assert((SPW_TILE_W & (SPW_TILE_W - 1)) == 0, "tile width must be pow of 2");
+		static_assert((SPW_TILE_H & (SPW_TILE_H - 1)) == 0, "tile height must be pow of 2");
 		constexpr int HALF_TILE_W = SPW_TILE_W >> 1, HALF_TILE_H = SPW_TILE_H >> 1;
 		constexpr int MASK_TILW_W = SPW_TILE_W - 1, MASK_TILE_H = SPW_TILE_H - 1;
 		int tile_x = (surfw + MASK_TILW_W) / SPW_TILE_W, tile_y = (surfh + MASK_TILE_H) / SPW_TILE_H;

@@ -124,12 +124,7 @@ namespace wyc
 	}
 
 
-
-#ifdef _DEBUG
-	#define ASSERT_INSIDE(v, r) assert(v.x >= -r && v.x < r && v.y >= -r && v.y < r)
-#else
-	#define ASSERT_INSIDE(v, r)
-#endif
+#define ASSERT_INSIDE(v, r) assert(v.x >= -r && v.x < r && v.y >= -r && v.y < r)
 
 	// fill triangle {pos0, pos1, pos2} in counter-clockwise
 	// position vector: should be 3D vector {x, y, z}
@@ -191,9 +186,9 @@ namespace wyc
 			for (int x = block.min.x; x < block.max.x; x += 1)
 			{
 				if ((w0 | w1 | w2) >= 0) {
-					t0 = w0 - bias_v12 + fw0;
-					t1 = w1 - bias_v20 + fw1;
-					t2 = w2 - bias_v01 + fw2;
+					t0 = (w0 - bias_v12) + fw0;
+					t1 = (w1 - bias_v20) + fw1;
+					t2 = (w2 - bias_v01) + fw2;
 					t_sum = t0 + t1 + t2;
 					t0 /= t_sum;
 					t1 /= t_sum;
@@ -210,6 +205,138 @@ namespace wyc
 		}
 	}
 
+#define _T_QUAD(t, w, bias, sub) {\
+	t.x = (w.x - bias) + sub; \
+	t.y = (w.y - bias) + sub; \
+	t.z = (w.z - bias) + sub; \
+	t.w = (w.w - bias) + sub; \
+}
 
+#define _INC_QUAD(v, step) {\
+	v.x += step; v.y += step; v.z += step; v.w == step; \
+}
+
+	template<typename Vector, typename Plotter>
+	void fill_triangle_quad(const Imath::Box<Imath::V2i> &block, const Vector &pos0, const Vector &pos1, const Vector &pos2, Plotter &plot)
+	{
+		// 11.8 sub pixel precision
+		// max render target is 2048 x 2048
+		// coordinate must be inside [-1024, 1024)
+		ASSERT_INSIDE(block.min, 1024);
+		ASSERT_INSIDE(block.max, 1024);
+		ASSERT_INSIDE(pos0, 1024);
+		ASSERT_INSIDE(pos1, 1024);
+		ASSERT_INSIDE(pos2, 1024);
+		// block size must be 2x2 at least
+		assert((block.max.x - block.min.x) > 1 && (block.max.y - block.min.y) > 1);
+
+		// snap to .8 sub pixel
+		Imath::V2i v0 = snap_to_subpixel<8>(pos0);
+		Imath::V2i v1 = snap_to_subpixel<8>(pos1);
+		Imath::V2i v2 = snap_to_subpixel<8>(pos2);
+
+		// initial edge function with high precision
+		// sample point is at pixel center
+		Imath::V2i p = block.min;
+		p.x = (p.x << 8) | 0x80;
+		p.y = (p.y << 8) | 0x80;
+		int64_t hp_w0 = edge_function_fixed(v1, v2, p);
+		int64_t hp_w1 = edge_function_fixed(v2, v0, p);
+		int64_t hp_w2 = edge_function_fixed(v0, v1, p);
+
+		// edge function delta
+		int edge_a01 = v0.y - v1.y, edge_b01 = v1.x - v0.x;
+		int edge_a12 = v1.y - v2.y, edge_b12 = v2.x - v1.x;
+		int edge_a20 = v2.y - v0.y, edge_b20 = v0.x - v2.x;
+
+		// top-left bias
+		int bias_v01 = is_top_left(v0, v1) ? 0 : -1;
+		int bias_v12 = is_top_left(v1, v2) ? 0 : -1;
+		int bias_v20 = is_top_left(v2, v0) ? 0 : -1;
+
+		// edge function increment
+		//int row_w0 = int(hp_w0 >> 8) + bias_v12;
+		//int row_w1 = int(hp_w1 >> 8) + bias_v20;
+		//int row_w2 = int(hp_w2 >> 8) + bias_v01;
+		Imath::V4i row_w0, row_w1, row_w2;
+
+		row_w0.x = int(hp_w0 >> 8) + bias_v12;
+		row_w0.y = row_w0.x + edge_a12;
+		row_w0.z = row_w0.x + edge_b12;
+		row_w0.w = row_w0.z + edge_a12;
+
+		row_w1.x = int(hp_w1 >> 8) + bias_v20;
+		row_w1.y = row_w0.x + edge_a20;
+		row_w1.z = row_w0.x + edge_b20;
+		row_w1.w = row_w0.z + edge_a20;
+
+		row_w2.x = int(hp_w2 >> 8) + bias_v01;
+		row_w2.y = row_w2.x + edge_a01;
+		row_w2.z = row_w2.x + edge_b01;
+		row_w2.w = row_w2.z + edge_a01;
+
+		edge_a12 *= 2;
+		edge_a20 *= 2;
+		edge_a01 *= 2;
+		edge_b12 *= 2;
+		edge_b20 *= 2;
+		edge_b01 *= 2;
+
+		// .8 sub pixel part which is constant during iteration
+		float fw0 = float(hp_w0 & 0xFF) / 255;
+		float fw1 = float(hp_w1 & 0xFF) / 255;
+		float fw2 = float(hp_w2 & 0xFF) / 255;
+
+		//int w0, w1, w2;
+		Imath::V4i w0, w1, w2, flag;
+		//float t_sum, t0, t1, t2;
+		Imath::V4f t_sum, t0, t1, t2;
+		
+		for (int y = block.min.y; y < block.max.y; y += 2)
+		{
+			w0 = row_w0;
+			w1 = row_w1;
+			w2 = row_w2;
+			for (int x = block.min.x; x < block.max.x; x += 2)
+			{
+				//if ((w0 | w1 | w2) >= 0) {
+				//	t0 = (w0 - bias_v12) + fw0;
+				//	t1 = (w1 - bias_v20) + fw1;
+				//	t2 = (w2 - bias_v01) + fw2;
+				//	t_sum = t0 + t1 + t2;
+				//	t0 /= t_sum;
+				//	t1 /= t_sum;
+				//	t2 /= t_sum;
+				//	plot(x, y, pos0.z * t0 + pos1.z * t1 + pos2.z * t2, t0, t1, t2);
+				//}
+				flag = w0 | w1 | w2;
+				if ((flag.x | flag.y | flag.z | flag.w) >= 0) {
+					//t0 = (w0 - bias_v12) + fw0;
+					//t1 = (w1 - bias_v20) + fw1;
+					//t2 = (w2 - bias_v01) + fw2;
+					_T_QUAD(t0, w0, bias_v12, fw0);
+					_T_QUAD(t1, w1, bias_v20, fw1);
+					_T_QUAD(t2, w2, bias_v01, fw2);
+					t_sum = t0 + t1 + t2;
+					t0 /= t_sum;
+					t1 /= t_sum;
+					t2 /= t_sum;
+					plot(x, y, (t0 * pos0.z) + (t1 * pos1.z) + (t2 * pos2.z), t0, t1, t2);
+				}
+				//w0 += edge_a12;
+				//w1 += edge_a20;
+				//w2 += edge_a01;
+				_INC_QUAD(w0, edge_a12);
+				_INC_QUAD(w1, edge_a20);
+				_INC_QUAD(w2, edge_a01);
+			}
+			//row_w0 += edge_b12;
+			//row_w1 += edge_b20;
+			//row_w2 += edge_b01;
+			_INC_QUAD(row_w0, edge_b12);
+			_INC_QUAD(row_w1, edge_b20);
+			_INC_QUAD(row_w2, edge_b01);
+		}
+	}
 
 } // namespace wyc
