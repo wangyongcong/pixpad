@@ -13,7 +13,6 @@ set(SRC_COMMON
 ) 
 
 set(SRC_MATERIAL 
-	"material/mtl_collada.h"
 	"material/mtl_color.h"
 	"material/mtl_diffuse.h"
 ) 
@@ -39,8 +38,6 @@ set(SRC_RENDERER
 	"renderer/sampler.cpp"
 	"renderer/metric.cpp"
 	"renderer/metric.h"
-	# "renderer/raster.cpp"
-	# "renderer/raster.h"
 	"renderer/render_command.cpp"
 	"renderer/render_command.h"
 	"renderer/render_target.h"
@@ -80,26 +77,12 @@ set(SRC_THREAD
 	"thread/spin_lock.h"
 	# "thread/spsc_queue.h"
 ) 
-set(SRC_SCENE 
-	"scene/camera.cpp"
-	"scene/camera.h"
-	"scene/light.cpp"
-	"scene/light.h"
-	# "scene/load_collada.cpp"
-	"scene/scene.cpp"
-	"scene/scene.h"
-	"scene/scene_obj.cpp"
-	"scene/scene_obj.h"
-	"scene/static_mesh.cpp"
-	"scene/static_mesh.h"
-) 
  
 source_group("common" FILES ${SRC_COMMON}) 
 source_group("material" FILES ${SRC_MATERIAL}) 
 source_group("mathex" FILES ${SRC_MATHEX}) 
 source_group("renderer" FILES ${SRC_RENDERER}) 
 source_group("thread" FILES ${SRC_THREAD}) 
-source_group("scene" FILES ${SRC_SCENE}) 
  
 include_directories(
 	"common" 
@@ -107,7 +90,6 @@ include_directories(
 	"mathex" 
 	"renderer" 
 	"thread" 
-	"scene" 
 ) 
 
 add_library("sparrow" STATIC 

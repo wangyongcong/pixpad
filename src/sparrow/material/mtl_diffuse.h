@@ -21,7 +21,7 @@ namespace wyc
 		OUTPUT_ATTRIBUTE_LIST_END
 
 		UNIFORM_MAP
-			UNIFORM_SLOT(Imath::M44f, mvp_matrix)
+			UNIFORM_SLOT(Imath::M44f, proj_from_world)
 			UNIFORM_SLOT(CSampler*, diffuse)
 		UNIFORM_MAP_END
 
@@ -52,7 +52,7 @@ namespace wyc
 			auto in = reinterpret_cast<const VertexIn*>(vertex_in);
 			auto out = reinterpret_cast<VertexOut*>(vertex_out);
 			Imath::V4f pos(*in->pos);
-			out->pos = mvp_matrix * pos;
+			out->pos = proj_from_world * pos;
 			out->color = *in->color;
 			out->uv = *in->uv;
 		}
@@ -67,7 +67,7 @@ namespace wyc
 		}
 
 	private:
-		Imath::M44f mvp_matrix;
+		Imath::M44f proj_from_world;
 		CSampler *diffuse;
 	};
 

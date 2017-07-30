@@ -27,7 +27,7 @@ namespace wyc
 		OUTPUT_ATTRIBUTE_LIST_END
 
 		UNIFORM_MAP
-			UNIFORM_SLOT(Imath::M44f, mvp_matrix)
+			UNIFORM_SLOT(Imath::M44f, proj_from_world)
 			UNIFORM_SLOT(Imath::C4f, color)
 		UNIFORM_MAP_END
 
@@ -35,7 +35,7 @@ namespace wyc
 		CMaterialColor()
 			: CMaterial("Color")
 		{
-			mvp_matrix.makeIdentity();
+			proj_from_world.makeIdentity();
 			color.setValue(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 		
@@ -53,7 +53,7 @@ namespace wyc
 			const VertexIn* in = reinterpret_cast<const VertexIn*>(vertex_in);
 			VertexOut* out = reinterpret_cast<VertexOut*>(vertex_out);
 			Imath::V4f pos(*in->pos);
-			out->pos = mvp_matrix * pos;
+			out->pos = proj_from_world * pos;
 		}
 
 		virtual bool fragment_shader(const void *vertex_out, Imath::C4f &frag_color) const override
@@ -63,7 +63,7 @@ namespace wyc
 		}
 
 	private:
-		Imath::M44f mvp_matrix;
+		Imath::M44f proj_from_world;
 		Imath::C4f color;
 	};
 

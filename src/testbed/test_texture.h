@@ -19,10 +19,10 @@ public:
 		// setup transform
 		Imath::M44f proj;
 		wyc::set_perspective(proj, 45, float(m_image_w) / m_image_h, 1, 100);
-		Imath::M44f mrx, mry, mt;
-		wyc::set_rotate_y(mry, wyc::deg2rad(60));
-		wyc::set_rotate_x(mrx, wyc::deg2rad(30));
-		Imath::M44f mvp;
+		Imath::M44f rx_world, ry_world, transform_world;
+		wyc::set_rotate_y(ry_world, wyc::deg2rad(60));
+		wyc::set_rotate_x(rx_world, wyc::deg2rad(30));
+		Imath::M44f proj_from_world;
 		// sampler
 		auto diffuse_img = std::make_shared<wyc::CImage>();
 		if (!diffuse_img->load("res/checkerboard.png")) {
@@ -33,9 +33,9 @@ public:
 		auto draw = m_renderer->new_command<wyc::cmd_draw_mesh>();
 		draw->mesh = mesh.get();
 		auto mtl = std::make_shared<wyc::CMaterialDiffuse>();
-		wyc::set_translate(mt, 0, 0, -5);
-		mvp = proj * mt * mrx * mry;
-		mtl->set_uniform("mvp_matrix", mvp);
+		wyc::set_translate(transform_world, 0, 0, -5);
+		proj_from_world = proj * transform_world * rx_world * ry_world;
+		mtl->set_uniform("proj_from_world", proj_from_world);
 		mtl->set_uniform("diffuse", (wyc::CSampler*)sampler.get());
 		draw->material = mtl.get();
 		m_renderer->enqueue(draw);
