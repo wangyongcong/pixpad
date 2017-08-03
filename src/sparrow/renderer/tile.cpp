@@ -60,6 +60,29 @@ namespace wyc
 		surf.set(x, y, v);
 	}
 
+	void CTile::operator()(int x, int y, const Imath::V4f & z, const Imath::V4i &is_inside,
+		const Imath::V4f & t0, const Imath::V4f & t1, const Imath::V4f & t2)
+	{
+		x += center.x;
+		y = m_transform_y - y;
+		Imath::V2i screen_pos[4] = {
+			{x, y}, {x + 1, y},
+			{x, y - 1}, {x + 1, y - 1},
+		};
+		auto &depth = m_rt->get_depth_buffer();
+		for (int i = 0; i < 4; ++i) {
+			if (is_inside[i] >= 0) {
+				// is inside 
+				auto d = *depth.get<float>(x, y);
+				if (z[i] >= d)
+					return;
+			}
+			else {
+				// is outside
+			}
+		}
+	}
+
 	void CTile::clear(const Imath::C3f &c)
 	{
 		Imath::Box2i b = bounding;

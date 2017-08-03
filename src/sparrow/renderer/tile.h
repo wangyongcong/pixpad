@@ -34,6 +34,9 @@ namespace wyc
 		void operator() (int x, int y);
 		// fill mode
 		void operator() (int x, int y, float z, float w1, float w2, float w3);
+		// fill by quad
+		void operator() (int x, int y, const Imath::V4f &z, const Imath::V4i &is_inside,
+			const Imath::V4f &t0, const Imath::V4f &t1, const Imath::V4f &t2);
 
 	private:
 		CSpwRenderTarget *m_rt;
