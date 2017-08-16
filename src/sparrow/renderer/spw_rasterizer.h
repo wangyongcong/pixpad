@@ -205,15 +205,15 @@ namespace wyc
 		}
 	}
 
-#define _T_QUAD(t, w, bias, sub) {\
-	t.x = (w.x - bias) + sub; \
-	t.y = (w.y - bias) + sub; \
-	t.z = (w.z - bias) + sub; \
-	t.w = (w.w - bias) + sub; \
+#define _T_QUAD(t, v, bias, sub) {\
+	(t).x = ((v).x - (bias)) + (sub); \
+	(t).y = ((v).y - (bias)) + (sub); \
+	(t).z = ((v).z - (bias)) + (sub); \
+	(t).w = ((v).w - (bias)) + (sub); \
 }
 
 #define _INC_QUAD(v, step) {\
-	v.x += step; v.y += step; v.z += step; v.w == step; \
+	(v).x += (step); (v).y += (step); (v).z += (step); (v).w += (step); \
 }
 
 	template<typename Vector, typename Plotter>
@@ -266,9 +266,9 @@ namespace wyc
 		row_w0.w = row_w0.z + edge_a12;
 
 		row_w1.x = int(hp_w1 >> 8) + bias_v20;
-		row_w1.y = row_w0.x + edge_a20;
-		row_w1.z = row_w0.x + edge_b20;
-		row_w1.w = row_w0.z + edge_a20;
+		row_w1.y = row_w1.x + edge_a20;
+		row_w1.z = row_w1.x + edge_b20;
+		row_w1.w = row_w1.z + edge_a20;
 
 		row_w2.x = int(hp_w2 >> 8) + bias_v01;
 		row_w2.y = row_w2.x + edge_a01;
@@ -310,7 +310,7 @@ namespace wyc
 				//	plot(x, y, pos0.z * t0 + pos1.z * t1 + pos2.z * t2, t0, t1, t2);
 				//}
 				flag = w0 | w1 | w2;
-				if ((flag.x | flag.y | flag.z | flag.w) >= 0) {
+				if (flag.x >= 0 || flag.y >= 0 || flag.z >= 0 || flag.w >= 0) {
 					//t0 = (w0 - bias_v12) + fw0;
 					//t1 = (w1 - bias_v20) + fw1;
 					//t2 = (w2 - bias_v01) + fw2;

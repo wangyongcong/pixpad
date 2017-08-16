@@ -13,11 +13,7 @@ namespace wyc
 		Imath::V2i center;
 		CTile(CSpwRenderTarget *rt, Imath::Box2i &bounding, Imath::V2i &center);
 		// setup fragment
-		inline void set_fragment(unsigned vertex_stride, const CMaterial *material) {
-			if (vertex_stride != m_fragment_input.size())
-				m_fragment_input.resize(vertex_stride, 0);
-			m_material = material;
-		}
+		void set_fragment(unsigned vertex_stride, const CMaterial *material);
 		// setup triangle
 		inline void CTile::set_triangle(const float* v0, const float* v1, const float* v2)
 		{
@@ -36,7 +32,7 @@ namespace wyc
 		void operator() (int x, int y, float z, float w1, float w2, float w3);
 		// fill by quad
 		void operator() (int x, int y, const Imath::V4f &z, const Imath::V4i &is_inside,
-			const Imath::V4f &t0, const Imath::V4f &t1, const Imath::V4f &t2);
+			const Imath::V4f &w1, const Imath::V4f &w2, const Imath::V4f &w3);
 
 	private:
 		CSpwRenderTarget *m_rt;
@@ -45,6 +41,7 @@ namespace wyc
 		float m_inv_z0, m_inv_z1, m_inv_z2;
 		std::vector<float> m_fragment_input;
 		int m_transform_y;
+		unsigned m_stride;
 	};
 
 } // namespace wyc

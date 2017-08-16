@@ -248,7 +248,7 @@ namespace wyc
 								v2.y = p2->y - tile.center.y;
 								v2.z = p2->z;
 								tile.set_triangle((float*)p0, (float*)p1, (float*)p2);
-								fill_triangle(local_bounding, v0, v1, v2, tile);
+								fill_triangle_quad(local_bounding, v0, v1, v2, tile);
 							} // bounding not empty
 						} // tile loop
 						vec += prim.stride;
