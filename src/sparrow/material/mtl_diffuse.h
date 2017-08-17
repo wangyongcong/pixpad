@@ -57,12 +57,12 @@ namespace wyc
 			out->uv = *in->uv;
 		}
 
-		virtual bool fragment_shader(const void *vertex_out, Imath::C4f &frag_color) const override
+		virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color) const override
 		{
-			auto out = reinterpret_cast<const VertexOut*>(vertex_out);
+			auto in = reinterpret_cast<const VertexOut*>(frag_in);
 			Imath::C4f diffuse_color;
-			diffuse->sample2d(out->uv, diffuse_color);
-			frag_color = diffuse_color * out->color;
+			diffuse->sample2d(in->uv, diffuse_color);
+			frag_color = diffuse_color * in->color;
 			return true;
 		}
 

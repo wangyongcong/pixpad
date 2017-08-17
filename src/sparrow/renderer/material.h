@@ -82,7 +82,7 @@ namespace wyc
 		CMaterial(const char *name);
 		virtual ~CMaterial();
 		virtual void vertex_shader(const void *vertex_in, void *vertex_out) const = 0;
-		virtual bool fragment_shader(const void *vertex_out, Imath::C4f &frag_color) const = 0;
+		virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color) const = 0;
 		template<typename T>
 		bool set_uniform(const std::string &name, const T &val);
 		template<typename T>

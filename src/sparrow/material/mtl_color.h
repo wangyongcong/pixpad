@@ -56,7 +56,7 @@ namespace wyc
 			out->pos = proj_from_world * pos;
 		}
 
-		virtual bool fragment_shader(const void *vertex_out, Imath::C4f &frag_color) const override
+		virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color) const override
 		{
 			frag_color = color;
 			return true;

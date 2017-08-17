@@ -14,15 +14,19 @@ namespace wyc
 
 	void CTile::set_fragment(unsigned vertex_stride, const CMaterial *material) {
 		auto buff_size = vertex_stride * 4;
-		if (buff_size != m_fragment_input.size())
-			m_fragment_input.resize(buff_size, 0);
+		if (buff_size != m_frag_input.size())
+			m_frag_input.resize(buff_size, 0);
+		m_frag_interp[0] = &m_frag_input[0];
+		m_frag_interp[1] = &m_frag_input[vertex_stride];
+		m_frag_interp[2] = &m_frag_input[vertex_stride * 2];
+		m_frag_interp[3] = &m_frag_input[vertex_stride * 3];
 		m_material = material;
 		m_stride = vertex_stride;
 	}
 
 	void CTile::operator() (int x, int y) {
 		Imath::C4f out_color;
-		if (!m_material->fragment_shader(m_fragment_input.data(), out_color))
+		if (!m_material->fragment_shader(m_frag_input.data(), out_color))
 			return;
 		out_color.r *= out_color.a;
 		out_color.g *= out_color.a;
@@ -47,7 +51,7 @@ namespace wyc
 		const float *i0 = m_v0, *i1 = m_v1, *i2 = m_v2;
 		float z_world = 1 / (m_inv_z0 * w1 + m_inv_z1 * w2 + m_inv_z2 * w3);
 		//for(float *out = m_fragment_input.data(), *end = out + m_fragment_input.size(); out < end; ++out)
-		for(auto &out: m_fragment_input)
+		for(auto &out: m_frag_input)
 		{
 			out = (*i0 * m_inv_z0 * w1 + *i1 * m_inv_z1 * w2 + *i2 * m_inv_z2 * w3) * z_world;
 			i0 += 1;
@@ -56,7 +60,7 @@ namespace wyc
 		}
 		// write render target
 		Imath::C4f out_color;
-		if (!m_material->fragment_shader(m_fragment_input.data(), out_color))
+		if (!m_material->fragment_shader(m_frag_input.data(), out_color))
 			return;
 		// write fragment buffer
 		out_color.r *= out_color.a;
@@ -79,24 +83,20 @@ namespace wyc
 			{x, y - 1}, {x + 1, y - 1},
 		};
 		// interpolate vertex attributes
-		const float *i0 = m_v0, *i1 = m_v1, *i2 = m_v2;
 		Imath::V4f z_world;
 		z_world = w1 * m_inv_z0 + w2 * m_inv_z1 + w3 * m_inv_z2;
-		z_world.x = 1.0f / z_world.x;
-		z_world.y = 1.0f / z_world.y;
-		z_world.z = 1.0f / z_world.z;
-		z_world.w = 1.0f / z_world.w;
-		float *out[4] = { &m_fragment_input[0], &m_fragment_input[m_stride], 
-			&m_fragment_input[m_stride*2], &m_fragment_input[m_stride*3] };
+		z_world.invert();
+		const float *i0 = m_v0, *i1 = m_v1, *i2 = m_v2;
+		float *out0, *out1, *out2, *out3;
+		out0 = m_frag_interp[0];
+		out1 = m_frag_interp[1];
+		out2 = m_frag_interp[2];
+		out3 = m_frag_interp[3];
 		for (unsigned i = 0; i < m_stride; ++i) {
-			*out[0] = (*i0 * m_inv_z0 * w1[0] + *i1 * m_inv_z1 * w2[0] + *i2 * m_inv_z2 * w3[0]) * z_world[0];
-			*out[1] = (*i0 * m_inv_z0 * w1[1] + *i1 * m_inv_z1 * w2[1] + *i2 * m_inv_z2 * w3[1]) * z_world[1];
-			*out[2] = (*i0 * m_inv_z0 * w1[2] + *i1 * m_inv_z1 * w2[2] + *i2 * m_inv_z2 * w3[2]) * z_world[2];
-			*out[3] = (*i0 * m_inv_z0 * w1[3] + *i1 * m_inv_z1 * w2[3] + *i2 * m_inv_z2 * w3[3]) * z_world[3];
-			++out[0];
-			++out[1];
-			++out[2];
-			++out[3];
+			*out0++ = (*i0 * m_inv_z0 * w1[0] + *i1 * m_inv_z1 * w2[0] + *i2 * m_inv_z2 * w3[0]) * z_world[0];
+			*out1++ = (*i0 * m_inv_z0 * w1[1] + *i1 * m_inv_z1 * w2[1] + *i2 * m_inv_z2 * w3[1]) * z_world[1];
+			*out2++ = (*i0 * m_inv_z0 * w1[2] + *i1 * m_inv_z1 * w2[2] + *i2 * m_inv_z2 * w3[2]) * z_world[2];
+			*out3++ = (*i0 * m_inv_z0 * w1[3] + *i1 * m_inv_z1 * w2[3] + *i2 * m_inv_z2 * w3[3]) * z_world[3];
 			i0 += 1;
 			i1 += 1;
 			i2 += 1;
@@ -114,7 +114,7 @@ namespace wyc
 				depth.set(pos.x, pos.y, z[i]);
 				// write render target
 				Imath::C4f out_color;
-				if (!m_material->fragment_shader(out[i], out_color))
+				if (!m_material->fragment_shader(m_frag_interp[i], out_color))
 					continue;
 				// write fragment buffer
 				out_color.r *= out_color.a;

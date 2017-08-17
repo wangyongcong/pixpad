@@ -205,15 +205,15 @@ namespace wyc
 		}
 	}
 
-#define _T_QUAD(t, v, bias, sub) {\
-	(t).x = ((v).x - (bias)) + (sub); \
-	(t).y = ((v).y - (bias)) + (sub); \
-	(t).z = ((v).z - (bias)) + (sub); \
-	(t).w = ((v).w - (bias)) + (sub); \
+#define _T_QUAD(_t, _v, _bias, _sub) {\
+	(_t).x = ((_v).x - (_bias)) + (_sub); \
+	(_t).y = ((_v).y - (_bias)) + (_sub); \
+	(_t).z = ((_v).z - (_bias)) + (_sub); \
+	(_t).w = ((_v).w - (_bias)) + (_sub); \
 }
 
-#define _INC_QUAD(v, step) {\
-	(v).x += (step); (v).y += (step); (v).z += (step); (v).w += (step); \
+#define _INC_QUAD(_v, _step) {\
+	(_v).x += (_step); (_v).y += (_step); (_v).z += (_step); (_v).w += (_step); \
 }
 
 	template<typename Vector, typename Plotter>
@@ -255,9 +255,6 @@ namespace wyc
 		int bias_v20 = is_top_left(v2, v0) ? 0 : -1;
 
 		// edge function increment
-		//int row_w0 = int(hp_w0 >> 8) + bias_v12;
-		//int row_w1 = int(hp_w1 >> 8) + bias_v20;
-		//int row_w2 = int(hp_w2 >> 8) + bias_v01;
 		Imath::V4i row_w0, row_w1, row_w2;
 
 		row_w0.x = int(hp_w0 >> 8) + bias_v12;
@@ -299,21 +296,8 @@ namespace wyc
 			w2 = row_w2;
 			for (int x = block.min.x; x < block.max.x; x += 2)
 			{
-				//if ((w0 | w1 | w2) >= 0) {
-				//	t0 = (w0 - bias_v12) + fw0;
-				//	t1 = (w1 - bias_v20) + fw1;
-				//	t2 = (w2 - bias_v01) + fw2;
-				//	t_sum = t0 + t1 + t2;
-				//	t0 /= t_sum;
-				//	t1 /= t_sum;
-				//	t2 /= t_sum;
-				//	plot(x, y, pos0.z * t0 + pos1.z * t1 + pos2.z * t2, t0, t1, t2);
-				//}
 				flag = w0 | w1 | w2;
 				if (flag.x >= 0 || flag.y >= 0 || flag.z >= 0 || flag.w >= 0) {
-					//t0 = (w0 - bias_v12) + fw0;
-					//t1 = (w1 - bias_v20) + fw1;
-					//t2 = (w2 - bias_v01) + fw2;
 					_T_QUAD(t0, w0, bias_v12, fw0);
 					_T_QUAD(t1, w1, bias_v20, fw1);
 					_T_QUAD(t2, w2, bias_v01, fw2);
@@ -323,16 +307,13 @@ namespace wyc
 					t2 /= t_sum;
 					plot(x, y, (t0 * pos0.z) + (t1 * pos1.z) + (t2 * pos2.z), flag, t0, t1, t2);
 				}
-				//w0 += edge_a12;
-				//w1 += edge_a20;
-				//w2 += edge_a01;
+				else {
+					flag = { 0, 0, 0, 0 };
+				}
 				_INC_QUAD(w0, edge_a12);
 				_INC_QUAD(w1, edge_a20);
 				_INC_QUAD(w2, edge_a01);
 			}
-			//row_w0 += edge_b12;
-			//row_w1 += edge_b20;
-			//row_w2 += edge_b01;
 			_INC_QUAD(row_w0, edge_b12);
 			_INC_QUAD(row_w1, edge_b20);
 			_INC_QUAD(row_w2, edge_b01);

@@ -39,7 +39,8 @@ namespace wyc
 		const CMaterial *m_material;
 		const float *m_v0, *m_v1, *m_v2;
 		float m_inv_z0, m_inv_z1, m_inv_z2;
-		std::vector<float> m_fragment_input;
+		std::vector<float> m_frag_input;
+		float *m_frag_interp[4];
 		int m_transform_y;
 		unsigned m_stride;
 	};
