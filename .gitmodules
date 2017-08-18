@@ -1,0 +1,3 @@
+[submodule "3rd/openexr"]
+	path = 3rd/openexr
+	url = https://github.com/wangyongcong/openexr.git
