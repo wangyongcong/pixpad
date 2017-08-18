@@ -218,7 +218,6 @@ pip-log.txt
 baretail.exe
 baregrep.exe
 *.udm
-3rd/
 install/
 build/
 cmake_build/
