@@ -246,7 +246,15 @@ namespace wyc
 								v1.z = p1->z;
 								v2.x = p2->x - tile.center.x;
 								v2.y = p2->y - tile.center.y;
+								// make sure bounding area fit in 2x2 block
 								v2.z = p2->z;
+								auto &low = local_bounding.min;
+								auto &upp = local_bounding.max;
+								low.x &= ~1;
+								low.y &= ~1;
+								upp.x = (upp.x + 1) & ~1;
+								upp.y = (upp.y + 1) & ~1;
+								// fill bounding area
 								tile.set_triangle((float*)p0, (float*)p1, (float*)p2);
 								fill_triangle_quad(local_bounding, v0, v1, v2, tile);
 							} // bounding not empty

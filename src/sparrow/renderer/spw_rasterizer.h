@@ -229,6 +229,8 @@ namespace wyc
 		ASSERT_INSIDE(pos2, 1024);
 		// block size must be 2x2 at least
 		assert((block.max.x - block.min.x) > 1 && (block.max.y - block.min.y) > 1);
+		// block size must be even
+		assert((block.max.x - block.min.x) % 2 == 0 && (block.max.y - block.min.y) % 2 == 0);
 
 		// snap to .8 sub pixel
 		Imath::V2i v0 = snap_to_subpixel<8>(pos0);
@@ -297,7 +299,7 @@ namespace wyc
 			for (int x = block.min.x; x < block.max.x; x += 2)
 			{
 				flag = w0 | w1 | w2;
-				if (flag.x >= 0 || flag.y >= 0 || flag.z >= 0 || flag.w >= 0) {
+				if ((flag.x & flag.y & flag.z & flag.w) >= 0) {
 					_T_QUAD(t0, w0, bias_v12, fw0);
 					_T_QUAD(t1, w1, bias_v20, fw1);
 					_T_QUAD(t2, w2, bias_v01, fw2);

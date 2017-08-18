@@ -87,19 +87,12 @@ namespace wyc
 		z_world = w1 * m_inv_z0 + w2 * m_inv_z1 + w3 * m_inv_z2;
 		z_world.invert();
 		const float *i0 = m_v0, *i1 = m_v1, *i2 = m_v2;
-		float *out0, *out1, *out2, *out3;
-		out0 = m_frag_interp[0];
-		out1 = m_frag_interp[1];
-		out2 = m_frag_interp[2];
-		out3 = m_frag_interp[3];
-		for (unsigned i = 0; i < m_stride; ++i) {
-			*out0++ = (*i0 * m_inv_z0 * w1[0] + *i1 * m_inv_z1 * w2[0] + *i2 * m_inv_z2 * w3[0]) * z_world[0];
-			*out1++ = (*i0 * m_inv_z0 * w1[1] + *i1 * m_inv_z1 * w2[1] + *i2 * m_inv_z2 * w3[1]) * z_world[1];
-			*out2++ = (*i0 * m_inv_z0 * w1[2] + *i1 * m_inv_z1 * w2[2] + *i2 * m_inv_z2 * w3[2]) * z_world[2];
-			*out3++ = (*i0 * m_inv_z0 * w1[3] + *i1 * m_inv_z1 * w2[3] + *i2 * m_inv_z2 * w3[3]) * z_world[3];
-			i0 += 1;
-			i1 += 1;
-			i2 += 1;
+		float *out = &m_frag_input[0];
+		for (int j = 0; j < 4; ++j) {
+			for (unsigned i = 0; i < m_stride; ++i, ++out) 
+			{
+				*out = (i0[i] * m_inv_z0 * w1[j] + i1[i] * m_inv_z1 * w2[j] + i2[i] * m_inv_z2 * w3[j]) * z_world[j];
+			}
 		}
 		// write frame buffer
 		auto &depth = m_rt->get_depth_buffer();
