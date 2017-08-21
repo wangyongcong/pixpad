@@ -1,6 +1,6 @@
 #pragma once
-#include <OpenEXR/ImathBox.h>
-#include <OpenEXR/ImathColorAlgo.h>
+#include <ImathBox.h>
+#include <ImathColorAlgo.h>
 #include "spw_render_target.h"
 #include "material.h"
 

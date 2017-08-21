@@ -1,6 +1,6 @@
 #pragma once
-#include <OpenEXR/ImathExc.h>
-#include <OpenEXR/ImathBox.h>
+#include <ImathExc.h>
+#include <ImathBox.h>
 #include "floatmath.h"
 
 namespace wyc

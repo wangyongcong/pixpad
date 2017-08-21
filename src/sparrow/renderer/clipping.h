@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
-#include <OpenEXR/ImathVec.h>
-#include <OpenEXR/ImathBox.h>
+#include <ImathVec.h>
+#include <ImathBox.h>
 #include "floatmath.h"
 
 namespace wyc

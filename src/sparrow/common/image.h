@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <OpenEXR/ImathColorAlgo.h>
+#include <ImathColorAlgo.h>
 
 namespace wyc
 {

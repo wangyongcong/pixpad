@@ -1,8 +1,8 @@
 #pragma once
-#include <OpenEXR/ImathNamespace.h>
-#include <OpenEXR/ImathVec.h>
-#include <OpenEXR/ImathBox.h>
-#include <OpenEXR/ImathExc.h>
+#include <ImathNamespace.h>
+#include <ImathVec.h>
+#include <ImathBox.h>
+#include <ImathExc.h>
 
 IMATH_INTERNAL_NAMESPACE_HEADER_ENTER
 

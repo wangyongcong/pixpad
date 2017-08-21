@@ -4,8 +4,8 @@
 #include <functional>
 #include <vector>
 #include <future>
-#include <OpenExr/ImathForward.h>
-#include <OpenEXR/ImathColor.h>
+#include <ImathForward.h>
+#include <ImathColor.h>
 #include "util.h"
 #include "mesh.h"
 #include "material.h"

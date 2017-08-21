@@ -1,6 +1,6 @@
 #pragma once
-#include <OpenEXR/ImathNamespace.h>
-#include <OpenEXR/ImathMatrix.h>
+#include <ImathNamespace.h>
+#include <ImathMatrix.h>
 
 IMATH_INTERNAL_NAMESPACE_HEADER_ENTER
 

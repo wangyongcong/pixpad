@@ -1,6 +1,6 @@
 #pragma once
-#include "OpenEXR/ImathVec.h"
-#include "OpenEXR/ImathColor.h"
+#include "ImathVec.h"
+#include "ImathColor.h"
 #include "image.h"
 
 namespace wyc

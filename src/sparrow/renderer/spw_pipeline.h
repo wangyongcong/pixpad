@@ -1,7 +1,7 @@
 #pragma once
-#include <OpenEXR/ImathMatrix.h>
-#include <OpenEXR/ImathBox.h>
-#include <OpenEXR/ImathColorAlgo.h>
+#include <ImathMatrix.h>
+#include <ImathBox.h>
+#include <ImathColorAlgo.h>
 #include "ImathVecExt.h"
 #include "ImathMatrixExt.h"
 #include "mesh.h"

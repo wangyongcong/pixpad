@@ -4,7 +4,7 @@
 #include <vector>
 #include <array>
 #include <initializer_list>
-#include <OpenEXR/ImathMatrix.h>
+#include <ImathMatrix.h>
 #include "vertex_buffer.h"
 #include "vertex_layout.h"
 #include "index_buffer.h"

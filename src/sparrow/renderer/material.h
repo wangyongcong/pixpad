@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
-#include <OpenEXR/ImathMatrix.h>
+#include <ImathMatrix.h>
 #include "vertex_buffer.h"
 #include "vertex_layout.h"
 #include "log.h"

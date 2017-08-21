@@ -1,5 +1,5 @@
 #pragma once
-#include "OpenEXR/ImathMatrix.h"
+#include "ImathMatrix.h"
 #include "ImathMatrixExt.h"
 #include "material.h"
 #include "sampler.h"

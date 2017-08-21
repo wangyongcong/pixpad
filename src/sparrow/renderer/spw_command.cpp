@@ -1,5 +1,5 @@
 #include "spw_command.h"
-#include <OpenEXR/ImathColorAlgo.h>
+#include <ImathColorAlgo.h>
 #include "spw_renderer.h"
 #include "spw_rasterizer.h"
 #include "vertex_layout.h"

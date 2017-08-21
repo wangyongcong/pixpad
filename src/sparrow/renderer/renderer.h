@@ -1,7 +1,7 @@
 #pragma once
 
 #include <future>
-#include <OpenEXR/ImathColor.h>
+#include <ImathColor.h>
 #include "render_target.h"
 #include "render_command.h"
 #include "ring_queue.h"

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <OpenEXR/ImathMatrix.h>
-#include <OpenEXR/ImathBox.h>
+#include <ImathMatrix.h>
+#include <ImathBox.h>
 #include "floatmath.h"
 
 namespace wyc

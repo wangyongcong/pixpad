@@ -36,13 +36,27 @@ include_directories(${Boost_INCLUDE_DIRS})
 # add_dependencies(libpng zlib)
 
 # openexr
-ExternalProject_Add(IlmBase
-    SOURCE_DIR ${3RD_PATH}/openexr/IlmBase
-    CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${3RD_INSTALL_PATH}/openexr"
+set(BUILD_SHARED_LIBS OFF)
+set(NAMESPACE_VERSIONING ON)
+add_definitions("-DPLATFORM_WINDOWS")
+set(ILMBASE_PATH ${3RD_PATH}/openexr/IlmBase)
+include(IlmBaseConf)
+include_directories(
+	${ILMBASE_PATH}/Iex
+	${ILMBASE_PATH}/IexMath
+	${ILMBASE_PATH}/Imath
+	${CMAKE_CURRENT_BINARY_DIR}/config
 )
-set(OPENEXR_INCLUDE_DIR "${3RD_INSTALL_PATH}/openexr/include")
-link_directories(${3RD_INSTALL_PATH}/openexr/lib)
-set(OPENEXR_LIBS Imath-2_2 Half IexMath-2_2 Iex-2_2)
+add_subdirectory(${ILMBASE_PATH}/Iex)
+add_subdirectory(${ILMBASE_PATH}/IexMath)
+add_subdirectory(${ILMBASE_PATH}/Imath)
+# ExternalProject_Add(IlmBase
+#     SOURCE_DIR ${3RD_PATH}/openexr/IlmBase
+#     CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${3RD_INSTALL_PATH}/openexr"
+# )
+# set(OPENEXR_INCLUDE_DIR "${3RD_INSTALL_PATH}/openexr/include")
+# link_directories(${3RD_INSTALL_PATH}/openexr/lib)
+# set(OPENEXR_LIBS Imath-2_2 Half IexMath-2_2 Iex-2_2)
 
 #--------------------------------------------------
 
@@ -51,14 +65,12 @@ set(SRC_ROOT "${CMAKE_SOURCE_DIR}/src")
 
 include_directories(
     ${3RD_INSTALL_PATH}
-    ${PNG_INCLUDE_DIR}
-    ${OPENEXR_INCLUDE_DIR}
     ${SRC_ROOT}
 )
 
 # setup targets
 add_subdirectory(src/sparrow)
-add_dependencies(sparrow IlmBase)
+add_dependencies(sparrow Iex IexMath Imath)
 set(SPARROW_INCLUDE_DIR "${SRC_ROOT}/sparrow"
 	"${SRC_ROOT}/sparrow/common" 
 	"${SRC_ROOT}/sparrow/material" 

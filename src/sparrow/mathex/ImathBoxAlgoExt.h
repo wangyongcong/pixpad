@@ -1,5 +1,5 @@
 #pragma once
-#include <OpenEXR/ImathBox.h>
+#include <ImathBox.h>
 
 IMATH_INTERNAL_NAMESPACE_HEADER_ENTER
 
