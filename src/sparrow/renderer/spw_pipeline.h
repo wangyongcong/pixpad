@@ -2,8 +2,7 @@
 #include <ImathMatrix.h>
 #include <ImathBox.h>
 #include <ImathColorAlgo.h>
-#include "ImathVecExt.h"
-#include "ImathMatrixExt.h"
+#include "ImathVec.h"
 #include "mesh.h"
 #include "vertex_layout.h"
 #include "spw_config.h"

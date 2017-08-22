@@ -3,7 +3,7 @@
 #include <functional>
 #include <future>
 #include "disruptor.h"
-#include "ImathBoxAlgoExt.h"
+#include "ImathBoxAlgo.h"
 #include "vecmath.h"
 #include "spw_rasterizer.h"
 #include "platform_info.h"

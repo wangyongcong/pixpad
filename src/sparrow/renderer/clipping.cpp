@@ -1,5 +1,5 @@
 #include "clipping.h"
-#include "ImathVecExt.h"
+#include "ImathVecAlgo.h"
 #include "floatmath.h"
 #include <cassert>
 #include <algorithm>

@@ -1,6 +1,5 @@
 #pragma once
 #include "ImathMatrix.h"
-#include "ImathMatrixExt.h"
 #include "material.h"
 #include "sampler.h"
 

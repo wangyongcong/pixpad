@@ -18,9 +18,6 @@ set(SRC_MATERIAL
 ) 
 
 set(SRC_MATHEX 
-	"mathex/ImathBoxAlgoExt.h"
-	"mathex/ImathMatrixExt.h"
-	"mathex/ImathVecExt.h"
 	"mathex/floatmath.h"
 	"mathex/vecmath.cpp"
 	"mathex/vecmath.h"
