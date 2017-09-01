@@ -32,7 +32,7 @@ public:
 
 		auto draw = m_renderer->new_command<wyc::cmd_draw_mesh>();
 		draw->mesh = mesh.get();
-		auto mtl = std::make_shared<wyc::CMaterialDiffuse>();
+		auto mtl = std::make_shared<CMaterialDiffuse>();
 		wyc::set_translate(transform_world, 0, 0, -5);
 		proj_from_world = proj * transform_world * rx_world * ry_world;
 		mtl->set_uniform("proj_from_world", proj_from_world);

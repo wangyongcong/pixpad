@@ -28,7 +28,7 @@ public:
 
 		auto draw = m_renderer->new_command<wyc::cmd_draw_mesh>();
 		draw->mesh = mesh;
-		auto *mtl = new wyc::CMaterialColor();
+		auto *mtl = new CMaterialColor();
 		wyc::set_translate(transform_world, 0, 0, -5);
 		proj_from_world = proj * transform_world * rx_world * ry_world;
 		mtl->set_uniform("proj_from_world", proj_from_world);
@@ -49,7 +49,7 @@ public:
 
 			auto draw2 = m_renderer->new_command<wyc::cmd_draw_mesh>();
 			draw2->mesh = mesh;
-			auto *mtl2 = new wyc::CMaterialColor();
+			auto *mtl2 = new CMaterialColor();
 			wyc::set_translate(transform_world, 0, 1, -6);
 			proj_from_world = proj * transform_world * rx_world * ry_world;
 			mtl2->set_uniform("proj_from_world", proj_from_world);

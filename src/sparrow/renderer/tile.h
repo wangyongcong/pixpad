@@ -43,6 +43,7 @@ namespace wyc
 		float *m_frag_interp[4];
 		int m_transform_y;
 		unsigned m_stride;
+		CShaderContext m_ctx;
 	};
 
 } // namespace wyc

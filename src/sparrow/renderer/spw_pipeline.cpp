@@ -235,7 +235,7 @@ namespace wyc
 							local_bounding.min -= tile.center;
 							local_bounding.max -= tile.center;
 							Imath::intersection(local_bounding, tile.bounding);
-							if (!local_bounding.isEmpty()) {
+							if (local_bounding.hasVolume()) {
 								// fill triangles
 								Imath::V3f v0, v1, v2;
 								v0.x = p0->x - tile.center.x;

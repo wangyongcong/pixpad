@@ -12,11 +12,6 @@ set(SRC_COMMON
 	"common/stb_image_write.h"
 ) 
 
-set(SRC_MATERIAL 
-	"material/mtl_color.h"
-	"material/mtl_diffuse.h"
-) 
-
 set(SRC_MATHEX 
 	"mathex/floatmath.h"
 	"mathex/vecmath.cpp"
@@ -76,14 +71,12 @@ set(SRC_THREAD
 ) 
  
 source_group("common" FILES ${SRC_COMMON}) 
-source_group("material" FILES ${SRC_MATERIAL}) 
 source_group("mathex" FILES ${SRC_MATHEX}) 
 source_group("renderer" FILES ${SRC_RENDERER}) 
 source_group("thread" FILES ${SRC_THREAD}) 
  
 include_directories(
 	"common" 
-	"material" 
 	"mathex" 
 	"renderer" 
 	"thread" 
@@ -91,7 +84,6 @@ include_directories(
 
 add_library("sparrow" STATIC 
 	${SRC_COMMON} 
-	${SRC_MATERIAL} 
 	${SRC_MATHEX} 
 	${SRC_RENDERER} 
 	${SRC_THREAD} 

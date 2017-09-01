@@ -22,6 +22,7 @@ namespace wyc
 		m_frag_interp[3] = &m_frag_input[vertex_stride * 3];
 		m_material = material;
 		m_stride = vertex_stride;
+		m_ctx.vertex_quad = &m_frag_input[0];
 	}
 
 	void CTile::operator() (int x, int y) {
@@ -107,7 +108,7 @@ namespace wyc
 				depth.set(pos.x, pos.y, z[i]);
 				// write render target
 				Imath::C4f out_color;
-				if (!m_material->fragment_shader(m_frag_interp[i], out_color))
+				if (!m_material->fragment_shader(m_frag_interp[i], out_color, &m_ctx))
 					continue;
 				// write fragment buffer
 				out_color.r *= out_color.a;
