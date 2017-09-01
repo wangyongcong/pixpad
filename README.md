@@ -1,34 +1,38 @@
 pixpad
 ======
-Computer graphic experiment framework.
+Computer graphics testbed, with a software renderer Sparrow & utility tools.
 
 Build
 =====
 Dependent 3rd libs:
 * boost
-* zlib
-* libpng
 * openexr (IlmBase)
 
 ### Windows
 Use CMake (at least 3.3) to configure the build.
 
-Feature
+Sparrow
 ====
-- Sparrow: multi-threading software renderer for CG experiment.
-	- Command based renderer with easily extended command set. Send command from one thread, render in another thread. 
-	- Programmable pipeline with multi-threading support. All processings are run in parallel to speed up.
-	- Flexible material system. It's very easy to write your own vertex/fragment shader. 
-	- Basic render features, such as depth test, texture mapping, etc. More are coming.
-
+A multi-threading software renderer.
+- C/S model with an asynchronous command queue.
+- Programmable pipeline with multi-threading support. Vertex & fragment shading is run in parallel to speed up.
+- Flexible material system. It's easy to experiment variant shaders. 
+- Depth test
+- Texture mapping
+- MIP-mapping
+	
 Roadmap
 ====
-
-- mipmap & trilinear sampler
-- anitaliasing
-- improved metrics
+### Features
+- anti-aliasing (SMAA)
+- detailed pipeline metrics
+- deferred shading
+- ray tracer
+- and more...
+### Optimization
 - tile based memory layout
-- more are coming...
+- SIMD support
+- and more...
 
 Gallery
 ====
