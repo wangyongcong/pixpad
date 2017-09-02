@@ -20,6 +20,7 @@ A multi-threading software renderer.
 - Depth test
 - Texture mapping
 - MIP-mapping
+- Differential function ddx & ddy in fragment shader. 
 	
 Roadmap
 ====
@@ -36,5 +37,6 @@ Roadmap
 
 Gallery
 ====
-<img alt="depth test" src="gallery/depth_test.png" width=336 height=189>
-<img alt="textured box" src="gallery/textured_box.png" width=336 height=189>
+| <img alt="depth test" src="gallery/depth_test.png" width=336 height=189> | <img alt="textured box" src="gallery/textured_box.png" width=336 height=189> |
+| :-----: | :-----: |
+| <img alt="MIP-mapping" src="gallery/mipmap.png" width=336 height=189> |  |
