@@ -9,7 +9,8 @@ set(SRC_IMGUI
 	imgui/imconfig.h
 	imgui/imgui_impl_glfw_gl3.cpp
 	imgui/imgui_impl_glfw_gl3.h
-)
+	imgui/imgui_demo.cpp
+	)
 
 set(SRC_GL3W
 	${3RD_PATH}/gl3w/GL/gl3w.h
@@ -18,8 +19,8 @@ set(SRC_GL3W
 )
 
 set(SRC_APP
-	imgui/main.cpp
-	imgui/imgui_demo.cpp
+	main.cpp
+	panel.cpp
 	)
 
 source_group(imgui FILES ${SRC_IMGUI})
