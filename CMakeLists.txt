@@ -84,6 +84,9 @@ include_directories(${SPARROW_INCLUDE_DIR})
 # tests
 add_subdirectory(src/testbed)
 
+# pixpad
+add_subdirectory(src/pixpad)
+
 enable_testing()
 add_test(test_line ${BIN_DIR}/testbed line)
 add_test(test_box ${BIN_DIR}/testbed box)
