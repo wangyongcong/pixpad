@@ -6,6 +6,12 @@
 #include <stdio.h>
 #include <GL/gl3w.h>    // This example is using gl3w to access OpenGL functions (because it is small). You may use glew/glad/glLoadGen/etc. whatever already works for you.
 #include <GLFW/glfw3.h>
+#include <string>
+#include "app_config.h"
+
+const char *AppConfig::app_name = "pixpad";
+const int AppConfig::window_width = 1280;
+const int AppConfig::window_height = 720;
 
 void gui_draw_console(void);
 
@@ -26,7 +32,7 @@ int main(int, char**)
 #if __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "pixpad", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(AppConfig::window_width, AppConfig::window_height, AppConfig::app_name, NULL, NULL);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
     gl3wInit();
@@ -50,11 +56,11 @@ int main(int, char**)
 
     bool show_test_window = true;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	ImGuiStyle &style = ImGui::GetStyle();
-	style.WindowRounding = 0.0f;
-	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.27f, 0.3f, 0.47f, 0.8f);
+	style.WindowRounding = 4.0f;
+	style.Colors[ImGuiCol_Border].w = 0.8f;
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -86,11 +92,11 @@ int main(int, char**)
         //}
 
         // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        //if (show_test_window)
-        //{
-        //    ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver);
-        //    ImGui::ShowTestWindow(&show_test_window);
-        //}
+        if (show_test_window)
+        {
+            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver);
+            ImGui::ShowTestWindow(&show_test_window);
+        }
 
         // Rendering
         int display_w, display_h;

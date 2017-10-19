@@ -19,8 +19,9 @@ set(SRC_GL3W
 )
 
 set(SRC_APP
+	app_config.h
 	main.cpp
-	panel.cpp
+	console.cpp
 	)
 
 source_group(imgui FILES ${SRC_IMGUI})
