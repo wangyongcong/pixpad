@@ -22,14 +22,17 @@ set(SRC_APP
 	app_config.h
 	main.cpp
 	console.cpp
+	console_log.h
 	)
 
 source_group(imgui FILES ${SRC_IMGUI})
 source_group(gl3w FILES ${SRC_GL3W})
 
-include_directories(imgui)
-include_directories(${3RD_PATH}/gl3w)
-include_directories(${3RD_PATH}/glfw/include)
+include_directories(
+	${3RD_PATH}/gl3w
+	${3RD_PATH}/glfw/include
+	imgui
+)
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	link_directories(${3RD_PATH}/glfw/lib-vc2015-64)
@@ -43,7 +46,9 @@ add_executable(${PROJECT_NAME}
 	${SRC_APP}
 )
 
-target_link_libraries(${PROJECT_NAME} glfw3)
-target_link_libraries(${PROJECT_NAME} opengl32)
-target_link_libraries(${PROJECT_NAME} gdi32)
-target_link_libraries(${PROJECT_NAME} imm32)
+set_target_properties(${PROJECT_NAME}
+	PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+)
+
+target_link_libraries(${PROJECT_NAME} glfw3 opengl32 gdi32 imm32 sparrow)

@@ -8,6 +8,8 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include "app_config.h"
+#include "image.h"
+#include "console_log.h"
 
 // setup global application config
 const char *AppConfig::app_name = "pixpad";
@@ -23,6 +25,8 @@ static void error_callback(int error, const char* description)
 
 int main(int, char**)
 {
+	CConsoleLogger::init();
+	log_info("start pixpad");
     // Setup window
     glfwSetErrorCallback(error_callback);
     if (!glfwInit())
@@ -61,6 +65,12 @@ int main(int, char**)
 	ImGuiStyle &style = ImGui::GetStyle();
 	style.WindowRounding = 4.0f;
 	style.Colors[ImGuiCol_Border].w = 0.8f;
+
+	wyc::CImage image;
+	if (!image.load("res/lenna.png"))
+	{
+		log_error("load image failed: res/lenna.png");
+	}
 
     // Main loop
     while (!glfwWindowShouldClose(window))
