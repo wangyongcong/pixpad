@@ -9,11 +9,12 @@
 #include <string>
 #include "app_config.h"
 
+// setup global application config
 const char *AppConfig::app_name = "pixpad";
 const int AppConfig::window_width = 1280;
 const int AppConfig::window_height = 720;
 
-void gui_draw_console(void);
+void draw_console(void);
 
 static void error_callback(int error, const char* description)
 {
@@ -68,9 +69,9 @@ int main(int, char**)
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
 
-		ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
+		//ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
 		ImGui::SetNextWindowPos(ImVec2(1, 1), ImGuiCond_Always);
-		gui_draw_console();
+		draw_console();
 		// 1. Show a simple window
         // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
         //{
