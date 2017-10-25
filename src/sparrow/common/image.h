@@ -36,6 +36,9 @@ namespace wyc
 			Imath::packed2rgb(row[x], color);
 			return color;
 		}
+		inline const unsigned char* buffer() const {
+			return m_data;
+		}
 		// create empty image
 		void create_empty(unsigned width, unsigned height);
 		// create checker board pattern image

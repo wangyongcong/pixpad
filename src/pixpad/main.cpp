@@ -26,7 +26,7 @@ static void error_callback(int error, const char* description)
 int main(int, char**)
 {
 	CConsoleLogger::init();
-	log_info("start pixpad");
+	log_info("Pixpad start");
     // Setup window
     glfwSetErrorCallback(error_callback);
     if (!glfwInit())
@@ -67,27 +67,40 @@ int main(int, char**)
 	style.Colors[ImGuiCol_Border].w = 0.8f;
 
 	wyc::CImage image;
-	if (!image.load("res/lenna.png"))
-	{
-		log_error("load image failed: res/lenna.png");
+	if (!image.load("res/lenna.png")) {
+		log_error("fail to load image: res/lenna.png");
+	}
+	GLuint tex;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.buffer());
+	GLenum gl_err = glGetError();
+	if (gl_err != GL_NO_ERROR) {
+		log_error("OpenGL Error: %d", gl_err);
 	}
 
-    // Main loop
+	// Main loop
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
+
+		ImGui::Image((ImTextureID)tex, ImVec2(image.width(), image.height()));
 
 		//ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
 		ImGui::SetNextWindowPos(ImVec2(1, 1), ImGuiCond_Always);
 		show_console();
 
         // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        if (show_test_window)
-        {
-            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver);
-            ImGui::ShowTestWindow(&show_test_window);
-        }
+        //if (show_test_window)
+        //{
+        //    ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver);
+        //    ImGui::ShowTestWindow(&show_test_window);
+        //}
 
         // Rendering
         int display_w, display_h;
