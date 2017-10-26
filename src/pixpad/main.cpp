@@ -17,6 +17,7 @@ const int AppConfig::window_width = 1280;
 const int AppConfig::window_height = 720;
 
 void show_console(void);
+void show_image(const char *img_file);
 
 static void error_callback(int error, const char* description)
 {
@@ -66,32 +67,15 @@ int main(int, char**)
 	style.WindowRounding = 4.0f;
 	style.Colors[ImGuiCol_Border].w = 0.8f;
 
-	wyc::CImage image;
-	if (!image.load("res/lenna.png")) {
-		log_error("fail to load image: res/lenna.png");
-	}
-	GLuint tex;
-	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.buffer());
-	GLenum gl_err = glGetError();
-	if (gl_err != GL_NO_ERROR) {
-		log_error("OpenGL Error: %d", gl_err);
-	}
-
 	// Main loop
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
 
-		ImGui::Image((ImTextureID)tex, ImVec2(image.width(), image.height()));
+		show_image("mipmap.png");
 
-		//ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
+		ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
 		ImGui::SetNextWindowPos(ImVec2(1, 1), ImGuiCond_Always);
 		show_console();
 

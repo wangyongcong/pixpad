@@ -23,6 +23,7 @@ set(SRC_APP
 	main.cpp
 	console.cpp
 	console_log.h
+	image_frame.cpp
 	)
 
 source_group(imgui FILES ${SRC_IMGUI})
