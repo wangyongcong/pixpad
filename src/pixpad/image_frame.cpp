@@ -60,8 +60,6 @@ public:
 		const auto &style = ImGui::GetStyle();
 		m_frame_size.x = m_imgw + style.WindowPadding.x * 2;
 		m_frame_size.y = m_imgh + style.WindowPadding.y * 2;
-		m_frame_pos.x = (AppConfig::window_width  - m_frame_size.x) / 2;
-		m_frame_pos.y = (AppConfig::window_height - m_frame_size.y) / 2;
 
 		return true;
 	}
@@ -76,7 +74,8 @@ public:
 
 	void draw()
 	{
-		ImGui::SetNextWindowPos(m_frame_pos, ImGuiCond_Always);
+		ImVec2 pos((AppConfig::window_width - m_frame_size.x) / 2, (AppConfig::window_height - m_frame_size.y) / 2);
+		ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
 		ImGui::SetNextWindowSize(m_frame_size, ImGuiCond_Always);
 		ImGui::Begin("image", 0, m_flags);
 		ImGui::Image((ImTextureID)m_texid, ImVec2(m_imgw, m_imgh), ImVec2(0, 0), ImVec2(1, 1));
@@ -89,7 +88,7 @@ private:
 	int m_imgw, m_imgh;
 	int m_texw, m_texh;
 	int m_width, m_height;
-	ImVec2 m_frame_size, m_frame_pos;
+	ImVec2 m_frame_size;
 	ImGuiWindowFlags m_flags;
 };
 

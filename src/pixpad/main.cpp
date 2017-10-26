@@ -13,8 +13,8 @@
 
 // setup global application config
 const char *AppConfig::app_name = "pixpad";
-const int AppConfig::window_width = 1280;
-const int AppConfig::window_height = 720;
+int AppConfig::window_width = 1280;
+int AppConfig::window_height = 720;
 
 void show_console(void);
 void show_image(const char *img_file);
@@ -22,6 +22,12 @@ void show_image(const char *img_file);
 static void error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error %d: %s\n", error, description);
+}
+
+static void window_size_callback(GLFWwindow *window, int width, int height)
+{
+	AppConfig::window_width = width;
+	AppConfig::window_height = height;
 }
 
 int main(int, char**)
@@ -42,6 +48,7 @@ int main(int, char**)
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
     gl3wInit();
+	glfwSetWindowSizeCallback(window, window_size_callback);
 
     // Setup ImGui binding
     ImGui_ImplGlfwGL3_Init(window, true);

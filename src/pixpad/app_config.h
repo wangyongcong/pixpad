@@ -8,8 +8,8 @@ public:
 	AppConfig() = delete;
 	// static configuration
 	static const char *app_name;
-	static const int window_width;
-	static const int window_height;
+	static int window_width;
+	static int window_height;
 
 };
 
