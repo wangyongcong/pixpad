@@ -1,6 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
-project(pixpad)
-
 set(SRC_IMGUI
 	imgui/imgui.h
 	imgui/imgui.cpp
@@ -41,7 +38,7 @@ else()
 	link_directories(${3RD_PATH}/glfw/lib-vc2015-32)
 endif()
 
-add_executable(${PROJECT_NAME}
+add_executable(pixpad
 	${SRC_IMGUI}
 	${SRC_GL3W}
 	${SRC_APP}

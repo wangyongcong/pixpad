@@ -1,3 +1,6 @@
+# build as stand alone executable
+set(TEST_STAND_ALONE OFF)
+
 set(SRC_COMMON
 	"test_main.cpp"
 	"test.h"
@@ -25,7 +28,13 @@ include_directories(
 	"material"
 )
 
-add_executable("testbed" ${SRC_COMMON} ${SRC_MATERIAL} ${SRC_TESTBED})
+if(TEST_STAND_ALONE)
+	add_executable("testbed" ${SRC_COMMON} ${SRC_MATERIAL} ${SRC_TESTBED})
+	# message(STATUS "testbed stand alone executable")
+else()
+	add_library(testbed SHARED ${SRC_COMMON} ${SRC_MATERIAL} ${SRC_TESTBED})
+	# message(STATUS "testbed shared lib")
+endif()
 
 set_target_properties(testbed
 	PROPERTIES

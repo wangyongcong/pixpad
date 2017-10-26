@@ -10,6 +10,8 @@
 
 namespace po = boost::program_options;
 
+#ifndef testbed_EXPORTS
+
 std::unordered_map<std::string, std::function<CTest*()>> cmd_lst =
 {
 	{"line", &CTestLine::create},
@@ -80,4 +82,8 @@ int main(int argc, char *argv[])
 	log_info("finish and exit");
     return 0;
 }
+
+#else
+
+#endif // testbed_EXPORTS
 
