@@ -15,103 +15,60 @@ enum ELogLevel
 	LOG_WARN,
 	LOG_ERROR,
 	LOG_FATAL,
-
+	
 	LOG_LEVEL_COUNT,
 };
 
-void init_debug_log();
-
-void init_file_log(const char* log_name);
-
 // macro for logging
-#define log_debug(fmt,...) (wyc::g_log->debug(fmt,__VA_ARGS__))
-#define log_info(fmt,...) (wyc::g_log->info(fmt,__VA_ARGS__))
-#define log_warn(fmt,...) (wyc::g_log->warn(fmt,__VA_ARGS__))
-#define log_error(fmt,...) (wyc::g_log->error(fmt,__VA_ARGS__))
-#define log_fatal(fmt,...) (wyc::g_log->fatal(fmt,__VA_ARGS__))
-
-#define DEFAULT_ROTATE_SIZE (4*1024*1024)
+#define log_debug(fmt,...) (wyc::CLogger::s_instance->format_write(LOG_DEBUG, fmt,__VA_ARGS__))
+#define log_info(fmt,...) (wyc::CLogger::s_instance->format_write(LOG_INFO, fmt,__VA_ARGS__))
+#define log_warn(fmt,...) (wyc::CLogger::s_instance->format_write(LOG_WARN, fmt,__VA_ARGS__))
+#define log_error(fmt,...) (wyc::CLogger::s_instance->format_write(LOG_ERROR, fmt,__VA_ARGS__))
+#define log_fatal(fmt,...) (wyc::CLogger::s_instance->format_write(LOG_FATAL, fmt,__VA_ARGS__))
 
 class CLogger
 {
 public:
-	CLogger(ELogLevel lvl = LOG_DEBUG);
-	virtual ~CLogger();
-	virtual void write(const char* record, size_t size)
-	{
-		printf(record);
-	}
-	virtual void flush() {}
-
-	void debug(const char *fmt, ...);
-	void info(const char *fmt, ...);
-	void warn(const char *fmt, ...);
-	void error(const char *fmt, ...);
-	void fatal(const char *fmt, ...);
-
-	ELogLevel get_level() const
-	{
-		return m_level;
-	}
-	void set_level(ELogLevel lv)
-	{
-		m_level = lv;
-	}
-
-protected:
-	ELogLevel m_level;
-	char *m_buff;
-
-	void format_write(ELogLevel lvl, const char *fmt, va_list args);
+	static CLogger* s_instance;
+	//static bool init(ELogLevel lvl);
+	void format_write(ELogLevel lvl, const char *fmt, ...);
+	virtual void write(const char* buf, size_t size) = 0;
+	virtual void flush() = 0;
+	virtual ELogLevel get_level() const = 0;
+	virtual void set_level(ELogLevel lv) = 0;
 };
 
-inline void CLogger::debug (const char* fmt, ...) {
-	if (m_level <= LOG_DEBUG) {
-		va_list args;
-		va_start(args, fmt);
-		format_write(LOG_DEBUG, fmt, args);
-		va_end(args);
-	}
-}
+class CFileLogger : public CLogger
+{
+public:
+	static bool init(ELogLevel lvl, const char* log_name, const char* save_path = 0, size_t rotate_size = 0);
+	virtual ~CFileLogger();
+	virtual void write(const char* record, size_t size);
+	virtual void flush();
 
-inline void CLogger::info(const char* fmt, ...) {
-	if (m_level <= LOG_INFO) {
-		va_list args;
-		va_start(args, fmt);
-		format_write(LOG_INFO, fmt, args);
-		va_end(args);
-	}
-}
+private:
+	FILE *m_hfile;
+	std::string m_path;
+	std::string m_logname;
+	std::string m_curfile;
+	size_t m_cur_size;
+	size_t m_rotate_size;
+	unsigned m_rotate_cnt;
 
-inline void CLogger::warn(const char* fmt, ...) {
-	if (m_level <= LOG_WARN) {
-		va_list args;
-		va_start(args, fmt);
-		format_write(LOG_WARN, fmt, args);
-		va_end(args);
-	}
-}
+	CFileLogger(ELogLevel lvl, const char* log_name, const char* save_path = 0, size_t rotate_size = 0);
+	bool create(const char* log_name, const char* save_path = 0, size_t rotate_size = 0);
+	void rotate();
+};
 
-inline void CLogger::error(const char* fmt, ...) {
-	if (m_level <= LOG_ERROR) {
-		va_list args;
-		va_start(args, fmt);
-		format_write(LOG_ERROR, fmt, args);
-		va_end(args);
-	}
-}
-
-inline void CLogger::fatal(const char* fmt, ...) {
-	if (m_level <= LOG_FATAL) {
-		va_list args;
-		va_start(args, fmt);
-		format_write(LOG_FATAL, fmt, args);
-		va_end(args);
-	}
-}
-
-// global logger
-extern CLogger *g_log;
+class CDebugLogger : public CLogger
+{
+public:
+	static bool init(ELogLevel lvl);
+	virtual void write(const char* record, size_t size);
+private:
+	bool m_is_debug_mode;
+	CDebugLogger(ELogLevel lvl);
+};
 
 }; // end of namespace wyc
 

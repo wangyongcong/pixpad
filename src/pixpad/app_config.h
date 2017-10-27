@@ -1,5 +1,4 @@
-#ifndef __HEADER_CONFIG
-#define __HEADER_CONFIG
+#pragma once
 
 class AppConfig
 {
@@ -12,5 +11,3 @@ public:
 	static int window_height;
 
 };
-
-#endif // __HEADER_CONFIG

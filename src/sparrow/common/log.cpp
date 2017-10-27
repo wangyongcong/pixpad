@@ -13,8 +13,6 @@
 namespace wyc
 {
 
-CLogger *g_log = nullptr;
-
 const char* s_log_lvl_tag[wyc::LOG_LEVEL_COUNT] = {
 	"DEBUG",		
 	"INFO",		
@@ -23,52 +21,82 @@ const char* s_log_lvl_tag[wyc::LOG_LEVEL_COUNT] = {
 	"FATAL",
 };
 
-CLogger::CLogger(ELogLevel lvl)
+class CLoggerImpl : CLogger
+{
+public:
+	CLoggerImpl(ELogLevel lvl);
+	virtual ~CLoggerImpl();
+	virtual void write(const char* buf, size_t size);
+	virtual void flush() {}
+	virtual ELogLevel get_level() const {
+		return m_level;
+	}
+	virtual void set_level(ELogLevel lv) {
+		m_level = lv;
+	}
+	void format_write(ELogLevel lvl, const char *fmt, ...);
+private:
+	ELogLevel m_level;
+	char *m_buff;
+};
+
+bool CLogger::init(ELogLevel lvl)
+{
+	if (s_instance) {
+		delete s_instance;
+	}
+	s_instance = new CLogger(lvl);
+	return true;
+}
+
+CLoggerImpl::CLoggerImpl(ELogLevel lvl)
 {
 	m_level = lvl;
 	m_buff = new char[TEXT_BUFF_SIZE+2];
 }
 
-CLogger::~CLogger()
+CLoggerImpl::~CLoggerImpl()
 {
 	delete[] m_buff;
 	m_buff = 0;
 }
 
-void CLogger::format_write(ELogLevel lvl, const char *fmt, va_list args)
+void CLoggerImpl::write(const char* buf, size_t size)
 {
+	printf(buf);
+}
+
+void CLoggerImpl::format_write(ELogLevel lvl, const char * fmt, ...)
+{
+	if (m_level < lvl)
+		return;
 	auto now = std::chrono::system_clock::now();
+	auto buf = m_buff;
 	int cnt = 0;
-	cnt += ::sprintf_s(m_buff, TEXT_BUFF_SIZE, "[%s] ", s_log_lvl_tag[lvl]);
-	cnt += ::vsprintf_s(m_buff + cnt, TEXT_BUFF_SIZE - cnt, fmt, args);
-	m_buff[cnt++] = '\n';
-	m_buff[cnt] = 0;
-	write(m_buff, cnt);
+	cnt += ::sprintf_s(buf, TEXT_BUFF_SIZE, "[%s] ", s_log_lvl_tag[lvl]);
+	va_list args;
+	va_start(args, fmt);
+	cnt += ::vsprintf_s(buf + cnt, TEXT_BUFF_SIZE - cnt, fmt, args);
+	va_end(args);
+	buf[cnt++] = '\n';
+	buf[cnt] = 0;
+	write(buf, cnt);
 }
 
 //-----------------------------------------------------
+#define DEFAULT_ROTATE_SIZE (4*1024*1024)
 
-class CFileLogger : public CLogger
+bool CFileLogger::init(ELogLevel lvl, const char *log_name, const char* save_path, size_t rotate_size)
 {
-public:
-	CFileLogger(const char* log_name, const char* save_path = 0, size_t rotate_size = 0, ELogLevel lvl = LOG_DEBUG);
-	virtual ~CFileLogger();
-	virtual void write(const char* record, size_t size);
-	virtual void flush();
-private:
-	FILE *m_hfile;
-	std::string m_path;
-	std::string m_logname;
-	std::string m_curfile;
-	size_t m_cur_size;
-	size_t m_rotate_size;
-	unsigned m_rotate_cnt;
+	if (s_instance) {
+		delete s_instance;
+	}
+	s_instance = new CFileLogger(lvl, log_name, save_path, rotate_size);
+	return true;
+}
 
-	bool create(const char* log_name, const char* save_path = 0, size_t rotate_size = 0);
-	void rotate();
-};
-
-CFileLogger::CFileLogger(const char* log_name, const char* save_path, size_t rotate_size, ELogLevel lvl) : CLogger(lvl)
+CFileLogger::CFileLogger(ELogLevel lvl, const char* log_name, const char* save_path, size_t rotate_size)
+	: CLogger(lvl)
 {
 	m_hfile = 0;
 	m_cur_size = 0;
@@ -169,46 +197,35 @@ void CFileLogger::flush()
 
 //-----------------------------------------------------
 
-class CDebugLogger : public CLogger
+bool CDebugLogger::init(ELogLevel lvl)
 {
-	bool m_is_debug_mode;
-public:
-	CDebugLogger() 
-		: CLogger()
-		, m_is_debug_mode(false)
-	{
-#ifdef WIN32
-		m_is_debug_mode = IsDebuggerPresent() ? true : false;
-#endif
+	if (s_instance) {
+		delete s_instance;
 	}
+	s_instance = new CDebugLogger(lvl);
+	return true;
+}
 
-	virtual void write(const char* record, size_t size)
-	{
+CDebugLogger::CDebugLogger(ELogLevel lvl)
+	: CLogger(lvl)
+	, m_is_debug_mode(false)
+{
 #ifdef WIN32
-		if (m_is_debug_mode)
-			OutputDebugStringA(record);
-		else
-			printf(record);
-#else
+	m_is_debug_mode = IsDebuggerPresent() ? true : false;
+#endif
+}
+
+void CDebugLogger::write(const char* record, size_t size)
+{
+#ifdef WIN32
+	if (m_is_debug_mode)
+		OutputDebugStringA(record);
+	else
 		printf(record);
+#else
+	printf(record);
 #endif
-	}
-};
-
-void init_debug_log()
-{
-	if (g_log) {
-		delete g_log;
-	}
-	g_log = new CDebugLogger();
 }
 
-void init_file_log(const char * log_name)
-{
-	if (g_log) {
-		delete g_log;
-	}
-	g_log = new CFileLogger(log_name);
-}
 
 }; // end of namesapce wyc
