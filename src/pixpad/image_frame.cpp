@@ -1,7 +1,6 @@
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 #include "imgui.h"
-#include "image.h"
 #include "app_config.h"
 #include "console_log.h"
 
@@ -23,43 +22,43 @@ public:
 
 	bool set_image(const char *img_file)
 	{
-		wyc::CImage image;
-		if (!image.load(img_file)) {
-			log_error("fail to load image: res/lenna.png");
-			return false;
-		}
-		GLenum gl_err;
-		GLuint texid;
-		glGenTextures(1, &texid);
-		if (!texid) {
-			log_error("OpenGL generate texture error: %d", glGetError());
-			return false;
-		}
-		glBindTexture(GL_TEXTURE_2D, texid);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.buffer());
-		gl_err = glGetError();
-		if (gl_err != GL_NO_ERROR) {
-			glDeleteTextures(1, &texid);
-			log_error("OpenGL Error: %d", gl_err);
-			return false;
-		}
+		//wyc::CImage image;
+		//if (!image.load(img_file)) {
+		//	log_error("fail to load image: res/lenna.png");
+		//	return false;
+		//}
+		//GLenum gl_err;
+		//GLuint texid;
+		//glGenTextures(1, &texid);
+		//if (!texid) {
+		//	log_error("OpenGL generate texture error: %d", glGetError());
+		//	return false;
+		//}
+		//glBindTexture(GL_TEXTURE_2D, texid);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.buffer());
+		//gl_err = glGetError();
+		//if (gl_err != GL_NO_ERROR) {
+		//	glDeleteTextures(1, &texid);
+		//	log_error("OpenGL Error: %d", gl_err);
+		//	return false;
+		//}
 
-		if (m_texid)
-			clear();
-		m_texid = texid;
-		m_imgw = image.width();
-		m_imgh = image.height();
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_texw);
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_texh);
-		log_info("image(%d x %d), texture(%d x %d)", m_imgw, m_imgh, m_texw, m_texh);
+		//if (m_texid)
+		//	clear();
+		//m_texid = texid;
+		//m_imgw = image.width();
+		//m_imgh = image.height();
+		//glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_texw);
+		//glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_texh);
+		//log_info("image(%d x %d), texture(%d x %d)", m_imgw, m_imgh, m_texw, m_texh);
 
-		const auto &style = ImGui::GetStyle();
-		m_frame_size.x = m_imgw + style.WindowPadding.x * 2;
-		m_frame_size.y = m_imgh + style.WindowPadding.y * 2;
+		//const auto &style = ImGui::GetStyle();
+		//m_frame_size.x = m_imgw + style.WindowPadding.x * 2;
+		//m_frame_size.y = m_imgh + style.WindowPadding.y * 2;
 
 		return true;
 	}

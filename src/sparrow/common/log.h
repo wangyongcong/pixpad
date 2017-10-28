@@ -18,56 +18,65 @@ enum ELogLevel
 	
 	LOG_LEVEL_COUNT,
 };
+extern const char* s_log_tags[LOG_LEVEL_COUNT];
+#define LOG_TAG(i) wyc::s_log_tags[i]
 
-// macro for logging
-#define log_debug(fmt,...) (wyc::CLogger::s_instance->format_write(LOG_DEBUG, fmt,__VA_ARGS__))
-#define log_info(fmt,...) (wyc::CLogger::s_instance->format_write(LOG_INFO, fmt,__VA_ARGS__))
-#define log_warn(fmt,...) (wyc::CLogger::s_instance->format_write(LOG_WARN, fmt,__VA_ARGS__))
-#define log_error(fmt,...) (wyc::CLogger::s_instance->format_write(LOG_ERROR, fmt,__VA_ARGS__))
-#define log_fatal(fmt,...) (wyc::CLogger::s_instance->format_write(LOG_FATAL, fmt,__VA_ARGS__))
-
-class CLogger
+class ILogger
 {
 public:
-	static CLogger* s_instance;
-	//static bool init(ELogLevel lvl);
-	void format_write(ELogLevel lvl, const char *fmt, ...);
-	virtual void write(const char* buf, size_t size) = 0;
-	virtual void flush() = 0;
+	virtual void write(ELogLevel lvl, const char *fmt, ...) = 0;
 	virtual ELogLevel get_level() const = 0;
 	virtual void set_level(ELogLevel lv) = 0;
 };
+extern ILogger* g_logger;
 
-class CFileLogger : public CLogger
-{
-public:
-	static bool init(ELogLevel lvl, const char* log_name, const char* save_path = 0, size_t rotate_size = 0);
-	virtual ~CFileLogger();
-	virtual void write(const char* record, size_t size);
-	virtual void flush();
-
-private:
-	FILE *m_hfile;
-	std::string m_path;
-	std::string m_logname;
-	std::string m_curfile;
-	size_t m_cur_size;
-	size_t m_rotate_size;
-	unsigned m_rotate_cnt;
-
-	CFileLogger(ELogLevel lvl, const char* log_name, const char* save_path = 0, size_t rotate_size = 0);
-	bool create(const char* log_name, const char* save_path = 0, size_t rotate_size = 0);
-	void rotate();
+#define LOGGER_INIT \
+wyc::ILogger* wyc::g_logger = nullptr; \
+const char* wyc::s_log_lvl_tag[wyc::LOG_LEVEL_COUNT] = {\
+	"DEBUG",\
+	"INFO",\
+	"WARNING",\
+	"ERROR",\
+	"FATAL",\
 };
+#define LOGGER_GET(T) (dynamic_cast<T*>(wyc::g_logger))
+#define LOGGER_SETUP(v) {if(wyc::g_logger) delete wyc::g_logger; wyc::g_logger = v;}
+#define LOGGER_CHECK() (wyc::g_logger != nullptr)
+#define LOGGER_WRITE (wyc::g_logger->write)
 
-class CDebugLogger : public CLogger
+#ifdef NDEBUG
+#define log_debug(fmt,...)
+#define log_info(fmt,...) 
+#define log_warn(fmt,...) 
+#define log_error(fmt,...)
+#define log_fatal(fmt,...)
+#else
+#define log_debug(fmt,...) (LOGGER_WRITE(wyc::LOG_DEBUG, fmt, __VA_ARGS__))
+#define log_info(fmt,...)  (LOGGER_WRITE(wyc::LOG_INFO, fmt, __VA_ARGS__))
+#define log_warn(fmt,...)  (LOGGER_WRITE(wyc::LOG_WARN, fmt, __VA_ARGS__))
+#define log_error(fmt,...) (LOGGER_WRITE(wyc::LOG_ERROR, fmt, __VA_ARGS__))
+#define log_fatal(fmt,...) (LOGGER_WRITE(wyc::LOG_FATAL, fmt, __VA_ARGS__))
+#endif
+
+// log to std output
+class CLogger
 {
 public:
 	static bool init(ELogLevel lvl);
-	virtual void write(const char* record, size_t size);
-private:
-	bool m_is_debug_mode;
-	CDebugLogger(ELogLevel lvl);
+};
+
+// log to file
+class CFileLogger
+{
+public:
+	static bool init(ELogLevel lvl, const char* log_name, const char* save_path = 0, size_t rotate_size = 0);
+};
+
+// log to IDE debug window
+class CDebugLogger
+{
+public:
+	static bool init(ELogLevel lvl);
 };
 
 }; // end of namespace wyc

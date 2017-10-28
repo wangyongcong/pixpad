@@ -8,8 +8,9 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include "app_config.h"
-#include "image.h"
 #include "console_log.h"
+
+LOGGER_INIT
 
 // setup global application config
 const char *AppConfig::app_name = "pixpad";

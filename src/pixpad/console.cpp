@@ -32,7 +32,7 @@ public:
 		// BEGIN log
 		ImGui::BeginChild("console_log", ImVec2(0, -ImGui::GetItemsLineHeightWithSpacing() - progress_bar_height - style.ItemSpacing.y), 
 			false, ImGuiWindowFlags_HorizontalScrollbar);
-		CConsoleLogger *logger = dynamic_cast<CConsoleLogger*>(wyc::g_log);
+		CConsoleLogger *logger = LOGGER_GET(CConsoleLogger);
 		for (auto &str : *logger) {
 			draw_log(str);
 		}
@@ -48,7 +48,7 @@ public:
 		}, (void*)this))
 		{
 			if (m_input_buff[0]) {
-				wyc::g_log->write(m_input_buff, 0);
+				logger->output(m_input_buff);
 				m_input_buff[0] = 0;
 			}
 		}

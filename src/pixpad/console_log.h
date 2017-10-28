@@ -4,24 +4,40 @@
 #include <type_traits>
 #include "log.h"
 
-class CConsoleLogger : public wyc::CLogger
+class CConsoleLogger : public wyc::ILogger
 {
 public:
-	static void init() {
-		if (wyc::g_log) {
-			delete wyc::g_log;
-		}
-		wyc::g_log = new CConsoleLogger(256);
+	static void init(wyc::ELogLevel lvl=wyc::LOG_DEBUG) {
+		auto ptr = new CConsoleLogger(lvl, 256);
+		LOGGER_SETUP(ptr);
 	}
 
-	virtual void write(const char* record, size_t size)
+	virtual wyc::ELogLevel get_level() const  override {
+		return m_level;
+	}
+	virtual void set_level(wyc::ELogLevel lv)  override {
+		m_level = lv;
+	}
+	virtual void write(wyc::ELogLevel lvl, const char *fmt, ...) override {
+		if (m_level < lvl)
+			return;
+		int cnt = std::snprintf(m_buf, TEXT_BUFFER_SIZE, "[%s] ", LOG_TAG(lvl));
+		va_list args;
+		va_start(args, fmt);
+		cnt += std::vsnprintf(m_buf + cnt, TEXT_BUFFER_SIZE - cnt, fmt, args);
+		va_end(args);
+		m_buf[cnt++] = '\n';
+		m_buf[cnt] = 0;
+		output(m_buf);
+	}
+	void output(const char *buf)
 	{
 		if (m_end < m_max_line) {
-			m_log_buff.emplace_back(record);
+			m_log_buf.emplace_back(m_buf);
 			m_end += 1;
 		}
 		else {
-			m_log_buff[m_end % m_max_line] = record;
+			m_log_buf[m_end % m_max_line] = m_buf;
 			m_end += 1;
 			m_beg += 1;
 		}
@@ -30,16 +46,16 @@ public:
 	class iterator : public std::iterator<std::forward_iterator_tag, std::string>
 	{
 	public:
-		iterator(size_t p = 0, const std::vector<std::string> *b = nullptr) : pos(p), buff(b)
+		iterator(size_t p = 0, const std::vector<std::string> *b = nullptr) : pos(p), buf(b)
 		{
 		}
 		inline const std::string& operator * ()
 		{
-			return (*buff)[pos % buff->size()];
+			return (*buf)[pos % buf->size()];
 		}
 		inline const std::string* operator -> ()
 		{
-			return &(*buff)[pos % buff->size()];
+			return &(*buf)[pos % buf->size()];
 		}
 		inline bool operator != (const iterator &other) const
 		{
@@ -52,11 +68,11 @@ public:
 		}
 	private:
 		size_t pos;
-		const std::vector<std::string> *buff;
+		const std::vector<std::string> *buf;
 	};
 
 	inline iterator begin() const {
-		return{ m_beg, &m_log_buff };
+		return{ m_beg, &m_log_buf };
 	}
 
 	inline iterator end() const {
@@ -64,18 +80,20 @@ public:
 	}
 
 private:
-	CConsoleLogger(size_t max_line)
-		: CLogger()
+	CConsoleLogger(wyc::ELogLevel lvl, size_t max_line)
+		: m_level(lvl)
 		, m_beg(0)
 		, m_end(0)
 		, m_max_line(max_line)
 	{
 		if (m_max_line < 1)
 			m_max_line = 1;
-		m_log_buff.reserve(m_max_line);
+		m_log_buf.reserve(m_max_line);
 	}
-
-	std::vector<std::string> m_log_buff;
+	wyc::ELogLevel m_level;
+	constexpr static size_t TEXT_BUFFER_SIZE = 256;
+	char m_buf[TEXT_BUFFER_SIZE];
+	std::vector<std::string> m_log_buf;
 	size_t m_beg, m_end, m_max_line;
 };
 

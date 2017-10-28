@@ -7,96 +7,94 @@
 #include <windows.h>
 #endif
 
-#define TEXT_BUFF_SIZE 255
-
+#define TEXT_BUFF_SIZE 255  // internal string buf size
+#define DEFAULT_ROTATE_SIZE (4*1024*1024)  // file logger rotate size
 
 namespace wyc
 {
+LOGGER_INIT
 
-const char* s_log_lvl_tag[wyc::LOG_LEVEL_COUNT] = {
-	"DEBUG",		
-	"INFO",		
-	"WARNING",	
-	"ERROR",
-	"FATAL",
-};
-
-class CLoggerImpl : CLogger
+class CLoggerImpl : public ILogger
 {
 public:
 	CLoggerImpl(ELogLevel lvl);
 	virtual ~CLoggerImpl();
-	virtual void write(const char* buf, size_t size);
-	virtual void flush() {}
-	virtual ELogLevel get_level() const {
+	virtual ELogLevel get_level() const  override {
 		return m_level;
 	}
-	virtual void set_level(ELogLevel lv) {
+	virtual void set_level(ELogLevel lv)  override {
 		m_level = lv;
 	}
-	void format_write(ELogLevel lvl, const char *fmt, ...);
+	virtual void write(ELogLevel lvl, const char *fmt, ...) override;
+	virtual void output(const char* buf, size_t size);
 private:
 	ELogLevel m_level;
-	char *m_buff;
+	char *m_buf;
 };
-
-bool CLogger::init(ELogLevel lvl)
-{
-	if (s_instance) {
-		delete s_instance;
-	}
-	s_instance = new CLogger(lvl);
-	return true;
-}
 
 CLoggerImpl::CLoggerImpl(ELogLevel lvl)
 {
 	m_level = lvl;
-	m_buff = new char[TEXT_BUFF_SIZE+2];
+	m_buf = new char[TEXT_BUFF_SIZE+2];
 }
 
 CLoggerImpl::~CLoggerImpl()
 {
-	delete[] m_buff;
-	m_buff = 0;
+	delete[] m_buf;
+	m_buf = 0;
 }
 
-void CLoggerImpl::write(const char* buf, size_t size)
+void CLoggerImpl::write(ELogLevel lvl, const char * fmt, ...)
+{
+	if (m_level < lvl)
+		return;
+	//auto now = std::chrono::system_clock::now();
+	int cnt = std::snprintf(m_buf, TEXT_BUFF_SIZE, "[%s] ", LOG_TAG(lvl));
+	va_list args;
+	va_start(args, fmt);
+	cnt += std::vsnprintf(m_buf + cnt, TEXT_BUFF_SIZE - cnt, fmt, args);
+	va_end(args);
+	m_buf[cnt++] = '\n';
+	m_buf[cnt] = 0;
+	output(m_buf, cnt);
+}
+
+void CLoggerImpl::output(const char* buf, size_t size)
 {
 	printf(buf);
 }
 
-void CLoggerImpl::format_write(ELogLevel lvl, const char * fmt, ...)
+bool CLogger::init(ELogLevel lvl)
 {
-	if (m_level < lvl)
-		return;
-	auto now = std::chrono::system_clock::now();
-	auto buf = m_buff;
-	int cnt = 0;
-	cnt += ::sprintf_s(buf, TEXT_BUFF_SIZE, "[%s] ", s_log_lvl_tag[lvl]);
-	va_list args;
-	va_start(args, fmt);
-	cnt += ::vsprintf_s(buf + cnt, TEXT_BUFF_SIZE - cnt, fmt, args);
-	va_end(args);
-	buf[cnt++] = '\n';
-	buf[cnt] = 0;
-	write(buf, cnt);
-}
-
-//-----------------------------------------------------
-#define DEFAULT_ROTATE_SIZE (4*1024*1024)
-
-bool CFileLogger::init(ELogLevel lvl, const char *log_name, const char* save_path, size_t rotate_size)
-{
-	if (s_instance) {
-		delete s_instance;
-	}
-	s_instance = new CFileLogger(lvl, log_name, save_path, rotate_size);
+	auto ptr = new CLoggerImpl(lvl);
+	LOGGER_SETUP(ptr);
 	return true;
 }
 
-CFileLogger::CFileLogger(ELogLevel lvl, const char* log_name, const char* save_path, size_t rotate_size)
-	: CLogger(lvl)
+//-----------------------------------------------------
+
+class CFileLoggerImpl : public CLoggerImpl
+{
+public:
+	CFileLoggerImpl(ELogLevel lvl, const char* log_name, const char* save_path = 0, size_t rotate_size = 0);
+	virtual ~CFileLoggerImpl();
+	virtual void output(const char* buf, size_t size);
+
+private:
+	FILE *m_hfile;
+	std::string m_path;
+	std::string m_logname;
+	std::string m_curfile;
+	size_t m_cur_size;
+	size_t m_rotate_size;
+	unsigned m_rotate_cnt;
+
+	bool create(const char* log_name, const char* save_path = 0, size_t rotate_size = 0);
+	void rotate();
+};
+
+CFileLoggerImpl::CFileLoggerImpl(ELogLevel lvl, const char* log_name, const char* save_path, size_t rotate_size)
+	: CLoggerImpl(lvl)
 {
 	m_hfile = 0;
 	m_cur_size = 0;
@@ -105,16 +103,17 @@ CFileLogger::CFileLogger(ELogLevel lvl, const char* log_name, const char* save_p
 	create(log_name, save_path, rotate_size);
 }
 
-CFileLogger::~CFileLogger()
+CFileLoggerImpl::~CFileLoggerImpl()
 {
 	if (m_hfile)
 	{
+		fflush(m_hfile);
 		fclose(m_hfile);
 		m_hfile = 0;
 	}
 }
 
-bool CFileLogger::create(const char* log_name, const char* save_path, size_t rotate_size)
+bool CFileLoggerImpl::create(const char* log_name, const char* save_path, size_t rotate_size)
 {
 	if (!save_path || 0 == save_path[0])
 		m_path = ".\\logs\\";
@@ -153,7 +152,7 @@ bool CFileLogger::create(const char* log_name, const char* save_path, size_t rot
 	return true;
 }
 
-void CFileLogger::rotate()
+void CFileLoggerImpl::rotate()
 {
 	// rotate
 	fclose(m_hfile);
@@ -179,35 +178,37 @@ void CFileLogger::rotate()
 
 }
 
-void CFileLogger::write(const char* record, size_t size)
+void CFileLoggerImpl::output(const char* buf, size_t size)
 {
 	if (!m_hfile)
 		return;
 	if (m_cur_size + size >= m_rotate_size)
 		rotate();
 	m_cur_size += size;
-	fprintf(m_hfile, record);
+	fprintf(m_hfile, buf);
 }
 
-void CFileLogger::flush()
+bool CFileLogger::init(ELogLevel lvl, const char *log_name, const char* save_path, size_t rotate_size)
 {
-	if (m_hfile)
-		fflush(m_hfile);
+	auto ptr = new CFileLoggerImpl(lvl, log_name, save_path, rotate_size);
+	LOGGER_SETUP(ptr);
+	return true;
 }
 
 //-----------------------------------------------------
 
-bool CDebugLogger::init(ELogLevel lvl)
+class CDebugLoggerImpl : public CLoggerImpl
 {
-	if (s_instance) {
-		delete s_instance;
-	}
-	s_instance = new CDebugLogger(lvl);
-	return true;
-}
+public:
+	CDebugLoggerImpl(ELogLevel lvl);
+	virtual void output(const char* buf, size_t size) override;
 
-CDebugLogger::CDebugLogger(ELogLevel lvl)
-	: CLogger(lvl)
+private:
+	bool m_is_debug_mode;
+};
+
+CDebugLoggerImpl::CDebugLoggerImpl(ELogLevel lvl)
+	: CLoggerImpl(lvl)
 	, m_is_debug_mode(false)
 {
 #ifdef WIN32
@@ -215,16 +216,23 @@ CDebugLogger::CDebugLogger(ELogLevel lvl)
 #endif
 }
 
-void CDebugLogger::write(const char* record, size_t size)
+void CDebugLoggerImpl::output(const char* buf, size_t size)
 {
 #ifdef WIN32
 	if (m_is_debug_mode)
-		OutputDebugStringA(record);
+		OutputDebugStringA(buf);
 	else
-		printf(record);
+		printf(buf);
 #else
-	printf(record);
+	printf(buf);
 #endif
+}
+
+bool CDebugLogger::init(ELogLevel lvl)
+{
+	auto ptr = new CDebugLoggerImpl(lvl);
+	LOGGER_SETUP(ptr);
+	return true;
 }
 
 
