@@ -7,20 +7,12 @@
 class CConsoleLogger : public wyc::ILogger
 {
 public:
-	static void init(wyc::ELogLevel lvl=wyc::LOG_DEBUG) {
-		auto ptr = new CConsoleLogger(lvl, 256);
-		LOGGER_SETUP(ptr);
+	static void init() {
+		auto ptr = new CConsoleLogger(256);
+		LOGGER_SET(ptr);
 	}
 
-	virtual wyc::ELogLevel get_level() const  override {
-		return m_level;
-	}
-	virtual void set_level(wyc::ELogLevel lv)  override {
-		m_level = lv;
-	}
 	virtual void write(wyc::ELogLevel lvl, const char *fmt, ...) override {
-		if (m_level < lvl)
-			return;
 		int cnt = std::snprintf(m_buf, TEXT_BUFFER_SIZE, "[%s] ", LOG_TAG(lvl));
 		va_list args;
 		va_start(args, fmt);
@@ -80,9 +72,8 @@ public:
 	}
 
 private:
-	CConsoleLogger(wyc::ELogLevel lvl, size_t max_line)
-		: m_level(lvl)
-		, m_beg(0)
+	CConsoleLogger(size_t max_line)
+		: m_beg(0)
 		, m_end(0)
 		, m_max_line(max_line)
 	{
@@ -90,7 +81,6 @@ private:
 			m_max_line = 1;
 		m_log_buf.reserve(m_max_line);
 	}
-	wyc::ELogLevel m_level;
 	constexpr static size_t TEXT_BUFFER_SIZE = 256;
 	char m_buf[TEXT_BUFFER_SIZE];
 	std::vector<std::string> m_log_buf;
