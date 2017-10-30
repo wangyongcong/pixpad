@@ -30,6 +30,26 @@ static void window_size_callback(GLFWwindow *window, int width, int height)
 	AppConfig::window_height = height;
 }
 
+typedef void(*PFN_SET_LOGGER)(wyc::ILogger*);
+typedef void(*PFN_TESTBED)(const std::string &);
+
+PFN_SET_LOGGER set_logger = nullptr;
+PFN_TESTBED testbed = nullptr;
+
+static bool init_process()
+{
+	HMODULE module = LoadLibrary("testbed");
+	if (module == NULL) {
+		log_error("fail to load library: testbed");
+		return false;
+	}
+	set_logger = (PFN_SET_LOGGER)GetProcAddress(module, "set_logger");
+	if (!set_logger) return false;
+	testbed = (PFN_TESTBED)GetProcAddress(module, "testbed");
+	if (!testbed) return false;
+	return true;
+}
+
 int main(int, char**)
 {
 	CConsoleLogger::init();
@@ -55,6 +75,10 @@ int main(int, char**)
 
 #if defined(WIN32) || defined(WIN64)
 	FreeConsole();
+	if (init_process())
+	{
+		set_logger(LOGGER_GET(CConsoleLogger));
+	}
 #endif
 
     // Load Fonts

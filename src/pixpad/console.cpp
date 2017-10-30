@@ -3,6 +3,9 @@
 #include "app_config.h"
 #include "console_log.h"
 
+typedef void(*PFN_TESTBED)(const std::string &);
+extern PFN_TESTBED testbed;
+
 class CGuiConsole
 {
 public:
@@ -49,6 +52,7 @@ public:
 		{
 			if (m_input_buff[0]) {
 				logger->output(m_input_buff);
+				testbed(m_input_buff);
 				m_input_buff[0] = 0;
 			}
 		}

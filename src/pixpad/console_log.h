@@ -25,11 +25,11 @@ public:
 	void output(const char *buf)
 	{
 		if (m_end < m_max_line) {
-			m_log_buf.emplace_back(m_buf);
+			m_log_buf.emplace_back(buf);
 			m_end += 1;
 		}
 		else {
-			m_log_buf[m_end % m_max_line] = m_buf;
+			m_log_buf[m_end % m_max_line] = buf;
 			m_end += 1;
 			m_beg += 1;
 		}

@@ -73,6 +73,8 @@ public:
 
 	void draw()
 	{
+		if (!m_texid)
+			return;
 		ImVec2 pos((AppConfig::window_width - m_frame_size.x) / 2, (AppConfig::window_height - m_frame_size.y) / 2);
 		ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
 		ImGui::SetNextWindowSize(m_frame_size, ImGuiCond_Always);

@@ -5,7 +5,7 @@
 #include "spw_renderer.h"
 
 #ifdef testbed_EXPORTS
-#define EXPORT_C_API extern "C" _declspec(dllexport)
+#define EXPORT_API extern "C" _declspec(dllexport)
 #define EXPORT_CLASS _declspec(dllexport)
 #else
 #define EXPORT_C_API
