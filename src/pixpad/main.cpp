@@ -1,6 +1,6 @@
 // ImGui - standalone example application for Glfw + OpenGL 3, using programmable pipeline
 // If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
-
+#include <unordered_map>
 #include <imgui.h>
 #include "imgui_impl_glfw_gl3.h"
 #include <stdio.h>
@@ -16,9 +16,6 @@ const char *AppConfig::app_name = "pixpad";
 int AppConfig::window_width = 1280;
 int AppConfig::window_height = 720;
 
-void show_console(void);
-void show_image(const char *img_file);
-
 static void error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error %d: %s\n", error, description);
@@ -30,11 +27,14 @@ static void window_size_callback(GLFWwindow *window, int width, int height)
 	AppConfig::window_height = height;
 }
 
+typedef void(*PFN_EXECUTE_COMMAND)(const std::string &);
 typedef void(*PFN_SET_LOGGER)(wyc::ILogger*);
-typedef void(*PFN_TESTBED)(const std::string &);
-
 PFN_SET_LOGGER set_logger = nullptr;
-PFN_TESTBED testbed = nullptr;
+PFN_EXECUTE_COMMAND testbed = nullptr;
+
+bool console_command(const char *cmd_name, PFN_EXECUTE_COMMAND func, const char *desc);
+void show_console(void);
+void show_image(const char *img_file);
 
 static bool init_process()
 {
@@ -44,9 +44,13 @@ static bool init_process()
 		return false;
 	}
 	set_logger = (PFN_SET_LOGGER)GetProcAddress(module, "set_logger");
-	if (!set_logger) return false;
-	testbed = (PFN_TESTBED)GetProcAddress(module, "testbed");
-	if (!testbed) return false;
+	if (set_logger) {
+		set_logger(LOGGER_GET(CConsoleLogger));
+	}
+	testbed = (PFN_EXECUTE_COMMAND)GetProcAddress(module, "testbed");
+	if (testbed) {
+		console_command("test", testbed, "Sparrow test");
+	}
 	return true;
 }
 
@@ -75,10 +79,7 @@ int main(int, char**)
 
 #if defined(WIN32) || defined(WIN64)
 	FreeConsole();
-	if (init_process())
-	{
-		set_logger(LOGGER_GET(CConsoleLogger));
-	}
+	init_process();
 #endif
 
     // Load Fonts
@@ -106,7 +107,7 @@ int main(int, char**)
 
 		show_image("mipmap.png");
 
-		ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
+		//ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
 		ImGui::SetNextWindowPos(ImVec2(1, 1), ImGuiCond_Always);
 		show_console();
 

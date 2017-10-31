@@ -1,20 +1,18 @@
+#include <unordered_map>
 #include <string>
 #include "imgui.h"
 #include "app_config.h"
 #include "console_log.h"
 
-typedef void(*PFN_TESTBED)(const std::string &);
-extern PFN_TESTBED testbed;
+typedef void(*PFN_EXECUTE_COMMAND)(const std::string &);
 
 class CGuiConsole
 {
 public:
-	CGuiConsole()
+	static inline CGuiConsole& singleton()
 	{
-		m_width = int(AppConfig::window_width * 0.4), m_height = int(AppConfig::window_height * 0.8);
-		m_flags = ImGuiWindowFlags_NoResize
-			| ImGuiWindowFlags_NoMove
-			| ImGuiWindowFlags_ShowBorders;
+		static CGuiConsole s_console;
+		return s_console;
 	}
 
 	void draw()
@@ -50,11 +48,18 @@ public:
 			return 0;
 		}, (void*)this))
 		{
-			if (m_input_buff[0]) {
-				logger->output(m_input_buff);
-				testbed(m_input_buff);
-				m_input_buff[0] = 0;
+			if (!m_input_buff[0]) 
+				return; 
+			logger->output(m_input_buff);
+			std::string cmd_name = strtok(m_input_buff, " ");
+			auto iter = m_commands.find(cmd_name);
+			if (iter == m_commands.end()) {
+				log_error("Unkonwn command");
 			}
+			else {
+				iter->second.first(m_input_buff + cmd_name.size() + 1);
+			}
+			m_input_buff[0] = 0;
 		}
 		ImGui::PopItemWidth();
 
@@ -87,15 +92,41 @@ public:
 		ImGui::TextUnformatted(str.c_str());
 	}
 
+	bool add_command(const char *cmd_name, PFN_EXECUTE_COMMAND func, const char *desc)
+	{
+		if (!func || !cmd_name || *cmd_name == 0)
+			return false;
+		auto &ret = m_commands.emplace(std::make_pair(cmd_name, std::make_pair(func, desc)));
+		if (!ret.second)
+			return false;
+		return true;
+	}
+
 private:
 	int m_width, m_height;
 	ImGuiWindowFlags m_flags;
 	static constexpr size_t INPUT_BUFF_SIZE = 256;
 	char m_input_buff[INPUT_BUFF_SIZE];
+	std::unordered_map<std::string, std::pair<PFN_EXECUTE_COMMAND, std::string>> m_commands;
+
+	CGuiConsole()
+	{
+		m_width = int(AppConfig::window_width * 0.4), m_height = int(AppConfig::window_height * 0.8);
+		m_flags = ImGuiWindowFlags_NoResize
+			| ImGuiWindowFlags_NoMove
+			| ImGuiWindowFlags_ShowBorders;
+	}
 };
+
+
+bool console_command(const char *cmd_name, PFN_EXECUTE_COMMAND func, const char *desc)
+{
+	auto &console = CGuiConsole::singleton();
+	return console.add_command(cmd_name, func, desc);
+}
 
 void show_console()
 {
-	static CGuiConsole s_console;
-	s_console.draw();
+	auto &console = CGuiConsole::singleton();
+	console.draw();
 }
