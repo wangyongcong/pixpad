@@ -26,7 +26,7 @@ public:
 
 		const auto &style = ImGui::GetStyle();
 		float progress_bar_height = 4;
-		ImGui::SetCursorPosX(style.WindowPadding.x * 0.5);
+		ImGui::SetCursorPosX(style.WindowPadding.x * 0.5f);
 		ImGui::ProgressBar(0, ImVec2(ImGui::GetWindowWidth() - style.WindowPadding.x, progress_bar_height), "");
 		ImGui::Separator();
 
@@ -42,24 +42,30 @@ public:
 		// BEGIN input
 		ImGui::Separator();
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
-		if (ImGui::InputText("", m_input_buff, INPUT_BUFF_SIZE, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory,
+		if (ImGui::InputText("", m_input_beg, m_input_max, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory,
 			[] (ImGuiTextEditCallbackData *ctx) -> int {
 			((CGuiConsole*)ctx)->on_input_end();
 			return 0;
 		}, (void*)this))
 		{
-			if (!m_input_buff[0]) 
+			if (!m_input_beg[0])
 				return; 
-			logger->output(m_input_buff);
-			std::string cmd_name = strtok(m_input_buff, " ");
-			auto iter = m_commands.find(cmd_name);
-			if (iter == m_commands.end()) {
-				log_error("Unkonwn command");
+			logger->output(m_input_buf);
+			std::string cmd_name = strtok(m_input_beg, " ");
+			if (cmd_name == "help")
+			{
+				for (auto &it : m_commands) 
+					log_info("- %s\t\t%s", it.first.c_str(), it.second.second.c_str());
+				log_info("- help\t\tshow help");
 			}
 			else {
-				iter->second.first(m_input_buff + cmd_name.size() + 1);
+				auto iter = m_commands.find(cmd_name);
+				if (iter == m_commands.end()) 
+					log_error("Unkonwn command");
+				else 
+					iter->second.first(m_input_beg + cmd_name.size() + 1);
 			}
-			m_input_buff[0] = 0;
+			m_input_beg[0] = 0;
 		}
 		ImGui::PopItemWidth();
 
@@ -78,8 +84,9 @@ public:
 	void draw_log(const std::string &str)
 	{
 		static const std::pair<std::string, ImVec4> s_tag_color[] = {
+			std::make_pair(std::string("# "), ImVec4(0.0f, 1.0f, 0.0f, 1.0f)),
 			std::make_pair(std::string("[ERROR]") , ImVec4(1.0f, 0.4f, 0.4f, 1.0f)),
-			std::make_pair(std::string("[WARNING]"), ImVec4{ 1.0f, 1.0f, 0.0f, 1.0f }),
+			std::make_pair(std::string("[WARNING]"), ImVec4(1.0f, 1.0f, 0.0f, 1.0f)),
 		};
 		for (auto &tag : s_tag_color) {
 			if (!str.compare(0, tag.first.size(), tag.first)) {
@@ -106,15 +113,22 @@ private:
 	int m_width, m_height;
 	ImGuiWindowFlags m_flags;
 	static constexpr size_t INPUT_BUFF_SIZE = 256;
-	char m_input_buff[INPUT_BUFF_SIZE];
+	char m_input_buf[INPUT_BUFF_SIZE];
+	char *m_input_beg;
+	size_t m_input_max;
 	std::unordered_map<std::string, std::pair<PFN_EXECUTE_COMMAND, std::string>> m_commands;
 
 	CGuiConsole()
 	{
-		m_width = int(AppConfig::window_width * 0.4), m_height = int(AppConfig::window_height * 0.8);
+		m_width = int(AppConfig::window_width * 0.382f), m_height = int(AppConfig::window_height);
 		m_flags = ImGuiWindowFlags_NoResize
 			| ImGuiWindowFlags_NoMove
 			| ImGuiWindowFlags_ShowBorders;
+		const char *prompt = "# ";
+		size_t prompt_len = strlen(prompt);
+		strncpy(m_input_buf, prompt, INPUT_BUFF_SIZE);
+		m_input_beg = m_input_buf + prompt_len;
+		m_input_max = INPUT_BUFF_SIZE - prompt_len;
 	}
 };
 

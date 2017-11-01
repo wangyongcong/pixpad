@@ -49,7 +49,7 @@ static bool init_process()
 	}
 	testbed = (PFN_EXECUTE_COMMAND)GetProcAddress(module, "testbed");
 	if (testbed) {
-		console_command("test", testbed, "Sparrow test");
+		console_command("test", testbed, "Sparrow renderer test");
 	}
 	return true;
 }

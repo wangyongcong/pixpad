@@ -13,7 +13,9 @@ public:
 	}
 
 	virtual void write(wyc::ELogLevel lvl, const char *fmt, ...) override {
-		int cnt = std::snprintf(m_buf, TEXT_BUFFER_SIZE, "[%s] ", LOG_TAG(lvl));
+		int cnt = 0; 
+		if(lvl >= wyc::LOG_WARN)
+			cnt = std::snprintf(m_buf, TEXT_BUFFER_SIZE, "[%s] ", LOG_TAG(lvl));
 		va_list args;
 		va_start(args, fmt);
 		cnt += std::vsnprintf(m_buf + cnt, TEXT_BUFFER_SIZE - cnt, fmt, args);
@@ -22,6 +24,7 @@ public:
 		m_buf[cnt] = 0;
 		output(m_buf);
 	}
+
 	void output(const char *buf)
 	{
 		if (m_end < m_max_line) {
@@ -81,7 +84,7 @@ private:
 			m_max_line = 1;
 		m_log_buf.reserve(m_max_line);
 	}
-	constexpr static size_t TEXT_BUFFER_SIZE = 256;
+	constexpr static size_t TEXT_BUFFER_SIZE = 1024;
 	char m_buf[TEXT_BUFFER_SIZE];
 	std::vector<std::string> m_log_buf;
 	size_t m_beg, m_end, m_max_line;

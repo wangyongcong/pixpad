@@ -11,7 +11,7 @@
 
 namespace po = boost::program_options;
 
-std::unordered_map<std::string, std::function<CTest*()>> cmd_lst =
+std::unordered_map<std::string, std::function<CTest*()>> g_command_lst =
 {
 	{ "line", &CTestLine::create },
 	{ "box", &CTestBox::create },
@@ -42,7 +42,7 @@ public:
 			po::notify(args_table);
 		}
 		catch (const po::error &exp) {
-			log_error("command line argument error: %s", exp.what());
+			log_error(exp.what());
 			show_help();
 			return false;
 		}
@@ -64,7 +64,7 @@ public:
 			po::notify(args_table);
 		}
 		catch (const po::error &exp) {
-			log_error("command line argument error: %s", exp.what());
+			log_error(exp.what());
 			show_help();
 			return false;
 		}
@@ -80,36 +80,43 @@ class CCommandTest : public CCommand
 {
 public:
 	CCommandTest()
-		: CCommand("Testbed for Sparrow renderer: testbed name [-o output_file]")
+		: CCommand("Sparrow renderer test\nusage:\n[1] run test: test {name} [-o path]\n[2] list tests: test -l\noptions")
 	{
 		m_opt.add_options()
 			("help", "show help message")
 			("name", po::value<std::string>(), "test to execute")
 			("out,o", po::value<std::string>(), "output file path")
-			("param,p", po::value<std::vector<std::string>>(), "render params, e.g -p wireframe -p color=0xFFFFFFFF")
+			("param,p", po::value<std::vector<std::string>>(), "render params, e.g -p color=0xFFFFFF")
 			("width,w", po::value<unsigned>()->default_value(960), "image width")
 			("height,h", po::value<unsigned>()->default_value(540), "image height")
 			("core,c", po::value<unsigned>()->default_value(0), "number of CPU core")
+			("list,l", po::bool_switch()->default_value(false), "list available testing")
 			;
 		m_pos_opt.add("name", 1);
 	}
 };
 
-void run_test(const po::variables_map &args_table)
+void run_test(const po::variables_map &args)
 {
-	if (!args_table.count("name")) {
+	if (args["list"].as<bool>()) {
+		for (auto &it : g_command_lst) {
+			log_info("- %s", it.first.c_str());
+		}
+		return;
+	}
+	if (!args.count("name")) {
 		log_error("test name is not specified.");
 		return;
 	}
-	const std::string &test_name = args_table["name"].as<std::string>();
-	auto it = cmd_lst.find(test_name.c_str());
-	if (it == cmd_lst.end()) {
+	const std::string &test_name = args["name"].as<std::string>();
+	auto it = g_command_lst.find(test_name.c_str());
+	if (it == g_command_lst.end()) {
 		log_error("invalid command: %s", test_name.c_str());
 		return;
 	}
 	log_info("running %s...", test_name.c_str());
 	CTest *test = it->second();
-	test->init(args_table);
+	test->init(args);
 	test->run();
 	log_info("finish");
 }
@@ -148,8 +155,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 EXPORT_API void set_logger(wyc::ILogger *logger)
 {
 	LOGGER_SET(logger);
-	if (logger) 
-		log_info("redirect log");
 }
 
 EXPORT_API bool testbed(const std::string &cmd_line)
