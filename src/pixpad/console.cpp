@@ -48,22 +48,9 @@ public:
 			return 0;
 		}, (void*)this))
 		{
-			if (!m_input_beg[0])
-				return; 
-			logger->output(m_input_buf);
-			std::string cmd_name = strtok(m_input_beg, " ");
-			if (cmd_name == "help")
-			{
-				for (auto &it : m_commands) 
-					log_info("- %s\t\t%s", it.first.c_str(), it.second.second.c_str());
-				log_info("- help\t\tshow help");
-			}
-			else {
-				auto iter = m_commands.find(cmd_name);
-				if (iter == m_commands.end()) 
-					log_error("Unkonwn command");
-				else 
-					iter->second.first(m_input_beg + cmd_name.size() + 1);
+			if (m_input_beg[0]) {
+				logger->output(m_input_buf);
+				process_input();
 			}
 			m_input_beg[0] = 0;
 		}
@@ -79,6 +66,24 @@ public:
 
 	void on_input_end()
 	{
+	}
+
+	void process_input()
+	{
+		std::string cmd_name = strtok(m_input_beg, " ");
+		if (cmd_name == "help")
+		{
+			for (auto &it : m_commands)
+				log_info("- %s\t\t%s", it.first.c_str(), it.second.second.c_str());
+			log_info("- help\t\tshow help");
+			return;
+		}
+		auto iter = m_commands.find(cmd_name);
+		if (iter == m_commands.end()) {
+			log_error("Unkonwn command");
+			return;
+		}
+		iter->second.first(m_input_beg + cmd_name.size() + 1);
 	}
 
 	void draw_log(const std::string &str)
