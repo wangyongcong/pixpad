@@ -3,8 +3,9 @@
 #include "imgui.h"
 #include "app_config.h"
 #include "console_log.h"
+#include "shellcmd.h"
 
-typedef bool(*PFN_COMMAND)(const std::string &);
+void exit();
 
 class CGuiConsole
 {
@@ -74,8 +75,14 @@ public:
 		if (cmd_name == "help")
 		{
 			for (auto &it : m_commands)
-				log_info("- %s\t\t%s", it.first.c_str(), it.second.second.c_str());
+				log_info("- %s\t\t%s", it.first.c_str(), it.second->description().c_str());
 			log_info("- help\t\tshow help");
+			log_info("- exit\t\texit");
+			return;
+		}
+		else if (cmd_name == "exit")
+		{
+			exit();
 			return;
 		}
 		auto iter = m_commands.find(cmd_name);
@@ -83,7 +90,7 @@ public:
 			log_error("Unkonwn command");
 			return;
 		}
-		iter->second.first(m_input_beg + cmd_name.size() + 1);
+		iter->second->execute(m_input_beg + cmd_name.size() + 1);
 	}
 
 	void draw_log(const std::string &str)
@@ -104,11 +111,11 @@ public:
 		ImGui::TextUnformatted(str.c_str());
 	}
 
-	bool add_command(const char *cmd_name, PFN_COMMAND func, const char *desc)
+	bool add_command(wyc::IShellCommand *cmd)
 	{
-		if (!func || !cmd_name || *cmd_name == 0)
+		if (!cmd)
 			return false;
-		auto &ret = m_commands.emplace(std::make_pair(cmd_name, std::make_pair(func, desc)));
+		auto &ret = m_commands.emplace(std::make_pair(cmd->name(), cmd));
 		if (!ret.second)
 			return false;
 		return true;
@@ -121,7 +128,7 @@ private:
 	char m_input_buf[INPUT_BUFF_SIZE];
 	char *m_input_beg;
 	size_t m_input_max;
-	std::unordered_map<std::string, std::pair<PFN_COMMAND, std::string>> m_commands;
+	std::unordered_map<std::string, wyc::IShellCommand*> m_commands;
 
 	CGuiConsole()
 	{
@@ -138,10 +145,10 @@ private:
 };
 
 
-bool console_command(const char *cmd_name, PFN_COMMAND func, const char *desc)
+bool consile_register_command(wyc::IShellCommand *cmd)
 {
 	auto &console = CGuiConsole::singleton();
-	return console.add_command(cmd_name, func, desc);
+	return console.add_command(cmd);
 }
 
 void show_console()

@@ -10,6 +10,7 @@
 #include "app_config.h"
 #define LOGGER_IMPLEMENTATION
 #include "console_log.h"
+#include "shellcmd.h"
 
 // setup global application config
 const char *AppConfig::app_name = "pixpad";
@@ -27,12 +28,14 @@ static void window_size_callback(GLFWwindow *window, int width, int height)
 	AppConfig::window_height = height;
 }
 
-typedef bool(*PFN_COMMAND)(const std::string &);
-typedef void(*PFN_SET_LOGGER)(wyc::ILogger*);
-PFN_SET_LOGGER set_logger = nullptr;
-PFN_COMMAND testbed = nullptr;
+static bool g_is_exit = false;
+void exit()
+{
+	g_is_exit = true;
+}
 
-bool console_command(const char *cmd_name, PFN_COMMAND func, const char *desc);
+bool consile_register_command(wyc::IShellCommand *cmd);
+void console_unregister_command(const std::string &cmd_name);
 void show_console(void);
 void show_image(const char *img_file);
 
@@ -43,13 +46,15 @@ static bool init_process()
 		log_error("fail to load library: testbed");
 		return false;
 	}
-	set_logger = (PFN_SET_LOGGER)GetProcAddress(module, "set_logger");
+	typedef void(*PFN_SET_LOGGER)(wyc::ILogger*);
+	PFN_SET_LOGGER set_logger = (PFN_SET_LOGGER)GetProcAddress(module, "set_logger");
 	if (set_logger) {
 		set_logger(LOGGER_GET(CConsoleLogger));
 	}
-	testbed = (PFN_COMMAND)GetProcAddress(module, "testbed");
-	if (testbed) {
-		console_command("test", testbed, "Sparrow renderer test");
+	typedef wyc::IShellCommand* (*PFN_GET_COMMAND)();
+	PFN_GET_COMMAND get_cmd = (PFN_GET_COMMAND)GetProcAddress(module, "get_cmd_test");
+	if (get_cmd) {
+		consile_register_command(get_cmd());
 	}
 	return true;
 }
@@ -100,7 +105,7 @@ int main(int, char**)
 	style.Colors[ImGuiCol_Border].w = 0.8f;
 
 	// Main loop
-    while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window) && !g_is_exit)
     {
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
