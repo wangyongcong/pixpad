@@ -19,13 +19,35 @@ std::unordered_map<std::string, std::function<CTest*()>> g_command_lst =
 	{ "mipmap", &CTestMipmap::create },
 };
 
-class CCommand
+class IShellCommand
 {
 public:
-	CCommand(const char *cmd_desc)
-		: m_opt(cmd_desc)
+	virtual const std::string& name() const = 0;
+	virtual bool execute(const std::string &cmdline) = 0;
+};
+
+class CShellCommand : public IShellCommand
+{
+public:
+	CShellCommand(const char* name, const char *cmd_desc)
+		: m_name(name)
+		, m_opt(cmd_desc)
 		, m_pos_opt()
 	{
+	}
+
+	virtual const std::string& name() const override {
+		return m_name;
+	}
+
+	virtual bool execute(const std::string &cmdline) {
+		po::variables_map args;
+		if (!parse(cmdline, args))
+			return false;
+		if (args.count("help")) {
+			show_help();
+		}
+		return true;
 	}
 
 	void show_help()
@@ -34,6 +56,11 @@ public:
 		ss << m_opt;
 		log_info(ss.str().c_str());
 	}
+
+protected:
+	std::string m_name;
+	po::options_description m_opt;
+	po::positional_options_description m_pos_opt;
 
 	bool parse(int argc, char *argv[], po::variables_map &args_table)
 	{
@@ -70,17 +97,13 @@ public:
 		}
 		return true;
 	}
-
-protected:
-	po::options_description m_opt;
-	po::positional_options_description m_pos_opt;
 };
 
-class CCommandTest : public CCommand
+class CShellCmdTest : public CShellCommand
 {
 public:
-	CCommandTest()
-		: CCommand("Sparrow renderer test\nusage:\n[1] run test: test {name} [-o path]\n[2] list tests: test -l\noptions")
+	CShellCmdTest()
+		: CShellCommand("test", "Sparrow renderer test\nusage:\n[1] run test: test {name} [-o path]\n[2] list tests: test -l\noptions")
 	{
 		m_opt.add_options()
 			("help", "show help message")
@@ -94,39 +117,47 @@ public:
 			;
 		m_pos_opt.add("name", 1);
 	}
-};
 
-void run_test(const po::variables_map &args)
-{
-	if (args["list"].as<bool>()) {
-		for (auto &it : g_command_lst) {
-			log_info("- %s", it.first.c_str());
+	virtual bool execute(const std::string &cmdline) override
+	{
+		po::variables_map args;
+		if (!parse(cmdline, args))
+			return false;
+		if (args.count("help")) {
+			show_help();
+			return true;
 		}
-		return;
+		if (args["list"].as<bool>()) {
+			for (auto &it : g_command_lst) {
+				log_info("- %s", it.first.c_str());
+			}
+			return true;
+		}
+		if (!args.count("name")) {
+			log_error("test name is not specified.");
+			return false;
+		}
+		const std::string &test_name = args["name"].as<std::string>();
+		auto it = g_command_lst.find(test_name.c_str());
+		if (it == g_command_lst.end()) {
+			log_error("invalid command: %s", test_name.c_str());
+			return false;
+		}
+		log_info("running %s...", test_name.c_str());
+		CTest *test = it->second();
+		test->init(args);
+		test->run();
+		log_info("finish");
+		return true;
 	}
-	if (!args.count("name")) {
-		log_error("test name is not specified.");
-		return;
-	}
-	const std::string &test_name = args["name"].as<std::string>();
-	auto it = g_command_lst.find(test_name.c_str());
-	if (it == g_command_lst.end()) {
-		log_error("invalid command: %s", test_name.c_str());
-		return;
-	}
-	log_info("running %s...", test_name.c_str());
-	CTest *test = it->second();
-	test->init(args);
-	test->run();
-	log_info("finish");
-}
+};
 
 #ifndef testbed_EXPORTS
 
 int main(int argc, char *argv[])
 {
 	wyc::init_debug_log();
-	CCommandTest test_cmd;
+	CShellCmdTest test_cmd;
 	po::variables_map args_table;
 	if (!s_test_cmd.parse(argc, argv, args_table))
 		return 1;
@@ -157,18 +188,10 @@ EXPORT_API void set_logger(wyc::ILogger *logger)
 	LOGGER_SET(logger);
 }
 
-EXPORT_API bool testbed(const std::string &cmd_line)
+EXPORT_API bool testbed(const std::string &cmdline)
 {
-	static CCommandTest s_test_cmd;
-	po::variables_map args_table;
-	if (!s_test_cmd.parse(cmd_line, args_table))
-		return false;
-	if (args_table.count("help")) {
-		s_test_cmd.show_help();
-		return true;
-	}
-	run_test(args_table);
-	return true;
+	static CShellCmdTest s_test_cmd;
+	return s_test_cmd.execute(cmdline);
 }
 
 #endif

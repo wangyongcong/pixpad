@@ -4,7 +4,7 @@
 #include "app_config.h"
 #include "console_log.h"
 
-typedef void(*PFN_EXECUTE_COMMAND)(const std::string &);
+typedef bool(*PFN_COMMAND)(const std::string &);
 
 class CGuiConsole
 {
@@ -17,7 +17,7 @@ public:
 
 	void draw()
 	{
-		ImGui::SetNextWindowSize(ImVec2(m_width, m_height), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(float(m_width), float(m_height)), ImGuiCond_Always);
 		if (!ImGui::Begin("console", 0, m_flags))
 		{
 			ImGui::End();
@@ -104,7 +104,7 @@ public:
 		ImGui::TextUnformatted(str.c_str());
 	}
 
-	bool add_command(const char *cmd_name, PFN_EXECUTE_COMMAND func, const char *desc)
+	bool add_command(const char *cmd_name, PFN_COMMAND func, const char *desc)
 	{
 		if (!func || !cmd_name || *cmd_name == 0)
 			return false;
@@ -121,7 +121,7 @@ private:
 	char m_input_buf[INPUT_BUFF_SIZE];
 	char *m_input_beg;
 	size_t m_input_max;
-	std::unordered_map<std::string, std::pair<PFN_EXECUTE_COMMAND, std::string>> m_commands;
+	std::unordered_map<std::string, std::pair<PFN_COMMAND, std::string>> m_commands;
 
 	CGuiConsole()
 	{
@@ -138,7 +138,7 @@ private:
 };
 
 
-bool console_command(const char *cmd_name, PFN_EXECUTE_COMMAND func, const char *desc)
+bool console_command(const char *cmd_name, PFN_COMMAND func, const char *desc)
 {
 	auto &console = CGuiConsole::singleton();
 	return console.add_command(cmd_name, func, desc);

@@ -27,12 +27,12 @@ static void window_size_callback(GLFWwindow *window, int width, int height)
 	AppConfig::window_height = height;
 }
 
-typedef void(*PFN_EXECUTE_COMMAND)(const std::string &);
+typedef bool(*PFN_COMMAND)(const std::string &);
 typedef void(*PFN_SET_LOGGER)(wyc::ILogger*);
 PFN_SET_LOGGER set_logger = nullptr;
-PFN_EXECUTE_COMMAND testbed = nullptr;
+PFN_COMMAND testbed = nullptr;
 
-bool console_command(const char *cmd_name, PFN_EXECUTE_COMMAND func, const char *desc);
+bool console_command(const char *cmd_name, PFN_COMMAND func, const char *desc);
 void show_console(void);
 void show_image(const char *img_file);
 
@@ -47,7 +47,7 @@ static bool init_process()
 	if (set_logger) {
 		set_logger(LOGGER_GET(CConsoleLogger));
 	}
-	testbed = (PFN_EXECUTE_COMMAND)GetProcAddress(module, "testbed");
+	testbed = (PFN_COMMAND)GetProcAddress(module, "testbed");
 	if (testbed) {
 		console_command("test", testbed, "Sparrow renderer test");
 	}
