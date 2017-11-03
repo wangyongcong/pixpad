@@ -20,7 +20,7 @@ class CShellCmdTest : public wyc::CShellCommand
 {
 public:
 	CShellCmdTest()
-		: wyc::CShellCommand("test", "sparrow renderer test")
+		: wyc::CShellCommand("test", "Sparrow renderer test 222")
 	{
 		m_opt.add_options()
 			("help", "show help message")
@@ -62,6 +62,7 @@ public:
 		test->init(args);
 		test->run();
 		log_info("finish");
+		delete test;
 		return true;
 	}
 

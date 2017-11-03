@@ -34,12 +34,12 @@ static void window_size_callback(GLFWwindow *window, int width, int height)
 	AppConfig::window_height = height;
 }
 
-static bool init_process()
+static HMODULE load_module(const char *module_name)
 {
-	HMODULE module = LoadLibrary("testbed");
+	HMODULE module = LoadLibrary(module_name);
 	if (module == NULL) {
 		log_error("fail to load library: testbed");
-		return false;
+		return NULL;
 	}
 	typedef void(*PFN_SET_LOGGER)(wyc::ILogger*);
 	PFN_SET_LOGGER set_logger = (PFN_SET_LOGGER)GetProcAddress(module, "set_logger");
@@ -54,14 +54,14 @@ static bool init_process()
 	else {
 		log_error("module [testbed]: no get_command interface");
 	}
-	return true;
+	return module;
 }
 
 class CCommandExit : public wyc::CShellCommand
 {
 public:
 	CCommandExit(GLFWwindow* window)
-		: CShellCommand("exit", "Pixpad exit")
+		: CShellCommand("exit", "Exit application")
 		, m_main_window(window)
 	{
 		m_opt.add_options()
@@ -80,21 +80,69 @@ class CCommandReload : public wyc::CShellCommand
 {
 public:
 	CCommandReload()
-		: CShellCommand("reload", "reload plugin")
+		: CShellCommand("reload", "reload module")
 	{
 		m_opt.add_options()
 			("help", "show help message")
-			("name", po::value<std::string>(), "plugin name");
+			("name", po::value<std::string>(), "module name")
+			;
 		m_pos_opt.add("name", 1);
 	}
 	virtual bool process(const po::variables_map &args) override
 	{
 		if (!args.count("name")) {
-			log_error("please input plugin name");
+			log_error("no module name");
 			return false;
 		}
-		auto &name = args["name"].as<std::string>();
-		log_info("reload %s", name.c_str());
+		const std::string &module_name = args["name"].as<std::string>();
+		HMODULE module = GetModuleHandle(module_name.c_str());
+		if (module) {
+			log_info("module has been loaded");
+			return true;
+		}
+		module = load_module(module_name.c_str());
+		if (module) {
+			log_info("reload module success");
+		}
+		return true;
+	}
+};
+
+class CCommandUnload : public wyc::CShellCommand
+{
+public:
+	CCommandUnload()
+		: CShellCommand("unload", "unload module")
+	{
+		m_opt.add_options()
+			("help", "show help message")
+			("name", po::value<std::string>(), "module name")
+			;
+		m_pos_opt.add("name", 1);
+	}
+	virtual bool process(const po::variables_map &args) override
+	{
+		if (!args.count("name")) {
+			log_error("no module name");
+			return false;
+		}
+		const std::string &module_name = args["name"].as<std::string>();
+		HMODULE module = GetModuleHandle(module_name.c_str());
+		if (!module) {
+			log_info("module not found");
+			return false;
+		}
+		typedef wyc::IShellCommand* (*PFN_GET_COMMAND)();
+		PFN_GET_COMMAND get_command = (PFN_GET_COMMAND)GetProcAddress(module, "get_command");
+		if (get_command) {
+			auto cmd = get_command();
+			console_unregister_command(cmd->name());
+		}
+		if (!FreeLibrary(module)) {
+			log_error("fail to free module");
+			return false;
+		}
+		log_info("unload module success");
 		return true;
 	}
 };
@@ -124,11 +172,13 @@ int main(int, char**)
 
 #if defined(WIN32) || defined(WIN64)
 	FreeConsole();
-	init_process();
+	load_module("testbed");
 	CCommandExit cmd_exit(window);
 	console_register_command(&cmd_exit);
 	CCommandReload cmd_reload;
 	console_register_command(&cmd_reload);
+	CCommandUnload cmd_unload;
+	console_register_command(&cmd_unload);
 #endif
 
     // Load Fonts

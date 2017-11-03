@@ -1,5 +1,7 @@
 #include <unordered_map>
 #include <string>
+#include <sstream>
+#include <iomanip>
 #include "imgui.h"
 #include "app_config.h"
 #include "console_log.h"
@@ -72,9 +74,25 @@ public:
 		std::string cmd_name = strtok(m_input_beg, " ");
 		if (cmd_name == "help")
 		{
-			log_info("- help\t\tshow help");
+			int max_len = 4;
 			for (auto &it : m_commands)
-				log_info("- %s\t\t%s", it.first.c_str(), it.second->description().c_str());
+			{
+				int s = it.first.size();
+				if (s > max_len)
+					max_len = s;
+			}
+			// tab size 4
+			int c = (max_len + 4) & ~3;
+			std::stringstream ss;
+			ss << std::left << std::setfill(' ');
+			ss << "- " << std::setw(c) << "help" << "show help message" << std::setw(0);
+			log_info(ss.str().c_str());
+			ss.str("");
+			for (auto &it : m_commands) {
+				ss << "- " << std::setw(c) << it.first << it.second->description() << std::setw(0);
+				log_info(ss.str().c_str());
+				ss.str("");
+			}
 			return;
 		}
 		auto iter = m_commands.find(cmd_name);
