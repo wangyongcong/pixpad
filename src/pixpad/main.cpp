@@ -10,12 +10,18 @@
 #include "app_config.h"
 #define WYC_LOG_IMPLEMENTATION
 #include "console_log.h"
+#define WYC_SHELLCMD_IMPLEMENTATION
 #include "shellcmd.h"
 
 // setup global application config
 const char *AppConfig::app_name = "pixpad";
 int AppConfig::window_width = 1280;
 int AppConfig::window_height = 720;
+
+bool console_register_command(wyc::IShellCommand *cmd);
+void console_unregister_command(const std::string &cmd_name);
+void show_console(void);
+void show_image(const char *img_file);
 
 static void error_callback(int error, const char* description)
 {
@@ -27,17 +33,6 @@ static void window_size_callback(GLFWwindow *window, int width, int height)
 	AppConfig::window_width = width;
 	AppConfig::window_height = height;
 }
-
-static bool g_is_exit = false;
-void exit()
-{
-	g_is_exit = true;
-}
-
-bool consile_register_command(wyc::IShellCommand *cmd);
-void console_unregister_command(const std::string &cmd_name);
-void show_console(void);
-void show_image(const char *img_file);
 
 static bool init_process()
 {
@@ -54,13 +49,55 @@ static bool init_process()
 	typedef wyc::IShellCommand* (*PFN_GET_COMMAND)();
 	PFN_GET_COMMAND get_command = (PFN_GET_COMMAND)GetProcAddress(module, "get_command");
 	if (get_command) {
-		consile_register_command(get_command());
+		console_register_command(get_command());
 	}
 	else {
 		log_error("module [testbed]: no get_command interface");
 	}
 	return true;
 }
+
+class CCommandExit : public wyc::CShellCommand
+{
+public:
+	CCommandExit(GLFWwindow* window)
+		: CShellCommand("exit", "Pixpad exit")
+		, m_main_window(window)
+	{
+		m_opt.add_options()
+			("help", "show help message");
+	}
+	virtual bool process(const po::variables_map &args) override
+	{
+		glfwSetWindowShouldClose(m_main_window, 1);
+		return true;
+	}
+private:
+	GLFWwindow* m_main_window;
+};
+
+class CCommandReload : public wyc::CShellCommand
+{
+public:
+	CCommandReload()
+		: CShellCommand("reload", "reload plugin")
+	{
+		m_opt.add_options()
+			("help", "show help message")
+			("name", po::value<std::string>(), "plugin name");
+		m_pos_opt.add("name", 1);
+	}
+	virtual bool process(const po::variables_map &args) override
+	{
+		if (!args.count("name")) {
+			log_error("please input plugin name");
+			return false;
+		}
+		auto &name = args["name"].as<std::string>();
+		log_info("reload %s", name.c_str());
+		return true;
+	}
+};
 
 int main(int, char**)
 {
@@ -88,6 +125,10 @@ int main(int, char**)
 #if defined(WIN32) || defined(WIN64)
 	FreeConsole();
 	init_process();
+	CCommandExit cmd_exit(window);
+	console_register_command(&cmd_exit);
+	CCommandReload cmd_reload;
+	console_register_command(&cmd_reload);
 #endif
 
     // Load Fonts
@@ -108,7 +149,7 @@ int main(int, char**)
 	style.Colors[ImGuiCol_Border].w = 0.8f;
 
 	// Main loop
-    while (!glfwWindowShouldClose(window) && !g_is_exit)
+    while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();

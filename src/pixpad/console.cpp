@@ -5,8 +5,6 @@
 #include "console_log.h"
 #include "shellcmd.h"
 
-void exit();
-
 class CGuiConsole
 {
 public:
@@ -74,15 +72,9 @@ public:
 		std::string cmd_name = strtok(m_input_beg, " ");
 		if (cmd_name == "help")
 		{
+			log_info("- help\t\tshow help");
 			for (auto &it : m_commands)
 				log_info("- %s\t\t%s", it.first.c_str(), it.second->description().c_str());
-			log_info("- help\t\tshow help");
-			log_info("- exit\t\texit");
-			return;
-		}
-		else if (cmd_name == "exit")
-		{
-			exit();
 			return;
 		}
 		auto iter = m_commands.find(cmd_name);
@@ -121,6 +113,11 @@ public:
 		return true;
 	}
 
+	inline void del_command(const std::string &cmd_name)
+	{
+		m_commands.erase(cmd_name);
+	}
+
 private:
 	int m_width, m_height;
 	ImGuiWindowFlags m_flags;
@@ -145,10 +142,16 @@ private:
 };
 
 
-bool consile_register_command(wyc::IShellCommand *cmd)
+bool console_register_command(wyc::IShellCommand *cmd)
 {
 	auto &console = CGuiConsole::singleton();
 	return console.add_command(cmd);
+}
+
+void console_unregister_command(const std::string &cmd_name)
+{
+	auto &console = CGuiConsole::singleton();
+	console.del_command(cmd_name);
 }
 
 void show_console()
