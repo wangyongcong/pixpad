@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include "app_config.h"
-#define LOGGER_IMPLEMENTATION
+#define WYC_LOG_IMPLEMENTATION
 #include "console_log.h"
 #include "shellcmd.h"
 
@@ -52,9 +52,12 @@ static bool init_process()
 		set_logger(LOGGER_GET(CConsoleLogger));
 	}
 	typedef wyc::IShellCommand* (*PFN_GET_COMMAND)();
-	PFN_GET_COMMAND get_cmd = (PFN_GET_COMMAND)GetProcAddress(module, "get_cmd_test");
-	if (get_cmd) {
-		consile_register_command(get_cmd());
+	PFN_GET_COMMAND get_command = (PFN_GET_COMMAND)GetProcAddress(module, "get_command");
+	if (get_command) {
+		consile_register_command(get_command());
+	}
+	else {
+		log_error("module [testbed]: no get_command interface");
 	}
 	return true;
 }

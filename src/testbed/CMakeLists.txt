@@ -5,7 +5,6 @@ set(SRC_COMMON
 	"test_main.cpp"
 	"test.h"
 	"test.cpp"
-	"shellcmd.cpp"
 )
 
 set(SRC_TESTBED

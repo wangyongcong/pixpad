@@ -55,8 +55,10 @@ bool init_debug_log();
 
 }; // end of namespace wyc
 
-#ifdef LOGGER_IMPLEMENTATION
+#ifdef WYC_LOG_IMPLEMENTATION
+// global logger instance
 wyc::ILogger* wyc::g_logger = nullptr;
+// log level -> tag
 const char* wyc::s_log_tags[wyc::LOG_LEVEL_COUNT] = {
 	"DEBUG",
 	"INFO",
@@ -64,4 +66,4 @@ const char* wyc::s_log_tags[wyc::LOG_LEVEL_COUNT] = {
 	"ERROR",
 	"FATAL",
 };
-#endif // LOGGER_IMPLEMENTATION
+#endif // WYC_LOG_IMPLEMENTATION
