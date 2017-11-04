@@ -20,7 +20,7 @@ int AppConfig::window_height = 720;
 
 bool console_register_command(wyc::IShellCommand *cmd);
 void console_unregister_command(const std::string &cmd_name);
-void show_console(void);
+bool show_console(void);
 void show_image(const char *img_file);
 
 static void error_callback(int error, const char* description)
@@ -46,10 +46,14 @@ static HMODULE load_module(const char *module_name)
 	if (set_logger) {
 		set_logger(LOGGER_GET(CConsoleLogger));
 	}
-	typedef wyc::IShellCommand* (*PFN_GET_COMMAND)();
-	PFN_GET_COMMAND get_command = (PFN_GET_COMMAND)GetProcAddress(module, "get_command");
+	typedef wyc::IShellCommand**(*PFN_GET_COMMAND)(int&);
+	PFN_GET_COMMAND get_command = (PFN_GET_COMMAND)GetProcAddress(module, "get_command_list");
 	if (get_command) {
-		console_register_command(get_command());
+		int cnt = 0;
+		auto cmd_lst = get_command(cnt);
+		for (int i = 0; i < cnt; ++i) {
+			console_register_command(cmd_lst[i]);
+		}
 	}
 	else {
 		log_error("module [testbed]: no get_command interface");
@@ -191,7 +195,8 @@ int main(int, char**)
     //io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyTiny.ttf", 10.0f);
     //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
 
-    bool show_test_window = true;
+    bool show_test_window = false;
+	bool collapsed_console = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	ImGuiStyle &style = ImGui::GetStyle();
@@ -206,16 +211,18 @@ int main(int, char**)
 
 		show_image("mipmap.png");
 
-		//ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.KeyCtrl && ImGui::IsKeyReleased('`')) 
+			ImGui::SetNextWindowCollapsed(!collapsed_console, ImGuiCond_Always);
 		ImGui::SetNextWindowPos(ImVec2(1, 1), ImGuiCond_Always);
-		show_console();
+		collapsed_console = !show_console();
 
         // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        //if (show_test_window)
-        //{
-        //    ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver);
-        //    ImGui::ShowTestWindow(&show_test_window);
-        //}
+        if (show_test_window)
+        {
+            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver);
+            ImGui::ShowTestWindow(&show_test_window);
+        }
 
         // Rendering
         int display_w, display_h;

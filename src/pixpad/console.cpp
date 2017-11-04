@@ -16,13 +16,13 @@ public:
 		return s_console;
 	}
 
-	void draw()
+	bool draw()
 	{
 		ImGui::SetNextWindowSize(ImVec2(float(m_width), float(m_height)), ImGuiCond_Always);
 		if (!ImGui::Begin("console", 0, m_flags))
 		{
 			ImGui::End();
-			return;
+			return false;
 		}
 
 		const auto &style = ImGui::GetStyle();
@@ -63,6 +63,7 @@ public:
 		// END input
 
 		ImGui::End(); // END console
+		return true;
 	}
 
 	void on_input_end()
@@ -172,8 +173,8 @@ void console_unregister_command(const std::string &cmd_name)
 	console.del_command(cmd_name);
 }
 
-void show_console()
+bool show_console()
 {
 	auto &console = CGuiConsole::singleton();
-	console.draw();
+	return console.draw();
 }
