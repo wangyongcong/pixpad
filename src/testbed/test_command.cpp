@@ -43,23 +43,22 @@ public:
 		m_is_done.store(true);
 	}
 
-	inline bool is_task_done() const 
+	inline bool is_done() const 
 	{
 		return m_is_done.load();
 	}
 
-	void get_result()
+	inline const CTest* get_test() const
 	{
-
+		return m_test;
 	}
 
 private:
-	typedef std::pair<CTest*, std::atomic_bool> task_t;
-	typedef std::shared_ptr<task_t> task_ptr;
 	CTest *m_test;
 	std::atomic_bool m_is_done;
-
 };
+
+static std::shared_ptr<CTestTask> g_task;
 
 class CShellCmdTest : public wyc::CShellCommand
 {
@@ -110,7 +109,7 @@ public:
 			log_error("test is not found: %s", test_name.c_str());
 			return false;
 		}
-		if (m_task) {
+		if (g_task) {
 			log_error("previous test is still running, please be patient");
 			return false;
 		}
@@ -121,7 +120,7 @@ public:
 		std::async([task] {
 			task->start();
 		});
-		m_task = task;
+		g_task = task;
 		return true;
 	}
 
@@ -136,9 +135,6 @@ public:
 		ss << m_opt;
 		log_info(ss.str().c_str());
 	}
-
-private:
-	std::shared_ptr<CTestTask> m_task;
 };
 
 
@@ -150,4 +146,30 @@ EXPORT_API wyc::IShellCommand** get_command_list(int &count)
 	};
 	count = sizeof(s_cmd_lst) / sizeof(void*);
 	return s_cmd_lst;
+}
+
+// 0 - no task
+// 1 - task is running
+// 2 - task is finished
+EXPORT_API int get_task_state()
+{
+	if (!g_task)
+		return 0;
+	if (g_task->is_done())
+		return 2;
+	return 1;
+}
+
+EXPORT_API int get_task_result(const void **buf, unsigned &width, unsigned &height, unsigned &pitch)
+{
+	if (!g_task || !g_task->is_done())
+		return -1;
+	const CTest *test = g_task->get_test();
+	*buf = test->get_color_buf(width, height, pitch);
+	return 0;
+}
+
+EXPORT_API void clear_task()
+{
+	g_task = nullptr;
 }

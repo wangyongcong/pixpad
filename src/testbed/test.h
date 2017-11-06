@@ -32,7 +32,7 @@ public:
 	bool get_param(const std::string &name, std::string &value) const;
 	void setup_renderer(unsigned img_w, unsigned img_h, unsigned max_core=0);
 	void save_image(const char *name);
-
+	const void* get_color_buf(unsigned &width, unsigned &height, unsigned &pitch_in_pixel) const;
 protected:
 	std::string m_outfile;
 	std::vector<std::string> m_params;

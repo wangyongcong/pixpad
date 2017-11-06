@@ -62,3 +62,14 @@ void CTest::save_image(const char *name)
 		log_error("Failed to save image file");
 	}
 }
+
+const void * CTest::get_color_buf(unsigned & width, unsigned & height, unsigned & pitch_in_pixel) const
+{
+	auto render_target = std::dynamic_pointer_cast<wyc::CSpwRenderTarget>(m_renderer->get_render_target());
+	auto &buffer = render_target->get_color_buffer();
+	width = buffer.row_length();
+	height = buffer.row();
+	// NOTICE: we assume that render target is 4-bytes RGBA format
+	pitch_in_pixel = buffer.pitch() / 4;
+	return buffer.get_buffer();
+}

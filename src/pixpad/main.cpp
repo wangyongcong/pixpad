@@ -21,7 +21,7 @@ int AppConfig::window_height = 720;
 bool console_register_command(wyc::IShellCommand *cmd);
 void console_unregister_command(const std::string &cmd_name);
 bool show_console(void);
-void show_image(const char *img_file);
+void show_image(const void *buf = nullptr, unsigned width = 0, unsigned height = 0, unsigned pitch = 0);
 
 static void error_callback(int error, const char* description)
 {
@@ -33,6 +33,13 @@ static void window_size_callback(GLFWwindow *window, int width, int height)
 	AppConfig::window_width = width;
 	AppConfig::window_height = height;
 }
+
+typedef int(*PFN_GET_TASK_STATE)();
+PFN_GET_TASK_STATE get_task_state;
+typedef int(*PFN_GET_TASK_RESULT)(const void**, unsigned&, unsigned&, unsigned&);
+PFN_GET_TASK_RESULT get_task_result;
+typedef void(*PFN_CLEAR_TASK)();
+PFN_CLEAR_TASK clear_task;
 
 static HMODULE load_module(const char *module_name)
 {
@@ -58,6 +65,9 @@ static HMODULE load_module(const char *module_name)
 	else {
 		log_error("module [testbed]: no get_command interface");
 	}
+	get_task_state = (PFN_GET_TASK_STATE)GetProcAddress(module, "get_task_state");
+	get_task_result = (PFN_GET_TASK_RESULT)GetProcAddress(module, "get_task_result");
+	clear_task = (PFN_CLEAR_TASK)GetProcAddress(module, "clear_task");
 	return module;
 }
 
@@ -209,8 +219,6 @@ int main(int, char**)
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
 
-		show_image("mipmap.png");
-
 		ImGuiIO& io = ImGui::GetIO();
 		if (io.KeyCtrl && ImGui::IsKeyReleased('`')) 
 			ImGui::SetNextWindowCollapsed(!collapsed_console, ImGuiCond_Always);
@@ -223,6 +231,19 @@ int main(int, char**)
             ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver);
             ImGui::ShowTestWindow(&show_test_window);
         }
+
+		int st = get_task_state();
+		if (st == 2)
+		{
+			const void *buf;
+			unsigned w, h, pitch;
+			if (0 == get_task_result(&buf, w, h, pitch)) {
+				// setup image
+				show_image(buf, w, h, pitch);
+			}
+			clear_task();
+		}
+		show_image();
 
         // Rendering
         int display_w, display_h;
