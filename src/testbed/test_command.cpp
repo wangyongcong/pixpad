@@ -1,3 +1,5 @@
+#include <atomic>
+#include <memory>
 #include <functional>
 #include <strstream>
 #include "test_line.h"
@@ -15,6 +17,48 @@ std::unordered_map<std::string, std::function<CTest*()>> g_test_suit =
 	{ "box", &CTestBox::create },
 	{ "texture", &CTestTexture::create },
 	{ "mipmap", &CTestMipmap::create },
+};
+
+class CTestTask
+{
+public:
+	CTestTask(CTest *test)
+		: m_test(test)
+		, m_is_done(false)
+	{
+
+	}
+
+	~CTestTask()
+	{
+		if (m_test) {
+			delete m_test;
+			m_test = nullptr;
+		}
+	}
+
+	void start()
+	{
+		m_test->run();
+		m_is_done.store(true);
+	}
+
+	inline bool is_task_done() const 
+	{
+		return m_is_done.load();
+	}
+
+	void get_result()
+	{
+
+	}
+
+private:
+	typedef std::pair<CTest*, std::atomic_bool> task_t;
+	typedef std::shared_ptr<task_t> task_ptr;
+	CTest *m_test;
+	std::atomic_bool m_is_done;
+
 };
 
 class CShellCmdTest : public wyc::CShellCommand
@@ -60,18 +104,24 @@ public:
 			log_error("test name is not specified.");
 			return false;
 		}
-		const std::string &test_name = args["name"].as<std::string>();
+		auto &test_name = args["name"].as<std::string>();
 		auto it = g_test_suit.find(test_name.c_str());
 		if (it == g_test_suit.end()) {
-			log_error("invalid command: %s", test_name.c_str());
+			log_error("test is not found: %s", test_name.c_str());
 			return false;
 		}
-		log_info("running %s...", test_name.c_str());
+		if (m_task) {
+			log_error("previous test is still running, please be patient");
+			return false;
+		}
+		log_info("start test [%s]...", test_name.c_str());
 		CTest *test = it->second();
 		test->init(args);
-		test->run();
-		log_info("finish");
-		delete test;
+		auto task = std::make_shared<CTestTask>(test);
+		std::async([task] {
+			task->start();
+		});
+		m_task = task;
 		return true;
 	}
 
@@ -86,6 +136,9 @@ public:
 		ss << m_opt;
 		log_info(ss.str().c_str());
 	}
+
+private:
+	std::shared_ptr<CTestTask> m_task;
 };
 
 
