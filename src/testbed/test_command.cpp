@@ -77,14 +77,6 @@ public:
 			("list,l", po::bool_switch()->default_value(false), "list available testing")
 			;
 		m_pos_opt.add("name", 1);
-
-		std::unordered_map<std::string, std::function<CTest*()>> g_test_suit =
-		{
-			{ "line", &CTestLine::create },
-			{ "box", &CTestBox::create },
-			{ "texture", &CTestTexture::create },
-			{ "mipmap", &CTestMipmap::create },
-		};
 	}
 
 	virtual bool process(const po::variables_map &args) override

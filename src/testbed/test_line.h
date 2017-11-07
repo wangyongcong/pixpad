@@ -37,18 +37,17 @@ public:
 	}
 	virtual void run()
 	{
-		unsigned width = 960, height = 540;
-		std::string img_file = "test_line.png";
+		// clear frame buffer
+		m_renderer->process();
 
-		auto render_target = std::make_shared<wyc::CSpwRenderTarget>();
-		render_target->create(width, height, wyc::SPR_COLOR_R8G8B8A8);
-		render_target->get_color_buffer().clear(0xFF000000);
+		// direct write to render target
+		auto render_target = std::dynamic_pointer_cast<wyc::CSpwRenderTarget>(m_renderer->get_render_target());
 		CSimplePlotter plotter(render_target.get(), { 0, 1.0f, 0, 1.0f });
 
-		Imath::V2f center = { width * 0.5f, height * 0.5f };
+		Imath::V2f center = { m_image_w * 0.5f, m_image_h * 0.5f };
 		Imath::V2f beg, end;
-		Imath::Box2f clip_window = { { 0.5f, 0.5f },{ width - 0.5f, height - 0.5f } };
-		float radius = float(width + height);
+		Imath::Box2f clip_window = { { 0.5f, 0.5f },{ m_image_w - 0.5f, m_image_h - 0.5f } };
+		float radius = float(m_image_w + m_image_h);
 		double pi_180 = M_PI / 180.0f;
 		for (int i = 0; i < 360; i += 5)
 		{
@@ -61,12 +60,6 @@ public:
 				wyc::draw_line(plotter, beg, end);
 			}
 		}
-
-		auto &buffer = render_target->get_color_buffer();
-		wyc::CImage image(buffer.get_buffer(), buffer.row_length(), buffer.row(), buffer.pitch());
-		if (!image.save(img_file))
-		{
-			log_error("Failed to save image file");
-		}
+		save_image("line.png");
 	}
 };
