@@ -111,10 +111,6 @@ protected:
 class CTestMipmap : public CTest
 {
 public:
-	static CTest* create() {
-		return new CTestMipmap();
-	}
-
 	virtual void run() {
 		//generate_mipmap("res/checkerboard.png");
 		//return;
@@ -161,3 +157,4 @@ public:
 
 	}
 };
+REGISTER_NEW_TEST(CTestMipmap)

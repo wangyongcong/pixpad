@@ -32,9 +32,6 @@ protected:
 class CTestLine : public CTest
 {
 public:
-	static CTest* create() {
-		return new CTestLine();
-	}
 	virtual void run()
 	{
 		// clear frame buffer
@@ -63,3 +60,5 @@ public:
 		save_image("line.png");
 	}
 };
+
+REGISTER_NEW_TEST(CTestLine)

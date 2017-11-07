@@ -8,10 +8,6 @@
 class CTestTexture : public CTest
 {
 public:
-	static CTest* create() {
-		return new CTestTexture();
-	}
-
 	virtual void run() {
 		// create mesh
 		auto mesh = std::make_shared<wyc::CMesh>();
@@ -45,3 +41,4 @@ public:
 
 	}
 };
+REGISTER_NEW_TEST(CTestTexture)

@@ -9,11 +9,11 @@ set(SRC_COMMON
 )
 
 set(SRC_TESTBED
-	"test_line.h"
-	"test_collada.h"
-	"test_box.h"
-	"test_texture.h"
-	"test_mipmap.h"
+	"test_line.cpp"
+	"test_box.cpp"
+	"test_texture.cpp"
+	"test_mipmap.cpp"
+	"test_depth.cpp"
 )
 
 set(SRC_MATERIAL
@@ -32,6 +32,10 @@ include_directories(
 if(TEST_STAND_ALONE)
 	add_executable("testbed" ${SRC_COMMON} ${SRC_MATERIAL} ${SRC_TESTBED})
 	# message(STATUS "testbed stand alone executable")
+	set_target_properties(testbed
+		PROPERTIES
+		VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+	)	
 else()
 	add_library(testbed SHARED ${SRC_COMMON} ${SRC_MATERIAL} ${SRC_TESTBED})
 	# message(STATUS "testbed shared lib")

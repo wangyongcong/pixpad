@@ -47,6 +47,7 @@ add_executable(pixpad
 set_target_properties(${PROJECT_NAME}
 	PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+	VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
 )
 
 target_link_libraries(${PROJECT_NAME} glfw3 opengl32 gdi32 imm32 ${Boost_PROGRAM_OPTIONS_LIBRARY})

@@ -39,3 +39,7 @@ protected:
 	std::shared_ptr<wyc::CSpwRenderer> m_renderer;
 	unsigned m_image_w, m_image_h;
 };
+
+#define REGISTER_NEW_TEST(name) CTest* create##name() { return new name(); };
+#define ENABLE_TEST(name) CTest* create##name();
+#define CREATE_TEST(name) create##name

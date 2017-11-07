@@ -10,10 +10,6 @@
 class CTestBox : public CTest
 {
 public:
-	static CTest* create() {
-		return new CTestBox();
-	}
-
 	virtual void run() {
 		// create mesh
 		wyc::CMesh *mesh = new wyc::CMesh();
@@ -66,3 +62,5 @@ public:
 		save_image("box.png");
 	}
 };
+
+REGISTER_NEW_TEST(CTestBox)

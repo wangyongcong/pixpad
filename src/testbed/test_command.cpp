@@ -2,22 +2,28 @@
 #include <memory>
 #include <functional>
 #include <strstream>
-#include "test_line.h"
-#include "test_box.h"
-#include "test_texture.h"
-#include "test_mipmap.h"
 #define WYC_SHELLCMD_IMPLEMENTATION
 #include "shellcmd.h"
 #include "log.h"
+#include "test.h"
 
+ENABLE_TEST(CTestLine)
+ENABLE_TEST(CTestBox)
+ENABLE_TEST(CTestTexture)
+ENABLE_TEST(CTestMipmap)
+ENABLE_TEST(CTestDepth)
 
 std::unordered_map<std::string, std::function<CTest*()>> g_test_suit =
 {
-	{ "line", &CTestLine::create },
-	{ "box", &CTestBox::create },
-	{ "texture", &CTestTexture::create },
-	{ "mipmap", &CTestMipmap::create },
+	{ "line", &CREATE_TEST(CTestLine)},
+	{ "box", &CREATE_TEST(CTestBox)},
+	{ "texture", &CREATE_TEST(CTestTexture)},
+	{ "mipmap", &CREATE_TEST(CTestMipmap)},
+	{ "depth", &CREATE_TEST(CTestDepth)},
 };
+
+class CTestTask;
+static std::shared_ptr<CTestTask> g_task;
 
 class CTestTask
 {
@@ -26,10 +32,9 @@ public:
 		: m_test(test)
 		, m_is_done(false)
 	{
-
 	}
 
-	~CTestTask()
+	~CTestTask() 
 	{
 		if (m_test) {
 			delete m_test;
@@ -57,8 +62,6 @@ private:
 	CTest *m_test;
 	std::atomic_bool m_is_done;
 };
-
-static std::shared_ptr<CTestTask> g_task;
 
 class CShellCmdTest : public wyc::CShellCommand
 {
