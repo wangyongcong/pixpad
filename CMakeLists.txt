@@ -35,6 +35,11 @@ include_directories(${Boost_INCLUDE_DIRS})
 # set(PNG_LIBS libpng16_staticd zlibstaticd)
 # add_dependencies(libpng zlib)
 
+if(WIN32)
+	# Warning C4819: The file contains a character that cannot be represented in the current code page
+	add_definitions("/we4819")
+endif()
+
 # openexr
 set(BUILD_SHARED_LIBS OFF)
 set(NAMESPACE_VERSIONING ON)
