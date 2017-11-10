@@ -33,7 +33,7 @@ namespace wyc
 		std::ifstream fin(path, std::ios_base::in);
 		if (!fin.is_open())
 		{
-			log_error("Can't open file: %d, %s", 100, path.c_str());
+			log_error("Can't open file: %s", path.c_str());
 			return false;
 		}
 		std::string token;
@@ -273,6 +273,23 @@ namespace wyc
 					i -= 1;
 				*normal++ = normals[i];
 			}
+		}
+		return true;
+	}
+
+	bool CMesh::load_ply(const std::wstring & w_file_path)
+	{
+		std::string path;
+		if (!wstr2str(path, w_file_path))
+		{
+			log_error("Invalid file path");
+			return false;
+		}
+		std::ifstream fin(path, std::ios_base::in);
+		if (!fin.is_open())
+		{
+			log_error("Can't open file: %s", path.c_str());
+			return false;
 		}
 		return true;
 	}

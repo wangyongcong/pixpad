@@ -30,6 +30,8 @@ namespace wyc
 
 		// load from .obj file
 		bool load_obj(const std::wstring &filepath);
+		// load from .ply file
+		bool load_ply(const std::wstring &filepath);
 
 		// create simple geometry mesh
 		void create_triangle(float r);
