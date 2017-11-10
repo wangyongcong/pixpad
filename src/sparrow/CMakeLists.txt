@@ -10,7 +10,9 @@ set(SRC_COMMON
 	"common/stb_image.h"
 	"common/stb_image_resize.h"
 	"common/stb_image_write.h"
-) 
+	"common/tinyply.h"
+	"common/tinyply.cpp"
+	) 
 
 set(SRC_MATHEX 
 	"mathex/floatmath.h"
