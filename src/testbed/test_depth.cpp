@@ -7,7 +7,11 @@ class CTestDepth : public CTest
 public:
 	virtual void run() 
 	{
-		const char *ply_file = "res/torus.ply";
+		std::string ply_file;
+		if (!get_param("model", ply_file)) {
+			log_error("no model");
+			return;
+		}
 		auto mesh = std::make_shared<wyc::CMesh>();
 		if (!mesh->load_ply(ply_file)) {
 			return;
