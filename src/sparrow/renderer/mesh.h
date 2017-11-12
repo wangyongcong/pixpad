@@ -29,9 +29,9 @@ namespace wyc
 		bool has_index() const;
 
 		// load from .obj file
-		bool load_obj(const std::wstring &filepath);
+		bool load_obj(const std::string &filepath);
 		// load from .ply file
-		bool load_ply(const std::wstring &filepath);
+		bool load_ply(const std::string &filepath);
 
 		// create simple geometry mesh
 		void create_triangle(float r);

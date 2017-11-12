@@ -1,11 +1,14 @@
 #include "test.h"
+#include "shellcmd.h"
 
 #ifndef testbed_EXPORTS
+
+wyc::IShellCommand* get_test_command();
 
 int main(int argc, char *argv[])
 {
 	wyc::init_debug_log();
-	auto *cmd = get_command();
+	auto *cmd = get_test_command();
 	if (!cmd->execute(argc, argv))
 		return 1;
 	return 0;

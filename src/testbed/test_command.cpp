@@ -132,6 +132,15 @@ public:
 	}
 };
 
+#ifndef testbed_EXPORTS
+
+wyc::IShellCommand* get_test_command()
+{
+	static CShellCmdTest s_cmd_test;
+	return &s_cmd_test;
+}
+
+#else
 
 EXPORT_API wyc::IShellCommand** get_command_list(int &count)
 {
@@ -168,3 +177,5 @@ EXPORT_API void clear_task()
 {
 	g_task = nullptr;
 }
+
+#endif // testbed_EXPORTS

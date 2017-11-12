@@ -8,7 +8,7 @@
 #define EXPORT_API extern "C" _declspec(dllexport)
 #define EXPORT_CLASS _declspec(dllexport)
 #else
-#define EXPORT_C_API
+#define EXPORT_API
 #define EXPORT_CLASS
 #endif
 

@@ -1,5 +1,5 @@
 # build as stand alone executable
-set(TEST_STAND_ALONE OFF)
+option(TEST_STAND_ALONE "Test program build as executable" OFF)
 
 set(SRC_COMMON
 	"test_main.cpp"

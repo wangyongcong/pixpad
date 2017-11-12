@@ -22,14 +22,8 @@ namespace wyc
 
 	}
 
-	bool CMesh::load_obj(const std::wstring & w_file_path)
+	bool CMesh::load_obj(const std::string & path)
 	{
-		std::string path;
-		if (!wstr2str(path, w_file_path))
-		{
-			log_error("Invalid file path");
-			return false;
-		}
 		std::ifstream fin(path, std::ios_base::in);
 		if (!fin.is_open())
 		{
@@ -277,19 +271,57 @@ namespace wyc
 		return true;
 	}
 
-	bool CMesh::load_ply(const std::wstring & w_file_path)
+	bool CMesh::load_ply(const std::string & path)
 	{
-		std::string path;
-		if (!wstr2str(path, w_file_path))
-		{
-			log_error("Invalid file path");
-			return false;
-		}
 		std::ifstream fin(path, std::ios_base::in);
 		if (!fin.is_open())
 		{
 			log_error("Can't open file: %s", path.c_str());
 			return false;
+		}
+
+		std::string line;
+		fin >> line;
+		if (line != "ply") {
+			log_error("Invalid ply file: %s", path.c_str());
+			return false;
+		}
+		std::string tags[] = {
+			"comment",
+			"format",
+			"element",
+			"property",
+			"end_header",
+		};
+		enum {
+			COMMENT = 0,
+			FORMAT,
+			ELEMENT,
+			PROPERTY,
+			END_HEADER,
+		};
+#define is_tag(s, t) (0 == s.compare(0, tags[t].size(), tags[t]))
+		bool is_little_endian = true;
+		bool is_binary = true;
+		std::string version;
+		while (fin) {
+			fin >> line;
+			if (line == tags[END_HEADER])
+			{
+				log_info("END HEADER");
+				break;
+			}
+			if (line == tags[COMMENT])
+				continue;
+			if (line == tags[FORMAT])
+			{
+				fin >> line;
+				if (line == "is_big_endian")
+					is_little_endian = false;
+				else if (line == "ascii")
+					is_binary = false;
+				fin >> version;
+			}
 		}
 		return true;
 	}
