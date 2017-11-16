@@ -276,13 +276,16 @@ namespace wyc
 	{
 		std::ostringstream ss;
 		CPlyFile::read_header(ss, path);
+		std::string s = ss.str();
 		log_info(ss.str().c_str());
-		return true;
 		CPlyFile ply(path);
 		if (!ply) {
-			log_error("fail to load [%s]: %s", path, ply.get_error_desc());
+			log_error("fail to load: %s", ply.get_error_desc());
 			return false;
 		}
+		ss.str("");
+		ply.detail(ss);
+		log_info("\n%s", ss.str().c_str());
 		return true;
 	}
 
