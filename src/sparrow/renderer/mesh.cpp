@@ -274,6 +274,10 @@ namespace wyc
 
 	bool CMesh::load_ply(const std::string & path)
 	{
+		std::ostringstream ss;
+		CPlyFile::read_header(ss, path);
+		log_info(ss.str().c_str());
+		return true;
 		CPlyFile ply(path);
 		if (!ply) {
 			log_error("fail to load [%s]: %s", path, ply.get_error_desc());
