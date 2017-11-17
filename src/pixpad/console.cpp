@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <unordered_map>
 #include <string>
 #include <sstream>
@@ -6,6 +7,37 @@
 #include "app_config.h"
 #include "console_log.h"
 #include "shellcmd.h"
+
+void CConsoleLogger::write(wyc::ELogLevel lvl, const char *fmt, ...) {
+	int cnt = 0;
+	int sz = TEXT_BUFFER_SIZE - 1;
+	char *wbuf = m_buf;
+	if (lvl >= wyc::LOG_WARN) {
+		cnt = std::snprintf(wbuf, sz, "[%s] ", LOG_TAG(lvl));
+		if (cnt < 0 || cnt >= sz) {
+			// LOG tag should not produce any errors
+			return;
+		}
+		sz -= cnt;
+		wbuf += cnt;
+	}
+	va_list args;
+	va_start(args, fmt);
+	cnt = std::vsnprintf(wbuf, sz, fmt, args);
+	va_end(args);
+	if (cnt < 0) {
+		std::strcpy(m_buf, "[ERROR] LOG encoding error");
+		return;
+	}
+	if (cnt >= sz) {
+		std::strcpy(m_buf, "[ERROR] LOG buffer overflow");
+		return;
+	}
+	wbuf[cnt++] = '\n';
+	wbuf[cnt] = 0;
+	output(m_buf);
+}
+
 
 class CGuiConsole
 {

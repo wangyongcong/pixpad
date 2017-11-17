@@ -113,10 +113,9 @@ public:
 		test->init(args);
 		auto task = std::make_shared<CTestTask>(test);
 		g_task = task;
-		//std::async([task] {
-		//	task->start();
-		//});
-		task->start();
+		std::async([task] {
+			task->start();
+		});
 		return true;
 	}
 

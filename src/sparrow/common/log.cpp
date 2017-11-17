@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -10,7 +11,7 @@
 #include <Windows.h>
 #endif 
 
-#define LOG_TEXT_BUFF_SIZE 255  // internal string buf size
+#define LOG_MAX_TEXT_BUFF_SIZE 1024*1024  // internal string buf size
 #define LOG_DEFAULT_ROTATE_SIZE (4*1024*1024)  // file logger rotate size
 
 namespace wyc
@@ -27,11 +28,13 @@ namespace wyc
 		virtual void output(const char* buf, size_t size);
 	private:
 		char *m_buf;
+		int m_buf_size;
 	};
 
 	CLoggerImpl::CLoggerImpl()
+		: m_buf_size(256)
 	{
-		m_buf = new char[LOG_TEXT_BUFF_SIZE + 2];
+		m_buf = new char[m_buf_size];
 	}
 
 	CLoggerImpl::~CLoggerImpl()
@@ -43,13 +46,52 @@ namespace wyc
 	void CLoggerImpl::write(ELogLevel lvl, const char * fmt, ...)
 	{
 		//auto now = std::chrono::system_clock::now();
-		int cnt = std::snprintf(m_buf, LOG_TEXT_BUFF_SIZE, "[%s] ", LOG_TAG(lvl));
+		// keep space for LF
+		int sz = m_buf_size - 1;
+		char *wbuf = m_buf;
+		int cnt = std::snprintf(wbuf, sz, "[%s] ", LOG_TAG(lvl));
+		if (cnt < 0 || cnt >= sz) {
+			// log tag should not produce any error
+			return;
+		}
+		sz -= cnt;
+		wbuf += cnt;
 		va_list args;
 		va_start(args, fmt);
-		cnt += std::vsnprintf(m_buf + cnt, LOG_TEXT_BUFF_SIZE - cnt, fmt, args);
+		cnt = std::vsnprintf(wbuf, sz, fmt, args);
 		va_end(args);
-		m_buf[cnt++] = '\n';
-		m_buf[cnt] = 0;
+		if (cnt < 0) {
+			// encoding error
+			std::strcpy(m_buf, "[ERROR] LOG encoding error");
+			return;
+		}
+		if (cnt >= sz) {
+			// size not enough
+			cnt += m_buf_size - 1 - sz;
+			sz = m_buf_size;
+			while (sz <= cnt)
+				sz <<= 1;
+			if (sz > LOG_MAX_TEXT_BUFF_SIZE) {
+				std::strcpy(m_buf, "[ERROR] LOG buffer overflow");
+				return;
+			}
+			delete[] m_buf;
+			m_buf = new char[sz];
+			m_buf_size = sz;
+			// write again
+			sz -= 1;
+			wbuf = m_buf;
+			cnt = std::snprintf(wbuf, sz, "[%s] ", LOG_TAG(lvl));
+			assert(cnt > 0 && cnt < sz);
+			sz -= cnt;
+			wbuf += cnt;
+			va_start(args, fmt);
+			cnt = std::vsnprintf(wbuf, sz, fmt, args);
+			va_end(args);
+			assert(cnt > 0 && cnt < sz);
+		}
+		wbuf[cnt++] = '\n';
+		wbuf[cnt] = 0;
 		output(m_buf, cnt);
 	}
 

@@ -12,18 +12,7 @@ public:
 		LOGGER_SET(ptr);
 	}
 
-	virtual void write(wyc::ELogLevel lvl, const char *fmt, ...) override {
-		int cnt = 0; 
-		if(lvl >= wyc::LOG_WARN)
-			cnt = std::snprintf(m_buf, TEXT_BUFFER_SIZE, "[%s] ", LOG_TAG(lvl));
-		va_list args;
-		va_start(args, fmt);
-		cnt += std::vsnprintf(m_buf + cnt, TEXT_BUFFER_SIZE - cnt, fmt, args);
-		va_end(args);
-		m_buf[cnt++] = '\n';
-		m_buf[cnt] = 0;
-		output(m_buf);
-	}
+	virtual void write(wyc::ELogLevel lvl, const char *fmt, ...) override;
 
 	void output(const char *buf)
 	{
