@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <limits>
+#include "util.h"
 
 namespace wyc
 {
@@ -100,17 +101,66 @@ namespace wyc
 	*/
 	static std::pair<PLY_PROPERTY_TYPE, uint8_t> ply_property_type(const std::string &type)
 	{
+		
 		if (type == "char" || type == "uchar") {
 			return std::make_pair(PLY_INTEGER, 1);
 		}
 		else if (type == "short" || type == "ushort") {
 			return std::make_pair(PLY_INTEGER, 2);
 		}
-		else if (type == "int" || type == "uint") {
-			return std::make_pair(PLY_INTEGER, 4);
+		else if (0 == type.compare(0, 3, "int"))
+		{
+			if (type.size() > 3)
+			{
+				std::string sub = type.substr(3);
+				int sz = 0;
+				try {
+					sz = std::stol(sub);
+				}
+				catch (std::invalid_argument) {
+					return std::make_pair(PLY_UNKNOWN_TYPE, 0);
+				}
+				sz = (sz + 7) / 8;
+				return std::make_pair(PLY_INTEGER, sz);
+			}
+			else {
+				return std::make_pair(PLY_INTEGER, 4);
+			}
 		}
-		else if (type == "float") {
-			return std::make_pair(PLY_FLOAT, 4);
+		else if (0 == type.compare(0, 4, "uint")) {
+			if (type.size() > 4) {
+				std::string sub = type.substr(4);
+				int sz = 0;
+				try {
+					sz = std::stol(sub);
+				}
+				catch (std::invalid_argument) {
+					return std::make_pair(PLY_UNKNOWN_TYPE, 0);
+				}
+				sz = (sz + 7) / 8;
+				return std::make_pair(PLY_INTEGER, sz);
+			}
+			else {
+				return std::make_pair(PLY_INTEGER, 4);
+			}
+		}
+		else if (0 == type.compare(0, 5, "float")) {
+			if (type.size() > 5)
+			{
+				std::string sub = type.substr(5);
+				int sz = 0;
+				try {
+					sz = std::stol(sub);
+				}
+				catch (std::invalid_argument) {
+					return std::make_pair(PLY_UNKNOWN_TYPE, 0);
+				}
+				sz = (sz + 7) / 8;
+				return std::make_pair(PLY_FLOAT, sz);
+			}
+			else {
+				return std::make_pair(PLY_FLOAT, 4);
+			}
 		}
 		else if (type == "double") {
 			return std::make_pair(PLY_FLOAT, 8);

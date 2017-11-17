@@ -279,13 +279,14 @@ namespace wyc
 		std::string s = ss.str();
 		log_info(ss.str().c_str());
 		CPlyFile ply(path);
+		ss.clear();
+		ss.str("");
+		ply.detail(ss);
+		log_info("\n%s", ss.str().c_str());
 		if (!ply) {
 			log_error("fail to load: %s", ply.get_error_desc());
 			return false;
 		}
-		ss.str("");
-		ply.detail(ss);
-		log_info("\n%s", ss.str().c_str());
 		return true;
 	}
 
