@@ -17,27 +17,61 @@ namespace wyc
 	};
 
 	enum PLY_PROPERTY_TYPE {
-		PLY_UNKNOWN_TYPE = 0,
+		PLY_NULL = 0,
 		PLY_FLOAT,
 		PLY_INTEGER,
 		PLY_LIST,
 	};
 
-	struct PlyProperty
+	class IPlyReader
 	{
+	public:
+		IPlyReader()
+			: next(nullptr)
+		{
+		}
+		virtual void operator() (std::istream &in) = 0;
+		IPlyReader *next;
+	};
+
+	class PlyProperty
+	{
+	public:
+		PlyProperty()
+			: size(0)
+			, type(PLY_NULL)
+			, next(nullptr)
+		{
+		}
 		std::string name;
 		PLY_PROPERTY_TYPE type;
 		unsigned size;
 		PlyProperty *next;
 	};
 
-	struct PlyElement
+	class PlyElement
 	{
+	public:
+		PlyElement()
+			: count(0)
+			, size(0)
+			, properties(nullptr)
+			, next(nullptr)
+			, offset(0)
+			, readers(nullptr)
+		{
+		}
+		~PlyElement()
+		{
+		}
 		std::string name;
 		unsigned count;
-		unsigned prop_count;
+		unsigned size;
 		PlyProperty *properties;
 		PlyElement *next;
+		std::streampos offset;
+		IPlyReader *readers;
+		bool is_variant;
 	};
 
 	class CPlyFile
@@ -58,7 +92,11 @@ namespace wyc
 
 	private:
 		bool _load(const std::string &file_path);
-		bool _read_binay(std::ifstream &fin);
+		bool _read_binary_le(std::istream &fin, std::streampos pos);
+		bool _read_binary_be(std::istream &fin);
+		bool _read_ascii(std::istream &fin);
+		void _read_vertex(std::istream &fin, PlyElement *elem);
+		
 		void _clear();
 		PLY_ERROR m_error;
 		PlyElement *m_elements;

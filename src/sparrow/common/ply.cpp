@@ -2,6 +2,8 @@
 #include <fstream>
 #include <sstream>
 #include <limits>
+#include <vector>
+#include <unordered_map>
 #include "util.h"
 
 namespace wyc
@@ -118,7 +120,7 @@ namespace wyc
 					sz = std::stol(sub);
 				}
 				catch (std::invalid_argument) {
-					return std::make_pair(PLY_UNKNOWN_TYPE, 0);
+					return std::make_pair(PLY_NULL, 0);
 				}
 				sz = (sz + 7) / 8;
 				return std::make_pair(PLY_INTEGER, sz);
@@ -135,7 +137,7 @@ namespace wyc
 					sz = std::stol(sub);
 				}
 				catch (std::invalid_argument) {
-					return std::make_pair(PLY_UNKNOWN_TYPE, 0);
+					return std::make_pair(PLY_NULL, 0);
 				}
 				sz = (sz + 7) / 8;
 				return std::make_pair(PLY_INTEGER, sz);
@@ -153,7 +155,7 @@ namespace wyc
 					sz = std::stol(sub);
 				}
 				catch (std::invalid_argument) {
-					return std::make_pair(PLY_UNKNOWN_TYPE, 0);
+					return std::make_pair(PLY_NULL, 0);
 				}
 				sz = (sz + 7) / 8;
 				return std::make_pair(PLY_FLOAT, sz);
@@ -165,12 +167,12 @@ namespace wyc
 		else if (type == "double") {
 			return std::make_pair(PLY_FLOAT, 8);
 		}
-		return std::make_pair(PLY_UNKNOWN_TYPE, 0);
+		return std::make_pair(PLY_NULL, 0);
 	}
 
 	bool CPlyFile::_load(const std::string & path)
 	{
-		std::ifstream fin(path, std::ios_base::in);
+		std::ifstream fin(path, std::ios_base::binary);
 		if (!fin.is_open())
 		{
 			m_error = PLY_FILE_NOT_FOUND;
@@ -189,6 +191,7 @@ namespace wyc
 		bool is_binary = true;
 		if (m_elements)
 			_clear();
+		PlyElement *cur_elem = nullptr;
 		PlyElement **tail = &m_elements;
 		PlyProperty **prop_tail = nullptr;
 		while (fin) {
@@ -231,15 +234,16 @@ namespace wyc
 				if (line.fail()) 
 					continue;
 				if (!value.empty() && count) {
-					PlyElement *elem = new PlyElement;
-					elem->name = value;
-					elem->count = count;
-					elem->prop_count = 0;
-					elem->properties = nullptr;
-					elem->next = nullptr;
-					*tail = elem;
-					tail = &elem->next;
-					prop_tail = &elem->properties;
+					cur_elem = new PlyElement;
+					cur_elem->name = value;
+					cur_elem->count = count;
+					cur_elem->size = 0;
+					cur_elem->is_variant = false;
+					cur_elem->properties = nullptr;
+					cur_elem->next = nullptr;
+					*tail = cur_elem;
+					tail = &cur_elem->next;
+					prop_tail = &cur_elem->properties;
 				}
 			}
 			else if (value == PLY_TAGS[PROPERTY])
@@ -263,32 +267,175 @@ namespace wyc
 						m_error = PLY_INVALID_PROPERTY;
 						return false;
 					}
-					prop->size = (t1.second << 16) | t2.second;
+					prop->size = (t1.second << 24) | (t1.second << 16) | (t2.second << 8) | t2.first;
+					cur_elem->is_variant = true;
 				}
 				else {
 					auto t = ply_property_type(value);
 					prop->type = t.first;
 					prop->size = t.second;
+					cur_elem->size += prop->size;
 				}
 				// property name
 				line >> prop->name;
 			}
 		}
-		if (is_binary) {
-			if (!is_little_endian)
-			{
-				m_error = PLY_NOT_SUPPORT_BID_ENDIAN;
-				return false;
-			}
-			return _read_binay(fin);
+		auto data_start = fin.tellg();
+		if (!is_binary)
+			return _read_ascii(fin);
+		else if (is_little_endian)
+			return _read_binary_le(fin, data_start);
+		else
+			return _read_binary_be(fin);
+	}
+
+	class CPlyIgnoreSize: public IPlyReader
+	{
+	public:
+		CPlyIgnoreSize(std::streampos sz)
+			: m_size(sz)
+		{
+
 		}
-		m_error = PLY_NOT_SUPPORT_ASCII;
+		virtual void operator() (std::istream &in) override {
+			in.ignore(m_size);
+		}
+	private:
+		std::streampos m_size;
+	};
+
+	class CPlyIgnoreList : public IPlyReader
+	{
+	public:
+		CPlyIgnoreList(unsigned bytes_for_length, unsigned element_size)
+			: m_bytes_for_length(bytes_for_length)
+			, m_element_size(element_size)
+		{
+		}
+
+		virtual void operator() (std::istream &in) override {
+			uint64_t length = 0;
+			in.read((char*)&length, m_bytes_for_length);
+			in.ignore(length * m_element_size);
+		}
+	private:
+		unsigned m_bytes_for_length;
+		unsigned m_element_size;
+	};
+
+	class CPlyReadFloat : public IPlyReader
+	{
+	public:
+		CPlyReadFloat(std::streampos sz)
+			: m_size(sz)
+		{
+
+		}
+		virtual void operator() (std::istream &in) override {
+			union {
+				float f32;
+				double f64;
+			} var;
+			in.read((char*)&var, m_size);
+		}
+	private:
+		std::streampos m_size;
+	};
+
+
+	void CPlyFile::_read_vertex(std::istream & in, PlyElement *elem)
+	{
+		uint8_t comp_pos = 0;
+		uint8_t comp_color = 0;
+		uint8_t comp_normal = 0;
+		std::unordered_map<std::string, uint8_t*> interest_props = {
+			{ "x", &comp_pos },
+			{ "y", &comp_pos },
+			{ "z", &comp_pos },
+		};
+		unsigned skip = 0;
+		std::vector<IPlyReader*> readers;
+		for (auto prop = elem->properties; prop; prop = prop->next)
+		{
+			auto iter = interest_props.find(prop->name);
+			if (iter != interest_props.end()) {
+				*(iter->second) += 1;
+				if (skip > 0) {
+					readers.push_back(new CPlyIgnoreSize(skip));
+					skip = 0;
+				}
+			}
+			else {
+				skip += prop->size;
+			}
+		}
+		// clear readers
+		for (auto r : readers)
+			delete r;
+	}
+
+	bool CPlyFile::_read_binary_le(std::istream & in, std::streampos start_pos)
+	{
+		std::streampos pos = start_pos;
+		for (auto elem = m_elements; elem && in; elem = elem->next)
+		{
+			elem->offset = pos;
+			if (elem->name == "vertex")
+			{
+				_read_vertex(in, elem);
+			}
+			else if (elem->name == "face")
+			{
+
+			}
+			else if (elem->name == "tristrip")
+			{
+
+			}
+			// skip element data
+			else if (elem->is_variant)
+			{
+				unsigned s = 0;
+				IPlyReader **tail = &elem->readers;
+				for (auto prop = elem->properties; prop; prop = prop->next)
+				{
+					if (prop->type != PLY_LIST)
+						s += prop->size;
+					else {
+						IPlyReader *r1 = new CPlyIgnoreSize(s);
+						*tail = r1;
+						auto s1 = (prop->size & 0xFF0000) >> 16;
+						auto s2 = (prop->size & 0xFF00) >> 8;
+						IPlyReader *r2 = new CPlyIgnoreList(s1, s2);
+						r1->next = r2;
+						tail = &r2->next;
+						s = 0;
+					}
+				}
+				in.seekg(pos);
+				for (auto r = elem->readers; r; r = r->next)
+				{
+					(*r)(in);
+				}
+				pos = in.tellg();
+			}
+			else {
+				pos += elem->size;
+			}
+		}
+		return true;
+	}
+
+	bool CPlyFile::_read_binary_be(std::istream & in)
+	{
+		m_error = PLY_NOT_SUPPORT_BID_ENDIAN;
 		return false;
 	}
 
-	bool CPlyFile::_read_binay(std::ifstream & fin)
+	bool CPlyFile::_read_ascii(std::istream & in)
 	{
-		return true;
+		m_error = PLY_NOT_SUPPORT_ASCII;
+		return false;
 	}
 
 	void CPlyFile::_clear()
