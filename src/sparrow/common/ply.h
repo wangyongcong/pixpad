@@ -24,17 +24,6 @@ namespace wyc
 		PLY_LIST,
 	};
 
-	class IPlyReader
-	{
-	public:
-		IPlyReader()
-			: next(nullptr)
-		{
-		}
-		virtual void operator() (std::istream &in) = 0;
-		IPlyReader *next;
-	};
-
 	class PlyProperty
 	{
 	public:
@@ -89,6 +78,7 @@ namespace wyc
 		void detail(std::ostream &out) const;
 		const PlyElement* find_element(const std::string &name);
 		bool read_vertex_position(float *vector3, unsigned &count, unsigned stride);
+		bool read_face(unsigned *vertex_indices, unsigned &count);
 		// error handling
 		inline operator bool() const {
 			return m_error == PLY_NO_ERROR;

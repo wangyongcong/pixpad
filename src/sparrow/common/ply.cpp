@@ -24,6 +24,56 @@ namespace wyc
 		END_HEADER,
 	};
 
+
+	class IPlyReader
+	{
+	public:
+		IPlyReader()
+			: next(nullptr)
+		{
+		}
+		virtual void operator() (std::istream &in) = 0;
+		IPlyReader *next;
+	};
+
+	class CPlyIgnoreList : public IPlyReader
+	{
+	public:
+		CPlyIgnoreList(unsigned bytes_for_length, unsigned element_size)
+			: m_bytes_for_length(bytes_for_length)
+			, m_element_size(element_size)
+		{
+		}
+
+		virtual void operator() (std::istream &in) override {
+			uint64_t length = 0;
+			in.read((char*)&length, m_bytes_for_length);
+			in.ignore(length * m_element_size);
+		}
+	private:
+		unsigned m_bytes_for_length;
+		unsigned m_element_size;
+	};
+
+	class CPlyReadFloat : public IPlyReader
+	{
+	public:
+		CPlyReadFloat(std::streampos sz)
+			: m_size(sz)
+		{
+
+		}
+		virtual void operator() (std::istream &in) override {
+			union {
+				float f32;
+				double f64;
+			} var;
+			in.read((char*)&var, m_size);
+		}
+	private:
+		std::streampos m_size;
+	};
+
 	void CPlyFile::read_header(std::ostream &out, const std::string &path)
 	{
 		std::ifstream fin(path, std::ios_base::in);
@@ -352,44 +402,6 @@ namespace wyc
 		}
 		virtual void operator() (std::istream &in) override {
 			in.ignore(m_size);
-		}
-	private:
-		std::streampos m_size;
-	};
-
-	class CPlyIgnoreList : public IPlyReader
-	{
-	public:
-		CPlyIgnoreList(unsigned bytes_for_length, unsigned element_size)
-			: m_bytes_for_length(bytes_for_length)
-			, m_element_size(element_size)
-		{
-		}
-
-		virtual void operator() (std::istream &in) override {
-			uint64_t length = 0;
-			in.read((char*)&length, m_bytes_for_length);
-			in.ignore(length * m_element_size);
-		}
-	private:
-		unsigned m_bytes_for_length;
-		unsigned m_element_size;
-	};
-
-	class CPlyReadFloat : public IPlyReader
-	{
-	public:
-		CPlyReadFloat(std::streampos sz)
-			: m_size(sz)
-		{
-
-		}
-		virtual void operator() (std::istream &in) override {
-			union {
-				float f32;
-				double f64;
-			} var;
-			in.read((char*)&var, m_size);
 		}
 	private:
 		std::streampos m_size;
