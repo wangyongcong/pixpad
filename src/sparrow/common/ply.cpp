@@ -40,6 +40,9 @@ namespace wyc
 	CPlyFile::CPlyFile(const std::string &file_path)
 		: m_error(PLY_NO_ERROR)
 		, m_elements(nullptr)
+		, m_is_binary(false)
+		, m_is_little_endian(false)
+		, m_data_pos(0)
 	{
 		_load(file_path);
 	}
@@ -107,6 +110,51 @@ namespace wyc
 				return elem;
 		}
 		return nullptr;
+	}
+
+	bool CPlyFile::read_vertex_position(float * vector3, unsigned & count, unsigned stride)
+	{
+		auto elem = _locate_element("vertex");
+		if (!elem || elem->is_variant) {
+			count = 0;
+			return false;
+		}
+		count = elem->count;
+		if (!vector3)
+			return true;
+		std::streampos pos = 0, tail = 0;
+		PlyProperty *prop_x;
+		for (prop_x = elem->properties; prop_x && prop_x->name != "x"; prop_x = prop_x->next)
+		{
+			pos += prop_x->size;
+		}
+		tail = elem->size - pos;
+		if (!prop_x || prop_x->type != PLY_FLOAT)
+			return false;
+		auto prop_y = prop_x->next;
+		if (!prop_y || prop_y->name != "y" || prop_y->type != PLY_FLOAT)
+			return false;
+		auto prop_z = prop_y->next;
+		if (!prop_z || prop_z->name != "z" || prop_z->type != PLY_FLOAT)
+			return false;
+		if (!m_is_binary) {
+			m_error = PLY_NOT_SUPPORT_ASCII;
+			return false;
+		}
+		if (!m_is_little_endian) {
+			m_error = PLY_NOT_SUPPORT_BID_ENDIAN;
+			return false;
+		}
+		assert(prop_x->size == sizeof(float));
+		constexpr unsigned sz = sizeof(float) * 3;		
+		auto out = vector3;
+		m_stream.ignore(pos);
+		for (unsigned i = 0; i < elem->count; ++i, out += stride)
+		{
+			m_stream.read((char*)out, sz);
+			m_stream.ignore(elem->size);
+		}
+		return true;
 	}
 
 	/*
@@ -207,8 +255,6 @@ namespace wyc
 		}
 		unsigned count;
 		constexpr auto max_size = std::numeric_limits<std::streamsize>::max();
-		bool is_little_endian = true;
-		bool is_binary = true;
 		if (m_elements)
 			_clear();
 		PlyElement *cur_elem = nullptr;
@@ -230,15 +276,15 @@ namespace wyc
 				// format & version
 				line >> value >> type;
 				if (value == "ascii")
-					is_binary = false;
+					m_is_binary = false;
 				else if (value == "binary_big_endian")
 				{
-					is_binary = true;
-					is_little_endian = false;
+					m_is_binary = true;
+					m_is_little_endian = false;
 				}
 				else if (value == "binary_little_endian") {
-					is_binary = true;
-					is_little_endian = true;
+					m_is_binary = true;
+					m_is_little_endian = true;
 				}
 				else {
 					m_error = PLY_UNKNOWN_FORMAT;
@@ -293,12 +339,7 @@ namespace wyc
 			}
 		}
 		m_data_pos = m_stream.tellg();
-		if (!is_binary)
-			return _read_ascii(m_stream);
-		else if (is_little_endian)
-			return _read_binary_le(m_stream, m_data_pos);
-		else
-			return _read_binary_be(m_stream);
+		return true;
 	}
 
 	class CPlyIgnoreSize: public IPlyReader
@@ -354,89 +395,76 @@ namespace wyc
 		std::streampos m_size;
 	};
 
-	bool CPlyFile::_locate_element(const std::string & elem_name)
+	PlyElement* CPlyFile::_locate_element(const char *elem_name)
 	{
 		assert(m_stream.is_open());
 		if (!m_stream) {
 			m_stream.clear();
 		}
 		m_stream.seekg(m_data_pos);
-		std::streampos null_pos = -1;
 		std::streampos pos = 0;
 		PlyElement *elem;
 		for (elem = m_elements; elem && elem->name != elem_name; elem = elem->next)
 		{
-			if (!elem->is_variant) {
-				pos += elem->chunk_size;
-				continue;
+			if (!elem->chunk_size) {
+				if (!elem->is_variant) 
+					elem->chunk_size = elem->size * elem->count;
+				else {
+					elem->chunk_size = _calculate_chunk_size(elem, pos);
+					if (!elem->chunk_size)
+						return nullptr;
+				}
 			}
-
+			pos += elem->chunk_size;
 		}
-		if (elem) {
-			m_stream.seekg(pos);
-			return true;
-		}
-		return false;
+		if (!elem) 
+			return nullptr;
+		m_stream.seekg(pos);
+		return elem;
 	}
 
-	bool CPlyFile::_read_binary_le(std::istream & in, std::streampos start_pos)
+	std::streamoff CPlyFile::_calculate_chunk_size(PlyElement * elem, std::streampos pos)
 	{
-		std::streampos pos = start_pos;
-		for (auto elem = m_elements; elem && in; elem = elem->next)
+		unsigned s = 0;
+		IPlyReader *readers = nullptr;
+		IPlyReader **tail = &readers;
+		for (auto prop = elem->properties; prop; prop = prop->next)
 		{
-			if (elem->name == "vertex")
-			{
-			}
-			else if (elem->name == "face")
-			{
-			}
-			else if (elem->name == "tristrip")
-			{
-			}
-			// skip element data
-			else if (elem->is_variant)
-			{
-				unsigned s = 0;
-				IPlyReader **tail = &elem->readers;
-				for (auto prop = elem->properties; prop; prop = prop->next)
-				{
-					if (prop->type != PLY_LIST)
-						s += prop->size;
-					else {
-						IPlyReader *r1 = new CPlyIgnoreSize(s);
-						*tail = r1;
-						auto s1 = (prop->size & 0xFF0000) >> 16;
-						auto s2 = (prop->size & 0xFF00) >> 8;
-						IPlyReader *r2 = new CPlyIgnoreList(s1, s2);
-						r1->next = r2;
-						tail = &r2->next;
-						s = 0;
-					}
-				}
-				in.seekg(pos);
-				for (auto r = elem->readers; r; r = r->next)
-				{
-					(*r)(in);
-				}
-				pos = in.tellg();
-			}
+			if (prop->type != PLY_LIST)
+				s += prop->size;
 			else {
-				pos += elem->size;
+				IPlyReader *r1 = new CPlyIgnoreSize(s);
+				*tail = r1;
+				auto s1 = (prop->size & 0xFF0000) >> 16;
+				auto s2 = (prop->size & 0xFF00) >> 8;
+				IPlyReader *r2 = new CPlyIgnoreList(s1, s2);
+				r1->next = r2;
+				tail = &r2->next;
+				s = 0;
 			}
 		}
-		return true;
-	}
-
-	bool CPlyFile::_read_binary_be(std::istream & in)
-	{
-		m_error = PLY_NOT_SUPPORT_BID_ENDIAN;
-		return false;
-	}
-
-	bool CPlyFile::_read_ascii(std::istream & in)
-	{
-		m_error = PLY_NOT_SUPPORT_ASCII;
-		return false;
+		auto clear_readers = [readers]() {
+			auto iter = readers;
+			while (iter) {
+				auto _next = iter->next;
+				delete iter;
+				iter = _next;
+			}
+		};
+		m_stream.seekg(pos);
+		for (unsigned i = 0; i < elem->count; ++i) {
+			for (auto r = readers; r; r = r->next)
+			{
+				(*r)(m_stream);
+				if (!m_stream) {
+					clear_readers();
+					return 0;
+				}
+			}
+		}
+		auto end_pos = m_stream.tellg();
+		clear_readers();
+		return end_pos - pos;
 	}
 
 } // namespace wyc

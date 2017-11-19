@@ -58,7 +58,6 @@ namespace wyc
 			, count(0)
 			, size(0)
 			, properties(nullptr)
-			, readers(nullptr)
 			, is_variant(false)
 			, chunk_size(0)
 		{
@@ -76,9 +75,8 @@ namespace wyc
 		unsigned count;
 		unsigned size;
 		PlyProperty *properties;
-		IPlyReader *readers;
 		bool is_variant;
-		size_t chunk_size;
+		std::streamoff chunk_size;
 	};
 
 	class CPlyFile
@@ -90,6 +88,7 @@ namespace wyc
 		~CPlyFile();
 		void detail(std::ostream &out) const;
 		const PlyElement* find_element(const std::string &name);
+		bool read_vertex_position(float *vector3, unsigned &count, unsigned stride);
 		// error handling
 		inline operator bool() const {
 			return m_error == PLY_NO_ERROR;
@@ -102,15 +101,15 @@ namespace wyc
 	private:
 		void _clear();
 		bool _load(const std::string &file_path);
-		bool _read_binary_le(std::istream &fin, std::streampos pos);
-		bool _read_binary_be(std::istream &fin);
-		bool _read_ascii(std::istream &fin);
-		bool _locate_element(const std::string &elem_name);
+		PlyElement* _locate_element(const char *elem_name);
+		std::streamoff _calculate_chunk_size(PlyElement *elem, std::streampos pos);
 		
 		std::ifstream m_stream;
 		std::streampos m_data_pos;
 		PLY_ERROR m_error;
 		PlyElement *m_elements;
+		bool m_is_binary;
+		bool m_is_little_endian;
 	};
 
 } // namespace wyc

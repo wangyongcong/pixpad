@@ -286,7 +286,15 @@ namespace wyc
 		if (!ply) {
 			log_error("fail to load: %s", ply.get_error_desc());
 			return false;
-		}		
+		}
+		unsigned count = 0;
+		if (!ply.read_vertex_position(nullptr, count, 0))
+		{
+			return false;
+		}
+		//m_vb.clear();
+		//m_vb.set_attribute(ATTR_POSITION, 3);
+		//m_vb.resize(count);
 		return true;
 	}
 
