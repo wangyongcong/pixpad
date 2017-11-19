@@ -1,9 +1,9 @@
 #include "ply.h"
-#include <fstream>
 #include <sstream>
 #include <limits>
 #include <vector>
 #include <unordered_map>
+#include <cassert>
 #include "util.h"
 
 namespace wyc
@@ -46,7 +46,17 @@ namespace wyc
 
 	CPlyFile::~CPlyFile()
 	{
+		m_stream.close();
 		_clear();
+	}
+
+	void CPlyFile::_clear()
+	{
+		while (m_elements) {
+			auto to_del = m_elements;
+			m_elements = m_elements->next;
+			delete to_del;
+		}
 	}
 
 	const char * CPlyFile::get_error_desc() const
@@ -87,6 +97,16 @@ namespace wyc
 				out << ")" << std::endl;
 			}
 		}
+	}
+
+	const PlyElement * CPlyFile::find_element(const std::string & name)
+	{
+		for (auto elem = m_elements; elem; elem = elem->next)
+		{
+			if (elem->name == name)
+				return elem;
+		}
+		return nullptr;
 	}
 
 	/*
@@ -172,15 +192,15 @@ namespace wyc
 
 	bool CPlyFile::_load(const std::string & path)
 	{
-		std::ifstream fin(path, std::ios_base::binary);
-		if (!fin.is_open())
+		m_stream.open(path, std::ios_base::binary);
+		if (!m_stream.is_open())
 		{
 			m_error = PLY_FILE_NOT_FOUND;
 			return false;
 		}
 		std::stringstream line;
 		std::string value, type;
-		std::getline(fin, value);
+		std::getline(m_stream, value);
 		if (value != "ply") {
 			m_error = PLY_INVALID_FILE;
 			return false;
@@ -194,8 +214,8 @@ namespace wyc
 		PlyElement *cur_elem = nullptr;
 		PlyElement **tail = &m_elements;
 		PlyProperty **prop_tail = nullptr;
-		while (fin) {
-			std::getline(fin, value);
+		while (m_stream) {
+			std::getline(m_stream, value);
 			if (value.empty() || value == PLY_TAGS[END_HEADER])
 				break;
 			line.clear();
@@ -235,12 +255,6 @@ namespace wyc
 					continue;
 				if (!value.empty() && count) {
 					cur_elem = new PlyElement;
-					cur_elem->name = value;
-					cur_elem->count = count;
-					cur_elem->size = 0;
-					cur_elem->is_variant = false;
-					cur_elem->properties = nullptr;
-					cur_elem->next = nullptr;
 					*tail = cur_elem;
 					tail = &cur_elem->next;
 					prop_tail = &cur_elem->properties;
@@ -253,8 +267,6 @@ namespace wyc
 				if (line.fail() || value.empty())
 					continue;
 				PlyProperty *prop = new PlyProperty;
-				//prop->name = value;
-				prop->next = nullptr;
 				*prop_tail = prop;
 				prop_tail = &prop->next;
 				if (value == "list") {
@@ -280,13 +292,13 @@ namespace wyc
 				line >> prop->name;
 			}
 		}
-		auto data_start = fin.tellg();
+		m_data_pos = m_stream.tellg();
 		if (!is_binary)
-			return _read_ascii(fin);
+			return _read_ascii(m_stream);
 		else if (is_little_endian)
-			return _read_binary_le(fin, data_start);
+			return _read_binary_le(m_stream, m_data_pos);
 		else
-			return _read_binary_be(fin);
+			return _read_binary_be(m_stream);
 	}
 
 	class CPlyIgnoreSize: public IPlyReader
@@ -342,36 +354,29 @@ namespace wyc
 		std::streampos m_size;
 	};
 
-
-	void CPlyFile::_read_vertex(std::istream & in, PlyElement *elem)
+	bool CPlyFile::_locate_element(const std::string & elem_name)
 	{
-		uint8_t comp_pos = 0;
-		uint8_t comp_color = 0;
-		uint8_t comp_normal = 0;
-		std::unordered_map<std::string, uint8_t*> interest_props = {
-			{ "x", &comp_pos },
-			{ "y", &comp_pos },
-			{ "z", &comp_pos },
-		};
-		unsigned skip = 0;
-		std::vector<IPlyReader*> readers;
-		for (auto prop = elem->properties; prop; prop = prop->next)
-		{
-			auto iter = interest_props.find(prop->name);
-			if (iter != interest_props.end()) {
-				*(iter->second) += 1;
-				if (skip > 0) {
-					readers.push_back(new CPlyIgnoreSize(skip));
-					skip = 0;
-				}
-			}
-			else {
-				skip += prop->size;
-			}
+		assert(m_stream.is_open());
+		if (!m_stream) {
+			m_stream.clear();
 		}
-		// clear readers
-		for (auto r : readers)
-			delete r;
+		m_stream.seekg(m_data_pos);
+		std::streampos null_pos = -1;
+		std::streampos pos = 0;
+		PlyElement *elem;
+		for (elem = m_elements; elem && elem->name != elem_name; elem = elem->next)
+		{
+			if (!elem->is_variant) {
+				pos += elem->chunk_size;
+				continue;
+			}
+
+		}
+		if (elem) {
+			m_stream.seekg(pos);
+			return true;
+		}
+		return false;
 	}
 
 	bool CPlyFile::_read_binary_le(std::istream & in, std::streampos start_pos)
@@ -379,18 +384,14 @@ namespace wyc
 		std::streampos pos = start_pos;
 		for (auto elem = m_elements; elem && in; elem = elem->next)
 		{
-			elem->offset = pos;
 			if (elem->name == "vertex")
 			{
-				_read_vertex(in, elem);
 			}
 			else if (elem->name == "face")
 			{
-
 			}
 			else if (elem->name == "tristrip")
 			{
-
 			}
 			// skip element data
 			else if (elem->is_variant)
@@ -436,22 +437,6 @@ namespace wyc
 	{
 		m_error = PLY_NOT_SUPPORT_ASCII;
 		return false;
-	}
-
-	void CPlyFile::_clear()
-	{
-		for (auto elem = m_elements; elem;)
-		{
-			for (auto prop = elem->properties; prop;) {
-				auto next_prop = prop->next;
-				delete prop;
-				prop = next_prop;
-			}
-			auto next_elem = elem->next;
-			delete elem;
-			elem = next_elem;
-		}
-		m_elements = nullptr;
 	}
 
 } // namespace wyc

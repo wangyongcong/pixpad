@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <fstream>
 
 namespace wyc
 {
@@ -38,40 +39,46 @@ namespace wyc
 	{
 	public:
 		PlyProperty()
-			: size(0)
+			: next(nullptr)
+			, size(0)
 			, type(PLY_NULL)
-			, next(nullptr)
 		{
 		}
+		PlyProperty *next;
 		std::string name;
 		PLY_PROPERTY_TYPE type;
 		unsigned size;
-		PlyProperty *next;
 	};
 
 	class PlyElement
 	{
 	public:
 		PlyElement()
-			: count(0)
+			: next(nullptr)
+			, count(0)
 			, size(0)
 			, properties(nullptr)
-			, next(nullptr)
-			, offset(0)
 			, readers(nullptr)
+			, is_variant(false)
+			, chunk_size(0)
 		{
 		}
 		~PlyElement()
 		{
+			while (properties) {
+				auto to_del = properties;
+				properties = properties->next;
+				delete to_del;
+			}
 		}
+		PlyElement *next;
 		std::string name;
 		unsigned count;
 		unsigned size;
 		PlyProperty *properties;
-		PlyElement *next;
-		std::streampos offset;
 		IPlyReader *readers;
 		bool is_variant;
+		size_t chunk_size;
 	};
 
 	class CPlyFile
@@ -81,6 +88,9 @@ namespace wyc
 
 		CPlyFile(const std::string &file_path);
 		~CPlyFile();
+		void detail(std::ostream &out) const;
+		const PlyElement* find_element(const std::string &name);
+		// error handling
 		inline operator bool() const {
 			return m_error == PLY_NO_ERROR;
 		}
@@ -88,16 +98,17 @@ namespace wyc
 			return m_error;
 		}
 		const char* get_error_desc() const;
-		void detail(std::ostream &out) const;
 
 	private:
+		void _clear();
 		bool _load(const std::string &file_path);
 		bool _read_binary_le(std::istream &fin, std::streampos pos);
 		bool _read_binary_be(std::istream &fin);
 		bool _read_ascii(std::istream &fin);
-		void _read_vertex(std::istream &fin, PlyElement *elem);
+		bool _locate_element(const std::string &elem_name);
 		
-		void _clear();
+		std::ifstream m_stream;
+		std::streampos m_data_pos;
 		PLY_ERROR m_error;
 		PlyElement *m_elements;
 	};

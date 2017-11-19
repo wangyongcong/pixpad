@@ -286,7 +286,7 @@ namespace wyc
 		if (!ply) {
 			log_error("fail to load: %s", ply.get_error_desc());
 			return false;
-		}
+		}		
 		return true;
 	}
 
