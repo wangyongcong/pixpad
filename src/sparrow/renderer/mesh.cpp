@@ -292,6 +292,7 @@ namespace wyc
 		{
 			return false;
 		}
+		ply.read_face(nullptr, count);
 		//m_vb.clear();
 		//m_vb.set_attribute(ATTR_POSITION, 3);
 		//m_vb.resize(count);

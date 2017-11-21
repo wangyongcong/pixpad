@@ -142,7 +142,7 @@ namespace wyc
 			{
 				out << "    " << prop->name << "(";
 				if (prop->type == PLY_LIST)
-					out << "L" << (prop->size >> 16) << "/" << (prop->size & 0xFFFF);
+					out << "L" << ((prop->size >> 24) & 0xFF) << "/" << ((prop->size >> 8) & 0xFF);
 				else if(prop->type == PLY_INTEGER)
 					out << "i" << prop->size;
 				else
@@ -203,6 +203,27 @@ namespace wyc
 		{
 			m_stream.read((char*)out, sz);
 			m_stream.ignore(elem->size);
+		}
+		return true;
+	}
+
+	bool CPlyFile::read_face(unsigned * vertex_indices, unsigned & count)
+	{
+		auto elem = _locate_element("face");
+		if (!elem || !elem->is_variant)
+			return false;
+		PlyProperty *prop = elem->properties;
+		if (prop->name != "vertex_indices" || prop->type != PLY_LIST)
+			return false;
+		unsigned sz1 = (prop->size >> 24) & 0xFF;
+		unsigned sz2 = (prop->size >> 8) & 0xFF;
+		unsigned len = 0;
+		count = 0;
+		for (unsigned i = 0; i < elem->count; ++i)
+		{
+			m_stream.read((char*)&len, sz1);
+			count += len;
+			m_stream.ignore(len * sz2);
 		}
 		return true;
 	}
@@ -351,6 +372,8 @@ namespace wyc
 					continue;
 				if (!value.empty() && count) {
 					cur_elem = new PlyElement;
+					cur_elem->count = count;
+					cur_elem->name = value;
 					*tail = cur_elem;
 					tail = &cur_elem->next;
 					prop_tail = &cur_elem->properties;
@@ -375,7 +398,7 @@ namespace wyc
 						m_error = PLY_INVALID_PROPERTY;
 						return false;
 					}
-					prop->size = (t1.second << 24) | (t1.second << 16) | (t2.second << 8) | t2.first;
+					prop->size = (t1.second << 24) | (t1.first << 16) | (t2.second << 8) | t2.first;
 					cur_elem->is_variant = true;
 				}
 				else {
@@ -413,7 +436,6 @@ namespace wyc
 		if (!m_stream) {
 			m_stream.clear();
 		}
-		m_stream.seekg(m_data_pos);
 		std::streampos pos = 0;
 		PlyElement *elem;
 		for (elem = m_elements; elem && elem->name != elem_name; elem = elem->next)
@@ -431,7 +453,7 @@ namespace wyc
 		}
 		if (!elem) 
 			return nullptr;
-		m_stream.seekg(pos);
+		m_stream.seekg(m_data_pos + pos);
 		return elem;
 	}
 
