@@ -218,12 +218,32 @@ namespace wyc
 		unsigned sz1 = (prop->size >> 24) & 0xFF;
 		unsigned sz2 = (prop->size >> 8) & 0xFF;
 		unsigned len = 0;
-		count = 0;
+		unsigned cnt = 0;
+		if (!vertex_indices) {
+			for (unsigned i = 0; i < elem->count; ++i)
+			{
+				m_stream.read((char*)&len, sz1);
+				if (len == 3)
+					cnt += len;
+				else if (len > 3)
+					cnt += len - 2;
+				m_stream.ignore(len * sz2);
+			}
+			count = cnt;
+			return true;
+		}
+		unsigned *out = vertex_indices;
 		for (unsigned i = 0; i < elem->count; ++i)
 		{
 			m_stream.read((char*)&len, sz1);
-			count += len;
-			m_stream.ignore(len * sz2);
+			if (len == 3) 
+				cnt += len;
+			else if (len > 3)
+				cnt += len - 2;
+			if (cnt > count)
+				break;
+			m_stream.read((char*)out, len * sz2);
+			out += len;
 		}
 		return true;
 	}

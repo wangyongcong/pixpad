@@ -293,6 +293,14 @@ namespace wyc
 			return false;
 		}
 		ply.read_face(nullptr, count);
+		unsigned *indices = new unsigned[count];
+		ply.read_face(indices, count);
+		unsigned cnt = 0;
+		for (unsigned i = 2; i < count; i += 3, cnt += 1)
+		{
+			log_debug("[%02d] %d, %d, %d", cnt, indices[i - 2], indices[i - 1], indices[i]);
+		}
+		delete indices;
 		//m_vb.clear();
 		//m_vb.set_attribute(ATTR_POSITION, 3);
 		//m_vb.resize(count);
