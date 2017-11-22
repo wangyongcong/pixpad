@@ -279,31 +279,34 @@ namespace wyc
 		std::string s = ss.str();
 		log_info(ss.str().c_str());
 		CPlyFile ply(path);
-		ss.clear();
-		ss.str("");
-		ply.detail(ss);
-		log_info("\n%s", ss.str().c_str());
 		if (!ply) {
 			log_error("fail to load: %s", ply.get_error_desc());
 			return false;
 		}
-		unsigned count = 0;
-		if (!ply.read_vertex_position(nullptr, count, 0))
-		{
+		unsigned vertex_count = 0;
+		if (!ply.read_vertex_position(nullptr, vertex_count, 0)) {
+			log_error("fail to get vertex");
 			return false;
 		}
-		ply.read_face(nullptr, count);
-		unsigned *indices = new unsigned[count];
-		ply.read_face(indices, count);
-		unsigned cnt = 0;
-		for (unsigned i = 2; i < count; i += 3, cnt += 1)
-		{
-			log_debug("[%02d] %d, %d, %d", cnt, indices[i - 2], indices[i - 1], indices[i]);
+		unsigned indices_count = 0;
+		if (!ply.read_face(nullptr, indices_count)) {
+			log_error("fail to get face");
+			return false;
 		}
-		delete indices;
-		//m_vb.clear();
-		//m_vb.set_attribute(ATTR_POSITION, 3);
-		//m_vb.resize(count);
+		m_vb.clear();
+		m_vb.set_attribute(ATTR_POSITION, 3);
+		m_vb.resize(vertex_count);
+		if (!ply.read_vertex_position(m_vb.get_buffer(), vertex_count, 3)) {
+			log_error("fail to read vertex");
+			return false;
+		}
+		m_ib.clear();
+		m_ib.resize(indices_count);
+		if (!ply.read_face(&m_ib[0], indices_count)) {
+			log_error("fail to read vertex indices");
+			return false;
+		}
+		assert(indices_count == m_ib.size());
 		return true;
 	}
 

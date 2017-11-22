@@ -62,7 +62,11 @@ namespace wyc
 			return m_stride;
 		}
 
-		inline const char* get_index_stream() const {
+		inline char* get_buffer() {
+			return m_data;
+		}
+
+		inline const char* get_buffer() const {
 			return m_data;
 		}
 

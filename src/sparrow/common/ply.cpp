@@ -169,9 +169,10 @@ namespace wyc
 			count = 0;
 			return false;
 		}
-		count = elem->count;
-		if (!vector3)
+		if (!vector3) {
+			count = elem->count;
 			return true;
+		}
 		std::streampos pos = 0, tail = 0;
 		PlyProperty *prop_x;
 		for (prop_x = elem->properties; prop_x && prop_x->name != "x"; prop_x = prop_x->next)
@@ -195,15 +196,17 @@ namespace wyc
 			m_error = PLY_NOT_SUPPORT_BID_ENDIAN;
 			return false;
 		}
-		assert(prop_x->size == sizeof(float));
+		static_assert(sizeof(float) == 4, "assume that float size is 4 bytes");
 		constexpr unsigned sz = sizeof(float) * 3;		
 		auto out = vector3;
 		m_stream.ignore(pos);
-		for (unsigned i = 0; i < elem->count; ++i, out += stride)
+		unsigned c;
+		for (c = 0; c < elem->count; ++c && c < count, out += stride)
 		{
 			m_stream.read((char*)out, sz);
 			m_stream.ignore(elem->size);
 		}
+		count = c;
 		return true;
 	}
 
@@ -218,33 +221,35 @@ namespace wyc
 		unsigned sz1 = (prop->size >> 24) & 0xFF;
 		unsigned sz2 = (prop->size >> 8) & 0xFF;
 		unsigned len = 0;
-		unsigned cnt = 0;
 		if (!vertex_indices) {
+			count = 0;
 			for (unsigned i = 0; i < elem->count; ++i)
 			{
 				m_stream.read((char*)&len, sz1);
-				if (len == 3)
-					cnt += len;
-				else if (len > 3)
-					cnt += len - 2;
+				if (len != 3)
+					continue;
+				count += 3;
 				m_stream.ignore(len * sz2);
 			}
-			count = cnt;
 			return true;
 		}
 		unsigned *out = vertex_indices;
+		unsigned cnt = 0;
 		for (unsigned i = 0; i < elem->count; ++i)
 		{
 			m_stream.read((char*)&len, sz1);
-			if (len == 3) 
-				cnt += len;
-			else if (len > 3)
-				cnt += len - 2;
-			if (cnt > count)
+			if (len != 3)
+				continue;
+			cnt += 3;
+			if (cnt > count) {
+				cnt -= 3;
 				break;
-			m_stream.read((char*)out, len * sz2);
-			out += len;
+			}
+			for (unsigned j = 0; j < len; ++j, ++out) {
+				m_stream.read((char*)out, sz2);
+			}
 		}
+		count = cnt;
 		return true;
 	}
 
