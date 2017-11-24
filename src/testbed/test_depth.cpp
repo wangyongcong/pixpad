@@ -29,12 +29,12 @@ public:
 
 		auto draw = m_renderer->new_command<wyc::cmd_draw_mesh>();
 		draw->mesh = mesh.get();
-		auto *mtl = new CMaterialColor();
+		auto mtl = std::make_shared<CMaterialColor>();
 		wyc::set_translate(transform_world, 0, 0, -20);
 		proj_from_world = proj * transform_world;
 		mtl->set_uniform("proj_from_world", proj_from_world);
 		mtl->set_uniform("color", Imath::C4f{ 0, 1, 0, 1 });
-		draw->material = mtl;
+		draw->material = mtl.get();
 		m_renderer->enqueue(draw);
 
 		m_renderer->process();

@@ -301,22 +301,12 @@ namespace wyc
 			return false;
 		}
 		m_ib.clear();
-		//indices_count = 9;
 		m_ib.resize(indices_count);
 		if (!ply.read_face(&m_ib[0], indices_count)) {
 			log_error("fail to read vertex indices");
 			return false;
 		}
 		assert(indices_count == m_ib.size());
-		//auto i1 = m_ib[3], i2 = m_ib[4], i3 = m_ib[5];
-		//auto beg = m_vb.begin();
-		//Imath::V3f v;
-		//v = *(beg + i1);
-		//log_info("%f, %f, %f", v.x, v.y, v.z);
-		//v = *(beg + i2);
-		//log_info("%f, %f, %f", v.x, v.y, v.z);
-		//v = *(beg + i3);
-		//log_info("%f, %f, %f", v.x, v.y, v.z);
 		return true;
 	}
 

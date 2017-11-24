@@ -204,7 +204,7 @@ namespace wyc
 		for (c = 0; c < elem->count; ++c && c < count, out += stride)
 		{
 			m_stream.read((char*)out, sz);
-			m_stream.ignore(elem->size);
+			m_stream.ignore(elem->size - sz);
 		}
 		count = c;
 		return true;
