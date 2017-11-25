@@ -69,14 +69,42 @@ namespace wyc
 	class CPlyFile
 	{
 	public:
-		static void read_header(std::ostream &out, const std::string &file_path);
-
 		CPlyFile(const std::string &file_path);
 		~CPlyFile();
+		
+		// read header
+		static void read_header(std::ostream &out, const std::string &file_path);
 		void detail(std::ostream &out) const;
-		const PlyElement* find_element(const std::string &name);
-		bool read_vertex_position(float *vector3, unsigned &count, unsigned stride);
+
+		// read vertex
+		inline unsigned vertex_count() const {
+			auto *elem = _find_element("vertex");
+			return elem ? elem->count : 0;
+
+		}
+		inline bool has_position() const {
+			return _find_vector3(PLY_FLOAT, "x", "y", "z");
+		}
+		inline bool has_normal() const {
+			return _find_vector3(PLY_FLOAT, "nx", "ny", "nz");
+		}
+		inline bool has_color() const {
+			return _find_vector3(PLY_INTEGER, "red", "green", "blue");
+		}
+		inline bool read_position(float *vector3, unsigned &count, unsigned stride) {
+			return _read_vector3(vector3, count, stride, "x", "y", "z");
+		}
+		inline bool read_normal(float *vector3, unsigned &count, unsigned stride) {
+			return _read_vector3(vector3, count, stride, "nx", "ny", "nz");
+		}
+		inline bool read_color(float *vector3, unsigned &count, unsigned stride) {
+			return _read_vector3(vector3, count, stride, "red", "green", "blue");
+		}
+		
+		// read triangles
 		bool read_face(unsigned *vertex_indices, unsigned &count);
+		bool read_tristrip(unsigned *vertex_indices, unsigned &count);
+
 		// error handling
 		inline operator bool() const {
 			return m_error == PLY_NO_ERROR;
@@ -91,6 +119,9 @@ namespace wyc
 		bool _load(const std::string &file_path);
 		PlyElement* _locate_element(const char *elem_name);
 		std::streamoff _calculate_chunk_size(PlyElement *elem, std::streampos pos);
+		const PlyElement* _find_element(const char *elem_name) const;
+		bool _read_vector3(float *vector3, unsigned &count, unsigned stride, const char *v1, const char *v2, const char *v3);
+		bool _find_vector3(PLY_PROPERTY_TYPE type, const char *v1, const char *v2, const char *v3) const;
 		
 		std::ifstream m_stream;
 		std::streampos m_data_pos;

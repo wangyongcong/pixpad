@@ -150,17 +150,17 @@ namespace wyc
 		}
 	}
 
-	const PlyElement * CPlyFile::find_element(const std::string & name)
-	{
-		for (auto elem = m_elements; elem; elem = elem->next)
-		{
-			if (elem->name == name)
+	const PlyElement* CPlyFile::_find_element(const char *elem_name) const {
+		auto elem = m_elements;
+		while (elem) {
+			if (elem->name == elem_name)
 				return elem;
+			elem = elem->next;
 		}
 		return nullptr;
 	}
 
-	bool CPlyFile::read_vertex_position(float * vector3, unsigned & count, unsigned stride)
+	bool CPlyFile::_read_vector3(float * vector3, unsigned & count, unsigned stride, const char * v1, const char * v2, const char * v3)
 	{
 		auto elem = _locate_element("vertex");
 		if (!elem || elem->is_variant) {
@@ -172,39 +172,84 @@ namespace wyc
 			return true;
 		}
 		std::streampos pos = 0, tail = 0;
-		PlyProperty *prop_x;
-		for (prop_x = elem->properties; prop_x && prop_x->name != "x"; prop_x = prop_x->next)
+		PlyProperty *prop;
+		for (prop = elem->properties; prop && prop->name != v1; prop = prop->next)
 		{
-			pos += prop_x->size;
+			pos += prop->size;
 		}
-		tail = elem->size - pos;
-		if (!prop_x || prop_x->type != PLY_FLOAT)
+		auto prop_type = prop->type;
+		if (!prop)
 			return false;
-		auto prop_y = prop_x->next;
-		if (!prop_y || prop_y->name != "y" || prop_y->type != PLY_FLOAT)
+		prop = prop->next;
+		if (!prop || prop->name != v2 || prop->type != prop_type)
 			return false;
-		auto prop_z = prop_y->next;
-		if (!prop_z || prop_z->name != "z" || prop_z->type != PLY_FLOAT)
+		prop = prop->next;
+		if (!prop || prop->name != v3 || prop->type != prop_type)
 			return false;
-		if (!m_is_binary) {
-			m_error = PLY_NOT_SUPPORT_ASCII;
-			return false;
-		}
-		if (!m_is_little_endian) {
-			m_error = PLY_NOT_SUPPORT_BID_ENDIAN;
-			return false;
-		}
-		static_assert(sizeof(float) == 4, "assume that float size is 4 bytes");
-		constexpr unsigned sz = sizeof(float) * 3;		
+		unsigned sz = prop->size * 3, c = 0;
+		tail = elem->size - sz;
 		auto out = vector3;
-		m_stream.ignore(pos);
-		unsigned c;
-		for (c = 0; c < elem->count; ++c && c < count, out += stride)
-		{
-			m_stream.read((char*)out, sz);
-			m_stream.ignore(elem->size - sz);
+		if (prop_type == PLY_FLOAT) {
+			if (prop->size != sizeof(float))
+				return false;
+			m_stream.ignore(pos);
+			for (c = 0; c < elem->count; ++c && c < count, out += stride)
+			{
+				m_stream.read((char*)out, sz);
+				m_stream.ignore(tail);
+			}
+			count = c;
+		}
+		else if (prop_type == PLY_INTEGER) {
+			unsigned max;
+			switch (prop->size) {
+			case 1:
+				max = std::numeric_limits<char>::max();
+				break;
+			case 2:
+				max = std::numeric_limits<short>::max();
+				break;
+			case 4:
+				max = std::numeric_limits<int>::max();
+				break;
+			default:
+				return false;
+			}
+			m_stream.ignore(pos);
+			unsigned tmp = 0;
+			for (c = 0; c < elem->count; ++c && c < count)
+			{
+				m_stream.read((char*)tmp, prop->size);
+				*out++ = float(tmp) / max;
+				m_stream.read((char*)tmp, prop->size);
+				*out++ = float(tmp) / max;
+				m_stream.read((char*)tmp, prop->size);
+				*out++ = float(tmp) / max;
+				m_stream.ignore(tail);
+			}
+		}
+		else {
+			return false;
 		}
 		count = c;
+		return true;
+	}
+
+	bool CPlyFile::_find_vector3(PLY_PROPERTY_TYPE type, const char * v1, const char * v2, const char * v3) const
+	{
+		auto *elem = _find_element("vertex");
+		if (!elem)
+			return false;
+		PlyProperty *prop;
+		for (prop = elem->properties; prop && prop->name != v1; prop = prop->next);
+		if (!prop || prop->type != type)
+			return false;
+		prop = prop->next;
+		if (!prop || prop->name != v2 || prop->type != type)
+			return false;
+		prop = prop->next;
+		if (!prop || prop->name != v3 || prop->type != type)
+			return false;
 		return true;
 	}
 
@@ -369,12 +414,15 @@ namespace wyc
 			{
 				// format & version
 				line >> value >> type;
-				if (value == "ascii")
+				if (value == "ascii") {
 					m_is_binary = false;
+					m_error = PLY_NOT_SUPPORT_ASCII;
+				}
 				else if (value == "binary_big_endian")
 				{
 					m_is_binary = true;
 					m_is_little_endian = false;
+					m_error = PLY_NOT_SUPPORT_BID_ENDIAN;
 				}
 				else if (value == "binary_little_endian") {
 					m_is_binary = true;

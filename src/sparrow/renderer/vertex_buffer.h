@@ -152,6 +152,11 @@ namespace wyc
 			return m_vert_componet;
 		}
 
+		inline void* attrib_stream(EAttribUsage usage)
+		{
+			assert(m_attr_tbl[usage]);
+			return m_data + m_attr_tbl[usage]->offset;
+		}
 		inline const void* attrib_stream(EAttribUsage usage) const
 		{
 			assert(m_attr_tbl[usage]);
