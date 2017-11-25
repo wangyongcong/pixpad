@@ -119,8 +119,6 @@ namespace wyc
 			"file not found",
 			"invalid ply file",
 			"unknown format",
-			"unknown element",
-			"unknown property",
 			"invalid property",
 			"not support ascii format",
 			"not support big endian format",
