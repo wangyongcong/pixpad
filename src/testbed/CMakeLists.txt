@@ -19,6 +19,7 @@ set(SRC_TESTBED
 set(SRC_MATERIAL
 	"material/mtl_color.h"
 	"material/mtl_diffuse.h"
+	"material/mtl_wireframe.h"
 )
 
 source_group("common" FILES ${SRC_COMMON})

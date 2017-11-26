@@ -63,6 +63,8 @@ namespace wyc
 		}
 
 		const float* vertex_quad;
+		const Imath::V4f *w1, *w2, *w3;
+		unsigned index;
 	};
 
 	class CMaterial;

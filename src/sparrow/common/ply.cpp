@@ -177,9 +177,9 @@ namespace wyc
 		{
 			pos += prop->size;
 		}
-		auto prop_type = prop->type;
 		if (!prop)
 			return false;
+		auto prop_type = prop->type;
 		prop = prop->next;
 		if (!prop || prop->name != v2 || prop->type != prop_type)
 			return false;
@@ -263,6 +263,13 @@ namespace wyc
 			return false;
 		unsigned sz1 = (prop->size >> 24) & 0xFF;
 		unsigned sz2 = (prop->size >> 8) & 0xFF;
+		unsigned tail = 0;
+		for (prop = prop->next; prop; prop = prop->next) {
+			if (prop->type == PLY_LIST) {
+				return false;
+			}
+			tail += prop->size;
+		}
 		unsigned len = 0;
 		if (!vertex_indices) {
 			count = 0;
@@ -272,7 +279,7 @@ namespace wyc
 				if (len != 3)
 					continue;
 				count += 3;
-				m_stream.ignore(len * sz2);
+				m_stream.ignore(len * sz2 + tail);
 			}
 			return true;
 		}
@@ -290,6 +297,7 @@ namespace wyc
 			}
 			for (unsigned j = 0; j < len; ++j, ++out) {
 				m_stream.read((char*)out, sz2);
+				m_stream.ignore(tail);
 			}
 		}
 		count = cnt;

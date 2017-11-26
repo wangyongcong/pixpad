@@ -292,8 +292,8 @@ namespace wyc
 		bool has_color = ply.has_color();
 		if (has_normal)
 			m_vb.set_attribute(ATTR_NORMAL, 3);
-		if (has_color)
-			m_vb.set_attribute(ATTR_COLOR, 3);
+		//if (has_color)
+		//	m_vb.set_attribute(ATTR_COLOR, 3);
 		unsigned vertex_count = ply.vertex_count();
 		m_vb.resize(vertex_count);
 		auto stride = m_vb.vertex_component();
@@ -305,10 +305,10 @@ namespace wyc
 			log_error("fail to read vertex normal");
 			return false;
 		}
-		if (has_color && !ply.read_normal((float*)m_vb.attrib_stream(ATTR_COLOR), vertex_count, stride)) {
-			log_error("fail to read vertex color");
-			return false;
-		}
+		//if (has_color && !ply.read_normal((float*)m_vb.attrib_stream(ATTR_COLOR), vertex_count, stride)) {
+		//	log_error("fail to read vertex color");
+		//	return false;
+		//}
 		//auto va = m_vb.get_attribute(ATTR_NORMAL);
 		//for (Imath::V4f &n : va)
 		//{
