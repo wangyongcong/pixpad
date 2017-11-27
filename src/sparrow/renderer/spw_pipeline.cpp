@@ -159,11 +159,14 @@ namespace wyc
 					}
 					auto cur_vert = vertex_out.size();
 					vertex_out.resize(cur_vert + output_stride);
+					// #1 vertex shader
 					material->vertex_shader(vertex_in, &vertex_out[cur_vert]);
 					indices_in.push_back(cur_vert);
 					if (indices_in.size() < 3)
 						continue;
 					if (!cull_backface(vertex_out, output_stride)) {
+						// #2 geometry shader
+						material->geometry_shader(&vertex_out[0]);
 						clip_polygon_stream(vertex_out, indices_in, indices_out, output_stride);
 						if (indices_out.size() >= 3)
 						{

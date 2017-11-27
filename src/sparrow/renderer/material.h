@@ -63,8 +63,6 @@ namespace wyc
 		}
 
 		const float* vertex_quad;
-		const Imath::V4f *w1, *w2, *w3;
-		unsigned index;
 	};
 
 	class CMaterial;
@@ -113,8 +111,9 @@ namespace wyc
 		CMaterial();
 		CMaterial(const char *name);
 		virtual ~CMaterial();
-		virtual void vertex_shader(const void *vertex_in, void *vertex_out, CShaderContext *ctx=0) const = 0;
-		virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color, CShaderContext *ctx=0) const = 0;
+		virtual void vertex_shader(const void *vertex_in, void *vertex_out, CShaderContext *ctx = 0) const {};
+		virtual void geometry_shader(void *triangles) const {}
+		virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color, CShaderContext *ctx = 0) const { return false; };
 		template<typename T>
 		bool set_uniform(const std::string &name, const T &val);
 		template<typename T>

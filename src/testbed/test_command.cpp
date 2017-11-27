@@ -12,6 +12,7 @@ ENABLE_TEST(CTestBox)
 ENABLE_TEST(CTestTexture)
 ENABLE_TEST(CTestMipmap)
 ENABLE_TEST(CTestDepth)
+ENABLE_TEST(CTestWireframe)
 
 std::unordered_map<std::string, std::function<CTest*()>> g_test_suit =
 {
@@ -20,6 +21,7 @@ std::unordered_map<std::string, std::function<CTest*()>> g_test_suit =
 	{ "texture", &CREATE_TEST(CTestTexture)},
 	{ "mipmap", &CREATE_TEST(CTestMipmap)},
 	{ "depth", &CREATE_TEST(CTestDepth)},
+	{ "wireframe", &CREATE_TEST(CTestWireframe)},
 };
 
 class CTestTask;

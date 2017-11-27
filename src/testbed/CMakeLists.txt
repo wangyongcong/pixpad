@@ -14,6 +14,7 @@ set(SRC_TESTBED
 	"test_texture.cpp"
 	"test_mipmap.cpp"
 	"test_depth.cpp"
+	"test_wireframe.cpp"
 )
 
 set(SRC_MATERIAL

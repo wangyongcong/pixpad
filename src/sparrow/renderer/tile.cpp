@@ -98,9 +98,6 @@ namespace wyc
 		// write frame buffer
 		auto &depth = m_rt->get_depth_buffer();
 		auto &surf = m_rt->get_color_buffer();
-		m_ctx.w1 = &w1;
-		m_ctx.w2 = &w2;
-		m_ctx.w3 = &w3;
 		for (int i = 0; i < 4; ++i) {
 			if (is_inside[i] >= 0) {
 				// is inside 
@@ -111,7 +108,7 @@ namespace wyc
 				depth.set(pos.x, pos.y, z[i]);
 				// write render target
 				Imath::C4f out_color;
-				m_ctx.index = i;
+				// #3 fragment shader
 				if (!m_material->fragment_shader(m_frag_interp[i], out_color, &m_ctx))
 					continue;
 				// write fragment buffer

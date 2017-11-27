@@ -2,9 +2,9 @@
 #include "test.h"
 #include "mesh.h"
 #include "vecmath.h"
-#include "mtl_color.h"
+#include "mtl_wireframe.h"
 
-class CTestDepth : public CTest
+class CTestWireframe : public CTest
 {
 public:
 	virtual void run() 
@@ -29,11 +29,12 @@ public:
 
 		auto draw = m_renderer->new_command<wyc::cmd_draw_mesh>();
 		draw->mesh = mesh.get();
-		auto mtl = std::make_shared<CMaterialColor>();
+		auto mtl = std::make_shared<CMaterialWireframe>();
 		wyc::set_translate(transform_world, 0, 0, -8);
 		proj_from_world = proj * transform_world * ry_world * rx_world;
 		mtl->set_uniform("proj_from_world", proj_from_world);
-		mtl->set_uniform("color", Imath::C4f{ 0, 1, 0, 1 });
+		mtl->set_uniform("line_color", Imath::C4f{ 0, 1, 0, 1 });
+		mtl->set_uniform("fill_color", Imath::C4f{ 0.2f, 0.2f, 0.2f, 1 });
 		draw->material = mtl.get();
 		m_renderer->enqueue(draw);
 
@@ -44,4 +45,4 @@ public:
 private:
 };
 
-REGISTER_NEW_TEST(CTestDepth)
+REGISTER_NEW_TEST(CTestWireframe)

@@ -12,21 +12,29 @@ class CMaterialWireframe : public wyc::CMaterial
 
 	OUTPUT_ATTRIBUTE_LIST
 		ATTRIBUTE_SLOT(ATTR_POSITION, 4)
+		ATTRIBUTE_SLOT(ATTR_UV0, 3)
 	OUTPUT_ATTRIBUTE_LIST_END
 
 	UNIFORM_MAP
 		UNIFORM_SLOT(Imath::M44f, proj_from_world)
-		UNIFORM_SLOT(Imath::C4f, color)
+		UNIFORM_SLOT(Imath::C4f, line_color)
 		UNIFORM_SLOT(Imath::C4f, fill_color)
 	UNIFORM_MAP_END
 
 public:
 	CMaterialWireframe()
 		: CMaterial("Wireframe")
-		, color(1.0f, 1.0f, 1.0f, 1.0f)
-		, fill_color(0.1f, 0.1f, 0.1f, 0.1f)
+		, line_color(0.0f, 0.0f, 0.0f, 1.0f)
+		, fill_color(1.0f, 1.0f, 1.0f, 1.0f)
 	{
 		proj_from_world.makeIdentity();
+		line_sample.assign(0);
+		auto len = line_sample.size();
+		float a = 1.0f;
+		for (auto i = len - 1; i >= len - 16; --i) {
+			line_sample[i] = a;
+			a *= 0.7f;
+		}
 	}
 
 	struct VertexIn {
@@ -46,43 +54,60 @@ public:
 		out->pos = proj_from_world * pos;
 	}
 
+	virtual void geometry_shader(void *triangles) const override
+	{
+		struct Vertex {
+			Imath::V4f pos;
+			Imath::V3f uv;
+		};
+		auto verts = reinterpret_cast<Vertex*>(triangles);
+		verts[0].uv.setValue(0.0f, 1.0f, 1.0f);
+		verts[1].uv.setValue(1.0f, 0.0f, 1.0f);
+		verts[2].uv.setValue(1.0f, 1.0f, 0.0f);
+	}
+
 	virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color, wyc::CShaderContext *ctx) const override
 	{
-		float dw1dx = (*ctx->w1)[1] - (*ctx->w1)[0];
-		float dw2dx = (*ctx->w2)[1] - (*ctx->w2)[0];
-		float dw3dx = (*ctx->w3)[1] - (*ctx->w3)[0];
-		float dw1dy = (*ctx->w1)[2] - (*ctx->w1)[0];
-		float dw2dy = (*ctx->w2)[2] - (*ctx->w2)[0];
-		float dw3dy = (*ctx->w3)[2] - (*ctx->w3)[0];
-
-		Imath::V3f d = {
-			std::fabs(dw1dx) + std::fabs(dw1dy),
-			std::fabs(dw2dx) + std::fabs(dw2dy),
-			std::fabs(dw3dx) + std::fabs(dw3dy),
+		struct Vertex {
+			Imath::V4f pos;
+			Imath::V3f uv;
 		};
-		Imath::V3f w = {(*ctx->w1)[ctx->index], (*ctx->w2)[ctx->index], (*ctx->w3)[ctx->index] };
-		auto dist = Imath::V3f{ w.x / d.x, w.y / d.y, w.z / d.z };
-		if (dist.x > 1)
-			dist.x = 1;
-		if (dist.y > 1)
-			dist.y = 1;
-		if (dist.z > 1)
-			dist.z = 1;
-		if (dist.x < 0)
-			dist.x = 0;
-		if (dist.y < 0)
-			dist.y = 0;
-		if (dist.z < 0)
-			dist.z = 0;
-		dist = dist * dist * (Imath::V3f(3.0f) - 2.0f * dist);
-		float t = std::min({ dist.x, dist.y, dist.z });
-		frag_color = color * (1 - t) + t * fill_color;
+		auto in = reinterpret_cast<const Vertex*>(frag_in);
+		float a1 = sample_alpha(in->uv.x);
+		float a2 = sample_alpha(in->uv.y);
+		float a3 = sample_alpha(in->uv.z);
+		frag_color = fill_color;
+		float a = std::max({ a1, a2, a3 });
+		//float a = a1 + a2 + a3;
+		a = smooth_step(a);
+		frag_color = frag_color * (1 - a) + line_color * a;
 		return true;
+	}
+
+	float sample_alpha(float s) const {
+		s *= line_sample.size();
+		float t = std::floor(s);
+		unsigned ll = int(t);
+		if (ll >= line_sample.size() - 1) {
+			return line_sample.back();
+		}
+		unsigned rr = ll + 1;
+		t = s - t;
+		return line_sample[ll] * (1 - t) + line_sample[rr] * t;
+	}
+
+	float smooth_step(float x) const {
+		constexpr float width = 0.5f;
+		auto t = x / width;
+		if (t > 1.0f)
+			t = 1.0f;
+		return t * t * (3.0f - 2.0f * t);
 	}
 
 protected:
 	Imath::M44f proj_from_world;
-	Imath::C4f color;
+	Imath::C4f line_color;
 	Imath::C4f fill_color;
+	std::array<float, 256> line_sample;
 };
 
