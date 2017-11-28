@@ -103,7 +103,6 @@ namespace wyc
 		
 		// read triangles
 		bool read_face(unsigned *vertex_indices, unsigned &count);
-		bool read_tristrip(unsigned *vertex_indices, unsigned &count);
 
 		// error handling
 		inline operator bool() const {

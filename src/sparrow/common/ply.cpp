@@ -256,7 +256,14 @@ namespace wyc
 	bool CPlyFile::read_face(unsigned * vertex_indices, unsigned & count)
 	{
 		auto elem = _locate_element("face");
-		if (!elem || !elem->is_variant)
+		bool is_tristrip = false;
+		if (!elem) {
+			elem = _locate_element("tristrips");
+			if (!elem)
+				return false;
+			is_tristrip = true;
+		}
+		if (!elem->is_variant)
 			return false;
 		PlyProperty *prop = elem->properties;
 		if (prop->name != "vertex_indices" || prop->type != PLY_LIST)
@@ -273,13 +280,31 @@ namespace wyc
 		unsigned len = 0;
 		if (!vertex_indices) {
 			count = 0;
-			for (unsigned i = 0; i < elem->count; ++i)
-			{
-				m_stream.read((char*)&len, sz1);
-				if (len != 3)
-					continue;
-				count += 3;
-				m_stream.ignore(len * sz2 + tail);
+			if (!is_tristrip) {
+				for (unsigned i = 0; i < elem->count; ++i)
+				{
+					m_stream.read((char*)&len, sz1);
+					if (len != 3)
+						continue;
+					count += 3;
+					m_stream.ignore(len * sz2 + tail);
+				}
+			}
+			else if(sz1 <= 4) {
+				unsigned indices_count = 0;
+				m_stream.read((char*)&indices_count, sz1);
+				int k = 0, c = 0;
+				for (unsigned i = 0ul; i < indices_count; ++i) {
+					m_stream.read((char*)&k, sz2);
+					if (k < 0) {
+						count += c - 2;
+						c = 0;
+					}
+					else c += 1;
+				}
+			}
+			else {
+				return false;
 			}
 			return true;
 		}
