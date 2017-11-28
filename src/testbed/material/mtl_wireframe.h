@@ -26,15 +26,13 @@ public:
 		: CMaterial("Wireframe")
 		, line_color(0.0f, 0.0f, 0.0f, 1.0f)
 		, fill_color(1.0f, 1.0f, 1.0f, 1.0f)
+		, line_width(1.5f)
 	{
 		proj_from_world.makeIdentity();
 		line_sample.assign(0);
 		auto len = line_sample.size();
-		float a = 1.0f;
-		for (auto i = len - 1; i >= len - 16; --i) {
-			line_sample[i] = a;
-			a *= 0.7f;
-		}
+		line_sample[len - 1] = 1.0f;
+		line_sample[len - 2] = 0.5f;
 	}
 
 	struct VertexIn {
@@ -73,21 +71,53 @@ public:
 			Imath::V3f uv;
 		};
 		auto in = reinterpret_cast<const Vertex*>(frag_in);
-		float a1 = sample_alpha(in->uv.x);
-		float a2 = sample_alpha(in->uv.y);
-		float a3 = sample_alpha(in->uv.z);
+
+		auto duvdx = ctx->ddx(&Vertex::uv);
+		auto duvdy = ctx->ddy(&Vertex::uv);
+		union {
+			float f;
+			unsigned i;
+		} j;
+		auto texture_size = line_sample.size();
+		float a[3];
+		for (int i = 0; i < 3; ++i) {
+			j.f = std::max(std::fabs(duvdx[i]), std::fabs(duvdy[i])) * texture_size;
+			int e = (j.i & 0x7f800000) >> 23;
+			if (e > 127) {
+				e -= 127;
+				int m = j.i & 0x7fffff;
+				float f = float(m) / (1 << 23);
+				float c1 = sample_alpha(in->uv[i], e);
+				float c2 = sample_alpha(in->uv[i], e - 1);
+				a[i] = c1 * f + c2 * (1 - f);
+			}
+			else {
+				a[i] = sample_alpha(in->uv[i]);
+			}
+		}
 		frag_color = fill_color;
-		float a = std::max({ a1, a2, a3 });
-		//float a = a1 + a2 + a3;
-		a = smooth_step(a);
-		frag_color = frag_color * (1 - a) + line_color * a;
+		//for (int i = 0; i < 3; ++i) {
+		//	float t = a[i];
+		//	//t = smooth_step(t);
+		//	frag_color = frag_color * (1 - t) + line_color * t;
+		//}
+		float t = std::max({ a[0], a[1], a[2] });
+		//t = smooth_step(t);
+		frag_color = frag_color * (1 - t) + line_color * t;
 		return true;
 	}
 
-	float sample_alpha(float s) const {
-		s *= line_sample.size();
+	float sample_alpha(float s, unsigned level=0) const {
+		auto len = line_sample.size();
+		auto ll = 0u;
+		while (level > 0) {
+			level -= 1;
+			ll += len >> 1;
+			len >>= 1;
+		}
+		s *= len;
 		float t = std::floor(s);
-		unsigned ll = int(t);
+		ll += int(t);
 		if (ll >= line_sample.size() - 1) {
 			return line_sample.back();
 		}
@@ -97,8 +127,7 @@ public:
 	}
 
 	float smooth_step(float x) const {
-		constexpr float width = 0.5f;
-		auto t = x / width;
+		auto t = x / line_width;
 		if (t > 1.0f)
 			t = 1.0f;
 		return t * t * (3.0f - 2.0f * t);
@@ -108,6 +137,7 @@ protected:
 	Imath::M44f proj_from_world;
 	Imath::C4f line_color;
 	Imath::C4f fill_color;
-	std::array<float, 256> line_sample;
+	std::array<float, 1024> line_sample;
+	float line_width;
 };
 
