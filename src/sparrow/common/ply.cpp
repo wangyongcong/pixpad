@@ -297,7 +297,7 @@ namespace wyc
 				for (unsigned i = 0ul; i < indices_count; ++i) {
 					m_stream.read((char*)&k, sz2);
 					if (k < 0) {
-						count += c - 2;
+						count += 3 * (c - 2);
 						c = 0;
 					}
 					else c += 1;
@@ -310,19 +310,51 @@ namespace wyc
 		}
 		unsigned *out = vertex_indices;
 		unsigned cnt = 0;
-		for (unsigned i = 0; i < elem->count; ++i)
-		{
-			m_stream.read((char*)&len, sz1);
-			if (len != 3)
-				continue;
-			cnt += 3;
-			if (cnt > count) {
-				cnt -= 3;
-				break;
+		if (!is_tristrip) {
+			for (unsigned i = 0; i < elem->count; ++i)
+			{
+				m_stream.read((char*)&len, sz1);
+				if (len != 3)
+					continue;
+				cnt += 3;
+				if (cnt > count) {
+					cnt -= 3;
+					break;
+				}
+				for (unsigned j = 0; j < len; ++j, ++out) {
+					m_stream.read((char*)out, sz2);
+					m_stream.ignore(tail);
+				}
 			}
-			for (unsigned j = 0; j < len; ++j, ++out) {
-				m_stream.read((char*)out, sz2);
-				m_stream.ignore(tail);
+		}
+		else {
+			unsigned indices_count = 0;
+			m_stream.read((char*)&indices_count, sz1);
+			int k = 0, p1 = -1, p2 = -1;
+			for (auto i = 0u; i < indices_count; ++i) {
+				if (!m_stream) {
+					break;
+				}
+				m_stream.read((char*)&k, sz2);
+				if (p1 == -1) {
+					p1 = k;
+					continue;
+				}
+				if (p2 == -1) {
+					p2 = k;
+					continue;
+				}
+				if (k < 0) {
+					p1 = p2 = -1;
+				}
+				else {
+					cnt += 3;
+					*out++ = p1;
+					*out++ = p2;
+					*out++ = k;
+					p1 = p2;
+					p2 = k;
+				}
 			}
 		}
 		count = cnt;
@@ -571,12 +603,15 @@ namespace wyc
 			if (prop->type != PLY_LIST)
 				s += prop->size;
 			else {
-				IPlyReader *r1 = new CPlyIgnoreSize(s);
-				*tail = r1;
-				auto s1 = (prop->size & 0xFF0000) >> 16;
-				auto s2 = (prop->size & 0xFF00) >> 8;
+				if(s > 0) {
+					IPlyReader *r1 = new CPlyIgnoreSize(s);
+					*tail = r1;
+					tail = &r1->next;
+				}
+				auto s1 = (prop->size >> 24) & 0xFF;
+				auto s2 = (prop->size >> 8) & 0xFF;
 				IPlyReader *r2 = new CPlyIgnoreList(s1, s2);
-				r1->next = r2;
+				*tail = r2;
 				tail = &r2->next;
 				s = 0;
 			}
@@ -589,7 +624,7 @@ namespace wyc
 				iter = _next;
 			}
 		};
-		m_stream.seekg(pos);
+		m_stream.seekg(m_data_pos + pos);
 		for (unsigned i = 0; i < elem->count; ++i) {
 			for (auto r = readers; r; r = r->next)
 			{

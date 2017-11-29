@@ -30,7 +30,7 @@ public:
 		auto draw = m_renderer->new_command<wyc::cmd_draw_mesh>();
 		draw->mesh = mesh.get();
 		auto mtl = std::make_shared<CMaterialWireframe>();
-		wyc::set_translate(transform_world, 0, 0, -8);
+		wyc::set_translate(transform_world, 0, 0, -2);
 		proj_from_world = proj * transform_world * ry_world * rx_world;
 		mtl->set_uniform("proj_from_world", proj_from_world);
 		mtl->set_uniform("line_color", Imath::C4f{ 0, 1, 0, 1 });
