@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <vector>
 #include <unordered_map>
 #include <memory>
 #include <ImathMatrix.h>
@@ -13,8 +12,8 @@ namespace wyc
 
 #define UNIFORM_MAP protected: virtual const wyc::CMaterial::UniformMap& get_uniform_define() const override {\
 	using cls_type = std::remove_const_t<std::remove_reference_t<decltype(*this)>>;\
-	static std::unordered_map<std::string, wyc::CUniform> ls_uniform_map = {
-#define UNIFORM_MAP_END }; return ls_uniform_map; }
+	static std::unordered_map<std::string, wyc::CUniform> ls_uniform_map = 
+#define UNIFORM_MAP_END }; return ls_uniform_map;
 
 #define UNIFORM_SLOT(type, name) { #name, { typeid(type),\
 	[](const wyc::CMaterial* self, void* val) {\
@@ -26,14 +25,14 @@ namespace wyc
 } },
 
 #define INPUT_ATTRIBUTE_LIST protected: virtual const wyc::AttribSlot* get_attrib_input() const override { \
-	static const wyc::AttribSlot ls_input_attribs[] = {
-#define INPUT_ATTRIBUTE_LIST_END {wyc::EAttribUsage(0), 0} }; return  ls_input_attribs; }
+	static const wyc::AttribSlot ls_input_attribs[] = 
+#define INPUT_ATTRIBUTE_LIST_END {wyc::EAttribUsage(0), 0} }; return  ls_input_attribs;
 
 #define OUTPUT_ATTRIBUTE_LIST protected: virtual const wyc::AttribSlot* get_attrib_ouput() const override { \
-	static const wyc::AttribSlot ls_output_attribs[] = {
-#define OUTPUT_ATTRIBUTE_LIST_END {wyc::EAttribUsage(0), 0} }; return ls_output_attribs; }
+	static const wyc::AttribSlot ls_output_attribs[] = 
+#define OUTPUT_ATTRIBUTE_LIST_END {wyc::EAttribUsage(0), 0} }; return ls_output_attribs;
 
-#define ATTRIBUTE_SLOT(usage, component) { wyc::EAttribUsage(wyc::usage), uint8_t(component) },
+#define ATTRIBUTE_SLOT(usage, component) { wyc::EAttribUsage(usage), uint8_t(component) },
 
 	template<class T> struct remove_member_pointer {
 		typedef T type;

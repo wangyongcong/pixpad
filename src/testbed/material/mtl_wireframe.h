@@ -2,24 +2,27 @@
 #include <algorithm>
 #include "ImathMatrix.h"
 #include "material.h"
+#include "shader_util.h"
 
 
 class CMaterialWireframe : public wyc::CMaterial
 {
-	INPUT_ATTRIBUTE_LIST
-		ATTRIBUTE_SLOT(ATTR_POSITION, 3)
-	INPUT_ATTRIBUTE_LIST_END
+	INPUT_ATTRIBUTE_LIST{
+		ATTRIBUTE_SLOT(wyc::ATTR_POSITION, 3)
+		INPUT_ATTRIBUTE_LIST_END
+	};
 
-	OUTPUT_ATTRIBUTE_LIST
-		ATTRIBUTE_SLOT(ATTR_POSITION, 4)
-		ATTRIBUTE_SLOT(ATTR_UV0, 3)
-	OUTPUT_ATTRIBUTE_LIST_END
+	OUTPUT_ATTRIBUTE_LIST{
+		ATTRIBUTE_SLOT(wyc::ATTR_POSITION, 4)
+		OUTPUT_ATTRIBUTE_LIST_END
+	};
 
-	UNIFORM_MAP
+	UNIFORM_MAP{
 		UNIFORM_SLOT(Imath::M44f, proj_from_world)
 		UNIFORM_SLOT(Imath::C4f, line_color)
 		UNIFORM_SLOT(Imath::C4f, fill_color)
-	UNIFORM_MAP_END
+		UNIFORM_MAP_END
+	};
 
 public:
 	CMaterialWireframe()
@@ -29,10 +32,19 @@ public:
 		, line_width(1.5f)
 	{
 		proj_from_world.makeIdentity();
-		line_sample.assign(0);
-		auto len = line_sample.size();
-		line_sample[len - 1] = 1.0f;
-		line_sample[len - 2] = 0.5f;
+		m_sample_data.assign(0);
+		auto len = m_sample_data.size();
+		assert((len & (len - 1)) == 0);
+		m_sample_data[len - 1] = 1.0f;
+		m_sample_data[len - 2] = 0.5f;
+
+		float *ptr = &m_sample_data[0];
+		for (auto i = 0u; i < line_sample.size(); ++i) {
+			line_sample[i] = { ptr, len };
+			auto half = len >> 1;
+			ptr += half;
+			len = half;
+		}
 	}
 
 	struct VertexIn {
@@ -72,58 +84,43 @@ public:
 		};
 		auto in = reinterpret_cast<const Vertex*>(frag_in);
 
-		auto duvdx = ctx->ddx(&Vertex::uv);
-		auto duvdy = ctx->ddy(&Vertex::uv);
-		union {
-			float f;
-			unsigned i;
-		} j;
-		auto texture_size = line_sample.size();
-		float a[3];
+		auto du_dx = ctx->ddx(&Vertex::uv);
+		auto du_dy = ctx->ddy(&Vertex::uv);
+		auto texture_size = m_sample_data.size();
+		float a[3], f;
 		for (int i = 0; i < 3; ++i) {
-			j.f = std::max(std::fabs(duvdx[i]), std::fabs(duvdy[i])) * texture_size;
-			int e = (j.i & 0x7f800000) >> 23;
-			if (e > 127) {
-				e -= 127;
-				int m = j.i & 0x7fffff;
-				float f = float(m) / (1 << 23);
-				float c1 = sample_alpha(in->uv[i], e);
-				float c2 = sample_alpha(in->uv[i], e - 1);
+			int lvl = wyc::mipmap_level(du_dx[i], du_dy[i], texture_size, f);
+			if (lvl > 0) {
+				float c1 = sample_alpha(in->uv[i], lvl);
+				float c2 = sample_alpha(in->uv[i], lvl - 1);
 				a[i] = c1 * f + c2 * (1 - f);
 			}
 			else {
 				a[i] = sample_alpha(in->uv[i]);
 			}
 		}
-		frag_color = fill_color;
-		//for (int i = 0; i < 3; ++i) {
-		//	float t = a[i];
-		//	//t = smooth_step(t);
-		//	frag_color = frag_color * (1 - t) + line_color * t;
-		//}
 		float t = std::max({ a[0], a[1], a[2] });
-		//t = smooth_step(t);
-		frag_color = frag_color * (1 - t) + line_color * t;
+		frag_color = fill_color * (1 - t) + line_color * t;
 		return true;
 	}
 
 	float sample_alpha(float s, unsigned level=0) const {
-		auto len = line_sample.size();
-		auto ll = 0u;
-		while (level > 0) {
-			level -= 1;
-			ll += len >> 1;
-			len >>= 1;
+		SampleData sample;
+		if (level >= line_sample.size()) {
+			sample = line_sample.back();
 		}
-		s *= len;
+		else {
+			sample = line_sample[level];
+		}
+		s *= sample.size;
 		float t = std::floor(s);
-		ll += int(t);
-		if (ll >= line_sample.size() - 1) {
-			return line_sample.back();
+		auto ll = unsigned(t);
+		if (ll >= sample.size - 1) {
+			return sample.data[sample.size - 1];
 		}
-		unsigned rr = ll + 1;
+		auto rr = ll + 1;
 		t = s - t;
-		return line_sample[ll] * (1 - t) + line_sample[rr] * t;
+		return sample.data[ll] * (1 - t) + sample.data[rr] * t;
 	}
 
 	float smooth_step(float x) const {
@@ -137,7 +134,12 @@ protected:
 	Imath::M44f proj_from_world;
 	Imath::C4f line_color;
 	Imath::C4f fill_color;
-	std::array<float, 1024> line_sample;
 	float line_width;
+	std::array<float, 1024> m_sample_data;
+	struct SampleData {
+		const float* data;
+		unsigned size;
+	};
+	std::array<SampleData, 11> line_sample;
 };
 
