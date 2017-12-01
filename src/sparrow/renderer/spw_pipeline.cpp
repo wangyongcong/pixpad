@@ -397,7 +397,8 @@ namespace wyc
 		const float *p2 = p1 + stride;
 		Imath::V2f v10(p0[0] - p1[0], p0[1] - p1[1]);
 		Imath::V2f v12(p2[0] - p1[0], p2[1] - p1[1]);
-		return v10.cross(v12) * m_clock_wise <= 0;
+		float d = v10.cross(v12) * m_clock_wise + 0.001f;
+		return d <= 0;
 	}
 
 	void CSpwPipeline::set_viewport(const Imath::Box2i & view)

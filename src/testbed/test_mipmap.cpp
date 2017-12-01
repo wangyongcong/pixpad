@@ -63,11 +63,12 @@ bool generate_mipmap(const std::string &image_file)
 
 class CMaterialDiffuseMipmap : public CMaterialDiffuse
 {
-	UNIFORM_MAP
+	UNIFORM_MAP{
 		UNIFORM_SLOT(Imath::M44f, proj_from_world)
 		UNIFORM_SLOT(wyc::CSampler*, diffuse)
 		UNIFORM_SLOT(unsigned, texture_size)
-	UNIFORM_MAP_END
+		UNIFORM_MAP_END
+	};
 
 public:
 	CMaterialDiffuseMipmap()

@@ -42,8 +42,6 @@ set(SRC_RENDERER
 	"renderer/spw_config.h"
 	"renderer/spw_pipeline.cpp"
 	"renderer/spw_pipeline.h"
-	"renderer/spw_pipeline_wireframe.cpp"
-	"renderer/spw_pipeline_wireframe.h"
 	"renderer/spw_rasterizer.h"
 	"renderer/spw_render_target.cpp"
 	"renderer/spw_render_target.h"
@@ -56,6 +54,7 @@ set(SRC_RENDERER
 	"renderer/vertex_buffer.cpp"
 	"renderer/vertex_buffer.h"
 	"renderer/vertex_layout.h"
+	"renderer/shader_api.h"
 ) 
 set(SRC_THREAD 
 	# "thread/atomicops.h"

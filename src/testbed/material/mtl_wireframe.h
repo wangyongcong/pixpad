@@ -2,7 +2,7 @@
 #include <algorithm>
 #include "ImathMatrix.h"
 #include "material.h"
-#include "shader_util.h"
+#include "shader_api.h"
 
 
 class CMaterialWireframe : public wyc::CMaterial
@@ -14,6 +14,7 @@ class CMaterialWireframe : public wyc::CMaterial
 
 	OUTPUT_ATTRIBUTE_LIST{
 		ATTRIBUTE_SLOT(wyc::ATTR_POSITION, 4)
+		ATTRIBUTE_SLOT(wyc::ATTR_UV0, 3)
 		OUTPUT_ATTRIBUTE_LIST_END
 	};
 
@@ -83,7 +84,6 @@ public:
 			Imath::V3f uv;
 		};
 		auto in = reinterpret_cast<const Vertex*>(frag_in);
-
 		auto du_dx = ctx->ddx(&Vertex::uv);
 		auto du_dy = ctx->ddy(&Vertex::uv);
 		auto texture_size = m_sample_data.size();
@@ -121,13 +121,6 @@ public:
 		auto rr = ll + 1;
 		t = s - t;
 		return sample.data[ll] * (1 - t) + sample.data[rr] * t;
-	}
-
-	float smooth_step(float x) const {
-		auto t = x / line_width;
-		if (t > 1.0f)
-			t = 1.0f;
-		return t * t * (3.0f - 2.0f * t);
 	}
 
 protected:
