@@ -331,12 +331,17 @@ namespace wyc
 			unsigned indices_count = 0;
 			m_stream.read((char*)&indices_count, sz1);
 			int k = 0, p1 = -1, p2 = -1;
-			bool flip = false;
-			for (auto i = 0u; i < indices_count; ++i) {
+			bool flip = true;
+			for (auto i = 0u; i < indices_count && cnt < count; ++i) {
 				if (!m_stream) {
 					break;
 				}
 				m_stream.read((char*)&k, sz2);
+				if (k < 0) {
+					p1 = p2 = -1;
+					flip = true;
+					continue;
+				}
 				if (p1 == -1) {
 					p1 = k;
 					continue;
@@ -345,23 +350,19 @@ namespace wyc
 					p2 = k;
 					continue;
 				}
-				if (k < 0) {
-					p1 = p2 = -1;
+				cnt += 3;
+				flip = !flip;
+				if (flip) {
+					*out++ = p2;
+					*out++ = p1;
 				}
 				else {
-					cnt += 3;
-					if (flip = !flip) {
-						*out++ = p1;
-						*out++ = p2;
-					}
-					else {
-						*out++ = p2;
-						*out++ = p1;
-					}
-					*out++ = k;
-					p1 = p2;
-					p2 = k;
+					*out++ = p1;
+					*out++ = p2;
 				}
+				*out++ = k;
+				p1 = p2;
+				p2 = k;
 			}
 		}
 		count = cnt;

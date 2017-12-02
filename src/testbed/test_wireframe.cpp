@@ -14,6 +14,14 @@ public:
 			log_error("no model");
 			return;
 		}
+		auto pos = ply_file.rfind(".");
+		if (pos != std::string::npos) {
+			if (ply_file.substr(pos + 1) != "ply") {
+				log_error("model file not support");
+				return;
+			}
+		}
+
 		auto mesh = std::make_shared<wyc::CMesh>();
 		if (!mesh->load_ply(ply_file)) {
 			return;
@@ -21,7 +29,7 @@ public:
 
 		// setup transform
 		Imath::M44f proj;
-		wyc::set_perspective(proj, 45, float(m_image_w) / m_image_h, 1, 1000);
+		wyc::set_perspective(proj, 45, float(m_image_w) / m_image_h, 0.1f, 1000);
 		Imath::M44f rx_world, ry_world, transform_world;
 		wyc::set_rotate_y(ry_world, wyc::deg2rad(45));
 		wyc::set_rotate_x(rx_world, wyc::deg2rad(15));
@@ -30,7 +38,7 @@ public:
 		auto draw = m_renderer->new_command<wyc::cmd_draw_mesh>();
 		draw->mesh = mesh.get();
 		auto mtl = std::make_shared<CMaterialWireframe>();
-		wyc::set_translate(transform_world, 0, 0, -2.5f);
+		wyc::set_translate(transform_world, 0, 0, -3.2f);
 		proj_from_world = proj * transform_world * ry_world * rx_world;
 		mtl->set_uniform("proj_from_world", proj_from_world);
 		mtl->set_uniform("line_color", Imath::C4f{ 0, 1, 0, 1 });
@@ -39,7 +47,14 @@ public:
 		m_renderer->enqueue(draw);
 
 		m_renderer->process();
-		save_image("isosahedron.png");
+		pos = ply_file.rfind("/");
+		std::string out;
+		if (pos != std::string::npos)
+			out = ply_file.substr(pos + 1);
+		else
+			out = ply_file;
+		out.replace(out.size() - 4, 4, ".png");
+		save_image(out.c_str());
 	}
 
 private:
