@@ -36,6 +36,49 @@ namespace wyc
 		IPlyReader *next;
 	};
 
+	static void clear_readers(IPlyReader *readers) 
+	{
+		auto iter = readers;
+		while (iter) {
+			auto _next = iter->next;
+			delete iter;
+			iter = _next;
+		}
+	};
+
+	class CPlyIgnoreSize : public IPlyReader
+	{
+	public:
+		CPlyIgnoreSize(std::streampos sz)
+			: m_size(sz)
+		{
+
+		}
+		virtual void operator() (std::istream &in) override {
+			in.ignore(m_size);
+		}
+	private:
+		std::streampos m_size;
+	};
+
+	class CPlyReadFloat : public IPlyReader
+	{
+	public:
+		CPlyReadFloat(std::streampos sz)
+			: m_size(sz)
+		{
+		}
+		virtual void operator() (std::istream &in) override {
+			union {
+				float f32;
+				double f64;
+			} var;
+			in.read((char*)&var, m_size);
+		}
+	private:
+		std::streampos m_size;
+	};
+
 	class CPlyIgnoreList : public IPlyReader
 	{
 	public:
@@ -50,29 +93,66 @@ namespace wyc
 			in.read((char*)&length, m_bytes_for_length);
 			in.ignore(length * m_element_size);
 		}
+
 	private:
 		unsigned m_bytes_for_length;
 		unsigned m_element_size;
 	};
 
-	class CPlyReadFloat : public IPlyReader
+	class CPlyReadFace : public IPlyReader
 	{
 	public:
-		CPlyReadFloat(std::streampos sz)
-			: m_size(sz)
+		CPlyReadFace(unsigned bytes_for_length, unsigned element_size, unsigned *out)
+			: m_bytes_for_length(bytes_for_length)
+			, m_element_size(element_size)
 		{
+		}
 
-		}
 		virtual void operator() (std::istream &in) override {
-			union {
-				float f32;
-				double f64;
-			} var;
-			in.read((char*)&var, m_size);
+			uint64_t length = 0;
+			in.read((char*)&length, m_bytes_for_length);
+			in.ignore(length * m_element_size);
 		}
+
 	private:
-		std::streampos m_size;
+		unsigned m_bytes_for_length;
+		unsigned m_element_size;
 	};
+
+	class CPlyCountFace : public IPlyReader
+	{
+	public:
+		CPlyCountFace(unsigned bytes_for_length, unsigned element_size, unsigned *count)
+			: m_bytes_for_length(bytes_for_length)
+			, m_element_size(element_size)
+		{
+		}
+
+		virtual void operator() (std::istream &in) override {
+			uint64_t length = 0;
+			in.read((char*)&length, m_bytes_for_length);
+			in.ignore(length * m_element_size);
+		}
+
+	private:
+		unsigned m_bytes_for_length;
+		unsigned m_element_size;
+	};
+
+	class CPlyReadTristrip : public IPlyReader
+	{
+	public:
+		virtual void operator() (std::istream &in) override {
+		}
+	};
+
+	class CPlyCountTristrip : public IPlyReader
+	{
+	public:
+		virtual void operator() (std::istream &in) override {
+		}
+	};
+
 
 	void CPlyFile::read_header(std::ostream &out, const std::string &path)
 	{
@@ -255,118 +335,189 @@ namespace wyc
 
 	bool CPlyFile::read_face(unsigned * vertex_indices, unsigned & count)
 	{
-		auto elem = _locate_element("face");
-		bool is_tristrip = false;
+		wyc::PlyElement *elem;
+		bool is_tristrip, has_vertex_indices = false;
+		//elem = _locate_element("face");
+		for (elem = m_elements; elem; elem = elem->next)
+		{
+			if (elem->name == "face") {
+				is_tristrip = false;
+				break;
+			}
+			if (elem->name == "tristrips") {
+				is_tristrip = true;
+				break;
+			}
+		}
 		if (!elem) {
-			elem = _locate_element("tristrips");
-			if (!elem)
-				return false;
-			is_tristrip = true;
-		}
-		if (!elem->is_variant)
+			// faces not found
 			return false;
+		}
+		elem = _locate_element(elem->name.c_str());
+		//if (!elem) {
+		//	elem = _locate_element("tristrips");
+		//	if (!elem)
+		//		return false;
+		//	is_tristrip = true;
+		//}
+		//if (!elem->is_variant)
+		//	return false;
+		IPlyReader *readers = nullptr, *cur_reader = nullptr;
+		IPlyReader **tail = &readers;
+		unsigned ignore_size = 0;
 		PlyProperty *prop = elem->properties;
-		if (prop->name != "vertex_indices" || prop->type != PLY_LIST)
-			return false;
-		unsigned sz1 = (prop->size >> 24) & 0xFF;
-		unsigned sz2 = (prop->size >> 8) & 0xFF;
-		unsigned tail = 0;
-		for (prop = prop->next; prop; prop = prop->next) {
-			if (prop->type == PLY_LIST) {
-				return false;
-			}
-			tail += prop->size;
-		}
-		unsigned len = 0;
-		if (!vertex_indices) {
-			count = 0;
-			if (!is_tristrip) {
-				for (unsigned i = 0; i < elem->count; ++i)
-				{
-					m_stream.read((char*)&len, sz1);
-					if (len != 3)
-						continue;
-					count += 3;
-					m_stream.ignore(len * sz2 + tail);
+		for (; prop; prop = prop->next)
+		{
+			if (prop->name == "vertex_indices") {
+				IPlyReader *r;
+				if (ignore_size) {
+					r = new CPlyIgnoreSize(ignore_size);
+					tail = &r->next;
+					ignore_size = 0;
 				}
-			}
-			else if(sz1 <= 4) {
-				unsigned indices_count = 0;
-				m_stream.read((char*)&indices_count, sz1);
-				int k = 0, c = 0;
-				for (unsigned i = 0ul; i < indices_count; ++i) {
-					m_stream.read((char*)&k, sz2);
-					if (k < 0) {
-						count += 3 * (c - 2);
-						c = 0;
-					}
-					else c += 1;
-				}
-			}
-			else {
-				return false;
-			}
-			return true;
-		}
-		unsigned *out = vertex_indices;
-		unsigned cnt = 0;
-		if (!is_tristrip) {
-			for (unsigned i = 0; i < elem->count; ++i)
-			{
-				m_stream.read((char*)&len, sz1);
-				if (len != 3)
-					continue;
-				cnt += 3;
-				if (cnt > count) {
-					cnt -= 3;
-					break;
-				}
-				for (unsigned j = 0; j < len; ++j, ++out) {
-					m_stream.read((char*)out, sz2);
-					m_stream.ignore(tail);
-				}
-			}
-		}
-		else {
-			unsigned indices_count = 0;
-			m_stream.read((char*)&indices_count, sz1);
-			int k = 0, p1 = -1, p2 = -1;
-			bool flip = true;
-			for (auto i = 0u; i < indices_count && cnt < count; ++i) {
-				if (!m_stream) {
-					break;
-				}
-				m_stream.read((char*)&k, sz2);
-				if (k < 0) {
-					p1 = p2 = -1;
-					flip = true;
-					continue;
-				}
-				if (p1 == -1) {
-					p1 = k;
-					continue;
-				}
-				if (p2 == -1) {
-					p2 = k;
-					continue;
-				}
-				cnt += 3;
-				flip = !flip;
-				if (flip) {
-					*out++ = p2;
-					*out++ = p1;
+				unsigned sz1 = (prop->size >> 24) & 0xFF;
+				unsigned sz2 = (prop->size >> 8) & 0xFF;
+				if (vertex_indices) {
+					if (is_tristrip)
+						r = new CPlyReadTristrip();
+					else
+						r = new CPlyReadFace(sz1, sz2, vertex_indices);
 				}
 				else {
-					*out++ = p1;
-					*out++ = p2;
+					if (is_tristrip)
+						r = new CPlyCountTristrip();
+					else
+						r = new CPlyCountFace(sz1, sz2, &count);
 				}
-				*out++ = k;
-				p1 = p2;
-				p2 = k;
+				*tail = r;
+				tail = &r->next;
+				has_vertex_indices = true;
+			}
+			else if(prop->type == PLY_LIST) {
+				if (ignore_size) {
+					auto r = new CPlyIgnoreSize(ignore_size);
+					*tail = r;
+					tail = &r->next;
+					ignore_size = 0;
+				}
+				unsigned sz1 = (prop->size >> 24) & 0xFF;
+				unsigned sz2 = (prop->size >> 8) & 0xFF;
+				auto r = new CPlyIgnoreList(sz1, sz2);
+				*tail = r;
+				tail = &r->next;
+			}
+			else {
+				ignore_size += prop->size;
 			}
 		}
-		count = cnt;
+		if (!has_vertex_indices) {
+			clear_readers(readers);
+			return false;
+		}
+		clear_readers(readers);
 		return true;
+
+		//if (prop->name != "vertex_indices" || prop->type != PLY_LIST || prop->next != nullptr)
+		//	return false;
+		//unsigned sz1 = (prop->size >> 24) & 0xFF;
+		//unsigned sz2 = (prop->size >> 8) & 0xFF;
+		//unsigned tail = 0;
+		//for (prop = prop->next; prop; prop = prop->next) {
+		//	if (prop->type == PLY_LIST) {
+		//		return false;
+		//	}
+		//	tail += prop->size;
+		//}
+		//unsigned len = 0;
+		//if (!vertex_indices) {
+		//	count = 0;
+		//	if (!is_tristrip) {
+		//		for (unsigned i = 0; i < elem->count; ++i)
+		//		{
+		//			m_stream.read((char*)&len, sz1);
+		//			if (len != 3)
+		//				continue;
+		//			count += 3;
+		//			m_stream.ignore(len * sz2 + tail);
+		//		}
+		//	}
+		//	else if(sz1 <= 4) {
+		//		unsigned indices_count = 0;
+		//		m_stream.read((char*)&indices_count, sz1);
+		//		int k = 0, c = 0;
+		//		for (unsigned i = 0ul; i < indices_count; ++i) {
+		//			m_stream.read((char*)&k, sz2);
+		//			if (k < 0) {
+		//				count += 3 * (c - 2);
+		//				c = 0;
+		//			}
+		//			else c += 1;
+		//		}
+		//	}
+		//	else {
+		//		return false;
+		//	}
+		//	return true;
+		//}
+		//unsigned *out = vertex_indices;
+		//unsigned cnt = 0;
+		//if (!is_tristrip) {
+		//	for (unsigned i = 0; i < elem->count; ++i)
+		//	{
+		//		m_stream.read((char*)&len, sz1);
+		//		if (len != 3)
+		//			continue;
+		//		cnt += 3;
+		//		if (cnt > count) {
+		//			cnt -= 3;
+		//			break;
+		//		}
+		//		for (unsigned j = 0; j < len; ++j, ++out) {
+		//			m_stream.read((char*)out, sz2);
+		//			m_stream.ignore(tail);
+		//		}
+		//	}
+		//}
+		//else {
+		//	unsigned indices_count = 0;
+		//	m_stream.read((char*)&indices_count, sz1);
+		//	int k = 0, p1 = -1, p2 = -1;
+		//	bool flip = true;
+		//	for (auto i = 0u; i < indices_count && cnt < count; ++i) {
+		//		if (!m_stream) {
+		//			break;
+		//		}
+		//		m_stream.read((char*)&k, sz2);
+		//		if (k < 0) {
+		//			p1 = p2 = -1;
+		//			flip = true;
+		//			continue;
+		//		}
+		//		if (p1 == -1) {
+		//			p1 = k;
+		//			continue;
+		//		}
+		//		if (p2 == -1) {
+		//			p2 = k;
+		//			continue;
+		//		}
+		//		cnt += 3;
+		//		flip = !flip;
+		//		if (flip) {
+		//			*out++ = p2;
+		//			*out++ = p1;
+		//		}
+		//		else {
+		//			*out++ = p1;
+		//			*out++ = p2;
+		//		}
+		//		*out++ = k;
+		//		p1 = p2;
+		//		p2 = k;
+		//	}
+		//}
+		//count = cnt;
+		//return true;
 	}
 
 	/*
@@ -559,21 +710,6 @@ namespace wyc
 		return true;
 	}
 
-	class CPlyIgnoreSize: public IPlyReader
-	{
-	public:
-		CPlyIgnoreSize(std::streampos sz)
-			: m_size(sz)
-		{
-
-		}
-		virtual void operator() (std::istream &in) override {
-			in.ignore(m_size);
-		}
-	private:
-		std::streampos m_size;
-	};
-
 	PlyElement* CPlyFile::_locate_element(const char *elem_name)
 	{
 		assert(m_stream.is_open());
@@ -624,27 +760,19 @@ namespace wyc
 				s = 0;
 			}
 		}
-		auto clear_readers = [readers]() {
-			auto iter = readers;
-			while (iter) {
-				auto _next = iter->next;
-				delete iter;
-				iter = _next;
-			}
-		};
 		m_stream.seekg(m_data_pos + pos);
 		for (unsigned i = 0; i < elem->count; ++i) {
 			for (auto r = readers; r; r = r->next)
 			{
 				(*r)(m_stream);
 				if (!m_stream) {
-					clear_readers();
+					clear_readers(readers);
 					return 0;
 				}
 			}
 		}
 		auto end_pos = m_stream.tellg();
-		clear_readers();
+		clear_readers(readers);
 		return end_pos - pos;
 	}
 

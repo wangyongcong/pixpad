@@ -288,10 +288,10 @@ namespace wyc
 		}
 		m_vb.clear();
 		m_vb.set_attribute(ATTR_POSITION, 3);
-		bool has_normal = ply.has_normal();
-		bool has_color = ply.has_color();
-		if (has_normal)
-			m_vb.set_attribute(ATTR_NORMAL, 3);
+		//bool has_normal = ply.has_normal();
+		//bool has_color = ply.has_color();
+		//if (has_normal)
+		//	m_vb.set_attribute(ATTR_NORMAL, 3);
 		//if (has_color)
 		//	m_vb.set_attribute(ATTR_COLOR, 3);
 		unsigned vertex_count = ply.vertex_count();
@@ -301,28 +301,26 @@ namespace wyc
 			log_error("fail to read vertex position");
 			return false;
 		}
-		if (has_normal && !ply.read_normal((float*)m_vb.attrib_stream(ATTR_NORMAL), vertex_count, stride)) {
-			log_error("fail to read vertex normal");
-			return false;
-		}
+		//if (has_normal && !ply.read_normal((float*)m_vb.attrib_stream(ATTR_NORMAL), vertex_count, stride)) {
+		//	log_error("fail to read vertex normal");
+		//	return false;
+		//}
 		//if (has_color && !ply.read_normal((float*)m_vb.attrib_stream(ATTR_COLOR), vertex_count, stride)) {
 		//	log_error("fail to read vertex color");
 		//	return false;
 		//}
-		//auto va = m_vb.get_attribute(ATTR_NORMAL);
-		//for (Imath::V4f &n : va)
-		//{
-		//	log_info("%f, %f, %f", n.x, n.y, n.z);
-		//}
 		unsigned indices_count = 0;
 		if (!ply.read_face(nullptr, indices_count)) {
+			m_vb.clear();
 			log_error("fail to get face");
 			return false;
 		}
 		m_ib.clear();
 		m_ib.resize(indices_count);
 		if (!ply.read_face(&m_ib[0], indices_count)) {
-			log_error("fail to read vertex indices");
+			m_vb.clear();
+			m_ib.clear();
+			log_error("fail to read face");
 			return false;
 		}
 		assert(indices_count == m_ib.size());
