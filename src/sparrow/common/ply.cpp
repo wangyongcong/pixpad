@@ -32,7 +32,7 @@ namespace wyc
 			: next(nullptr)
 		{
 		}
-		virtual void operator() (std::istream &in) = 0;
+		virtual bool operator() (std::istream &in) = 0;
 		IPlyReader *next;
 	};
 
@@ -54,8 +54,9 @@ namespace wyc
 		{
 
 		}
-		virtual void operator() (std::istream &in) override {
+		virtual bool operator() (std::istream &in) override {
 			in.ignore(m_size);
+			return bool(in);
 		}
 	private:
 		std::streampos m_size;
@@ -64,19 +65,20 @@ namespace wyc
 	class CPlyReadFloat : public IPlyReader
 	{
 	public:
-		CPlyReadFloat(std::streampos sz)
+		CPlyReadFloat(std::streamsize sz)
 			: m_size(sz)
 		{
 		}
-		virtual void operator() (std::istream &in) override {
+		virtual bool operator() (std::istream &in) override {
 			union {
 				float f32;
 				double f64;
 			} var;
 			in.read((char*)&var, m_size);
+			return bool(in);
 		}
 	private:
-		std::streampos m_size;
+		std::streamsize m_size;
 	};
 
 	class CPlyIgnoreList : public IPlyReader
@@ -88,10 +90,12 @@ namespace wyc
 		{
 		}
 
-		virtual void operator() (std::istream &in) override {
-			uint64_t length = 0;
+		virtual bool operator() (std::istream &in) override {
+			unsigned length = 0;
+			assert(m_bytes_for_length <= sizeof(length));
 			in.read((char*)&length, m_bytes_for_length);
 			in.ignore(length * m_element_size);
+			return bool(in);
 		}
 
 	private:
@@ -102,21 +106,43 @@ namespace wyc
 	class CPlyReadFace : public IPlyReader
 	{
 	public:
-		CPlyReadFace(unsigned bytes_for_length, unsigned element_size, unsigned *out)
+		CPlyReadFace(unsigned bytes_for_length, unsigned element_size, unsigned *out_buf)
 			: m_bytes_for_length(bytes_for_length)
 			, m_element_size(element_size)
+			, m_out_buf(out_buf)
 		{
+			m_is_fit = sizeof(m_element_size) == sizeof(unsigned);
 		}
 
-		virtual void operator() (std::istream &in) override {
-			uint64_t length = 0;
+		virtual bool operator() (std::istream &in) override {
+			unsigned length = 0;
+			assert(m_bytes_for_length <= sizeof(length));
 			in.read((char*)&length, m_bytes_for_length);
-			in.ignore(length * m_element_size);
+			if (length != 3) {
+				// if it's not a triangle, just ignore it
+				// TODO: it's better to triangulate the face
+				in.ignore(length * m_element_size);
+			}
+			else if (m_is_fit) {
+				in.read((char*)m_out_buf, 3 * m_element_size);
+				m_out_buf += 3;
+			}
+			else {
+				unsigned v;
+				for (int i = 0; i < 3; ++i) {
+					v = 0;
+					in.read((char*)&v, m_element_size);
+					*m_out_buf++ = v;
+				}
+			}
+			return bool(in);
 		}
 
 	private:
 		unsigned m_bytes_for_length;
 		unsigned m_element_size;
+		unsigned *m_out_buf;
+		bool m_is_fit;
 	};
 
 	class CPlyCountFace : public IPlyReader
@@ -125,31 +151,41 @@ namespace wyc
 		CPlyCountFace(unsigned bytes_for_length, unsigned element_size, unsigned *count)
 			: m_bytes_for_length(bytes_for_length)
 			, m_element_size(element_size)
+			, m_count(count)
 		{
 		}
 
-		virtual void operator() (std::istream &in) override {
-			uint64_t length = 0;
+		virtual bool operator() (std::istream &in) override {
+			assert(m_bytes_for_length <= sizeof(unsigned));
+			unsigned length = 0;
 			in.read((char*)&length, m_bytes_for_length);
+			if (length == 3) {
+				// ignore non-triangle face
+				*m_count += 3;
+			}
 			in.ignore(length * m_element_size);
+			return bool(in);
 		}
 
 	private:
 		unsigned m_bytes_for_length;
 		unsigned m_element_size;
+		unsigned *m_count;
 	};
 
 	class CPlyReadTristrip : public IPlyReader
 	{
 	public:
-		virtual void operator() (std::istream &in) override {
+		virtual bool operator() (std::istream &in) override {
+			return bool(in);
 		}
 	};
 
 	class CPlyCountTristrip : public IPlyReader
 	{
 	public:
-		virtual void operator() (std::istream &in) override {
+		virtual bool operator() (std::istream &in) override {
+			return bool(in);
 		}
 	};
 
@@ -413,6 +449,21 @@ namespace wyc
 		if (!has_vertex_indices) {
 			clear_readers(readers);
 			return false;
+		}
+		if (!readers->next) {
+			// only one reader
+			for (auto i = 0u; i < elem->count; ++i) {
+				if (!(*readers)(m_stream))
+					break;
+			}
+		}
+		else {
+			for (auto i = 0u; i < elem->count; ++i) {
+				for (auto r = readers; r; r = r->next) {
+					if (!(*r)(m_stream))
+						break;
+				}
+			}
 		}
 		clear_readers(readers);
 		return true;
