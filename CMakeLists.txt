@@ -70,6 +70,8 @@ include_directories(
     ${SRC_ROOT}
 )
 
+add_compile_options("/utf-8")
+
 # setup targets
 add_subdirectory(src/sparrow)
 add_dependencies(sparrow Iex IexMath Imath)

@@ -1,3 +1,5 @@
+project(sparrow)
+
 set(SRC_COMMON 
 	"common/any_stride_iterator.h"
 	"common/image.cpp"

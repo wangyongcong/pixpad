@@ -1,3 +1,5 @@
+project(pixpad)
+
 set(SRC_IMGUI
 	imgui/imgui.h
 	imgui/imgui.cpp

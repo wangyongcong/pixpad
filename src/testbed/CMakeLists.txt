@@ -1,3 +1,5 @@
+project(testbed)
+
 # build as stand alone executable
 option(TEST_STAND_ALONE "Test program build as executable" OFF)
 
