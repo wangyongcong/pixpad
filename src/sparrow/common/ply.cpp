@@ -106,15 +106,19 @@ namespace wyc
 	class CPlyReadFace : public IPlyReader
 	{
 	public:
-		CPlyReadFace(unsigned bytes_for_length, unsigned element_size, unsigned *out_buf)
+		CPlyReadFace(unsigned bytes_for_length, unsigned element_size, unsigned *out_buf, unsigned buf_size, unsigned *count)
 			: m_bytes_for_length(bytes_for_length)
 			, m_element_size(element_size)
+			, m_count(count)
 			, m_out_buf(out_buf)
+			, m_buf_size(buf_size)
 		{
 			m_is_fit = sizeof(m_element_size) == sizeof(unsigned);
 		}
 
 		virtual bool operator() (std::istream &in) override {
+			if (*m_count + 3 >= m_buf_size)
+				return false;
 			unsigned length = 0;
 			assert(m_bytes_for_length <= sizeof(length));
 			in.read((char*)&length, m_bytes_for_length);
@@ -126,6 +130,7 @@ namespace wyc
 			else if (m_is_fit) {
 				in.read((char*)m_out_buf, 3 * m_element_size);
 				m_out_buf += 3;
+				*m_count += 3;
 			}
 			else {
 				unsigned v;
@@ -134,6 +139,7 @@ namespace wyc
 					in.read((char*)&v, m_element_size);
 					*m_out_buf++ = v;
 				}
+				*m_count += 3;
 			}
 			return bool(in);
 		}
@@ -141,7 +147,9 @@ namespace wyc
 	private:
 		unsigned m_bytes_for_length;
 		unsigned m_element_size;
+		unsigned *m_count;
 		unsigned *m_out_buf;
+		unsigned m_buf_size;
 		bool m_is_fit;
 	};
 
@@ -153,10 +161,10 @@ namespace wyc
 			, m_element_size(element_size)
 			, m_count(count)
 		{
+			assert(m_bytes_for_length <= sizeof(unsigned));
 		}
 
 		virtual bool operator() (std::istream &in) override {
-			assert(m_bytes_for_length <= sizeof(unsigned));
 			unsigned length = 0;
 			in.read((char*)&length, m_bytes_for_length);
 			if (length == 3) {
@@ -176,17 +184,98 @@ namespace wyc
 	class CPlyReadTristrip : public IPlyReader
 	{
 	public:
+		CPlyReadTristrip(unsigned bytes_for_length, unsigned element_size, unsigned *out_buf, unsigned buf_size, unsigned *count)
+			: m_bytes_for_length(bytes_for_length)
+			, m_element_size(element_size)
+			, m_count(count)
+			, m_out_buf(out_buf)
+			, m_buf_size(buf_size)
+		{
+			assert(sizeof(m_element_size) <= sizeof(unsigned));
+		}
+
 		virtual bool operator() (std::istream &in) override {
+			unsigned indices_count = 0;
+			in.read((char*)&indices_count, m_bytes_for_length);
+			int k = 0, p1 = -1, p2 = -1;
+			bool flip = true;
+			for (auto i = 0u; i < indices_count; ++i) {
+				if (!in)
+					return false;
+				in.read((char*)&k, m_element_size);
+				if (k < 0) {
+					p1 = p2 = -1;
+					flip = true;
+					continue;
+				}
+				if (p1 == -1) {
+					p1 = k;
+					continue;
+				}
+				if (p2 == -1) {
+					p2 = k;
+					continue;
+				}
+				if (*m_count + 3 >= m_buf_size)
+					return false;
+				*m_count += 3;
+				flip = !flip;
+				if (flip) {
+					*m_out_buf++ = p2;
+					*m_out_buf++ = p1;
+				}
+				else {
+					*m_out_buf++ = p1;
+					*m_out_buf++ = p2;
+				}
+				*m_out_buf++ = k;
+				p1 = p2;
+				p2 = k;
+			}
 			return bool(in);
 		}
+
+	private:
+		unsigned m_bytes_for_length;
+		unsigned m_element_size;
+		unsigned *m_count;
+		unsigned *m_out_buf;
+		unsigned m_buf_size;
 	};
 
 	class CPlyCountTristrip : public IPlyReader
 	{
 	public:
+		CPlyCountTristrip(unsigned bytes_for_length, unsigned element_size, unsigned *count)
+			: m_bytes_for_length(bytes_for_length)
+			, m_element_size(element_size)
+			, m_count(count)
+		{
+			assert(m_bytes_for_length <= sizeof(unsigned));
+			assert(m_element_size <= sizeof(int));
+		}
+
 		virtual bool operator() (std::istream &in) override {
+			unsigned length = 0;
+			in.read((char*)&length, m_bytes_for_length);
+			int k = 0, c = 0;
+			for (unsigned i = 0u; i < length; ++i) {
+				in.read((char*)&k, m_element_size);
+				if (k < 0) {
+					if(c > 2)
+						*m_count += c - 2;
+					c = 0;
+				}
+				else c += 1;
+			}
+			*m_count *= 3;
 			return bool(in);
 		}
+
+	private:
+		unsigned m_bytes_for_length;
+		unsigned m_element_size;
+		unsigned *m_count;
 	};
 
 
@@ -373,7 +462,6 @@ namespace wyc
 	{
 		wyc::PlyElement *elem;
 		bool is_tristrip, has_vertex_indices = false;
-		//elem = _locate_element("face");
 		for (elem = m_elements; elem; elem = elem->next)
 		{
 			if (elem->name == "face") {
@@ -390,14 +478,6 @@ namespace wyc
 			return false;
 		}
 		elem = _locate_element(elem->name.c_str());
-		//if (!elem) {
-		//	elem = _locate_element("tristrips");
-		//	if (!elem)
-		//		return false;
-		//	is_tristrip = true;
-		//}
-		//if (!elem->is_variant)
-		//	return false;
 		IPlyReader *readers = nullptr, *cur_reader = nullptr;
 		IPlyReader **tail = &readers;
 		unsigned ignore_size = 0;
@@ -415,13 +495,13 @@ namespace wyc
 				unsigned sz2 = (prop->size >> 8) & 0xFF;
 				if (vertex_indices) {
 					if (is_tristrip)
-						r = new CPlyReadTristrip();
+						r = new CPlyReadTristrip(sz1, sz2, vertex_indices, count, &count);
 					else
-						r = new CPlyReadFace(sz1, sz2, vertex_indices);
+						r = new CPlyReadFace(sz1, sz2, vertex_indices, count, &count);
 				}
 				else {
 					if (is_tristrip)
-						r = new CPlyCountTristrip();
+						r = new CPlyCountTristrip(sz1, sz2, &count);
 					else
 						r = new CPlyCountFace(sz1, sz2, &count);
 				}
@@ -474,108 +554,6 @@ namespace wyc
 		}
 		clear_readers(readers);
 		return true;
-
-		//if (prop->name != "vertex_indices" || prop->type != PLY_LIST || prop->next != nullptr)
-		//	return false;
-		//unsigned sz1 = (prop->size >> 24) & 0xFF;
-		//unsigned sz2 = (prop->size >> 8) & 0xFF;
-		//unsigned tail = 0;
-		//for (prop = prop->next; prop; prop = prop->next) {
-		//	if (prop->type == PLY_LIST) {
-		//		return false;
-		//	}
-		//	tail += prop->size;
-		//}
-		//unsigned len = 0;
-		//if (!vertex_indices) {
-		//	count = 0;
-		//	if (!is_tristrip) {
-		//		for (unsigned i = 0; i < elem->count; ++i)
-		//		{
-		//			m_stream.read((char*)&len, sz1);
-		//			if (len != 3)
-		//				continue;
-		//			count += 3;
-		//			m_stream.ignore(len * sz2 + tail);
-		//		}
-		//	}
-		//	else if(sz1 <= 4) {
-		//		unsigned indices_count = 0;
-		//		m_stream.read((char*)&indices_count, sz1);
-		//		int k = 0, c = 0;
-		//		for (unsigned i = 0ul; i < indices_count; ++i) {
-		//			m_stream.read((char*)&k, sz2);
-		//			if (k < 0) {
-		//				count += 3 * (c - 2);
-		//				c = 0;
-		//			}
-		//			else c += 1;
-		//		}
-		//	}
-		//	else {
-		//		return false;
-		//	}
-		//	return true;
-		//}
-		//unsigned *out = vertex_indices;
-		//unsigned cnt = 0;
-		//if (!is_tristrip) {
-		//	for (unsigned i = 0; i < elem->count; ++i)
-		//	{
-		//		m_stream.read((char*)&len, sz1);
-		//		if (len != 3)
-		//			continue;
-		//		cnt += 3;
-		//		if (cnt > count) {
-		//			cnt -= 3;
-		//			break;
-		//		}
-		//		for (unsigned j = 0; j < len; ++j, ++out) {
-		//			m_stream.read((char*)out, sz2);
-		//			m_stream.ignore(tail);
-		//		}
-		//	}
-		//}
-		//else {
-		//	unsigned indices_count = 0;
-		//	m_stream.read((char*)&indices_count, sz1);
-		//	int k = 0, p1 = -1, p2 = -1;
-		//	bool flip = true;
-		//	for (auto i = 0u; i < indices_count && cnt < count; ++i) {
-		//		if (!m_stream) {
-		//			break;
-		//		}
-		//		m_stream.read((char*)&k, sz2);
-		//		if (k < 0) {
-		//			p1 = p2 = -1;
-		//			flip = true;
-		//			continue;
-		//		}
-		//		if (p1 == -1) {
-		//			p1 = k;
-		//			continue;
-		//		}
-		//		if (p2 == -1) {
-		//			p2 = k;
-		//			continue;
-		//		}
-		//		cnt += 3;
-		//		flip = !flip;
-		//		if (flip) {
-		//			*out++ = p2;
-		//			*out++ = p1;
-		//		}
-		//		else {
-		//			*out++ = p1;
-		//			*out++ = p2;
-		//		}
-		//		*out++ = k;
-		//		p1 = p2;
-		//		p2 = k;
-		//	}
-		//}
-		//count = cnt;
-		//return true;
 	}
 
 	/*

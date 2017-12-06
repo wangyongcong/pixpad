@@ -301,6 +301,7 @@ namespace wyc
 			log_error("fail to read vertex position");
 			return false;
 		}
+		assert(m_vb.size() == vertex_count);
 		//if (has_normal && !ply.read_normal((float*)m_vb.attrib_stream(ATTR_NORMAL), vertex_count, stride)) {
 		//	log_error("fail to read vertex normal");
 		//	return false;
