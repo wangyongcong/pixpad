@@ -446,6 +446,13 @@ namespace wyc
 				ignore_size += prop->size;
 			}
 		}
+		// last ignore
+		if (ignore_size)
+		{
+			auto r = new CPlyIgnoreSize(ignore_size);
+			*tail = r;
+			tail = &r->next;
+		}
 		if (!has_vertex_indices) {
 			clear_readers(readers);
 			return false;

@@ -324,6 +324,9 @@ namespace wyc
 			return false;
 		}
 		assert(indices_count == m_ib.size());
+		//for (auto i : m_ib) {
+		//	assert(i < m_vb.size() && i >=0 );
+		//}
 		return true;
 	}
 
