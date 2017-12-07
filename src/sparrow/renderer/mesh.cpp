@@ -297,6 +297,7 @@ namespace wyc
 		unsigned vertex_count = ply.vertex_count();
 		m_vb.resize(vertex_count);
 		auto stride = m_vb.vertex_component();
+		ply.read_vertex((float*)m_vb.attrib_stream(ATTR_POSITION), vertex_count, "x,y,z,nx,ny,nz,r,g,b", m_vb.vertex_size());
 		if (!ply.read_position((float*)m_vb.attrib_stream(ATTR_POSITION), vertex_count, stride)) {
 			log_error("fail to read vertex position");
 			return false;

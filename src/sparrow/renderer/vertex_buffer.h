@@ -148,7 +148,8 @@ namespace wyc
 		{
 			return m_vert_size;
 		}
-		inline uint16_t vertex_component() const {
+		inline uint16_t vertex_component() const 
+		{
 			return m_vert_componet;
 		}
 
@@ -162,7 +163,8 @@ namespace wyc
 			assert(m_attr_tbl[usage]);
 			return m_data + m_attr_tbl[usage]->offset;
 		}
-		inline size_t attrib_stride(EAttribUsage usage) const {
+		inline size_t attrib_stride(EAttribUsage usage) const 
+		{
 			return m_vert_size;
 		}
 		inline size_t attrib_offset(EAttribUsage usage) const

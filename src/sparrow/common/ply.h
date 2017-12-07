@@ -101,6 +101,8 @@ namespace wyc
 			return _read_vector3(vector3, count, stride, "red", "green", "blue");
 		}
 		
+		// read vertex
+		bool read_vertex(float *vertex, unsigned &count, const std::string &layout, unsigned stride);
 		// read triangles
 		bool read_face(unsigned *vertex_indices, unsigned &count);
 

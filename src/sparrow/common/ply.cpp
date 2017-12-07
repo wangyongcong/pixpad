@@ -52,7 +52,6 @@ namespace wyc
 		CPlyIgnoreSize(std::streampos sz)
 			: m_size(sz)
 		{
-
 		}
 		virtual bool operator() (std::istream &in) override {
 			in.ignore(m_size);
@@ -65,28 +64,30 @@ namespace wyc
 	class CPlyReadFloat : public IPlyReader
 	{
 	public:
-		CPlyReadFloat(std::streamsize sz)
-			: m_size(sz)
+		CPlyReadFloat(unsigned count, float *out_buf, unsigned offset, unsigned stride)
+			: m_stride(stride)
 		{
+			m_out_buf = (char*)out_buf;
+			m_out_buf += stride;
+			m_size = sizeof(float) * count;
 		}
 		virtual bool operator() (std::istream &in) override {
-			union {
-				float f32;
-				double f64;
-			} var;
-			in.read((char*)&var, m_size);
+			in.read(m_out_buf, m_size);
+			m_out_buf += m_stride;
 			return bool(in);
 		}
 	private:
-		std::streamsize m_size;
+		char *m_out_buf;
+		unsigned m_stride;
+		unsigned m_size;
 	};
 
 	class CPlyIgnoreList : public IPlyReader
 	{
 	public:
-		CPlyIgnoreList(unsigned bytes_for_length, unsigned element_size)
-			: m_bytes_for_length(bytes_for_length)
-			, m_element_size(element_size)
+		CPlyIgnoreList(unsigned prop_size)
+			: m_bytes_for_length((prop_size >> 24) & 0xFF)
+			, m_element_size((prop_size >> 8) & 0xFF)
 		{
 		}
 
@@ -278,6 +279,7 @@ namespace wyc
 		unsigned *m_count;
 	};
 
+	
 
 	void CPlyFile::read_header(std::ostream &out, const std::string &path)
 	{
@@ -458,6 +460,77 @@ namespace wyc
 		return true;
 	}
 
+	bool CPlyFile::read_vertex(float * vertex, unsigned & count, const std::string& layout, unsigned stride)
+	{
+		auto elem = _locate_element("vertex");
+		if (!elem)
+			return false;
+		std::string tok;
+		size_t beg_pos = 0, end_pos = 0;
+		unsigned ignore_size = 0, read_f;
+		char read_t = 0, prev_read_t = 0;
+		IPlyReader *readers = nullptr;
+		IPlyReader **tail = &readers;
+		for (auto prop = elem->properties; prop; prop = prop->next)
+		{
+			unsigned offset = 0;
+			read_t = 0;
+			while (end_pos != std::string::npos) {
+				end_pos = layout.find(',', beg_pos);
+				tok = layout.substr(beg_pos, end_pos - beg_pos);
+				beg_pos = end_pos + 1;
+				if (tok == elem->name) {
+					if (prop->type == PLY_FLOAT) {
+						// read float
+						read_f += 1;
+						read_t = 1;
+					}
+					else if (prop->type == PLY_INTEGER) {
+						// read integer
+						read_t = 2;
+					}
+					else if (prop->type == PLY_LIST) {
+						read_t = 3;
+					}
+					break;
+				}
+				else {
+					offset += 1;
+				}
+			}
+			if (read_t == prev_read_t && prop->next)
+				continue;
+			IPlyReader *r = nullptr;
+			switch (prev_read_t)
+			{
+			case 1: // read float
+				if (read_f) {
+					r = new CPlyReadFloat(read_f, vertex, offset, stride);
+					read_f = 0;
+				}
+				break;
+			case 2: // read integer
+				break;
+			case 3: // ignore list
+				r = new CPlyIgnoreList(prop->size);
+				break;
+			default:  // ignore size
+				if (ignore_size) {
+					r = new CPlyIgnoreSize(ignore_size);
+					ignore_size = 0;
+				}
+				break;
+			}
+			if (r) {
+				*tail = r;
+				tail = &r->next;
+			}
+			prev_read_t = read_t;
+		}
+		clear_readers(readers);
+		return true;
+	}
+
 	bool CPlyFile::read_face(unsigned * vertex_indices, unsigned & count)
 	{
 		wyc::PlyElement *elem;
@@ -478,7 +551,7 @@ namespace wyc
 			return false;
 		}
 		elem = _locate_element(elem->name.c_str());
-		IPlyReader *readers = nullptr, *cur_reader = nullptr;
+		IPlyReader *readers = nullptr;
 		IPlyReader **tail = &readers;
 		unsigned ignore_size = 0;
 		PlyProperty *prop = elem->properties;
@@ -516,9 +589,7 @@ namespace wyc
 					tail = &r->next;
 					ignore_size = 0;
 				}
-				unsigned sz1 = (prop->size >> 24) & 0xFF;
-				unsigned sz2 = (prop->size >> 8) & 0xFF;
-				auto r = new CPlyIgnoreList(sz1, sz2);
+				auto r = new CPlyIgnoreList(prop->size);
 				*tail = r;
 				tail = &r->next;
 			}
@@ -788,9 +859,7 @@ namespace wyc
 					*tail = r1;
 					tail = &r1->next;
 				}
-				auto s1 = (prop->size >> 24) & 0xFF;
-				auto s2 = (prop->size >> 8) & 0xFF;
-				IPlyReader *r2 = new CPlyIgnoreList(s1, s2);
+				IPlyReader *r2 = new CPlyIgnoreList(prop->size);
 				*tail = r2;
 				tail = &r2->next;
 				s = 0;
