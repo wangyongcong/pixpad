@@ -297,20 +297,10 @@ namespace wyc
 		unsigned vertex_count = ply.vertex_count();
 		m_vb.resize(vertex_count);
 		auto stride = m_vb.vertex_component();
-		ply.read_vertex((float*)m_vb.attrib_stream(ATTR_POSITION), vertex_count, "x,y,z,nx,ny,nz,r,g,b", m_vb.vertex_size());
-		if (!ply.read_position((float*)m_vb.attrib_stream(ATTR_POSITION), vertex_count, stride)) {
-			log_error("fail to read vertex position");
-			return false;
-		}
+		ply.read_vertex(m_vb.get_buffer(), vertex_count, "x,y,z", m_vb.vertex_size());
+		//auto v = (Imath::V3f*)m_vb.get_buffer();
+		//auto c = v[vertex_count - 1];
 		assert(m_vb.size() == vertex_count);
-		//if (has_normal && !ply.read_normal((float*)m_vb.attrib_stream(ATTR_NORMAL), vertex_count, stride)) {
-		//	log_error("fail to read vertex normal");
-		//	return false;
-		//}
-		//if (has_color && !ply.read_normal((float*)m_vb.attrib_stream(ATTR_COLOR), vertex_count, stride)) {
-		//	log_error("fail to read vertex color");
-		//	return false;
-		//}
 		unsigned indices_count = 0;
 		if (!ply.read_face(nullptr, indices_count)) {
 			m_vb.clear();

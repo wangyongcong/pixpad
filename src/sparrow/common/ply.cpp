@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <cassert>
 #include "util.h"
+#include "log.h"
 
 namespace wyc
 {
@@ -67,8 +68,7 @@ namespace wyc
 		CPlyReadFloat(unsigned count, float *out_buf, unsigned offset, unsigned stride)
 			: m_stride(stride)
 		{
-			m_out_buf = (char*)out_buf;
-			m_out_buf += stride;
+			m_out_buf = (char*)(out_buf + offset);
 			m_size = sizeof(float) * count;
 		}
 		virtual bool operator() (std::istream &in) override {
@@ -80,6 +80,37 @@ namespace wyc
 		char *m_out_buf;
 		unsigned m_stride;
 		unsigned m_size;
+	};
+
+	class CPlyReadInteger : public IPlyReader
+	{
+	public:
+		CPlyReadInteger(uint8_t count, uint8_t elem_size, float *out_buf, unsigned offset, unsigned stride)
+			: m_stride(stride)
+			, m_count(count)
+			, m_elem_size(elem_size)
+		{
+			assert(elem_size <= sizeof(unsigned));
+			m_out_buf = (char*)(out_buf + offset);
+			m_max_value = float((1ul << (elem_size * 8)) - 1);
+		}
+		virtual bool operator() (std::istream &in) override {
+			unsigned v = 0;
+			float *out = (float*)m_out_buf;
+			for (uint8_t i = 0; i < m_count; ++i)
+			{
+				in.read((char*)&v, m_elem_size);
+				*out++ = v / m_max_value;
+			}
+			m_out_buf += m_stride;
+			return bool(in);
+		}
+	private:
+		char *m_out_buf;
+		float m_max_value;
+		uint8_t m_stride;
+		uint8_t m_count;
+		uint8_t m_elem_size;
 	};
 
 	class CPlyIgnoreList : public IPlyReader
@@ -466,56 +497,69 @@ namespace wyc
 		if (!elem)
 			return false;
 		std::string tok;
-		size_t beg_pos = 0, end_pos = 0;
-		unsigned ignore_size = 0, read_f;
+		size_t beg_pos = 0, end_pos;
+		unsigned offset, read_offset = 0, ignore_size = 0, read_f = 0, read_i = 0;
 		char read_t = 0, prev_read_t = 0;
-		IPlyReader *readers = nullptr;
+		IPlyReader *readers = nullptr, *r = nullptr;
 		IPlyReader **tail = &readers;
 		for (auto prop = elem->properties; prop; prop = prop->next)
-		{
-			unsigned offset = 0;
-			read_t = 0;
-			while (end_pos != std::string::npos) {
-				end_pos = layout.find(',', beg_pos);
-				tok = layout.substr(beg_pos, end_pos - beg_pos);
-				beg_pos = end_pos + 1;
-				if (tok == elem->name) {
-					if (prop->type == PLY_FLOAT) {
-						// read float
-						read_f += 1;
-						read_t = 1;
+			{
+			if (prop->type == PLY_LIST) {
+				read_t = 3;
+			}
+			else {
+				offset = 0;
+				read_t = 0;
+				beg_pos = end_pos = 0;
+				while (end_pos != std::string::npos) {
+					end_pos = layout.find(',', beg_pos);
+					tok = layout.substr(beg_pos, end_pos - beg_pos);
+					beg_pos = end_pos + 1;
+					if (tok == prop->name) {
+						if (prop->type == PLY_FLOAT) {
+							// read float
+							read_t = 1;
+							read_f += 1;
+						}
+						else if (prop->type == PLY_INTEGER) {
+							// read integer
+							read_t = 2;
+							read_i += 1;
+						}
+						break;
 					}
-					else if (prop->type == PLY_INTEGER) {
-						// read integer
-						read_t = 2;
+					else {
+						offset += 1;
 					}
-					else if (prop->type == PLY_LIST) {
-						read_t = 3;
-					}
-					break;
 				}
-				else {
-					offset += 1;
-				}
+				if (!read_t)
+					ignore_size += prop->size;
 			}
 			if (read_t == prev_read_t && prop->next)
 				continue;
-			IPlyReader *r = nullptr;
 			switch (prev_read_t)
 			{
 			case 1: // read float
 				if (read_f) {
-					r = new CPlyReadFloat(read_f, vertex, offset, stride);
+					log_info("read %d float to buf[%d]", read_f, read_offset);
+					r = new CPlyReadFloat(read_f, vertex, read_offset, stride);
 					read_f = 0;
 				}
 				break;
 			case 2: // read integer
+				if (read_i) {
+					log_info("read %d integer to buf[%d]", read_i, read_offset);
+					r = new CPlyReadInteger(read_i, prop->size, vertex, read_offset, stride);
+					read_i = 0;
+				}
 				break;
 			case 3: // ignore list
+				log_info("ignore list");
 				r = new CPlyIgnoreList(prop->size);
 				break;
 			default:  // ignore size
 				if (ignore_size) {
+					log_info("ignore %d bytes", ignore_size);
 					r = new CPlyIgnoreSize(ignore_size);
 					ignore_size = 0;
 				}
@@ -526,7 +570,23 @@ namespace wyc
 				tail = &r->next;
 			}
 			prev_read_t = read_t;
+			read_offset = offset;
 		}
+		if (ignore_size) {
+			log_info("ignore %d bytes", ignore_size);
+			r = new CPlyIgnoreSize(ignore_size);
+		}
+		if (elem->count < count)
+			count = elem->count;
+		unsigned c = 0;
+		for (; c < count && m_stream; ++c) {
+			for (auto r = readers; r; r = r->next)
+			{
+				if (!(*r)(m_stream))
+					break;
+			}
+		}
+		count = c;
 		clear_readers(readers);
 		return true;
 	}
@@ -616,7 +676,7 @@ namespace wyc
 			}
 		}
 		else {
-			for (auto i = 0u; i < elem->count; ++i) {
+			for (auto i = 0u; i < elem->count && m_stream; ++i) {
 				for (auto r = readers; r; r = r->next) {
 					if (!(*r)(m_stream))
 						break;
