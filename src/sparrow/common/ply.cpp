@@ -34,6 +34,7 @@ namespace wyc
 		{
 		}
 		virtual bool operator() (std::istream &in) = 0;
+		virtual void read_more(unsigned sz) {};
 		IPlyReader *next;
 	};
 
@@ -58,6 +59,9 @@ namespace wyc
 			in.ignore(m_size);
 			return bool(in);
 		}
+		virtual void read_more(unsigned sz) override {
+			m_size += sz;
+		}
 	private:
 		std::streampos m_size;
 	};
@@ -75,6 +79,9 @@ namespace wyc
 			in.read(m_out_buf, m_size);
 			m_out_buf += m_stride;
 			return bool(in);
+		}
+		virtual void read_more(unsigned count) override {
+			m_size += sizeof(float) * count;
 		}
 	private:
 		char *m_out_buf;
@@ -104,6 +111,9 @@ namespace wyc
 			}
 			m_out_buf += m_stride;
 			return bool(in);
+		}
+		virtual void read_more(unsigned count) override {
+			m_count += count;
 		}
 	private:
 		char *m_out_buf;
@@ -497,11 +507,80 @@ namespace wyc
 		if (!elem)
 			return false;
 		std::string tok;
-		size_t beg_pos = 0, end_pos;
-		unsigned offset, read_offset = 0, ignore_size = 0, read_f = 0, read_i = 0;
-		char read_t = 0, prev_read_t = 0;
+		size_t beg_pos, end_pos;
+		PLY_PROPERTY_TYPE prev_type = PLY_NULL;
+		unsigned prev_size = 0, prev_offset = 0, offset;
+		//unsigned read_offset = 0, ignore_size = 0, read_f = 0, read_i = 0;
+		//char read_t = 0, prev_read_t = 0;
 		IPlyReader *readers = nullptr, *r = nullptr;
 		IPlyReader **tail = &readers;
+		for (auto prop = elem->properties; prop; prop = prop->next)
+		{
+			if (prop->type == PLY_LIST) {
+				r = new CPlyIgnoreList(prop->size);
+				*tail = r;
+				tail = &r->next;
+				prev_type = PLY_LIST;
+				continue;
+			}
+			offset = 0;
+			beg_pos = end_pos = 0;
+			while (end_pos != std::string::npos) {
+				end_pos = layout.find(',', beg_pos);
+				tok = layout.substr(beg_pos, end_pos - beg_pos);
+				beg_pos = end_pos + 1;
+				if (tok != prop->name) {
+					offset += 1;
+					continue;
+				}
+				if (prop->type == PLY_FLOAT) {
+					if (r && prev_type == prop->type && prev_offset == offset + 1)
+					{
+						r->read_more(1);
+						prev_offset += 1;
+					}
+					else {
+						r = new CPlyReadFloat(1, vertex, offset, stride);
+						*tail = r;
+						tail = &r->next;
+						prev_type = prop->type;
+						prev_offset = offset;
+					}
+				}
+				else if (prop->type == PLY_INTEGER) {
+					if (r && prev_type == prop->type && prev_size == prop->size && prev_offset == offset + 1)
+					{
+						r->read_more(1);
+						prev_offset += 1;
+					}
+					else {
+						r = new CPlyReadInteger(1, prop->size, vertex, offset, stride);
+						*tail = r;
+						tail = &r->next;
+						prev_type = prop->type;
+						prev_size = prop->size;
+						prev_offset = offset;
+					}
+				}
+				else {
+					end_pos = std::string::npos;
+				}
+				break;
+			} // while loop
+			if (end_pos == std::string::npos) {
+				// property not found, ignore
+				if (r && prev_type == PLY_NULL) {
+					r->read_more(prop->size);
+				}
+				else {
+					r = new CPlyIgnoreSize(prop->size);
+					*tail = r;
+					tail = &r->next;
+					prev_type = PLY_NULL;
+				}
+			}
+		}
+		/*
 		for (auto prop = elem->properties; prop; prop = prop->next)
 			{
 			if (prop->type == PLY_LIST) {
@@ -575,7 +654,7 @@ namespace wyc
 		if (ignore_size) {
 			log_info("ignore %d bytes", ignore_size);
 			r = new CPlyIgnoreSize(ignore_size);
-		}
+		}*/
 		if (elem->count < count)
 			count = elem->count;
 		unsigned c = 0;
