@@ -93,6 +93,7 @@ namespace wyc
 			for (unsigned i = 0; i < m_stride; ++i, ++out) 
 			{
 				*out = (i0[i] * m_inv_z0 * w1[j] + i1[i] * m_inv_z1 * w2[j] + i2[i] * m_inv_z2 * w3[j]) * z_world[j];
+				//*out = i0[i] * w1[j] + i1[i] * w2[j] + i2[i] * w3[j];
 			}
 		}
 		// write frame buffer

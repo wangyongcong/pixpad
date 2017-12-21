@@ -156,10 +156,11 @@ namespace wyc
 			, m_buf_size(buf_size)
 		{
 			m_is_fit = sizeof(m_element_size) == sizeof(unsigned);
+			*m_count = 0;
 		}
 
 		virtual bool operator() (std::istream &in) override {
-			if (*m_count + 3 >= m_buf_size)
+			if (*m_count + 3 > m_buf_size)
 				return false;
 			unsigned length = 0;
 			assert(m_bytes_for_length <= sizeof(length));
@@ -234,6 +235,7 @@ namespace wyc
 			, m_buf_size(buf_size)
 		{
 			assert(sizeof(m_element_size) <= sizeof(unsigned));
+			*m_count = 0;
 		}
 
 		virtual bool operator() (std::istream &in) override {
@@ -258,7 +260,7 @@ namespace wyc
 					p2 = k;
 					continue;
 				}
-				if (*m_count + 3 >= m_buf_size)
+				if (*m_count + 3 > m_buf_size)
 					return false;
 				*m_count += 3;
 				flip = !flip;

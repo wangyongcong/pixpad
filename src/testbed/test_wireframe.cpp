@@ -38,8 +38,15 @@ public:
 		auto draw = m_renderer->new_command<wyc::cmd_draw_mesh>();
 		draw->mesh = mesh.get();
 		auto mtl = std::make_shared<CMaterialWireframe>();
+		// icosahedron
 		wyc::set_translate(transform_world, 0, 0, -3.2f);
 		proj_from_world = proj * transform_world * rx_world * ry_world;
+		// torus
+		//wyc::set_translate(transform_world, 0, 0, -3.6f);
+		//proj_from_world = proj * transform_world * rx_world * ry_world;
+		// sofa
+		//wyc::set_translate(transform_world, 0, -500, -2400);
+		//proj_from_world = proj * transform_world;
 		mtl->set_uniform("proj_from_world", proj_from_world);
 		mtl->set_uniform("line_color", Imath::C4f{ 0, 1, 0, 1 });
 		mtl->set_uniform("fill_color", Imath::C4f{ 0.2f, 0.2f, 0.2f, 1 });
