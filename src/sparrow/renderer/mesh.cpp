@@ -298,8 +298,8 @@ namespace wyc
 		m_vb.resize(vertex_count);
 		auto stride = m_vb.vertex_component();
 		ply.read_vertex(m_vb.get_buffer(), vertex_count, "x,y,z", m_vb.vertex_size());
-		//auto v = (Imath::V3f*)m_vb.get_buffer();
-		//auto c = v[vertex_count - 1];
+		auto v = (Imath::V3f*)m_vb.get_buffer();
+		auto c = v[vertex_count - 1];
 		assert(m_vb.size() == vertex_count);
 		unsigned indices_count = 0;
 		if (!ply.read_face(nullptr, indices_count)) {

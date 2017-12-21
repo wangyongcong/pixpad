@@ -510,10 +510,15 @@ namespace wyc
 		size_t beg_pos, end_pos;
 		PLY_PROPERTY_TYPE prev_type = PLY_NULL;
 		unsigned prev_size = 0, prev_offset = 0, offset;
-		//unsigned read_offset = 0, ignore_size = 0, read_f = 0, read_i = 0;
-		//char read_t = 0, prev_read_t = 0;
 		IPlyReader *readers = nullptr, *r = nullptr;
 		IPlyReader **tail = &readers;
+		// split tokens
+		std::istringstream ss(layout);
+		std::vector<std::string> attrs;
+		while (std::getline(ss, tok, ',')) {
+			attrs.push_back(tok);
+		}
+		std::vector<std::string>::iterator beg, end = attrs.end();
 		for (auto prop = elem->properties; prop; prop = prop->next)
 		{
 			if (prop->type == PLY_LIST) {
@@ -525,16 +530,10 @@ namespace wyc
 			}
 			offset = 0;
 			beg_pos = end_pos = 0;
-			while (end_pos != std::string::npos) {
-				end_pos = layout.find(',', beg_pos);
-				tok = layout.substr(beg_pos, end_pos - beg_pos);
-				beg_pos = end_pos + 1;
-				if (tok != prop->name) {
-					offset += 1;
-					continue;
-				}
+			for (beg = attrs.begin(); beg != end && *beg != prop->name; ++beg, ++offset);
+			if (beg != end) {
 				if (prop->type == PLY_FLOAT) {
-					if (r && prev_type == prop->type && prev_offset == offset + 1)
+					if (prev_type == prop->type && prev_size == prop->size && offset == prev_offset + 1)
 					{
 						r->read_more(1);
 						prev_offset += 1;
@@ -544,11 +543,12 @@ namespace wyc
 						*tail = r;
 						tail = &r->next;
 						prev_type = prop->type;
+						prev_size = prop->size;
 						prev_offset = offset;
 					}
 				}
 				else if (prop->type == PLY_INTEGER) {
-					if (r && prev_type == prop->type && prev_size == prop->size && prev_offset == offset + 1)
+					if (prev_type == prop->type && prev_size == prop->size && offset == prev_offset + 1)
 					{
 						r->read_more(1);
 						prev_offset += 1;
@@ -563,11 +563,10 @@ namespace wyc
 					}
 				}
 				else {
-					end_pos = std::string::npos;
+					assert(0 && "should not arrive here");
 				}
-				break;
-			} // while loop
-			if (end_pos == std::string::npos) {
+			}
+			else {
 				// property not found, ignore
 				if (r && prev_type == PLY_NULL) {
 					r->read_more(prop->size);
@@ -580,81 +579,6 @@ namespace wyc
 				}
 			}
 		}
-		/*
-		for (auto prop = elem->properties; prop; prop = prop->next)
-			{
-			if (prop->type == PLY_LIST) {
-				read_t = 3;
-			}
-			else {
-				offset = 0;
-				read_t = 0;
-				beg_pos = end_pos = 0;
-				while (end_pos != std::string::npos) {
-					end_pos = layout.find(',', beg_pos);
-					tok = layout.substr(beg_pos, end_pos - beg_pos);
-					beg_pos = end_pos + 1;
-					if (tok == prop->name) {
-						if (prop->type == PLY_FLOAT) {
-							// read float
-							read_t = 1;
-							read_f += 1;
-						}
-						else if (prop->type == PLY_INTEGER) {
-							// read integer
-							read_t = 2;
-							read_i += 1;
-						}
-						break;
-					}
-					else {
-						offset += 1;
-					}
-				}
-				if (!read_t)
-					ignore_size += prop->size;
-			}
-			if (read_t == prev_read_t && prop->next)
-				continue;
-			switch (prev_read_t)
-			{
-			case 1: // read float
-				if (read_f) {
-					log_info("read %d float to buf[%d]", read_f, read_offset);
-					r = new CPlyReadFloat(read_f, vertex, read_offset, stride);
-					read_f = 0;
-				}
-				break;
-			case 2: // read integer
-				if (read_i) {
-					log_info("read %d integer to buf[%d]", read_i, read_offset);
-					r = new CPlyReadInteger(read_i, prop->size, vertex, read_offset, stride);
-					read_i = 0;
-				}
-				break;
-			case 3: // ignore list
-				log_info("ignore list");
-				r = new CPlyIgnoreList(prop->size);
-				break;
-			default:  // ignore size
-				if (ignore_size) {
-					log_info("ignore %d bytes", ignore_size);
-					r = new CPlyIgnoreSize(ignore_size);
-					ignore_size = 0;
-				}
-				break;
-			}
-			if (r) {
-				*tail = r;
-				tail = &r->next;
-			}
-			prev_read_t = read_t;
-			read_offset = offset;
-		}
-		if (ignore_size) {
-			log_info("ignore %d bytes", ignore_size);
-			r = new CPlyIgnoreSize(ignore_size);
-		}*/
 		if (elem->count < count)
 			count = elem->count;
 		unsigned c = 0;
