@@ -8,6 +8,7 @@ namespace wyc
 		, m_rt(rt)
 		, m_material(nullptr)
 		, m_stride(0)
+		, m_correction(true)
 	{
 		m_transform_y = m_rt->height() - center.y - 1;
 	}
@@ -23,6 +24,10 @@ namespace wyc
 		m_material = material;
 		m_stride = vertex_stride;
 		m_ctx.vertex_quad = &m_frag_input[0];
+
+		auto feature = material->feature();
+		if (feature & MF_NO_PERSPECTIVE_CORRECTION)
+			m_correction = false;
 	}
 
 	void CTile::operator() (int x, int y) {
@@ -77,26 +82,18 @@ namespace wyc
 	void CTile::operator()(int x, int y, const Imath::V4f & z, const Imath::V4i &is_inside,
 		const Imath::V4f & w1, const Imath::V4f & w2, const Imath::V4f & w3)
 	{
+		// interpolate vertex attributes
+		if(m_correction)
+			_interp_with_correction(w1, w2, w3);
+		else
+			_interp(w1, w2, w3);
+		// write frame buffer
 		x += center.x;
 		y = m_transform_y - y;
 		Imath::V2i screen_pos[4] = {
-			{x, y}, {x + 1, y},
-			{x, y - 1}, {x + 1, y - 1},
+			{ x, y },{ x + 1, y },
+			{ x, y - 1 },{ x + 1, y - 1 },
 		};
-		// interpolate vertex attributes
-		Imath::V4f z_world;
-		z_world = w1 * m_inv_z0 + w2 * m_inv_z1 + w3 * m_inv_z2;
-		z_world.invert();
-		const float *i0 = m_v0, *i1 = m_v1, *i2 = m_v2;
-		float *out = &m_frag_input[0];
-		for (int j = 0; j < 4; ++j) {
-			for (unsigned i = 0; i < m_stride; ++i, ++out) 
-			{
-				*out = (i0[i] * m_inv_z0 * w1[j] + i1[i] * m_inv_z1 * w2[j] + i2[i] * m_inv_z2 * w3[j]) * z_world[j];
-				//*out = i0[i] * w1[j] + i1[i] * w2[j] + i2[i] * w3[j];
-			}
-		}
-		// write frame buffer
 		auto &depth = m_rt->get_depth_buffer();
 		auto &surf = m_rt->get_color_buffer();
 		for (int i = 0; i < 4; ++i) {
@@ -120,6 +117,33 @@ namespace wyc
 				//unsigned v2 = *surf.get<unsigned>(x, y);
 				//assert(v2 == 0xff000000);
 				surf.set(pos.x, pos.y, v);
+			}
+		}
+	}
+
+	void CTile::_interp(const Imath::V4f & w1, const Imath::V4f & w2, const Imath::V4f & w3)
+	{
+		const float *i0 = m_v0, *i1 = m_v1, *i2 = m_v2;
+		float *out = &m_frag_input[0];
+		for (int j = 0; j < 4; ++j) {
+			for (unsigned i = 0; i < m_stride; ++i, ++out)
+			{
+				*out = i0[i] * w1[j] + i1[i] * w2[j] + i2[i] * w3[j];
+			}
+		}
+	}
+
+	void CTile::_interp_with_correction(const Imath::V4f & w1, const Imath::V4f & w2, const Imath::V4f & w3)
+	{
+		Imath::V4f z_world;
+		z_world = w1 * m_inv_z0 + w2 * m_inv_z1 + w3 * m_inv_z2;
+		z_world.invert();
+		const float *i0 = m_v0, *i1 = m_v1, *i2 = m_v2;
+		float *out = &m_frag_input[0];
+		for (int j = 0; j < 4; ++j) {
+			for (unsigned i = 0; i < m_stride; ++i, ++out)
+			{
+				*out = (i0[i] * m_inv_z0 * w1[j] + i1[i] * m_inv_z1 * w2[j] + i2[i] * m_inv_z2 * w3[j]) * z_world[j];
 			}
 		}
 	}

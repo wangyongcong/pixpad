@@ -4,7 +4,6 @@
 #include "material.h"
 #include "shader_api.h"
 
-
 class CMaterialWireframe : public wyc::CMaterial
 {
 	INPUT_ATTRIBUTE_LIST{
@@ -24,6 +23,7 @@ class CMaterialWireframe : public wyc::CMaterial
 		UNIFORM_SLOT(Imath::C4f, fill_color)
 		UNIFORM_MAP_END
 	};
+
 
 public:
 	CMaterialWireframe()
@@ -46,6 +46,8 @@ public:
 			ptr += half;
 			len = half;
 		}
+
+		m_feature |= wyc::MF_NO_PERSPECTIVE_CORRECTION;
 	}
 
 	struct VertexIn {
@@ -115,10 +117,10 @@ public:
 		s *= sample.size;
 		float t = std::floor(s);
 		auto ll = unsigned(t);
-		if (ll >= sample.size - 1) {
+		auto rr = ll + 1;
+		if (rr >= sample.size) {
 			return sample.data[sample.size - 1];
 		}
-		auto rr = ll + 1;
 		t = s - t;
 		return sample.data[ll] * (1 - t) + sample.data[rr] * t;
 	}
@@ -128,11 +130,13 @@ protected:
 	Imath::C4f line_color;
 	Imath::C4f fill_color;
 	float line_width;
-	std::array<float, 1024> m_sample_data;
+	constexpr static int SAMPLE_LEVEL = 11;
+	constexpr static int TEXTURE_SIZE = 1 << (SAMPLE_LEVEL - 1);
+	std::array<float, TEXTURE_SIZE> m_sample_data;
 	struct SampleData {
 		const float* data;
 		unsigned size;
 	};
-	std::array<SampleData, 11> line_sample;
+	std::array<SampleData, SAMPLE_LEVEL> line_sample;
 };
 

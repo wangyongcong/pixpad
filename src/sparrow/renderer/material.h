@@ -103,6 +103,10 @@ namespace wyc
 		{}
 	};
 
+	enum MATERIAL_FEATURE {
+		MF_NO_PERSPECTIVE_CORRECTION = 1,
+	};
+
 	class CMaterial
 	{
 	public:
@@ -113,6 +117,9 @@ namespace wyc
 		virtual void vertex_shader(const void *vertex_in, void *vertex_out, CShaderContext *ctx = 0) const {};
 		virtual void geometry_shader(void *triangles) const {}
 		virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color, CShaderContext *ctx = 0) const { return false; };
+		unsigned feature() const {
+			return m_feature;
+		}
 		template<typename T>
 		bool set_uniform(const std::string &name, const T &val);
 		template<typename T>
@@ -130,6 +137,7 @@ namespace wyc
 		AttribDefine create_attrib_define() const;
 		// members
 		std::string m_name;
+		unsigned m_feature;
 	};
 
 	typedef std::shared_ptr<CMaterial> material_ptr;

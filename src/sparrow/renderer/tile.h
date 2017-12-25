@@ -35,6 +35,8 @@ namespace wyc
 			const Imath::V4f &w1, const Imath::V4f &w2, const Imath::V4f &w3);
 
 	private:
+		void _interp(const Imath::V4f & w1, const Imath::V4f & w2, const Imath::V4f & w3);
+		void _interp_with_correction(const Imath::V4f & w1, const Imath::V4f & w2, const Imath::V4f & w3);
 		CSpwRenderTarget *m_rt;
 		const CMaterial *m_material;
 		const float *m_v0, *m_v1, *m_v2;
@@ -44,6 +46,7 @@ namespace wyc
 		int m_transform_y;
 		unsigned m_stride;
 		CShaderContext m_ctx;
+		bool m_correction;
 	};
 
 } // namespace wyc
