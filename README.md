@@ -21,6 +21,12 @@ A multi-threading software renderer.
 - Texture mapping
 - MIP-mapping
 - Differential function ddx & ddy in fragment shader. 
+- Wireframe rendering
+
+And other utilities
+- Load assets with format: \*.obj \*.ply
+- Read/Write common image formats
+- Simple interactive GUI
 	
 Roadmap
 ====
@@ -30,13 +36,9 @@ Roadmap
 - deferred shading
 - ray tracer
 - and more...
-### Optimization
-- tile based memory layout
-- SIMD support
-- and more...
 
 Gallery
 ====
 | <img alt="depth test" src="gallery/depth_test.png" width=336 height=189> | <img alt="textured box" src="gallery/textured_box.png" width=336 height=189> |
 | :-----: | :-----: |
-| <img alt="MIP-mapping" src="gallery/mipmap.png" width=336 height=189> |  |
+| <img alt="MIP-mapping" src="gallery/mipmap.png" width=336 height=189> | <img alt="torus" src="gallery/torus.png" width=336 height=189> |
