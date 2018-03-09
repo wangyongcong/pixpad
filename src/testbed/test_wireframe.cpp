@@ -67,4 +67,4 @@ public:
 private:
 };
 
-REGISTER_NEW_TEST(CTestWireframe)
+REGISTER_TEST(CTestWireframe)

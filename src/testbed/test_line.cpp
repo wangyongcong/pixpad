@@ -61,4 +61,4 @@ public:
 	}
 };
 
-REGISTER_NEW_TEST(CTestLine)
+REGISTER_TEST(CTestLine)

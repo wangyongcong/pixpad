@@ -63,4 +63,4 @@ public:
 	}
 };
 
-REGISTER_NEW_TEST(CTestBox)
+REGISTER_TEST(CTestBox)

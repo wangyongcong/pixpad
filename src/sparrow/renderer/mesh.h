@@ -55,9 +55,11 @@ namespace wyc
 			m_vb.set_attribute(attrib.usage, attrib.component);
 		}
 		m_vb.resize(vertex_count);
-		auto out = m_vb.begin();
-		for (auto i = 0u; i < vertex_count; ++i, ++out) {
-			*out = vertices[i];
+		if (vertices) {
+			auto out = m_vb.begin();
+			for (auto i = 0u; i < vertex_count; ++i, ++out) {
+				*out = vertices[i];
+			}
 		}
 	}
 

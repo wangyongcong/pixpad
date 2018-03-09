@@ -31,10 +31,9 @@ And other utilities
 Roadmap
 ====
 ### Features
-- anti-aliasing (SMAA)
+- gamma correction
+- anti-aliasing
 - detailed pipeline metrics
-- deferred shading
-- ray tracer
 - and more...
 
 Gallery

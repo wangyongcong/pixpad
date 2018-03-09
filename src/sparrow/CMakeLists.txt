@@ -57,6 +57,7 @@ set(SRC_RENDERER
 	"renderer/vertex_buffer.h"
 	"renderer/vertex_layout.h"
 	"renderer/shader_api.h"
+	"renderer/shader_api.cpp"
 ) 
 set(SRC_THREAD 
 	# "thread/atomicops.h"

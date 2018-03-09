@@ -41,4 +41,4 @@ public:
 
 	}
 };
-REGISTER_NEW_TEST(CTestTexture)
+REGISTER_TEST(CTestTexture)

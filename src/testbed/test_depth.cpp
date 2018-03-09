@@ -44,4 +44,4 @@ public:
 private:
 };
 
-REGISTER_NEW_TEST(CTestDepth)
+REGISTER_TEST(CTestDepth)

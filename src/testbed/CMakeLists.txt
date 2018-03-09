@@ -17,12 +17,14 @@ set(SRC_TESTBED
 	"test_mipmap.cpp"
 	"test_depth.cpp"
 	"test_wireframe.cpp"
+	"test_lambert.cpp"
 )
 
 set(SRC_MATERIAL
 	"material/mtl_color.h"
 	"material/mtl_diffuse.h"
 	"material/mtl_wireframe.h"
+	"material/mtl_lambert.h"
 )
 
 source_group("common" FILES ${SRC_COMMON})

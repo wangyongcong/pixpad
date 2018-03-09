@@ -158,4 +158,4 @@ public:
 
 	}
 };
-REGISTER_NEW_TEST(CTestMipmap)
+REGISTER_TEST(CTestMipmap)
