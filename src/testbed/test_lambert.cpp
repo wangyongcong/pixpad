@@ -21,7 +21,7 @@ public:
 		Imath::M44f proj_from_world = proj * transform_world;
 		Imath::M44f normal_transform;
 		normal_transform.makeIdentity();
-		Imath::V4f light_pos_w = { 4.f, 0.f, 0.f, 1.f };
+		Imath::V4f light_pos_w = { 4.f, 0.f, 2.f, 1.f };
 		Imath::V4f light_pos_view = transform_world * light_pos_w;
 
 		// setup material

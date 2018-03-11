@@ -56,6 +56,7 @@ public:
 		l.normalize();
 		auto c = l.dot(in->surface_normal);
 		c = std::max(0.0f, c);
+		c = std::pow(c, 1 / 2.2f);
 		frag_color.setValue(c, c, c, 1.0f);
 		return true;
 	}
