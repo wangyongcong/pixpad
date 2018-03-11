@@ -38,7 +38,7 @@ namespace wyc
 		void create_quad(float r);
 		void create_box(float r);
 		void create_uv_box(float r);
-		void create_sphere(float r);
+		void create_sphere(float r, uint8_t smoothness=2);
 
 	private:
 		CVertexBuffer m_vb;

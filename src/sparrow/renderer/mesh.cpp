@@ -468,7 +468,7 @@ namespace wyc
 	}
 
 	// icosphere generation based on the implementation of https://github.com/caosdoar/spheres
-	void CMesh::create_sphere(float r)
+	void CMesh::create_sphere(float r, uint8_t smoothness)
 	{
 		// generate icosahedron
 		const float t = float((1.0 + std::sqrt(5.0)) / 2.0);
@@ -534,9 +534,12 @@ namespace wyc
 		};
 
 		// loop over triangle list, divide each triangle into 4 sub triangles
-		// final triangle count = 20 * (4 ^ loop)
-		constexpr unsigned loop = 2;
-		for (unsigned l = 0; l < loop; ++l)
+		// final triangle count = 20 * (4 ^ smoothness)
+		if (smoothness < 1)
+			smoothness = 1;
+		else if (smoothness > 4)
+			smoothness = 4;
+		for (unsigned l = 0; l < smoothness; ++l)
 		{
 			for (uint32_t i = 2; i < faces.size(); i += 3)
 			{
