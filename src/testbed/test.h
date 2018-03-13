@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "boost/program_options.hpp"
 #include "spw_renderer.h"
+#include "surface.h"
 
 #ifdef testbed_EXPORTS
 #define EXPORT_API extern "C" _declspec(dllexport)
@@ -17,6 +18,11 @@ class CTest
 public:
 	static CTest* new_test() {
 		return nullptr;
+	}
+	CTest()
+		: m_image_w(0)
+		, m_image_h(0)
+	{
 	}
 
 	virtual ~CTest() {
@@ -38,6 +44,7 @@ protected:
 	std::vector<std::string> m_params;
 	std::shared_ptr<wyc::CSpwRenderer> m_renderer;
 	unsigned m_image_w, m_image_h;
+	mutable wyc::CSurface m_ldr_image;
 };
 
 #define REGISTER_TEST(name) CTest* create##name() { return new name(); };

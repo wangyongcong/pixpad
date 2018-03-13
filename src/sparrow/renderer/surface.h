@@ -146,11 +146,10 @@ namespace wyc
 		uint8_t *pline = m_data;
 		for (unsigned y = 0; y < m_row; ++y) {
 			T* iter = (T*)pline;
+			T* end = iter + m_row_len;
 			pline += m_pitch;
-			for (unsigned i = 0; i < m_row_len; ++i) {
-				*iter = val;
-				iter += 1;
-			}
+			while (iter != end)
+				*iter++ = val;
 		}
 	}
 

@@ -12,7 +12,7 @@ namespace wyc
 	{
 	public:
 		CImage();
-		CImage(void *buffer, unsigned width, unsigned height, unsigned pitch);
+		CImage(const void *buffer, unsigned width, unsigned height, unsigned pitch);
 		~CImage();
 		CImage(const CImage&) = delete;
 		CImage& operator = (const CImage&) = delete;

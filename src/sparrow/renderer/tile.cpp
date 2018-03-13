@@ -38,9 +38,8 @@ namespace wyc
 		out_color.g *= out_color.a;
 		out_color.b *= out_color.a;
 		y = m_rt->height() - y - 1;
-		unsigned v = Imath::rgb2packed(out_color);
 		auto &surf = m_rt->get_color_buffer();
-		surf.set(x, y, v);
+		surf.set(x, y, out_color);
 	}
 
 	void CTile::operator() (int x, int y, float z, float w1, float w2, float w3) {
@@ -72,11 +71,8 @@ namespace wyc
 		out_color.r *= out_color.a;
 		out_color.g *= out_color.a;
 		out_color.b *= out_color.a;
-		unsigned v = Imath::rgb2packed(out_color);
 		auto &surf = m_rt->get_color_buffer();
-		//unsigned v2 = *surf.get<unsigned>(x, y);
-		//assert(v2 == 0xff000000);
-		surf.set(x, y, v);
+		surf.set(x, y, out_color);
 	}
 
 	void CTile::operator()(int x, int y, const Imath::V4f & z, const Imath::V4i &is_inside,
@@ -113,10 +109,7 @@ namespace wyc
 				out_color.r *= out_color.a;
 				out_color.g *= out_color.a;
 				out_color.b *= out_color.a;
-				unsigned v = Imath::rgb2packed(out_color);
-				//unsigned v2 = *surf.get<unsigned>(x, y);
-				//assert(v2 == 0xff000000);
-				surf.set(pos.x, pos.y, v);
+				surf.set(pos.x, pos.y, out_color);
 			}
 		}
 	}
@@ -148,20 +141,19 @@ namespace wyc
 		}
 	}
 
-	void CTile::clear(const Imath::C3f &c)
+	void CTile::clear(const Imath::C4f &c)
 	{
 		Imath::Box2i b = bounding;
 		b.min += center;
 		b.max += center;
 		int h = m_rt->height();
-		unsigned v = Imath::rgb2packed(c);
-		unsigned bg = Imath::rgb2packed(Imath::C3f{ 0, 0, 0 });
+		//Imath::C4f bg(0, 0, 0, 1.f);
 		auto &surf = m_rt->get_color_buffer();
 		for (auto y = b.min.y; y < b.max.y; ++y) {
 			for (auto x = b.min.x; x < b.max.x; ++x) {
 				auto ty = h - y - 1;
-				//assert(bg == *surf.get<unsigned>(x, ty));
-				surf.set(x, ty, v);
+				//assert(bg == *surf.get<Imath::C4f>(x, ty));
+				surf.set(x, ty, c);
 			}
 		}
 	}

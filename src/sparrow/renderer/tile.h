@@ -25,7 +25,7 @@ namespace wyc
 			m_inv_z2 = 1 / v2[3];
 		}
 		// clear the tile
-		void clear(const Imath::C3f &c);
+		void clear(const Imath::C4f &c);
 		// plot mode
 		void operator() (int x, int y);
 		// fill mode

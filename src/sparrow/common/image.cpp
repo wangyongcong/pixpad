@@ -20,7 +20,7 @@ namespace wyc
 	{
 	}
 
-	CImage::CImage(void * buffer, unsigned width, unsigned height, unsigned pitch)
+	CImage::CImage(const void * buffer, unsigned width, unsigned height, unsigned pitch)
 	{
 		size_t sz = height * pitch;
 		m_data = new unsigned char[sz];

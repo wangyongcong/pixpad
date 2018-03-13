@@ -37,8 +37,7 @@ namespace wyc
 			return;
 		}
 		CSurface& surf = renderer->m_rt->get_color_buffer();
-		uint32_t v = Imath::rgb2packed(cmd->color);
-		surf.clear(v);
+		surf.clear(cmd->color);
 		if (renderer->m_rt->has_depth()) {
 			CSurface &depth = renderer->m_rt->get_depth_buffer();
 			depth.clear<float>(cmd->clear_z);

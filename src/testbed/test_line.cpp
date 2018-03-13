@@ -15,7 +15,7 @@ public:
 		frag_color.r *= frag_color.a;
 		frag_color.g *= frag_color.a;
 		frag_color.b *= frag_color.a;
-		m_color = Imath::rgb2packed(frag_color);
+		m_color = frag_color;
 	}
 
 	void operator() (int x, int y)
@@ -26,7 +26,7 @@ public:
 
 protected:
 	wyc::CSpwRenderTarget *m_rt;
-	unsigned m_color;
+	Imath::C4f m_color;
 };
 
 class CTestLine : public CTest
