@@ -20,7 +20,7 @@ class CMaterialDiffuse : public wyc::CMaterial
 	};
 
 	UNIFORM_MAP{
-		UNIFORM_SLOT(Imath::M44f, proj_from_world)
+		UNIFORM_SLOT(wyc::mat4f, proj_from_world)
 		UNIFORM_SLOT(wyc::CSampler*, diffuse)
 		UNIFORM_MAP_END
 	};
@@ -35,39 +35,39 @@ public:
 
 	struct VertexIn
 	{
-		const Imath::V3f *pos;
-		const Imath::C4f *color;
-		const Imath::V2f *uv;
+		const wyc::vec3f *pos;
+		const wyc::color4f *color;
+		const wyc::vec2f *uv;
 	};
 
 	struct VertexOut
 	{
-		Imath::V4f pos;
-		Imath::C4f color;
-		Imath::V2f uv;
+		wyc::vec4f pos;
+		wyc::color4f color;
+		wyc::vec2f uv;
 	};
 
 	virtual void vertex_shader(const void *vertex_in, void *vertex_out, wyc::CShaderContext *ctx) const override
 	{
 		auto in = reinterpret_cast<const VertexIn*>(vertex_in);
 		auto out = reinterpret_cast<VertexOut*>(vertex_out);
-		Imath::V4f pos(*in->pos);
+		wyc::vec4f pos(*in->pos);
 		out->pos = proj_from_world * pos;
 		out->color = *in->color;
 		out->uv = *in->uv;
 	}
 
-	virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color, wyc::CShaderContext *ctx) const override
+	virtual bool fragment_shader(const void *frag_in, wyc::color4f &frag_color, wyc::CShaderContext *ctx) const override
 	{
 		auto in = reinterpret_cast<const VertexOut*>(frag_in);
-		Imath::C4f diffuse_color;
+		wyc::color4f diffuse_color;
 		diffuse->sample2d(in->uv, diffuse_color);
 		frag_color = diffuse_color * in->color;
 		return true;
 	}
 
 protected:
-	Imath::M44f proj_from_world;
+	wyc::mat4f proj_from_world;
 	wyc::CSampler *diffuse;
 };
 

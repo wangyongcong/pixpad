@@ -1,13 +1,12 @@
 #include "clipping.h"
-#include "ImathVecAlgo.h"
-#include "floatmath.h"
 #include <cassert>
 #include <algorithm>
+#include <ImathVecAlgo.h>
 
 namespace wyc
 {
 	// Liang-Barsky line clipping algorithm
-	bool clip_line(Imath::V2f &v0, Imath::V2f &v1, const Imath::Box2f &clip_window)
+	bool clip_line(vec2f &v0, vec2f &v1, const box2f &clip_window)
 	{
 		float t1 = 0, t2 = 1.0f;
 		float dx = v1.x - v0.x, dy = v1.y - v0.y;
@@ -49,9 +48,9 @@ namespace wyc
 		return true;
 	}
 
-	void clip_polygon_by_plane(const Imath::V4f &plane, const std::vector<Imath::V3f> &vertices, std::vector<Imath::V3f> &out)
+	void clip_polygon_by_plane(const vec4f &plane, const std::vector<vec3f> &vertices, std::vector<vec3f> &out)
 	{
-		Imath::V3f prev = vertices.back();
+		vec3f prev = vertices.back();
 		float pdot = prev ^ plane;
 		out.reserve(vertices.size() + 1);
 		for (auto &vert : vertices)
@@ -66,11 +65,11 @@ namespace wyc
 		}
 	}
 
-	void clip_polygon(const std::vector<Imath::V4f> &planes, std::vector<Imath::V3f> &vertices)
+	void clip_polygon(const std::vector<vec4f> &planes, std::vector<vec3f> &vertices)
 	{
 		for (auto plane : planes)
 		{
-			std::vector<Imath::V3f> tmp;
+			std::vector<vec3f> tmp;
 			clip_polygon_by_plane(plane, vertices, tmp);
 			vertices = std::move(tmp);
 			if (vertices.empty())
@@ -78,15 +77,15 @@ namespace wyc
 		}
 	}
 
-	void clip_polygon_homo(std::vector<Imath::V4f> &vertices)
+	void clip_polygon_homo(std::vector<vec4f> &vertices)
 	{
-		std::vector<Imath::V4f> out;
+		std::vector<vec4f> out;
 		// clipped by 7 planes may result 7 more vertices at most
 		out.reserve(vertices.size() + 7);
 		// clipped by W=0
 		constexpr float w_epsilon = 0.0001f;
 		float pdot, dot;
-		Imath::V4f prev = vertices.back();
+		vec4f prev = vertices.back();
 		pdot = prev.w - w_epsilon;
 		for (auto &vert : vertices)
 		{

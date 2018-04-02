@@ -9,7 +9,7 @@
 class CSimplePlotter
 {
 public:
-	CSimplePlotter(wyc::CSpwRenderTarget *rt, Imath::C4f frag_color)
+	CSimplePlotter(wyc::CSpwRenderTarget *rt, wyc::color4f frag_color)
 		: m_rt(rt)
 	{
 		frag_color.r *= frag_color.a;
@@ -26,7 +26,7 @@ public:
 
 protected:
 	wyc::CSpwRenderTarget *m_rt;
-	Imath::C4f m_color;
+	wyc::color4f m_color;
 };
 
 class CTestLine : public CTest
@@ -41,9 +41,9 @@ public:
 		auto render_target = std::dynamic_pointer_cast<wyc::CSpwRenderTarget>(m_renderer->get_render_target());
 		CSimplePlotter plotter(render_target.get(), { 0, 1.0f, 0, 1.0f });
 
-		Imath::V2f center = { m_image_w * 0.5f, m_image_h * 0.5f };
-		Imath::V2f beg, end;
-		Imath::Box2f clip_window = { { 0.5f, 0.5f },{ m_image_w - 0.5f, m_image_h - 0.5f } };
+		wyc::vec2f center = { m_image_w * 0.5f, m_image_h * 0.5f };
+		wyc::vec2f beg, end;
+		wyc::box2f clip_window = { { 0.5f, 0.5f },{ m_image_w - 0.5f, m_image_h - 0.5f } };
 		float radius = float(m_image_w + m_image_h);
 		double pi_180 = M_PI / 180.0f;
 		for (int i = 0; i < 360; i += 5)

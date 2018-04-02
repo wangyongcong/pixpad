@@ -77,11 +77,11 @@ const void * CTest::get_color_buf(unsigned & width, unsigned & height, unsigned 
 	// linear space to sRGB space
 	constexpr float gamma = 1 / 2.2f;
 	for (unsigned y = 0; y < height; ++y) {
-		auto iter = (const Imath::C4f*)buffer.get_line(y);
+		auto iter = (const wyc::color4f*)buffer.get_line(y);
 		auto end = iter + width;
 		auto out = (uint32_t*)m_ldr_image.get_line(y);
 		for (; iter != end; ++iter) {
-			Imath::C4f c = {
+			wyc::color4f c = {
 				std::pow(iter->r, gamma),
 				std::pow(iter->g, gamma),
 				std::pow(iter->b, gamma),

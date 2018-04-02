@@ -13,12 +13,12 @@ public:
 		auto mesh = std::make_shared<wyc::CMesh>();
 		mesh->create_uv_box(1);
 		// setup transform
-		Imath::M44f proj;
+		wyc::mat4f proj;
 		wyc::set_perspective(proj, 45, float(m_image_w) / m_image_h, 1, 100);
-		Imath::M44f rx_world, ry_world, transform_world;
+		wyc::mat4f rx_world, ry_world, transform_world;
 		wyc::set_rotate_y(ry_world, wyc::deg2rad(60));
 		wyc::set_rotate_x(rx_world, wyc::deg2rad(30));
-		Imath::M44f proj_from_world;
+		wyc::mat4f proj_from_world;
 		// sampler
 		auto diffuse_img = std::make_shared<wyc::CImage>();
 		if (!diffuse_img->load("res/checkerboard.png")) {

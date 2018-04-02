@@ -1,9 +1,10 @@
-#include <cassert>
 #include "vecmath.h"
+#include <cassert>
+#include <ImathMatrix.h>
 
 namespace wyc
 {
-	void set_orthograph(Imath::M44f &proj, float l, float b, float n, float r, float t, float f)
+	void set_orthograph(mat4f &proj, float l, float b, float n, float r, float t, float f)
 	{
 		proj = {
 			2/(r-l),	0,			0,			(r+l)/(l-r),
@@ -13,7 +14,7 @@ namespace wyc
 		};
 	}
 
-	void set_perspective(Imath::M44f &proj, float fov, float aspect, float n, float f)
+	void set_perspective(mat4f &proj, float fov, float aspect, float n, float f)
 	{
 		n = std::abs(n);
 		f = std::abs(f);
@@ -32,21 +33,21 @@ namespace wyc
 		};
 	}
 
-	void set_translate(Imath::M33f &m, float dx, float dy)
+	void set_translate(mat3f &m, float dx, float dy)
 	{
 		m.makeIdentity();
 		m[0][2] = dx;
 		m[1][2] = dy;
 	}
 
-	void set_scale(Imath::M33f &m, float sx, float sy)
+	void set_scale(mat3f &m, float sx, float sy)
 	{
 		m.makeIdentity();
 		m[0][0] = sx;
 		m[1][1] = sy;
 	}
 
-	void set_rotate(Imath::M33f &m, float radian)
+	void set_rotate(mat3f &m, float radian)
 	{
 		float sina = std::sin(radian);
 		m.makeIdentity();
@@ -55,7 +56,7 @@ namespace wyc
 		m[1][0] =  sina; 
 	}
 
-	void set_translate(Imath::M44f &m, float dx, float dy, float dz)
+	void set_translate(mat4f &m, float dx, float dy, float dz)
 	{
 		m.makeIdentity();
 		m[0][3] = dx;
@@ -63,7 +64,7 @@ namespace wyc
 		m[2][3] = dz;
 	}
 
-	void set_scale(Imath::M44f &m, float sx, float sy, float sz)
+	void set_scale(mat4f &m, float sx, float sy, float sz)
 	{
 		m.makeIdentity();
 		m[0][0] = sx;
@@ -71,7 +72,7 @@ namespace wyc
 		m[2][2] = sz;
 	}
 
-	void set_rotate(Imath::M44f &m, const Imath::V3f &n, float radian)
+	void set_rotate(mat4f &m, const vec3f &n, float radian)
 	{
 		float sina = std::sin(radian);
 		float cosa = std::cos(radian);
@@ -84,7 +85,7 @@ namespace wyc
 		};
 	}
 
-	void set_rotate_x(Imath::M44f &m, float radian)
+	void set_rotate_x(mat4f &m, float radian)
 	{
 		float sina = std::sin(radian);
 		m.makeIdentity();
@@ -93,7 +94,7 @@ namespace wyc
 		m[2][1] =  sina;
 	}
 
-	void set_rotate_y(Imath::M44f &m, float radian)
+	void set_rotate_y(mat4f &m, float radian)
 	{
 		float sina = std::sin(radian);
 		m.makeIdentity();
@@ -102,7 +103,7 @@ namespace wyc
 		m[2][0] = -sina;
 	}
 
-	void set_rotate_z(Imath::M44f &m, float radian)
+	void set_rotate_z(mat4f &m, float radian)
 	{
 		float sina = std::sin(radian);
 		m.makeIdentity();

@@ -16,8 +16,8 @@ class CMaterialColor : public wyc::CMaterial
 	};
 
 	UNIFORM_MAP{
-		UNIFORM_SLOT(Imath::M44f, proj_from_world)
-		UNIFORM_SLOT(Imath::C4f, color)
+		UNIFORM_SLOT(wyc::mat4f, proj_from_world)
+		UNIFORM_SLOT(wyc::color4f, color)
 		UNIFORM_MAP_END
 	};
 
@@ -30,11 +30,11 @@ public:
 	}
 		
 	struct VertexIn {
-		const Imath::V3f *pos;
+		const wyc::vec3f *pos;
 	};
 
 	struct VertexOut {
-		Imath::V4f pos;
+		wyc::vec4f pos;
 	};
 
 	// shader interface
@@ -42,18 +42,18 @@ public:
 	{
 		const VertexIn* in = reinterpret_cast<const VertexIn*>(vertex_in);
 		VertexOut* out = reinterpret_cast<VertexOut*>(vertex_out);
-		Imath::V4f pos(*in->pos);
+		wyc::vec4f pos(*in->pos);
 		out->pos = proj_from_world * pos;
 	}
 
-	virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color, wyc::CShaderContext *ctx) const override
+	virtual bool fragment_shader(const void *frag_in, wyc::color4f &frag_color, wyc::CShaderContext *ctx) const override
 	{
 		frag_color = color;
 		return true;
 	}
 
 protected:
-	Imath::M44f proj_from_world;
-	Imath::C4f color;
+	wyc::mat4f proj_from_world;
+	wyc::color4f color;
 };
 

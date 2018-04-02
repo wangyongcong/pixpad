@@ -68,33 +68,30 @@ namespace wyc
 	// return positive value if counter-clockwise, 
 	// negative value for clockwise, 
 	// 0 for degenerated triangle (v0, v1, v2 are collinear)
-	template<typename T, typename Position>
-	inline T triangle_edge_function(const Position &v0, const Position &v1, const Position &v2)
+	inline float triangle_edge_function(const vec2f &v0, const vec2f &v1, const vec2f &v2)
 	{
 		return (v1.x - v0.x) * (v2.y - v0.y) - (v1.y - v0.y) * (v2.x - v0.x);
 	}
 
-	template<typename T, typename Position>
-	bool is_inside_triangle(const Position &p, const Position &v0, const Position &v1, const Position &v2)
+	inline bool is_inside_triangle(const vec2f &p, const vec2f &v0, const vec2f &v1, const vec2f &v2)
 	{
-		T edge01 = triangle_edge_function(v0, v1, p);
-		T edge12 = triangle_edge_function(v1, v2, p);
-		T edge20 = triangle_edge_function(v2, v0, p);
+		float edge01 = triangle_edge_function(v0, v1, p);
+		float edge12 = triangle_edge_function(v1, v2, p);
+		float edge20 = triangle_edge_function(v2, v0, p);
 		return edge01 >= 0 && edge12 >= 0 && edge20 >= 0;
 	}
 
-	template<typename T>
-	Imath::Vec3<T> barycentric_coord(const Imath::Vec2<T> &p, Imath::Vec2<T> &v0, const Imath::Vec2<T> &v1, const Imath::Vec2<T> &v2)
+	inline vec3f barycentric_coord(const vec2f &p, const vec2f &v0, const vec2f &v1, const vec2f &v2)
 	{
-		T x = triangle_edge_function(v1, v2, p);
-		T y = triangle_edge_function(v2, v0, p);
-		T z = triangle_edge_function(v0, v1, p);
-		T area = x + y + z;
+		float x = triangle_edge_function(v1, v2, p);
+		float y = triangle_edge_function(v2, v0, p);
+		float z = triangle_edge_function(v0, v1, p);
+		float area = x + y + z;
 #ifdef _DEBUG
-		if (area == T(0))
+		if (area == float(0))
 			throw Imath::NullVecExc("Null barycentric vector.");
 #endif			
-		return Imath::Vec3<T>(x / area, y / area, z / area);
+		return vec3f(x / area, y / area, z / area);
 	}
 
 	template<typename Position>
@@ -107,12 +104,12 @@ namespace wyc
 	}
 
 	template<uint16 N, typename Position>
-	inline Imath::V2i snap_to_subpixel(const Position &v)
+	inline vec2i snap_to_subpixel(const Position &v)
 	{
-		return Imath::V2i(fast_to_fixed<N>(v.x), fast_to_fixed<N>(v.y));
+		return vec2i(fast_to_fixed<N>(v.x), fast_to_fixed<N>(v.y));
 	}
 
-	inline int64_t edge_function_fixed(const Imath::V2i &v0, const Imath::V2i &v1, const Imath::V2i &v2)
+	inline int64_t edge_function_fixed(const vec2i &v0, const vec2i &v1, const vec2i &v2)
 	{
 		return int64_t(v1.x - v0.x) * int64_t(v2.y - v0.y) - int64_t(v1.y - v0.y) * int64_t(v2.x - v0.x);
 	}
@@ -131,7 +128,7 @@ namespace wyc
 	// plot: functor with following declaration 
 	//   void plot(int x, int y, float z, t0, t1, t2)
 	template<typename Vector, typename Plotter>
-	void fill_triangle(const Imath::Box<Imath::V2i> &block, const Vector &pos0, const Vector &pos1, const Vector &pos2, Plotter &plot)
+	void fill_triangle(const box2i &block, const Vector &pos0, const Vector &pos1, const Vector &pos2, Plotter &plot)
 	{
 		// 11.8 sub pixel precision
 		// max render target is 2048 x 2048
@@ -143,13 +140,13 @@ namespace wyc
 		ASSERT_INSIDE(pos2, 1024);
 		
 		// snap to .8 sub pixel
-		Imath::V2i v0 = snap_to_subpixel<8>(pos0);
-		Imath::V2i v1 = snap_to_subpixel<8>(pos1);
-		Imath::V2i v2 = snap_to_subpixel<8>(pos2);
+		vec2i v0 = snap_to_subpixel<8>(pos0);
+		vec2i v1 = snap_to_subpixel<8>(pos1);
+		vec2i v2 = snap_to_subpixel<8>(pos2);
 
 		// initial edge function with high precision
 		// sample point is at pixel center
-		Imath::V2i p = block.min;
+		vec2i p = block.min;
 		p.x = (p.x << 8) | 0x80;
 		p.y = (p.y << 8) | 0x80;
 		int64_t hp_w0 = edge_function_fixed(v1, v2, p);
@@ -217,7 +214,7 @@ namespace wyc
 }
 
 	template<typename Vector, typename Plotter>
-	void fill_triangle_quad(const Imath::Box<Imath::V2i> &block, const Vector &pos0, const Vector &pos1, const Vector &pos2, Plotter &plot)
+	void fill_triangle_quad(const box2i &block, const Vector &pos0, const Vector &pos1, const Vector &pos2, Plotter &plot)
 	{
 		// 11.8 sub pixel precision
 		// max render target is 2048 x 2048
@@ -233,13 +230,13 @@ namespace wyc
 		assert((block.max.x - block.min.x) % 2 == 0 && (block.max.y - block.min.y) % 2 == 0);
 
 		// snap to .8 sub pixel
-		Imath::V2i v0 = snap_to_subpixel<8>(pos0);
-		Imath::V2i v1 = snap_to_subpixel<8>(pos1);
-		Imath::V2i v2 = snap_to_subpixel<8>(pos2);
+		vec2i v0 = snap_to_subpixel<8>(pos0);
+		vec2i v1 = snap_to_subpixel<8>(pos1);
+		vec2i v2 = snap_to_subpixel<8>(pos2);
 
 		// initial edge function with high precision
 		// sample point is at pixel center
-		Imath::V2i p = block.min;
+		vec2i p = block.min;
 		p.x = (p.x << 8) | 0x80;
 		p.y = (p.y << 8) | 0x80;
 		int64_t hp_w0 = edge_function_fixed(v1, v2, p);
@@ -257,7 +254,7 @@ namespace wyc
 		int bias_v20 = is_top_left(v2, v0) ? 0 : -1;
 
 		// edge function increment
-		Imath::V4i row_w0, row_w1, row_w2;
+		vec4i row_w0, row_w1, row_w2;
 
 		row_w0.x = int(hp_w0 >> 8) + bias_v12;
 		row_w0.y = row_w0.x + edge_a12;
@@ -287,9 +284,9 @@ namespace wyc
 		float fw2 = float(hp_w2 & 0xFF) / 255;
 
 		//int w0, w1, w2;
-		Imath::V4i w0, w1, w2, flag;
+		vec4i w0, w1, w2, flag;
 		//float t_sum, t0, t1, t2;
-		Imath::V4f t_sum, t0, t1, t2;
+		vec4f t_sum, t0, t1, t2;
 		
 		for (int y = block.min.y; y < block.max.y; y += 2)
 		{

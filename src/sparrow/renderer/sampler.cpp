@@ -4,7 +4,7 @@
 
 namespace wyc
 {
-	Imath::C4f bilinear_filter(const CImage *image, const Imath::V2f &uv)
+	color4f bilinear_filter(const CImage *image, const vec2f &uv)
 	{
 		float u, v, s, t;
 		auto img_w = image->width();
@@ -23,7 +23,7 @@ namespace wyc
 		x1 = (x0 + 1) % img_w;
 		y1 = (y0 + 1) % img_h;
 
-		Imath::C4f c1, c2, c3, c4;
+		color4f c1, c2, c3, c4;
 		c1 = image->get_color(x0, y0);
 		c2 = image->get_color(x1, y0);
 		c3 = image->get_color(x1, y1);
@@ -36,7 +36,7 @@ namespace wyc
 		c2 *= u * t;
 		c3 *= u * v;
 		c4 *= s * v;
-		return Imath::C4f{ c1 + c2 + c3 + c4 };
+		return color4f{ c1 + c2 + c3 + c4 };
 	}
 
 	CSpwSampler::CSpwSampler(const CImage *image)
@@ -48,12 +48,12 @@ namespace wyc
 	{
 	}
 
-	void CSpwSampler::sample2d(const Imath::V2f & uv, Imath::C4f & color)
+	void CSpwSampler::sample2d(const vec2f & uv, color4f & color)
 	{
 		color = bilinear_filter(m_image, uv);
 	}
 
-	void CSpwSampler::sample2d(const Imath::V2f & uv, uint8_t level, Imath::C4f & color)
+	void CSpwSampler::sample2d(const vec2f & uv, uint8_t level, color4f & color)
 	{
 		color = bilinear_filter(m_image, uv);
 	}
@@ -68,12 +68,12 @@ namespace wyc
 	{
 	}
 
-	void CSpwMipmapSampler::sample2d(const Imath::V2f & uv, Imath::C4f & color)
+	void CSpwMipmapSampler::sample2d(const vec2f & uv, color4f & color)
 	{
 		color = bilinear_filter(m_images[0].get(), uv);
 	}
 
-	void CSpwMipmapSampler::sample2d(const Imath::V2f & uv, uint8_t level, Imath::C4f & color)
+	void CSpwMipmapSampler::sample2d(const vec2f & uv, uint8_t level, color4f & color)
 	{
 		level = std::min<uint8_t>(level, uint8_t(m_images.size()) - 1);
 		color = bilinear_filter(m_images[level].get(), uv);

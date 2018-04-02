@@ -9,9 +9,9 @@ void create_floor(wyc::CMesh* mesh, float r, float w=1)
 {
 	using namespace wyc;
 	struct Vertex {
-		Imath::V3f pos;
-		Imath::V4f color;
-		Imath::V2f uv;
+		wyc::vec3f pos;
+		wyc::vec4f color;
+		wyc::vec2f uv;
 	};
 	VertexAttrib attrib_array[] = {
 		{ATTR_POSITION, 3, offsetof(Vertex, pos)},
@@ -64,7 +64,7 @@ bool generate_mipmap(const std::string &image_file)
 class CMaterialDiffuseMipmap : public CMaterialDiffuse
 {
 	UNIFORM_MAP{
-		UNIFORM_SLOT(Imath::M44f, proj_from_world)
+		UNIFORM_SLOT(wyc::mat4f, proj_from_world)
 		UNIFORM_SLOT(wyc::CSampler*, diffuse)
 		UNIFORM_SLOT(unsigned, texture_size)
 		UNIFORM_MAP_END
@@ -77,10 +77,10 @@ public:
 	{
 	}
 
-	virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color, wyc::CShaderContext *ctx) const override
+	virtual bool fragment_shader(const void *frag_in, wyc::color4f &frag_color, wyc::CShaderContext *ctx) const override
 	{
 		auto in = reinterpret_cast<const VertexOut*>(frag_in);
-		Imath::C4f diffuse_color;
+		wyc::color4f diffuse_color;
 		auto duvdx = ctx->ddx(&VertexOut::uv);
 		auto duvdy = ctx->ddy(&VertexOut::uv);
 		float r1 = std::sqrtf(duvdx ^ duvdx);
@@ -95,7 +95,7 @@ public:
 			e -= 127;
 			int m = j.i & 0x7fffff;
 			float f = float(m) / (1 << 23);
-			Imath::C4f c1, c2;
+			wyc::color4f c1, c2;
 			diffuse->sample2d(in->uv, e, c1);
 			diffuse->sample2d(in->uv, e-1, c2);
 			diffuse_color = c1 * f + c2 * (1 - f);
@@ -120,13 +120,13 @@ public:
 		create_floor(mesh.get(), 16, 32);
 
 		// setup transform
-		Imath::M44f proj;
+		wyc::mat4f proj;
 		wyc::set_perspective(proj, 45, float(m_image_w) / m_image_h, 1, 1000);
-		Imath::M44f rx_world, ry_world, transform_world;
+		wyc::mat4f rx_world, ry_world, transform_world;
 		wyc::set_rotate_x(rx_world, wyc::deg2rad(4));
 		wyc::set_rotate_y(ry_world, wyc::deg2rad(16));
 		wyc::set_translate(transform_world, 0, -0.2f, -10);
-		Imath::M44f proj_from_world;
+		wyc::mat4f proj_from_world;
 		proj_from_world = proj * transform_world * rx_world * ry_world;
 
 		// setup material

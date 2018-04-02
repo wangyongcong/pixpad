@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
-#include "ImathMatrix.h"
+#include <ImathMatrix.h>
+#include "vecmath.h"
 #include "material.h"
 #include "shader_api.h"
 
@@ -18,9 +19,9 @@ class CMaterialWireframe : public wyc::CMaterial
 	};
 
 	UNIFORM_MAP{
-		UNIFORM_SLOT(Imath::M44f, proj_from_world)
-		UNIFORM_SLOT(Imath::C4f, line_color)
-		UNIFORM_SLOT(Imath::C4f, fill_color)
+		UNIFORM_SLOT(wyc::mat4f, proj_from_world)
+		UNIFORM_SLOT(wyc::color4f, line_color)
+		UNIFORM_SLOT(wyc::color4f, fill_color)
 		UNIFORM_MAP_END
 	};
 
@@ -51,11 +52,11 @@ public:
 	}
 
 	struct VertexIn {
-		const Imath::V3f *pos;
+		const wyc::vec3f *pos;
 	};
 
 	struct VertexOut {
-		Imath::V4f pos;
+		wyc::vec4f pos;
 	};
 
 	// shader interface
@@ -63,15 +64,15 @@ public:
 	{
 		const VertexIn* in = reinterpret_cast<const VertexIn*>(vertex_in);
 		VertexOut* out = reinterpret_cast<VertexOut*>(vertex_out);
-		Imath::V4f pos(*in->pos);
+		wyc::vec4f pos(*in->pos);
 		out->pos = proj_from_world * pos;
 	}
 
 	virtual void geometry_shader(void *triangles) const override
 	{
 		struct Vertex {
-			Imath::V4f pos;
-			Imath::V3f uv;
+			wyc::vec4f pos;
+			wyc::vec3f uv;
 		};
 		auto verts = reinterpret_cast<Vertex*>(triangles);
 		verts[0].uv.setValue(0.0f, 1.0f, 1.0f);
@@ -79,11 +80,11 @@ public:
 		verts[2].uv.setValue(1.0f, 1.0f, 0.0f);
 	}
 
-	virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color, wyc::CShaderContext *ctx) const override
+	virtual bool fragment_shader(const void *frag_in, wyc::color4f &frag_color, wyc::CShaderContext *ctx) const override
 	{
 		struct Vertex {
-			Imath::V4f pos;
-			Imath::V3f uv;
+			wyc::vec4f pos;
+			wyc::vec3f uv;
 		};
 		auto in = reinterpret_cast<const Vertex*>(frag_in);
 		auto du_dx = ctx->ddx(&Vertex::uv);
@@ -126,9 +127,9 @@ public:
 	}
 
 protected:
-	Imath::M44f proj_from_world;
-	Imath::C4f line_color;
-	Imath::C4f fill_color;
+	wyc::mat4f proj_from_world;
+	wyc::color4f line_color;
+	wyc::color4f fill_color;
 	float line_width;
 	constexpr static int SAMPLE_LEVEL = 11;
 	constexpr static int TEXTURE_SIZE = 1 << (SAMPLE_LEVEL - 1);

@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <ImathColorAlgo.h>
+#include "vecmath.h"
 
 namespace wyc
 {
@@ -29,9 +30,9 @@ namespace wyc
 		inline unsigned height() const {
 			return m_height;
 		}
-		inline Imath::C4f get_color(int x, int y) const {
+		inline color4f get_color(int x, int y) const {
 			assert(x < int(m_width) && y < int(m_height));
-			Imath::C4f color;
+			color4f color;
 			auto row = reinterpret_cast<uint32_t*>(m_data + y * m_pitch);
 			Imath::packed2rgb(row[x], color);
 			return color;
@@ -42,7 +43,7 @@ namespace wyc
 		// create empty image
 		void create_empty(unsigned width, unsigned height);
 		// create checker board pattern image
-		void create_checkerboard(unsigned size, const Imath::C3f &color1, const Imath::C3f &color2);
+		void create_checkerboard(unsigned size, const color3f &color1, const color3f &color2);
 		// create mipmap chain
 		static bool generate_mipmap(std::vector<std::shared_ptr<CImage>> &image_chain);
 	private:

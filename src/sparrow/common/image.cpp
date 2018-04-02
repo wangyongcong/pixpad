@@ -154,7 +154,7 @@ namespace wyc
 		m_pitch = pitch;
 	}
 
-	void CImage::create_checkerboard(unsigned size, const Imath::C3f &color1, const Imath::C3f &color2)
+	void CImage::create_checkerboard(unsigned size, const color3f &color1, const color3f &color2)
 	{
 		clear();
 		size = wyc::next_power2(size);

@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <memory>
 #include <ImathMatrix.h>
+#include "vecmath.h"
 #include "vertex_buffer.h"
 #include "vertex_layout.h"
 #include "log.h"
@@ -116,7 +117,7 @@ namespace wyc
 		virtual ~CMaterial();
 		virtual void vertex_shader(const void *vertex_in, void *vertex_out, CShaderContext *ctx = 0) const {};
 		virtual void geometry_shader(void *triangles) const {}
-		virtual bool fragment_shader(const void *frag_in, Imath::C4f &frag_color, CShaderContext *ctx = 0) const { return false; };
+		virtual bool fragment_shader(const void *frag_in, color4f &frag_color, CShaderContext *ctx = 0) const { return false; };
 		unsigned feature() const {
 			return m_feature;
 		}

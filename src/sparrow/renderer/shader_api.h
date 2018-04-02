@@ -1,6 +1,6 @@
 #pragma once
 #include <algorithm>
-#include <ImathForward.h>
+#include "vecmath.h"
 
 namespace wyc
 {
@@ -32,7 +32,7 @@ namespace wyc
 	}
 
 	template<>
-	inline Imath::V3f safe_divide<Imath::V3f>(const Imath::V3f &v1, const Imath::V3f &v2) {
+	inline vec3f safe_divide<vec3f>(const vec3f &v1, const vec3f &v2) {
 		return{ 
 			v2.x != 0 ? v1.x / v2.x : 0, 
 			v2.y != 0 ? v1.y / v2.y : 0,
@@ -41,7 +41,7 @@ namespace wyc
 	}
 
 	template<>
-	inline Imath::V4f safe_divide<Imath::V4f>(const Imath::V4f &v1, const Imath::V4f &v2) {
+	inline vec4f safe_divide<vec4f>(const vec4f &v1, const vec4f &v2) {
 		return{
 			v2.x != 0 ? v1.x / v2.x : 0,
 			v2.y != 0 ? v1.y / v2.y : 0,

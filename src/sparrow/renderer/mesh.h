@@ -5,6 +5,7 @@
 #include <array>
 #include <initializer_list>
 #include <ImathMatrix.h>
+#include "vecmath.h"
 #include "vertex_buffer.h"
 #include "vertex_layout.h"
 #include "index_buffer.h"
@@ -43,7 +44,7 @@ namespace wyc
 	private:
 		CVertexBuffer m_vb;
 		CIndexBuffer m_ib;
-		Imath::M44f m_transform;
+		mat4f m_transform;
 	};
 
 	template<typename Vertex>

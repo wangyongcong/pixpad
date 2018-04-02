@@ -2,7 +2,7 @@
 
 namespace wyc
 {
-	CTile::CTile(CSpwRenderTarget *rt, Imath::Box2i &b, Imath::V2i &c)
+	CTile::CTile(CSpwRenderTarget *rt, box2i &b, vec2i &c)
 		: bounding(b)
 		, center(c)
 		, m_rt(rt)
@@ -31,7 +31,7 @@ namespace wyc
 	}
 
 	void CTile::operator() (int x, int y) {
-		Imath::C4f out_color;
+		color4f out_color;
 		if (!m_material->fragment_shader(m_frag_input.data(), out_color))
 			return;
 		out_color.r *= out_color.a;
@@ -64,7 +64,7 @@ namespace wyc
 			i2 += 1;
 		}
 		// write render target
-		Imath::C4f out_color;
+		color4f out_color;
 		if (!m_material->fragment_shader(m_frag_input.data(), out_color))
 			return;
 		// write fragment buffer
@@ -75,8 +75,8 @@ namespace wyc
 		surf.set(x, y, out_color);
 	}
 
-	void CTile::operator()(int x, int y, const Imath::V4f & z, const Imath::V4i &is_inside,
-		const Imath::V4f & w1, const Imath::V4f & w2, const Imath::V4f & w3)
+	void CTile::operator()(int x, int y, const vec4f & z, const vec4i &is_inside,
+		const vec4f & w1, const vec4f & w2, const vec4f & w3)
 	{
 		// interpolate vertex attributes
 		if(m_correction)
@@ -86,7 +86,7 @@ namespace wyc
 		// write frame buffer
 		x += center.x;
 		y = m_transform_y - y;
-		Imath::V2i screen_pos[4] = {
+		vec2i screen_pos[4] = {
 			{ x, y },{ x + 1, y },
 			{ x, y - 1 },{ x + 1, y - 1 },
 		};
@@ -101,7 +101,7 @@ namespace wyc
 					continue;
 				depth.set(pos.x, pos.y, z[i]);
 				// write render target
-				Imath::C4f out_color;
+				color4f out_color;
 				// #3 fragment shader
 				if (!m_material->fragment_shader(m_frag_interp[i], out_color, &m_ctx))
 					continue;
@@ -114,7 +114,7 @@ namespace wyc
 		}
 	}
 
-	void CTile::_interp(const Imath::V4f & w1, const Imath::V4f & w2, const Imath::V4f & w3)
+	void CTile::_interp(const vec4f & w1, const vec4f & w2, const vec4f & w3)
 	{
 		const float *i0 = m_v0, *i1 = m_v1, *i2 = m_v2;
 		float *out = &m_frag_input[0];
@@ -126,9 +126,9 @@ namespace wyc
 		}
 	}
 
-	void CTile::_interp_with_correction(const Imath::V4f & w1, const Imath::V4f & w2, const Imath::V4f & w3)
+	void CTile::_interp_with_correction(const vec4f & w1, const vec4f & w2, const vec4f & w3)
 	{
-		Imath::V4f z_world;
+		vec4f z_world;
 		z_world = w1 * m_inv_z0 + w2 * m_inv_z1 + w3 * m_inv_z2;
 		z_world.invert();
 		const float *i0 = m_v0, *i1 = m_v1, *i2 = m_v2;
@@ -141,18 +141,18 @@ namespace wyc
 		}
 	}
 
-	void CTile::clear(const Imath::C4f &c)
+	void CTile::clear(const color4f &c)
 	{
-		Imath::Box2i b = bounding;
+		box2i b = bounding;
 		b.min += center;
 		b.max += center;
 		int h = m_rt->height();
-		//Imath::C4f bg(0, 0, 0, 1.f);
+		//color4f bg(0, 0, 0, 1.f);
 		auto &surf = m_rt->get_color_buffer();
 		for (auto y = b.min.y; y < b.max.y; ++y) {
 			for (auto x = b.min.x; x < b.max.x; ++x) {
 				auto ty = h - y - 1;
-				//assert(bg == *surf.get<Imath::C4f>(x, ty));
+				//assert(bg == *surf.get<color4f>(x, ty));
 				surf.set(x, ty, c);
 			}
 		}

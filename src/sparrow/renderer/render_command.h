@@ -93,7 +93,7 @@ namespace wyc
 	{
 		CMD_TID(CMD_CLEAR);
 		unsigned type = 0;
-		Imath::C4f color = { 0, 0, 0, 1.f };
+		color4f color = { 0, 0, 0, 1.f };
 		float clear_z = 1;
 	};
 

@@ -22,6 +22,7 @@ A multi-threading software renderer.
 - MIP-mapping
 - Differential function ddx & ddy in fragment shader. 
 - Wireframe rendering
+- gamma correction
 
 And other utilities
 - Load assets with format: \*.obj \*.ply
@@ -31,7 +32,6 @@ And other utilities
 Roadmap
 ====
 ### Features
-- gamma correction
 - anti-aliasing
 - detailed pipeline metrics
 - and more...

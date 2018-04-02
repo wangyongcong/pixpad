@@ -1,14 +1,11 @@
 #include "mesh.h"
-
 #include <cassert>
 #include <fstream>
 #include <unordered_map>
 #include <vector>
 #include <sstream>
-#include <ImathVec.h>
 #include "log.h"
 #include "util.h"
-#include "vertex_buffer.h"
 #include "ply.h"
 
 namespace wyc
@@ -37,17 +34,17 @@ namespace wyc
 		size_t line_no = 0;
 		std::stringstream ss;
 		std::unordered_map<std::string, std::string> mtl_lib;
-		std::vector<Imath::V3f> vertices;
-		std::vector<Imath::V2f> texcoords;
-		std::vector<Imath::V3f> normals;
-		std::vector<Imath::V3f> parameter;
-		std::vector<Imath::V3i> faces;
+		std::vector<vec3f> vertices;
+		std::vector<vec2f> texcoords;
+		std::vector<vec3f> normals;
+		std::vector<vec3f> parameter;
+		std::vector<vec3i> faces;
 		std::string name;
 		constexpr int null_index = std::numeric_limits<int>::max();
 		int err = 0;
 
-		auto read_vector3 = [&ss](std::vector<Imath::V3f> &pool) {
-			Imath::V3f vec = { 0, 0, 0 };
+		auto read_vector3 = [&ss](std::vector<vec3f> &pool) {
+			vec3f vec = { 0, 0, 0 };
 			int i = 0;
 			while (ss && i < 3)
 			{
@@ -56,8 +53,8 @@ namespace wyc
 			pool.push_back(vec);
 		};
 
-		auto read_vector2 = [&ss](std::vector<Imath::V2f> &pool) {
-			Imath::V2f vec = { 0, 0 };
+		auto read_vector2 = [&ss](std::vector<vec2f> &pool) {
+			vec2f vec = { 0, 0 };
 			int i = 0;
 			while (ss && i < 2)
 			{
@@ -75,7 +72,7 @@ namespace wyc
 				++vert_cnt;
 				tmp.str(token);
 				tmp.clear();
-				Imath::V3i vi = { null_index, null_index, null_index };
+				vec3i vi = { null_index, null_index, null_index };
 				for (int i = 0; std::getline(tmp, str, '/') && i < 3; ++i)
 				{
 					if (!str.empty())
@@ -247,7 +244,7 @@ namespace wyc
 		auto uv = m_vb.get_attribute(ATTR_UV0).begin();
 		auto normal = m_vb.get_attribute(ATTR_NORMAL).begin();
 		int i = 0;
-		for (const Imath::V3i &index : faces)
+		for (const vec3i &index : faces)
 		{
 			if (index.x <= 0)
 				i = index.x + vertices.size();
@@ -299,7 +296,7 @@ namespace wyc
 		auto stride = m_vb.vertex_component();
 		ply.read_vertex(m_vb.get_buffer(), vertex_count, "x,y,z", m_vb.vertex_size());
 		assert(m_vb.size() == vertex_count);
-		auto v = (Imath::V3f*)m_vb.get_buffer();
+		auto v = (vec3f*)m_vb.get_buffer();
 		unsigned indices_count = 0;
 		if (!ply.read_face(nullptr, indices_count)) {
 			m_vb.clear();
@@ -321,8 +318,8 @@ namespace wyc
 	void CMesh::create_triangle(float r)
 	{
 		struct Vertex {
-			Imath::V3f pos;
-			Imath::C3f color;
+			vec3f pos;
+			color3f color;
 		};
 		VertexAttrib attrib_array[] = {
 			{ATTR_POSITION, 3, offsetof(Vertex, pos)},
@@ -349,8 +346,8 @@ namespace wyc
 	void CMesh::create_quad(float r)
 	{
 		struct Vertex {
-			Imath::V3f pos;
-			Imath::C3f color;
+			vec3f pos;
+			color3f color;
 		};
 		VertexAttrib attrib_array[] = {
 			{ ATTR_POSITION, 3, offsetof(Vertex, pos) },
@@ -388,8 +385,8 @@ namespace wyc
 	void CMesh::create_box(float r)
 	{
 		struct Vertex {
-			Imath::V3f pos;
-			Imath::C3f color;
+			vec3f pos;
+			color3f color;
 		};
 		VertexAttrib attrib_array[] = {
 			{ ATTR_POSITION, 3, offsetof(Vertex, pos) },
@@ -428,9 +425,9 @@ namespace wyc
 	void CMesh::create_uv_box(float r)
 	{
 		struct Vertex {
-			Imath::V3f pos;
-			Imath::C4f color;
-			Imath::V2f uv;
+			vec3f pos;
+			color4f color;
+			vec2f uv;
 		};
 		VertexAttrib attrib_array[] = {
 			{ATTR_POSITION, 3, offsetof(Vertex, pos)},
@@ -472,7 +469,7 @@ namespace wyc
 	{
 		// generate icosahedron
 		const float t = float((1.0 + std::sqrt(5.0)) / 2.0);
-		std::vector<Imath::V3f> vertices = {
+		std::vector<vec3f> vertices = {
 			{ -1.0f,  t, 0.0f },
 			{  1.0f,  t, 0.0f },
 			{ -1.0f, -t, 0.0f },
@@ -562,8 +559,8 @@ namespace wyc
 
 		// build vertex buffer
 		struct Vertex {
-			Imath::V3f pos;
-			Imath::V3f normal;
+			vec3f pos;
+			vec3f normal;
 		};
 		VertexAttrib attrib_array[] = {
 			{ ATTR_POSITION, 3, offsetof(Vertex, pos) },

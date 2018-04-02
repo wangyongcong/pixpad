@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
-#include <ImathVec.h>
 #include <ImathBox.h>
+#include "vecmath.h"
 #include "floatmath.h"
 
 namespace wyc
@@ -10,9 +10,9 @@ namespace wyc
 	// point: a point on the plane
 	// normal: the plane normal
 	// we can calculate the signed distance between a point C to the plane efficiently: d = dot(C, plane)
-	inline Imath::V4f plane(const Imath::V3f &point, const Imath::V3f &normal)
+	inline vec4f plane(const vec3f &point, const vec3f &normal)
 	{
-		return Imath::V4f(normal.x, normal.y, normal.z, -point.dot(normal));
+		return vec4f(normal.x, normal.y, normal.z, -point.dot(normal));
 	}
 
 	template<class Vec>
@@ -31,10 +31,10 @@ namespace wyc
 	// Clip polygon by planes
 	// planes: planes used to clip the polygon
 	// vertices: vertices of the polygon, when return, it will contain the result
-	void clip_polygon(const std::vector<Imath::V4f> &planes, std::vector<Imath::V3f> &vertices);
+	void clip_polygon(const std::vector<vec4f> &planes, std::vector<vec3f> &vertices);
 
 	// Clip polygon in homogeneous clipping space
-	void clip_polygon_homo(std::vector<Imath::V4f> &vertices);
+	void clip_polygon_homo(std::vector<vec4f> &vertices);
 
 	// Clip polygon in homogeneous clipping space
 	// the polygon is treated as float stream
@@ -57,5 +57,5 @@ namespace wyc
 	// stride: vertex stride in float component
 	void clip_polygon_stream(std::vector<float> &vertices, std::vector<unsigned> &indices_in, std::vector<unsigned> &indices_out, unsigned stride);
 
-	bool clip_line(Imath::V2f &v0, Imath::V2f &v1, const Imath::Box2f &clip_window);
+	bool clip_line(vec2f &v0, vec2f &v1, const box2f &clip_window);
 } // namespace wyc

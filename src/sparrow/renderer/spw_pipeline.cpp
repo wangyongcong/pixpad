@@ -65,11 +65,11 @@ namespace wyc
 		constexpr int MASK_TILW_W = SPW_TILE_W - 1, MASK_TILE_H = SPW_TILE_H - 1;
 		int tile_x = (surfw + MASK_TILW_W) / SPW_TILE_W, tile_y = (surfh + MASK_TILE_H) / SPW_TILE_H;
 		int margin_x = surfw & MASK_TILW_W, margin_y = surfh & MASK_TILE_H;
-		Imath::Box2i tile_bounding = { { -HALF_TILE_W, -HALF_TILE_H },{ HALF_TILE_W, HALF_TILE_H } };
+		box2i tile_bounding = { { -HALF_TILE_W, -HALF_TILE_H },{ HALF_TILE_W, HALF_TILE_H } };
 		for (auto i = 0; i < tile_y; ++i) {
 			for (auto j = 0; j < tile_x; ++j)
 			{
-				Imath::V2i center = { HALF_TILE_W + j * SPW_TILE_W, HALF_TILE_H + i * SPW_TILE_H };
+				vec2i center = { HALF_TILE_W + j * SPW_TILE_W, HALF_TILE_H + i * SPW_TILE_H };
 				m_tiles.emplace_back(m_rt.get(), tile_bounding, center);
 			}
 			// adjust last column tiles' bounding
@@ -206,7 +206,7 @@ namespace wyc
 		std::vector<std::future<void>> consumers;
 		for(auto &cursor: m_prim_readers) {
 			consumers.push_back(std::async(std::launch::async, [this, cursor, tile_beg, tile_end, output_stride] {
-				Imath::Box2i vertex_bounding;
+				box2i vertex_bounding;
 				auto beg = cursor->begin();
 				auto end = cursor->end();
 				while (1) {
@@ -224,23 +224,23 @@ namespace wyc
 						break;
 					}
 					const float* end = vec + prim.vertices.size();
-					const Imath::V4f *p0 = (const Imath::V4f*)vec;
+					const vec4f *p0 = (const vec4f*)vec;
 					vec += prim.stride;
-					const Imath::V4f *p1 = (const Imath::V4f*)vec;
+					const vec4f *p1 = (const vec4f*)vec;
 					vec += prim.stride;
-					const Imath::V4f *p2 = (const Imath::V4f*)vec;
+					const vec4f *p2 = (const vec4f*)vec;
 					while (vec < end)
 					{
 						Imath::bounding(vertex_bounding, p0, p1, p2);
 						for (auto i = tile_beg; i < tile_end; ++i) {
 							auto &tile = m_tiles[i];
-							Imath::Box2i local_bounding = vertex_bounding;
+							box2i local_bounding = vertex_bounding;
 							local_bounding.min -= tile.center;
 							local_bounding.max -= tile.center;
 							Imath::intersection(local_bounding, tile.bounding);
 							if (local_bounding.hasVolume()) {
 								// fill triangles
-								Imath::V3f v0, v1, v2;
+								vec3f v0, v1, v2;
 								v0.x = p0->x - tile.center.x;
 								v0.y = p0->y - tile.center.y;
 								v0.z = p0->z;
@@ -264,7 +264,7 @@ namespace wyc
 						} // tile loop
 						vec += prim.stride;
 						p1 = p2;
-						p2 = (const Imath::V4f*)vec;
+						p2 = (const vec4f*)vec;
 					} // index loop
 					++beg;
 				}
@@ -297,7 +297,7 @@ namespace wyc
 		int tile_beg = 0, tile_end = tile_per_core + m_tiles.size() % m_num_fragment_unit;
 		std::vector<std::future<void>> consumers;
 		constexpr int COLOR_COUNT = 6;
-		const Imath::C3f colors[COLOR_COUNT] = {
+		const color3f colors[COLOR_COUNT] = {
 			{ 1, 0, 0 },{ 0, 1, 0 },{ 0, 0, 1 },
 			{ 1, 1, 0 },{ 1, 0, 1 },{ 0, 1, 1 },
 		};
@@ -359,7 +359,7 @@ namespace wyc
 		std::vector<unsigned> indices_in, indices_out;
 		indices_in.reserve(max_count);
 		indices_out.reserve(max_count);
-		CTile tile(m_rt.get(), Imath::Box2i{ { -halfw, -halfh },{ halfw, halfh } }, Imath::V2i{ halfw, halfh });
+		CTile tile(m_rt.get(), box2i{ { -halfw, -halfh },{ halfw, halfh } }, vec2i{ halfw, halfh });
 		tile.set_fragment(output_stride, material);
 		for (size_t i = 0; i < ib.size(); ++i)
 		{
@@ -395,13 +395,13 @@ namespace wyc
 		const float *p0 = vertices.data();
 		const float *p1 = p0 + stride;
 		const float *p2 = p1 + stride;
-		Imath::V2f v10(p0[0] - p1[0], p0[1] - p1[1]);
-		Imath::V2f v12(p2[0] - p1[0], p2[1] - p1[1]);
+		vec2f v10(p0[0] - p1[0], p0[1] - p1[1]);
+		vec2f v12(p2[0] - p1[0], p2[1] - p1[1]);
 		float d = v10.cross(v12) * m_clock_wise + 0.001f;
 		return d <= 0;
 	}
 
-	void CSpwPipeline::set_viewport(const Imath::Box2i & view)
+	void CSpwPipeline::set_viewport(const box2i & view)
 	{
 		auto _tmp = view.max + view.min;
 		m_vp_translate = { _tmp.x * 0.5f, _tmp.y * 0.5f };
@@ -413,7 +413,7 @@ namespace wyc
 	{
 		for (auto j : indices)
 		{
-			Imath::V4f *pos = reinterpret_cast<Imath::V4f*>(&vertices[j]);
+			vec4f *pos = reinterpret_cast<vec4f*>(&vertices[j]);
 			// we keep pos.w to correct interpolation
 			// perspective projection: pos.w == -pos.z 
 			// orthographic projection: pos.w == 1
@@ -427,12 +427,12 @@ namespace wyc
 	{
 		const float* vec = vertices.data();
 		const float* end = vec + vertices.size();
-		const Imath::V4f *p0 = (const Imath::V4f*)vec;
+		const vec4f *p0 = (const vec4f*)vec;
 		vec += stride;
-		const Imath::V4f *p1 = (const Imath::V4f*)vec;
+		const vec4f *p1 = (const vec4f*)vec;
 		vec += stride;
-		const Imath::V4f *p2 = (const Imath::V4f*)vec;
-		Imath::Box2i local_bounding;
+		const vec4f *p2 = (const vec4f*)vec;
+		box2i local_bounding;
 		while (vec < end)
 		{
 			Imath::bounding(local_bounding, p0, p1, p2);
@@ -441,7 +441,7 @@ namespace wyc
 			Imath::intersection(local_bounding, tile.bounding);
 			if (!local_bounding.isEmpty()) {
 				// fill triangles
-				Imath::V3f v0, v1, v2;
+				vec3f v0, v1, v2;
 				v0.x = p0->x - tile.center.x;
 				v0.y = p0->y - tile.center.y;
 				v0.z = p0->z;
@@ -456,7 +456,7 @@ namespace wyc
 			} // bounding not empty
 			vec += stride;
 			p1 = p2;
-			p2 = (const Imath::V4f*)vec;
+			p2 = (const vec4f*)vec;
 		} // index loop
 	}
 

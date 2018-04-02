@@ -29,14 +29,14 @@ namespace wyc
 		void setup(unsigned max_core=MAX_CORE_NUM);
 		void set_render_target(std::shared_ptr<CSpwRenderTarget> rt);
 		virtual void feed(const CMesh *mesh, const CMaterial *material);
-		void set_viewport(const Imath::Box2i &view);
+		void set_viewport(const box2i &view);
 
 	protected:
 		typedef std::pair<const char*, size_t> AttribStream;
 		POLYGON_WINDING m_clock_wise;
 		std::shared_ptr<CSpwRenderTarget> m_rt;
-		Imath::V2f m_vp_translate;
-		Imath::V2f m_vp_scale;
+		vec2f m_vp_translate;
+		vec2f m_vp_scale;
 		// async render
 		bool m_is_setup;
 		int m_num_vertex_unit;
