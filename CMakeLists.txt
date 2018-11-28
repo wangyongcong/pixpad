@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.3)
 project(pixpad)
 
+set(CMAKE_CXX_STANDARD 14)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 #--------------------------------------------------
@@ -40,14 +42,15 @@ if(WIN32)
 	add_definitions("/we4819")
 endif()
 
-# openexr
+# OpenEXR IlmBase
 set(BUILD_SHARED_LIBS OFF)
+set(BUILD_ILMBASE_STATIC ON)
 set(NAMESPACE_VERSIONING ON)
-add_definitions("-DPLATFORM_WINDOWS")
 set(ILMBASE_PATH ${3RD_PATH}/openexr/IlmBase)
 set(ILMBASE_CONFIG_PATH ${ILMBASE_PATH}/config CACHE INTERNAL "")
 set(ILMBASE_CONFIG_FILE ${ILMBASE_CONFIG_PATH}/IlmBaseConfig.h CACHE INTERNAL "")
 if (NOT EXISTS ${ILMBASE_CONFIG_FILE})
+	include(${ILMBASE_PATH}/cmake/OpenEXRVersion)
 	include(IlmBaseConf)
 endif()
 include_directories(
@@ -70,12 +73,15 @@ include_directories(
     ${SRC_ROOT}
 )
 
-add_compile_options("/utf-8")
+if(WIN32)
+	add_compile_options("/utf-8")
+endif()
 
 # setup targets
 add_subdirectory(src/sparrow)
-add_dependencies(sparrow Iex IexMath Imath)
-set(SPARROW_INCLUDE_DIR "${SRC_ROOT}/sparrow"
+add_dependencies(sparrow Iex_static IexMath_static Imath_static)
+set(SPARROW_INCLUDE_DIR 
+	"${SRC_ROOT}/sparrow"
 	"${SRC_ROOT}/sparrow/common" 
 	"${SRC_ROOT}/sparrow/mathex" 
 	"${SRC_ROOT}/sparrow/renderer" 

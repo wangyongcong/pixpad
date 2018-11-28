@@ -2,7 +2,7 @@
 #include <vector>
 #include <iterator>
 #include <type_traits>
-#include "log.h"
+#include "stb_log.h"
 
 class CConsoleLogger : public wyc::ILogger
 {

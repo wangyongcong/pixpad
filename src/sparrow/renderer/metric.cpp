@@ -1,5 +1,5 @@
 #include "metric.h"
-#include "log.h"
+#include "stb_log.h"
 
 namespace wyc
 {
@@ -29,7 +29,7 @@ namespace wyc
 	void CSpwMetric::report()
 	{
 		log_info("vertex count: %d", cnt_vertex);
-		log_info("fragment count:%d", cnt_fragment);
+		log_info("fragment count: %d", cnt_fragment);
 		log_info("time used (ms):");
 		for (auto &v : time_records)
 		{

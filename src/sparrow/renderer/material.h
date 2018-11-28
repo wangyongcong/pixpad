@@ -6,7 +6,7 @@
 #include "vecmath.h"
 #include "vertex_buffer.h"
 #include "vertex_layout.h"
-#include "log.h"
+#include "stb_log.h"
 
 namespace wyc
 {
@@ -148,11 +148,11 @@ namespace wyc
 	{
 		const CUniform *u = find_uniform(name);
 		if (!u) {
-			log_warn("Uniform not found: %s", name.c_str());
+			log_warning("Uniform not found: %s", name.c_str());
 			return false;
 		}
 		if (u->tid != typeid(T)) {
-			log_warn("Uniform type error: %s (%s)", name.c_str(), u->tid.name());
+			log_warning("Uniform type error: %s (%s)", name.c_str(), u->tid.name());
 			return false;
 		}
 		u->set(this, &val);
@@ -164,15 +164,15 @@ namespace wyc
 	{
 		const CUniform *u = find_uniform(name);
 		if (!u) {
-			log_warn("Uniform not found: %s", name.c_str());
+			log_warning("Uniform not found: %s", name.c_str());
 			return false;
 		}
 		if (u->tid != typeid(T)) {
-			log_warn("Uniform type error: %s (%s)", name.c_str(), u->tid.name());
+			log_warning("Uniform type error: %s (%s)", name.c_str(), u->tid.name());
 			return false;
 		}
 		u->get(this, &val);
-		using t1 = std::remove_const<std::remove_reference_t<decltype(*this)>>::type;
+//		using t1 = std::remove_const<std::remove_reference_t<decltype(*this)>>::type;
 		return true;
 	}
 

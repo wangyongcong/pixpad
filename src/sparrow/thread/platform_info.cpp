@@ -16,6 +16,7 @@ namespace wyc
 
 	PlatformInfo::PlatformInfo()
 	{
+#if defined(WIN32) || defined(WIN64)
 		SYSTEM_INFO si;
 		GetSystemInfo(&si);
 		switch (si.wProcessorArchitecture)
@@ -65,6 +66,7 @@ namespace wyc
 		}
 		free(buffer);
 		assert(cacheline_size[0] == CACHE_LINE_SIZE && "cache line size not match!");
+#endif
 	}
 
 } // namespace wyc

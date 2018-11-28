@@ -1,7 +1,7 @@
 project(testbed)
 
 # build as stand alone executable
-option(TEST_STAND_ALONE "Test program build as executable" OFF)
+option(TEST_STAND_ALONE "Test program build as executable" ON)
 
 set(SRC_COMMON
 	"test_main.cpp"

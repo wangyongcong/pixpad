@@ -36,7 +36,7 @@ namespace wyc
 	template<class Command>
 	inline void spw_handler(CSpwRenderer * renderer, RenderCommand * _cmd)
 	{
-		static_assert(0, "Not implemented.");
+		throw "Not implemented.";
 	}
 
 	using spw_command_handler = void(*) (CSpwRenderer*, RenderCommand*);

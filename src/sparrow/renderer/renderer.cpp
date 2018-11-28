@@ -2,9 +2,9 @@
 
 namespace wyc
 {
-	CRenderer::CRenderer() :
-		m_cmd_queue(1024),
-		m_cmd_alloc(page_size(), 16)
+	CRenderer::CRenderer()
+	: m_cmd_alloc(page_size(), 16)
+	, m_cmd_queue(1024)
 	{
 	}
 

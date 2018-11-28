@@ -12,11 +12,11 @@ namespace wyc
 	public:
 		box2i bounding;
 		vec2i center;
-		CTile(CSpwRenderTarget *rt, box2i &bounding, vec2i &center);
+		CTile(CSpwRenderTarget *rt, const box2i &bounding, const vec2i &center);
 		// setup fragment
 		void set_fragment(unsigned vertex_stride, const CMaterial *material);
 		// setup triangle
-		inline void CTile::set_triangle(const float* v0, const float* v1, const float* v2)
+		inline void set_triangle(const float* v0, const float* v1, const float* v2)
 		{
 			m_v0 = v0;
 			m_v1 = v1;

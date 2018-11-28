@@ -8,6 +8,17 @@
 
 namespace wyc
 {
+	template<bool T>
+	struct CAttribArrayIterator {};
+	template<>
+	struct CAttribArrayIterator<true> {
+		typedef CAnyStrideIterator<float, CAnyReader> type;
+	};
+	template<>
+	struct CAttribArrayIterator<false> {
+		typedef CAnyStrideIterator<float, CAnyAccessor&> type;
+	};
+	
 	template<bool IsConstant>
 	class CAttribArrayImpl
 	{
@@ -42,17 +53,7 @@ namespace wyc
 			return m_beg < m_end;
 		}
 
-		template<bool T>
-		struct Iterator {};
-		template<>
-		struct Iterator<true> {
-			typedef CAnyStrideIterator<float, CAnyReader> type;
-		};
-		template<>
-		struct Iterator<false> {
-			typedef CAnyStrideIterator<float, CAnyAccessor&> type;
-		};
-		using iterator = typename Iterator<IsConstant>::type;
+		using iterator = typename CAttribArrayIterator<IsConstant>::type;
 	
 		inline iterator begin()
 		{

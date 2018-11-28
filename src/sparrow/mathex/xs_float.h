@@ -29,7 +29,6 @@
 #define _xs_BigEndian_              0       //intel is little endian
 #endif
 
-#define finline                     __forceinline
 #define xs_MAXINT                   0x7ffffff
 #define xs_NULL                     0
 #define xs_Min(a,b)			        (((a)<(b))	? (a) : (b))
@@ -75,8 +74,8 @@ int32 xs_CeilToInt        (real64 val, real64 dme =  _xs_doublemagicroundeps);
 int32 xs_RoundToInt       (real64 val);
 
 //int32 versions
-finline int32 xs_CRoundToInt      (int32 val)   {return val;}
-finline int32 xs_ToInt            (int32 val)   {return val;}
+inline int32 xs_CRoundToInt      (int32 val)   {return val;}
+inline int32 xs_ToInt            (int32 val)   {return val;}
 
 
 
@@ -91,14 +90,14 @@ public:
     // ====================================================================================================================
     //  Basic Conversion from Numbers
     // ====================================================================================================================
-    finline static Fix       ToFix       (int32 val)    {return val<<N;}
-    finline static Fix       ToFix       (real64 val)   {return xs_ConvertToFixed(val);}
+    inline static Fix       ToFix       (int32 val)    {return val<<N;}
+    inline static Fix       ToFix       (real64 val)   {return xs_ConvertToFixed(val);}
 
     // ====================================================================================================================
     //  Basic Conversion to Numbers
     // ====================================================================================================================
-    finline static real64    ToReal      (Fix f)        {return real64(f)/real64(1<<N);}
-    finline static int32     ToInt       (Fix f)        {return f>>N;}
+    inline static real64    ToReal      (Fix f)        {return real64(f)/real64(1<<N);}
+    inline static int32     ToInt       (Fix f)        {return f>>N;}
 
 
 
@@ -106,7 +105,7 @@ protected:
     // ====================================================================================================================
     // Helper function - mainly to preserve _xs_DEFAULT_CONVERSION
     // ====================================================================================================================
-    finline static int32 xs_ConvertToFixed (real64 val)
+    inline static int32 xs_ConvertToFixed (real64 val)
     {
     #if _xs_DEFAULT_CONVERSION==0
         return xs_CRoundToInt(val, _xs_doublemagic/(1<<N));
@@ -125,7 +124,7 @@ protected:
 //  Inline implementation
 // ====================================================================================================================
 // ====================================================================================================================
-finline int32 xs_CRoundToInt(real64 val, real64 dmr)
+inline int32 xs_CRoundToInt(real64 val, real64 dmr)
 {
 #if _xs_DEFAULT_CONVERSION==0
     val		= val + dmr;
@@ -138,7 +137,7 @@ finline int32 xs_CRoundToInt(real64 val, real64 dmr)
 
 
 // ====================================================================================================================
-finline int32 xs_ToInt(real64 val, real64 dme)
+inline int32 xs_ToInt(real64 val, real64 dme)
 {
     /* unused - something else I tried...
             _xs_doublecopysgn(dme,val);
@@ -156,7 +155,7 @@ finline int32 xs_ToInt(real64 val, real64 dme)
 
 
 // ====================================================================================================================
-finline int32 xs_FloorToInt(real64 val, real64 dme)
+inline int32 xs_FloorToInt(real64 val, real64 dme)
 {
 #if _xs_DEFAULT_CONVERSION==0
     return xs_CRoundToInt (val - dme);
@@ -167,7 +166,7 @@ finline int32 xs_FloorToInt(real64 val, real64 dme)
 
 
 // ====================================================================================================================
-finline int32 xs_CeilToInt(real64 val, real64 dme)
+inline int32 xs_CeilToInt(real64 val, real64 dme)
 {
 #if _xs_DEFAULT_CONVERSION==0
     return xs_CRoundToInt (val + dme);
@@ -178,7 +177,7 @@ finline int32 xs_CeilToInt(real64 val, real64 dme)
 
 
 // ====================================================================================================================
-finline int32 xs_RoundToInt(real64 val)
+inline int32 xs_RoundToInt(real64 val)
 {
 #if _xs_DEFAULT_CONVERSION==0
     return xs_CRoundToInt (val + _xs_doublemagicdelta);

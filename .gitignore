@@ -219,5 +219,5 @@ baretail.exe
 baregrep.exe
 *.udm
 install/
-build/
+build*/
 cmake_build/

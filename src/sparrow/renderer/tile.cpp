@@ -2,7 +2,7 @@
 
 namespace wyc
 {
-	CTile::CTile(CSpwRenderTarget *rt, box2i &b, vec2i &c)
+	CTile::CTile(CSpwRenderTarget *rt, const box2i &b, const vec2i &c)
 		: bounding(b)
 		, center(c)
 		, m_rt(rt)

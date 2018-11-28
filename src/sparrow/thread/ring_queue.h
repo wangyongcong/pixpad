@@ -23,12 +23,12 @@ namespace wyc
 	class CRingQueue
 	{
 	public:
-		CRingQueue(size_t sz) :
-			m_size(sz), 
-			m_mask(sz - 1), 
-			m_buffer(static_cast<T*>(std::malloc(sizeof(T) * sz))),
-			m_read_pos(0), 
-			m_write_pos(0)
+		CRingQueue(size_t sz)
+		: m_buffer(static_cast<T*>(std::malloc(sizeof(T) * sz)))
+		, m_size(sz)
+		, m_mask(sz - 1)
+		, m_write_pos(0)
+		, m_read_pos(0)
 		{
 			assert(sz >= 2 && (sz & (sz - 1)) == 0);
 		}

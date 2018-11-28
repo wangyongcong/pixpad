@@ -4,7 +4,7 @@
 #include <strstream>
 #define WYC_SHELLCMD_IMPLEMENTATION
 #include "shellcmd.h"
-#include "log.h"
+#include "stb_log.h"
 #include "test.h"
 
 ENABLE_TEST(CTestLine)

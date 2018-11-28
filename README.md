@@ -14,7 +14,7 @@ Use CMake (at least 3.3) to configure the build.
 Sparrow
 ====
 A multi-threading software renderer.
-- C/S model and communicate by asynchronous command queue.
+- C/S mode and communicate by asynchronous command queue.
 - Programmable pipeline with multi-threading support. Vertex & fragment shading run in parallel to speed up.
 - Flexible and easy-to-use material system.
 - Depth test

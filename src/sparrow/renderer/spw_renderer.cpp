@@ -1,5 +1,5 @@
 #include "spw_renderer.h"
-#include "log.h"
+#include "stb_log.h"
 #include "spw_command.h"
 
 #ifdef _DEBUG
@@ -30,7 +30,7 @@ namespace wyc
 	{
 		m_rt = std::dynamic_pointer_cast<CSpwRenderTarget>(rt);
 		if (!m_rt) 
-			throw std::exception("Expect wyc::spr_render_target.");
+			throw "Expect wyc::spr_render_target.";
 		if (m_pipeline)
 			m_pipeline->set_render_target(m_rt);
 	}

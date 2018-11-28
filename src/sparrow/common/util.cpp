@@ -1,4 +1,5 @@
 #include <locale>
+#include <codecvt>
 #include "util.h"
 
 namespace wyc
@@ -36,8 +37,7 @@ uint32_t log2p2(uint32_t val)
 
 bool wstr2str(std::string &dst, const std::wstring &src)
 {
-#ifdef WIN32
-	std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> cvt(new std::codecvt_byname<wchar_t, char, std::mbstate_t>(".936"));
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
 	try {
 		dst = cvt.to_bytes(src);
 	}
@@ -45,25 +45,11 @@ bool wstr2str(std::string &dst, const std::wstring &src)
 		return false;
 	}
 	return true;
-#else
-	size_t src_size = src.size() * sizeof(wchar_t);
-	if (src_size >= 1024)
-		return false;
-	size_t dst_size = src_size + 1;
-	char *pdst = new char[dst_size];
-	size_t cnt; // chars written into buffer including null terminated
-	errno_t err = wcstombs_s(&cnt, pdst, dst_size, src.c_str(), src_size);
-	if (err)
-		return false;
-	dst.assign(pdst, cnt-1);
-	delete[] pdst;
-	return true;
-#endif
 }
 
 bool str2wstr(std::wstring & dst, const std::string src)
 {
-	std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> cvt(new std::codecvt_byname<wchar_t, char, std::mbstate_t>(".936"));
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
 	try {
 		dst = cvt.from_bytes(src);
 	}
