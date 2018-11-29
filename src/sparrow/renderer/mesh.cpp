@@ -63,7 +63,7 @@ namespace wyc
 			pool.push_back(vec);
 		};
 
-		auto read_face = [&ss, &token, &faces, null_index]() {
+		auto read_face = [&ss, &token, &faces]() {
 			std::string str;
 			std::istringstream tmp;
 			int vert_cnt = 0;
@@ -293,10 +293,10 @@ namespace wyc
 		//	m_vb.set_attribute(ATTR_COLOR, 3);
 		unsigned vertex_count = ply.vertex_count();
 		m_vb.resize(vertex_count);
-		auto stride = m_vb.vertex_component();
+//		auto stride = m_vb.vertex_component();
 		ply.read_vertex(m_vb.get_buffer(), vertex_count, "x,y,z", m_vb.vertex_size());
 		assert(m_vb.size() == vertex_count);
-		auto v = (vec3f*)m_vb.get_buffer();
+//		auto v = (vec3f*)m_vb.get_buffer();
 		unsigned indices_count = 0;
 		if (!ply.read_face(nullptr, indices_count)) {
 			m_vb.clear();

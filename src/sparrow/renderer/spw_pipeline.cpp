@@ -13,10 +13,10 @@
 namespace wyc
 {
 	CSpwPipeline::CSpwPipeline()
-		: m_is_setup(false)
+		: m_clock_wise(COUNTER_CLOCK_WISE)
+		, m_is_setup(false)
 		, m_num_vertex_unit(1)
 		, m_num_fragment_unit(1)
-		, m_clock_wise(COUNTER_CLOCK_WISE)
 	{
 	}
 
@@ -205,7 +205,7 @@ namespace wyc
 		}
 		std::vector<std::future<void>> consumers;
 		for(auto &cursor: m_prim_readers) {
-			consumers.push_back(std::async(std::launch::async, [this, cursor, tile_beg, tile_end, output_stride] {
+			consumers.push_back(std::async(std::launch::async, [this, cursor, tile_beg, tile_end] {
 				box2i vertex_bounding;
 				auto beg = cursor->begin();
 				auto end = cursor->end();
@@ -302,7 +302,7 @@ namespace wyc
 			{ 1, 1, 0 },{ 1, 0, 1 },{ 0, 1, 1 },
 		};
 		for (auto c = 0; c < m_num_fragment_unit; ++c) {
-			consumers.push_back(std::async(std::launch::async, [this, tile_beg, tile_end, &colors, COLOR_COUNT] {
+			consumers.push_back(std::async(std::launch::async, [this, tile_beg, tile_end, &colors] {
 				for (auto i = tile_beg; i < tile_end; ++i)
 				{
 					auto &tile = m_tiles[i];

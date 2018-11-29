@@ -33,6 +33,7 @@ namespace wyc
 			: next(nullptr)
 		{
 		}
+		virtual ~IPlyReader() {}
 		virtual bool operator() (std::istream &in) = 0;
 		virtual void read_more(unsigned sz) {};
 		IPlyReader *next;
@@ -338,11 +339,11 @@ namespace wyc
 	}
 
 	CPlyFile::CPlyFile(const std::string &file_path)
-		: m_error(PLY_NO_ERROR)
+		: m_data_pos(0)
+		, m_error(PLY_NO_ERROR)
 		, m_elements(nullptr)
 		, m_is_binary(false)
 		, m_is_little_endian(false)
-		, m_data_pos(0)
 	{
 		_load(file_path);
 	}
@@ -469,11 +470,11 @@ namespace wyc
 			unsigned tmp = 0;
 			for (c = 0; c < elem->count; ++c && c < count)
 			{
-				m_stream.read((char*)tmp, prop->size);
+				m_stream.read((char*)&tmp, prop->size);
 				*out++ = float(tmp) / max;
-				m_stream.read((char*)tmp, prop->size);
+				m_stream.read((char*)&tmp, prop->size);
 				*out++ = float(tmp) / max;
-				m_stream.read((char*)tmp, prop->size);
+				m_stream.read((char*)&tmp, prop->size);
 				*out++ = float(tmp) / max;
 				m_stream.ignore(tail);
 			}
@@ -789,7 +790,7 @@ namespace wyc
 			return false;
 		}
 		unsigned count;
-		constexpr auto max_size = std::numeric_limits<std::streamsize>::max();
+//		constexpr auto max_size = std::numeric_limits<std::streamsize>::max();
 		if (m_elements)
 			_clear();
 		PlyElement *cur_elem = nullptr;

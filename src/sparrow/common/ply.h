@@ -26,9 +26,9 @@ namespace wyc
 	{
 	public:
 		PlyProperty()
-			: next(nullptr)
-			, size(0)
-			, type(PLY_NULL)
+		: next(nullptr)
+		, type(PLY_NULL)
+		, size(0)
 		{
 		}
 		PlyProperty *next;

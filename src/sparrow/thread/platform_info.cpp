@@ -1,4 +1,3 @@
-#pragma once
 #include "platform_info.h"
 #include <cstdlib>
 #include <cassert>

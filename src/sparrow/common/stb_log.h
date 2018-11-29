@@ -313,16 +313,14 @@ struct GenericLogWriter {
 
 #pragma clang diagnostic pop
 
-	static const LogWriter s_writer_table[LOG_WRITER_COUNT];
+	static const LogWriter* get_writer_table() {
+		static const LogWriter s_writer_table[LOG_WRITER_COUNT] = {
+			&write_stdout,
+			&write_file,
+		};
+		return s_writer_table;
+	}
 };
-
-#ifdef STB_LOG_IMPLEMENTATION
-template<typename... Args>
-const LogWriter GenericLogWriter<Args...>::s_writer_table[LOG_WRITER_COUNT] = {
-	&write_stdout,
-	&write_file,
-};
-#endif
 
 typedef bool (*LogFilter)(const LogData *);
 
@@ -524,7 +522,7 @@ public:
 		base.level = level;
 		base.time = std::chrono::system_clock::now();
 		base.channel = channel;
-		base.writer = GenericLogWriter<Args...>::s_writer_table;
+		base.writer = GenericLogWriter<Args...>::get_writer_table();
 		// publish event
 		auto seq = _claim(1);
 		auto log = get_event(seq);

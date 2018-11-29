@@ -1,5 +1,7 @@
 #include <locale>
 #include <codecvt>
+#define STB_LOG_IMPLEMENTATION
+#include "stb_log.h"
 #include "util.h"
 
 namespace wyc

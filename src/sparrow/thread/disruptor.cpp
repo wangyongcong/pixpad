@@ -1,3 +1,4 @@
+#include <emmintrin.h>
 #include "disruptor.h"
 
 int64_t disruptor::barrier::get_min()

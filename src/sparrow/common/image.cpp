@@ -45,9 +45,10 @@ namespace wyc
 
 	CImage::CImage(CImage && other)
 		: m_data(other.m_data)
-		, m_is_stbi_mem(other.m_is_stbi_mem)
 		, m_width(other.m_width)
 		, m_height(other.m_height)
+		, m_pitch(other.m_pitch)
+		, m_is_stbi_mem(other.m_is_stbi_mem)
 	{
 		other.m_data = nullptr;
 		other.m_width = 0;

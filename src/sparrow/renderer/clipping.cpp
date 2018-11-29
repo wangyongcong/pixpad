@@ -105,7 +105,7 @@ namespace wyc
 		for (int i = 0; i < 3; ++i)
 		{
 			prev = vertices.back();
-			pdot = prev.w - prev[i], dot;
+			pdot = prev.w - prev[i];
 			for (auto &vert : vertices)
 			{
 				dot = vert.w - vert[i];
@@ -125,7 +125,7 @@ namespace wyc
 		for (int i = 0; i < 3; ++i)
 		{
 			prev = vertices.back();
-			pdot = prev.w + prev[i], dot;
+			pdot = prev.w + prev[i];
 			for (auto &vert : vertices)
 			{
 				dot = vert.w + vert[i];
