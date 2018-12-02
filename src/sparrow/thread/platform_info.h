@@ -12,7 +12,8 @@ namespace wyc
 		// machine architecture
 		std::string architecture;
 		// number of cpus
-		int ncpu;
+		unsigned ncpu;
+		unsigned cpu_freq;
 		// cache line size in bytes
 		size_t cacheline;
 		// L1/L2/L3 cache size in bytes

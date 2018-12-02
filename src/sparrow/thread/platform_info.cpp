@@ -46,8 +46,10 @@ namespace wyc
 		: os("Unknown")
 		, architecture("Unknown")
 		, ncpu(1)
+		, cpu_freq(0)
 		, cacheline(64)
 		, cache_size({64, 64, 64})
+		, memory(0)
 		, page_size(4 * 1024)
 	{
 #if defined(WIN32) || defined(WIN64)
@@ -114,6 +116,7 @@ namespace wyc
 		}
 		get_sys_string(CTL_HW, HW_MACHINE, architecture);
 		get_sys_var(CTL_HW, HW_NCPU, ncpu);
+		get_sys_var(CTL_HW, HW_CPU_FREQ, cpu_freq);
 		if(get_sys_var(CTL_HW, HW_CACHELINE, val))
 			cacheline = (size_t)val;
 		if(get_sys_var(CTL_HW, HW_L1DCACHESIZE, val))
