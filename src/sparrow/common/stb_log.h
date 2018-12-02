@@ -225,26 +225,8 @@ struct alignas(CACHELINE_SIZE) Sequence {
 	}
 };
 
-void *aligned_alloc(size_t alignment, size_t size) {
-	// [Memory returned][ptr to start of memory][aligned memory][extra memory]
-	size_t request_size = size + alignment;
-	void *raw = malloc(request_size + sizeof(void *));
-	if (!raw)
-		return nullptr;
-	void *ptr = (void **) raw + 1;
-	ptr = std::align(alignment, size, ptr, request_size);
-	if (!ptr) {
-		free(raw);
-		return nullptr;
-	}
-	*((void **) ptr - 1) = raw;
-	return ptr;
-}
-
-void aligned_free(void *ptr) {
-	void *raw = *((void **) ptr - 1);
-	free(raw);
-}
+void *aligned_alloc(size_t alignment, size_t size);
+void aligned_free(void *ptr);
 
 using LogEventTime = std::chrono::system_clock::time_point;
 
@@ -650,6 +632,27 @@ bool start_debug_logger(millisecond_t sleep_time) {
 	(void)sleep_time;
 	return false;
 #endif
+}
+
+void *aligned_alloc(size_t alignment, size_t size) {
+	// [Memory returned][ptr to start of memory][aligned memory][extra memory]
+	size_t request_size = size + alignment;
+	void *raw = malloc(request_size + sizeof(void *));
+	if (!raw)
+		return nullptr;
+	void *ptr = (void **) raw + 1;
+	ptr = std::align(alignment, size, ptr, request_size);
+	if (!ptr) {
+		free(raw);
+		return nullptr;
+	}
+	*((void **) ptr - 1) = raw;
+	return ptr;
+}
+
+void aligned_free(void *ptr) {
+	void *raw = *((void **) ptr - 1);
+	free(raw);
 }
 
 size_t CLogger::get_next_power2(size_t val) {

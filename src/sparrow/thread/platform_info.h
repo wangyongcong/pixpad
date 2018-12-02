@@ -1,5 +1,5 @@
 #pragma once
-
+#include <array>
 #include <string>
 
 namespace wyc
@@ -7,28 +7,25 @@ namespace wyc
 	struct PlatformInfo
 	{
 		PlatformInfo();
+		// OS name and version
+		std::string os;
+		// machine architecture
 		std::string architecture;
-		unsigned num_processor;
-		unsigned num_core;
-		unsigned page_size;
-		unsigned cacheline_size[3];
+		// number of cpus
+		int ncpu;
+		// cache line size in bytes
+		size_t cacheline;
+		// L1/L2/L3 cache size in bytes
+		std::array<size_t, 3> cache_size;
+		// physical memory size
+		size_t memory;
+		// software page size
+		size_t page_size;
 	};
 
-	extern PlatformInfo g_platform_info;
-
-	inline unsigned page_size()
-	{
-		return g_platform_info.page_size;
-	}
-
-	inline unsigned cache_line_size()
-	{
-		return g_platform_info.cacheline_size[0];
-	}
-
-	inline unsigned core_num()
-	{
-		return g_platform_info.num_core;
+	inline const PlatformInfo& get_platform_info() {
+		static PlatformInfo s_platform_info;
+		return s_platform_info;
 	}
 
 } // namespace wyc

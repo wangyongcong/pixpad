@@ -30,7 +30,7 @@ namespace wyc
 		if (m_is_setup)
 			return;
 		m_is_setup = true;
-		auto ncore = wyc::core_num();
+		auto ncore = wyc::get_platform_info().ncpu;
 		if (max_core > 0 && ncore > max_core)
 			ncore = max_core;
 		if (ncore > 1) {

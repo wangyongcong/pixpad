@@ -123,7 +123,7 @@ public:
 		return true;
 	}
 
-	virtual void show_help()
+	virtual void show_help() const override
 	{
 		std::stringstream ss;
 		ss << m_desc << std::endl;

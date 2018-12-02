@@ -18,10 +18,10 @@ namespace wyc
 
 #define UNIFORM_SLOT(type, name) { #name, { typeid(type),\
 	[](const wyc::CMaterial* self, void* val) {\
-		*((type*)(val)) = ((cls_type*)(self))->##name;\
+		*((type*)(val)) = ((cls_type*)(self))->name;\
 	},\
 	[](wyc::CMaterial *self, const void *val) {\
-		((cls_type*)(self))->##name = *((type*)(val));\
+		((cls_type*)(self))->name = *((type*)(val));\
 	}\
 } },
 

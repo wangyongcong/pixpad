@@ -1,6 +1,4 @@
-#pragma once
 #include <cmath>
-#include "boost/filesystem.hpp"
 #include "test.h"
 #include "mesh.h"
 #include "vecmath.h"

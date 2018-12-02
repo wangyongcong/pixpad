@@ -1,5 +1,7 @@
 #include "test.h"
 #include "shellcmd.h"
+#define STB_LOG_IMPLEMENTATION
+#include "stb_log.h"
 
 #ifndef testbed_EXPORTS
 
@@ -7,10 +9,13 @@ wyc::IShellCommand* get_test_command();
 
 int main(int argc, char *argv[])
 {
-	wyc::init_debug_log();
+	start_logger();
+	auto &info = wyc::get_platform_info();
+	log_info("%s %d-core %s", info.architecture, info.ncpu, info.os);
 	auto *cmd = get_test_command();
 	if (!cmd->execute(argc, argv))
 		return 1;
+	close_logger();
 	return 0;
 }
 

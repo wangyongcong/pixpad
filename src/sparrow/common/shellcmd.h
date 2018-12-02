@@ -21,7 +21,7 @@ namespace wyc
 #ifdef WYC_SHELLCMD_IMPLEMENTATION
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
-#include "log.h"
+#include "stb_log.h"
 
 namespace po = boost::program_options;
 
@@ -58,7 +58,7 @@ namespace wyc
 			return process(args);
 		}
 
-		virtual bool execute(const std::string &cmdline) {
+		virtual bool execute(const std::string &cmdline) override {
 			po::variables_map args;
 			if (!parse(cmdline, args))
 				return false;

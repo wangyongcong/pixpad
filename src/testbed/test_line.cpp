@@ -1,4 +1,3 @@
-#pragma once
 #include "test.h"
 #include <cmath>
 #include "image.h"

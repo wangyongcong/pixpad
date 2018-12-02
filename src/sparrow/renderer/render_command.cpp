@@ -71,7 +71,9 @@ namespace wyc
 			m_chunk_count -= 1;
 #endif
 		}
+#ifdef _DEBUG
 		assert(0 == m_chunk_count);
+#endif
 		m_chunk_count = 0;
 	}
 

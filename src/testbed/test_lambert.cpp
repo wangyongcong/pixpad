@@ -1,4 +1,3 @@
-#pragma once
 #include "test.h"
 #include "mesh.h"
 #include "vecmath.h"

@@ -34,8 +34,8 @@ public:
 		, line_width(1.5f)
 	{
 		proj_from_world.makeIdentity();
-		m_sample_data.assign(0);
-		auto len = m_sample_data.size();
+		m_sample_data.fill(0);
+		unsigned len = (unsigned)m_sample_data.size();
 		assert((len & (len - 1)) == 0);
 		m_sample_data[len - 1] = 1.0f;
 		m_sample_data[len - 2] = 0.5f;
