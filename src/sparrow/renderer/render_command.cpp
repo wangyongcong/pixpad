@@ -67,11 +67,11 @@ namespace wyc
 			ptr = m_root;
 			m_root = m_root->next;
 			free(ptr);
-#ifdef _DEBUG
+#ifdef DEBUG
 			m_chunk_count -= 1;
 #endif
 		}
-#ifdef _DEBUG
+#ifdef DEBUG
 		assert(0 == m_chunk_count);
 #endif
 		m_chunk_count = 0;

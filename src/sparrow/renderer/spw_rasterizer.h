@@ -87,7 +87,7 @@ namespace wyc
 		float y = triangle_edge_function(v2, v0, p);
 		float z = triangle_edge_function(v0, v1, p);
 		float area = x + y + z;
-#ifdef _DEBUG
+#ifdef DEBUG
 		if (area == float(0))
 			throw Imath::NullVecExc("Null barycentric vector.");
 #endif			

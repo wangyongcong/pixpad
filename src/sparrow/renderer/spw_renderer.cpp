@@ -2,7 +2,7 @@
 #include "stb_log.h"
 #include "spw_command.h"
 
-#ifdef _DEBUG
+#ifdef DEBUG
 #define CHECK_RENDER_TARGET(rt) if(!(rt)) {throw std::exception("Render target is not available.");}
 #else
 #define CHECK_RENDER_TARGET(rt)

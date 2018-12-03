@@ -134,7 +134,7 @@ namespace wyc
 			return true;
 		}
 
-#ifdef _DEBUG
+#ifdef DEBUG
 		void check_alignment()
 		{
 			std::cout << "this: " << this << std::endl;

@@ -65,6 +65,26 @@ add_subdirectory(${ILMBASE_PATH}/Imath)
 
 #--------------------------------------------------
 
+# definitions according build type
+add_compile_definitions(
+	# Debug
+	$<$<CONFIG:Debug>:DEBUG>
+	$<$<CONFIG:Debug>:LOG_SEVERITY_LEVEL=10>
+	# MinSizeRel
+	$<$<CONFIG:MinSizeRel>:RELEASE>
+	$<$<CONFIG:MinSizeRel>:OPTIMIZE_SIZE>
+	$<$<CONFIG:MinSizeRel>:LOG_SEVERITY_LEVEL=20>
+	# RelWithDebInfo
+	$<$<CONFIG:RelWithDebInfo>:RELEASE>
+	$<$<CONFIG:RelWithDebInfo>:OPTIMIZE>
+	$<$<CONFIG:RelWithDebInfo>:LOG_SEVERITY_LEVEL=20>
+	# Release
+	$<$<CONFIG:Release>:NDEBUG>
+	$<$<CONFIG:Release>:RELEASE>
+	$<$<CONFIG:Release>:OPTIMIZE>
+	$<$<CONFIG:Release>:LOG_SEVERITY_LEVEL=40>
+)
+
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(SRC_ROOT ${CMAKE_SOURCE_DIR}/src)
 
