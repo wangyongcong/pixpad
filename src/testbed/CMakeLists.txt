@@ -40,7 +40,7 @@ if(TEST_STAND_ALONE)
 	# message(STATUS "testbed stand alone executable")
 	set_target_properties(testbed
 		PROPERTIES
-		VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+		VS_DEBUGGER_WORKING_DIRECTORY "${BIN_DIR}"
 	)	
 else()
 	add_library(testbed SHARED ${SRC_COMMON} ${SRC_MATERIAL} ${SRC_TESTBED})
@@ -49,13 +49,12 @@ endif()
 
 set_target_properties(testbed
 	PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+	RUNTIME_OUTPUT_DIRECTORY "${BIN_DIR}"
 )
 
 target_link_libraries(testbed 
 	sparrow 
-	${PNG_LIBS}
-	${OPENEXR_LIBS}
+	${LIB_IMATH}
 	${Boost_SYSTEM_LIBRARY}
 	${Boost_PROGRAM_OPTIONS_LIBRARY}
 	${Boost_FILESYSTEM_LIBRARY}

@@ -1,55 +1,119 @@
 project(pixpad)
 
+set(SRC_PIXPAD
+	# app_config.h
+	# console.cpp
+	# console_log.h
+	# image_frame.cpp
+)
+
 set(SRC_IMGUI
+	imgui/imconfig.h
 	imgui/imgui.h
 	imgui/imgui.cpp
 	imgui/imgui_draw.cpp
 	imgui/imgui_internal.h
-	imgui/imconfig.h
-	imgui/imgui_impl_glfw_gl3.cpp
-	imgui/imgui_impl_glfw_gl3.h
+	imgui/imgui_widgets.cpp
 	imgui/imgui_demo.cpp
 	)
 
-set(SRC_GL3W
-	${3RD_PATH}/gl3w/GL/gl3w.h
-	${3RD_PATH}/gl3w/GL/gl3w.c
-	${3RD_PATH}/gl3w/GL/glcorearb.h
-)
-
-set(SRC_APP
-	app_config.h
-	main.cpp
-	console.cpp
-	console_log.h
-	image_frame.cpp
+if(WIN32)
+	set(SRC_IMGUI_IMPL
+		${3RD_PATH}/gl3w/GL/gl3w.h
+		${3RD_PATH}/gl3w/GL/gl3w.c
+		${3RD_PATH}/gl3w/GL/glcorearb.h
+		windows/main.cpp
+		windows/imgui_impl_glfw_gl3.cpp
+		windows/imgui_impl_glfw_gl3.h
 	)
-
-source_group(imgui FILES ${SRC_IMGUI})
-source_group(gl3w FILES ${SRC_GL3W})
-
-include_directories(
-	${3RD_PATH}/gl3w
-	${3RD_PATH}/glfw/include
-	imgui
-)
-
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	link_directories(${3RD_PATH}/glfw/lib-vc2015-64)
-else()
-	link_directories(${3RD_PATH}/glfw/lib-vc2015-32)
+	set(INCLUDE_IMGUI_IMPL
+		${3RD_PATH}/gl3w
+		${3RD_PATH}/glfw/include
+		windows
+	)
+elseif(APPLE)
+	set(SRC_IMGUI_IMPL
+		mac/imgui_impl_metal.h
+		mac/imgui_impl_metal.mm
+		mac/imgui_impl_osx.h
+		mac/imgui_impl_osx.mm
+		mac/AppDelegate.h
+		mac/AppDelegate.m
+		mac/Renderer.h
+		mac/Renderer.mm
+		mac/ViewController.h
+		mac/ViewController.mm
+		mac/main.m
+	)
+	set(INCLUDE_IMGUI_IMPL mac)
 endif()
 
-add_executable(pixpad
+source_group(imgui FILES ${SRC_IMGUI})
+source_group(imgui_impl FILES ${SRC_IMGUI_IMPL})
+
+include_directories(
+	imgui
+	${INCLUDE_IMGUI_IMPL}
+)
+
+set(EXTRA_LIBS)
+set(EXTRA_TARGET_OPTIONS)
+set(EXTRA_TARGET_PROTERTIES)
+set(EXTRA_TARGET_RESOURCES)
+
+if(WIN32)
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		link_directories(${3RD_PATH}/glfw/lib-vc2015-64)
+	else()
+		link_directories(${3RD_PATH}/glfw/lib-vc2015-32)
+	endif()
+	set(EXTRA_LIBS glfw3 opengl32 gdi32 imm32)
+	set(EXTRA_TARGET_OPTIONS WIN32)
+	set(EXTRA_TARGET_PROTERTIES
+		RUNTIME_OUTPUT_DIRECTORY "${BIN_DIR}"
+		VS_DEBUGGER_WORKING_DIRECTORY "${BIN_DIR}"
+	)
+elseif(APPLE)
+	find_library(METAL_FRAMEWORK Metal)
+	find_library(MODELIO_FRAMEWORK ModelIO)
+	find_library(METALKIT_FRAMEWORK MetalKit)
+	set(EXTRA_LIBS
+		${METAL_FRAMEWORK}
+		${MODELIO_FRAMEWORK} 
+		${METALKIT_FRAMEWORK}
+	)
+	mark_as_advanced(${EXTRA_LIBS})
+	set(EXTRA_TARGET_RESOURCES
+		${CMAKE_CURRENT_LIST_DIR}/mac/resource/Main.storyboard
+	)
+	set(EXTRA_TARGET_OPTIONS MACOSX_BUNDLE)
+	set(EXTRA_TARGET_PROTERTIES
+		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_LIST_DIR}/mac/resource/Info-macOS.plist
+		XCODE_ATTRIBUTE_CLANG_ENABLE_MODULES "YES"
+		XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES"
+		XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_WEAK "YES"
+		XCODE_ATTRIBUTE_CLANG_MODULES_AUTOLINK "YES"
+		XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "-"
+		XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
+		XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.wyc.pixpad"
+		XCODE_ATTRIBUTE_PRODUCT_NAME "pixpad"
+		RESOURCE ${EXTRA_TARGET_RESOURCES}
+	)
+endif()
+
+add_executable(${PROJECT_NAME} ${EXTRA_TARGET_OPTIONS}
 	${SRC_IMGUI}
-	${SRC_GL3W}
-	${SRC_APP}
+	${SRC_IMGUI_IMPL}
+	${SRC_PIXPAD}
 )
 
 set_target_properties(${PROJECT_NAME}
 	PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
-	VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+	RUNTIME_OUTPUT_DIRECTORY "${BIN_DIR}"
+	${EXTRA_TARGET_PROTERTIES}
 )
 
-target_link_libraries(${PROJECT_NAME} glfw3 opengl32 gdi32 imm32 ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_sources(${PROJECT_NAME} PUBLIC ${EXTRA_TARGET_RESOURCES})
+
+target_link_libraries(${PROJECT_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${EXTRA_LIBS})
+

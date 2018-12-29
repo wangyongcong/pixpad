@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.3)
 project(pixpad)
 
 set(CMAKE_CXX_STANDARD 14)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 #--------------------------------------------------
@@ -85,8 +84,9 @@ add_compile_definitions(
 	$<$<CONFIG:Release>:LOG_SEVERITY_LEVEL=40>
 )
 
-set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
+set(BIN_DIR ${CMAKE_SOURCE_DIR}/${CMAKE_BUILD_TYPE}/bin)
 set(SRC_ROOT ${CMAKE_SOURCE_DIR}/src)
+set(LIB_IMATH Iex_static IexMath_static Imath_static)
 
 include_directories(
     ${3RD_INSTALL_PATH}
@@ -99,7 +99,7 @@ endif()
 
 # setup targets
 add_subdirectory(src/sparrow)
-add_dependencies(sparrow Iex_static IexMath_static Imath_static)
+add_dependencies(sparrow ${LIB_IMATH})
 set(SPARROW_INCLUDE_DIR 
 	"${SRC_ROOT}/sparrow"
 	"${SRC_ROOT}/sparrow/common" 
