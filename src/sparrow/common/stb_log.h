@@ -86,7 +86,8 @@ enum StbLogLevel {
 // logger worker batch size
 #define LOG_BATCH_SIZE 64
 // string logger default buffer size
-#define LOG_STRING_BUFFER_SIZE 1024
+#define LOG_STRING_SIZE 1024
+#define LOG_STRING_SIZE_MAX 1024 * 1024
 // cache line size
 #ifndef CACHELINE_SIZE
 #define CACHELINE_SIZE 64
@@ -170,15 +171,19 @@ void close_logger();
 void start_handler_thread(CLogHandler *handler, millisecond_t sleep_time = LOG_WORKER_SLEEP_TIME);
 
 // start logging to standard output
-bool start_logger(millisecond_t sleep_time = LOG_WORKER_SLEEP_TIME);
+CLogHandler* start_logger(bool async = true, millisecond_t sleep_time = LOG_WORKER_SLEEP_TIME);
 
 // start logging to file
-bool start_file_logger(const char *log_file_path,
+CLogHandler* start_file_logger(const char *log_file_path,
                        bool append_mode = false,
                        int max_rotation = LOG_FILE_ROTATE_COUNT,
                        size_t rotate_size = LOG_FILE_ROTATE_SIZE,
-                       millisecond_t sleep_time = LOG_WORKER_SLEEP_TIME
+					   bool async = true, millisecond_t sleep_time = LOG_WORKER_SLEEP_TIME
 );
+
+// start logging to string buffer
+CLogHandler* start_string_logger(size_t buffer_size = LOG_STRING_SIZE,
+								 bool async = true, millisecond_t sleep_time = LOG_WORKER_SLEEP_TIME);
 
 // convert any value to primitive types that can be recognized by printf
 // add overload functions to customize type conversion
@@ -489,7 +494,7 @@ private:
 class CLogString : public CLogHandler
 {
 public:
-	CLogString(size_t init_size=LOG_STRING_BUFFER_SIZE);
+	CLogString(size_t init_size = LOG_STRING_SIZE);
 	virtual ~CLogString();
 	virtual void process_event(const LogData *log) override;
 	// get C string
@@ -502,6 +507,8 @@ public:
 	}
 	
 private:
+	void _resize(size_t required_size);
+	
 	char *m_buf;
 	size_t m_capacity;
 	size_t m_size;
@@ -595,11 +602,17 @@ private:
 namespace STB_LOG_NAMESPACE {
 #endif
 
-void start_handler_thread(CLogHandler *handler, millisecond_t sleep_time) {
+inline LogContext* add_log_handler(CLogHandler *handler)
+{
 	LogContext *lc = get_log_context();
 	if (!lc->logger)
 		lc->logger = new CLogger(LOG_QUEUE_SIZE);
 	lc->logger->add_handler(handler);
+	return lc;
+}
+
+void start_handler_thread(CLogHandler *handler, millisecond_t sleep_time) {
+	LogContext *lc = add_log_handler(handler);
 	std::chrono::milliseconds msec(sleep_time);
 	lc->thread_pool.emplace_back(std::make_unique<std::thread>([handler, msec] {
 		while (!handler->is_closed()) {
@@ -623,19 +636,36 @@ void close_logger() {
 	lc->logger = nullptr;
 }
 
-bool start_logger(millisecond_t sleep_time) {
+CLogHandler* start_logger(bool async, millisecond_t sleep_time) {
 	CLogStdout *handler = new CLogStdout();
 	handler->set_time_formatter(std::make_unique<CDateTimeFormatter>());
-	start_handler_thread(handler, sleep_time);
-	return true;
+	if(async)
+		start_handler_thread(handler, sleep_time);
+	else
+		add_log_handler(handler);
+	return handler;
 }
 
-bool start_file_logger(const char *log_file_path, bool append_mode,
-                       int max_rotation, size_t rotate_size, millisecond_t sleep_time) {
+CLogHandler* start_file_logger(const char *log_file_path, bool append_mode, int max_rotation,
+					   size_t rotate_size, bool async, millisecond_t sleep_time) {
 	CLogFile *handler = new CLogFile(log_file_path, append_mode, max_rotation, rotate_size);
 	handler->set_time_formatter(std::make_unique<CDateTimeFormatter>());
-	start_handler_thread(handler, sleep_time);
-	return true;
+	if(async)
+		start_handler_thread(handler, sleep_time);
+	else
+		add_log_handler(handler);
+	return handler;
+}
+	
+CLogHandler* start_string_logger(size_t buffer_size, bool async, millisecond_t sleep_time)
+{
+	CLogString *handler = new CLogString(buffer_size);
+	handler->set_time_formatter(std::make_unique<CDateTimeFormatter>());
+	if(async)
+		start_handler_thread(handler, sleep_time);
+	else
+		add_log_handler(handler);
+	return handler;
 }
 
 void *aligned_alloc(size_t alignment, size_t size) {
@@ -1090,29 +1120,50 @@ void CLogString::process_event(const LogData *log)
 {
 	std::pair<char*, size_t> context{m_buf, m_capacity};
 	log->writer[LOG_WRITER_STRING](log, &context);
-	if(context->second < 0) {
+	if(context.second < 0) {
 		goto ERROR_EXIT;
 	}
-	if(context->second >= m_capacity) {
+	if(context.second >= m_capacity && m_capacity < LOG_STRING_SIZE_MAX) {
 		// not enough size, resize then write again
-		_resize(context->second);
-		context->first = m_buf;
-		context->second = m_capacity;
+		_resize(context.second);
+		context.first = m_buf;
+		context.second = m_capacity;
 		log->writer[LOG_WRITER_STRING](log, &context);
-		if(context->second < 0) {
+		if(context.second < 0) {
 			goto ERROR_EXIT;
 		}
 	}
-	// success
-	assert(context->second < m_capacity);
-	m_size = context->second;
+	if(context.second < m_capacity) {
+		// success
+		m_size = context.second;
+	}
+	else {  // strip to max size
+		m_size = m_capacity - 1;
+		m_buf[m_size] = 0;
+	}
 	return;
 	
 ERROR_EXIT:
-	// encounting error
+	// encounter error
 	m_buf[0] = 0;
 	m_size = 0;
 	return;
+}
+	
+void CLogString::_resize(size_t required_size)
+{
+	size_t size = m_capacity;
+	while(size < required_size) {
+		size *= 2;
+	}
+	if(size >= LOG_STRING_SIZE_MAX)
+		size = LOG_STRING_SIZE_MAX;
+	if(m_buf)
+		delete [] m_buf;
+	m_buf = new char[size];
+	m_capacity = size;
+	m_buf[0] = 0;
+	m_size = 0;
 }
 
 #ifdef USE_NAMESPACE
