@@ -318,7 +318,7 @@ struct GenericLogWriter {
 	
 #pragma clang diagnostic pop
 
-	static const LogWriter* get_writer_table() {
+	static const LogWriter* get_writer() {
 		static const LogWriter s_writer_table[LOG_WRITER_COUNT] = {
 			&write_stdout,
 			&write_file,
@@ -490,28 +490,38 @@ private:
 	int m_rotate_count;
 };
 	
+class CCustomLog : public CLogHandler
+{
+public:
+	CCustomLog();
+	virtual ~CCustomLog() {}
+	virtual void process_event(const LogData *log) override;
+	// get C string
+	inline const char *str() const {
+		return m_str.first;
+	}
+	// get string size
+	inline size_t size() const {
+		return m_str.second;
+	}
+protected:
+	virtual std::pair<char*, size_t> getstr(size_t required_size) = 0;
 	
-class CLogString : public CLogHandler
+	std::pair<char*, size_t> m_str;
+};
+	
+class CLogString : public CCustomLog
 {
 public:
 	CLogString(size_t init_size = LOG_STRING_SIZE);
 	virtual ~CLogString();
-	virtual void process_event(const LogData *log) override;
-	// get C string
-	inline const char *str() const {
-		return m_buf;
-	}
-	// get string size
-	inline size_t size() const {
-		return m_size;
-	}
-	
+
+protected:
+	virtual std::pair<char*, size_t> getstr(size_t required_size) override;
+
 private:
-	void _resize(size_t required_size);
-	
 	char *m_buf;
 	size_t m_capacity;
-	size_t m_size;
 };
 
 class CLogger {
@@ -537,7 +547,7 @@ public:
 		};
 		auto sptr = std::make_shared<entry_t>();
 		sptr->data = {format, args...};
-		sptr->base.writer = GenericLogWriter<Args...>::get_writer_table();
+		sptr->base.writer = GenericLogWriter<Args...>::get_writer();
 		_publish(level, channel, sptr);
 	}
 	// send any data to handlers
@@ -1097,10 +1107,54 @@ void CLogFile::rotate() {
 // String logger implementation
 // --------------------------------
 
+CCustomLog::CCustomLog()
+	: m_str(nullptr, 0)
+{
+	
+}
+	
+void CCustomLog::process_event(const LogData *log)
+{
+	constexpr unsigned s_error_len = 9;
+	static char s_error[s_error_len + 1] = "LOG ERROR";
+	size_t capacity;
+	m_str = getstr(1);
+	if(!m_str.first) {
+		goto ERROR_EXIT;
+	}
+	capacity = m_str.second;
+	log->writer[LOG_WRITER_STRING](log, &m_str);
+	if(m_str.second < 0) {
+		goto ERROR_EXIT;
+	}
+	if(m_str.second >= capacity && capacity < LOG_STRING_SIZE_MAX) {
+		// not enough size, resize then write again
+		m_str = getstr(m_str.second);
+		capacity = m_str.second;
+		log->writer[LOG_WRITER_STRING](log, &m_str);
+		if(m_str.second < 0) {
+			goto ERROR_EXIT;
+		}
+	}
+	if(m_str.second >= capacity) {
+		// strip to max size
+		m_str.second = capacity - 1;
+		m_str.first[m_str.second] = 0;
+	}
+	return;
+	
+ERROR_EXIT:
+	// encounter error
+	m_str.first = s_error;
+	m_str.second = s_error_len;
+	return;
+}
+
+
 CLogString::CLogString(size_t init_size)
-	: m_buf(nullptr)
+	: CCustomLog()
+	, m_buf(nullptr)
 	, m_capacity(init_size)
-	, m_size(0)
 {
 	if(init_size < 1)
 		init_size = 1;
@@ -1116,54 +1170,21 @@ CLogString::~CLogString()
 	}
 }
 
-void CLogString::process_event(const LogData *log)
+std::pair<char*, size_t> CLogString::getstr(size_t required_size)
 {
-	std::pair<char*, size_t> context{m_buf, m_capacity};
-	log->writer[LOG_WRITER_STRING](log, &context);
-	if(context.second < 0) {
-		goto ERROR_EXIT;
-	}
-	if(context.second >= m_capacity && m_capacity < LOG_STRING_SIZE_MAX) {
-		// not enough size, resize then write again
-		_resize(context.second);
-		context.first = m_buf;
-		context.second = m_capacity;
-		log->writer[LOG_WRITER_STRING](log, &context);
-		if(context.second < 0) {
-			goto ERROR_EXIT;
+	if(required_size > m_capacity) {
+		size_t size = m_capacity;
+		while(size < required_size) {
+			size *= 2;
 		}
+		if(size >= LOG_STRING_SIZE_MAX)
+			size = LOG_STRING_SIZE_MAX;
+		if(m_buf)
+			delete [] m_buf;
+		m_buf = new char[size];
+		m_capacity = size;
 	}
-	if(context.second < m_capacity) {
-		// success
-		m_size = context.second;
-	}
-	else {  // strip to max size
-		m_size = m_capacity - 1;
-		m_buf[m_size] = 0;
-	}
-	return;
-	
-ERROR_EXIT:
-	// encounter error
-	m_buf[0] = 0;
-	m_size = 0;
-	return;
-}
-	
-void CLogString::_resize(size_t required_size)
-{
-	size_t size = m_capacity;
-	while(size < required_size) {
-		size *= 2;
-	}
-	if(size >= LOG_STRING_SIZE_MAX)
-		size = LOG_STRING_SIZE_MAX;
-	if(m_buf)
-		delete [] m_buf;
-	m_buf = new char[size];
-	m_capacity = size;
-	m_buf[0] = 0;
-	m_size = 0;
+	return {m_buf, m_capacity};
 }
 
 #ifdef USE_NAMESPACE
