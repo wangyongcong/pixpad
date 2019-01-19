@@ -43,12 +43,13 @@ protected:
 			size = wyc::next_power2(size);
 			char *new_buf = new char[size];
 			BufferHead *head = (BufferHead*)new_buf;
-			head->buf = new_buf;
+			head->buf = new_buf + sizeof(BufferHead);
 			head->end = new_buf + size;
 			if(m_cur_buf)
 				head->_next = m_cur_buf;
 			else
 				head->_next = nullptr;
+			
 			m_cur_buf = head;
 		}
 		return {m_cur_buf->buf, m_cur_buf->end - m_cur_buf->buf};
@@ -124,7 +125,7 @@ public:
 		}, (void*)this))
 		{
 			if (m_input_beg[0]) {
-				log_info(std::string(m_input_buf));
+				log_info("%s", std::string(m_input_buf));
 				process_input();
 			}
 			m_input_beg[0] = 0;
