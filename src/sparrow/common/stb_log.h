@@ -506,6 +506,7 @@ public:
 	}
 protected:
 	virtual std::pair<char*, size_t> getstr(size_t required_size) = 0;
+	virtual void setstr(size_t size) {}
 	
 	std::pair<char*, size_t> m_str;
 };
@@ -1127,20 +1128,25 @@ void CCustomLog::process_event(const LogData *log)
 	if(m_str.second < 0) {
 		goto ERROR_EXIT;
 	}
-	if(m_str.second >= capacity && capacity < LOG_STRING_SIZE_MAX) {
-		// not enough size, resize then write again
-		m_str = getstr(m_str.second);
+	if(m_str.second >= capacity) {
+		// not enough size, try resize then write again
+		m_str = getstr(m_str.second + 1);
+		if(!m_str.first) {
+			goto ERROR_EXIT;
+		}
 		capacity = m_str.second;
 		log->writer[LOG_WRITER_STRING](log, &m_str);
 		if(m_str.second < 0) {
 			goto ERROR_EXIT;
 		}
+		// if still not enough, strip the string
+		if(m_str.second >= capacity) {
+			m_str.second = capacity - 1;
+			m_str.first[m_str.second] = 0;
+		}
 	}
-	if(m_str.second >= capacity) {
-		// strip to max size
-		m_str.second = capacity - 1;
-		m_str.first[m_str.second] = 0;
-	}
+	// done with string buffer
+	setstr(m_str.second + 1);
 	return;
 	
 ERROR_EXIT:
