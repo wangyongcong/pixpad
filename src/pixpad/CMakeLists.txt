@@ -48,8 +48,14 @@ elseif(APPLE)
 	set(INCLUDE_IMGUI_IMPL mac)
 endif()
 
+set(SRC_PANEL
+	panel/imgui_main.cpp
+	panel/imgui_console.cpp
+)
+
 source_group(imgui FILES ${SRC_IMGUI})
 source_group(imgui_impl FILES ${SRC_IMGUI_IMPL})
+source_group(panel FILES ${SRC_PANEL})
 
 include_directories(
 	imgui
@@ -105,6 +111,7 @@ add_executable(${PROJECT_NAME} ${EXTRA_TARGET_OPTIONS}
 	${SRC_IMGUI}
 	${SRC_IMGUI_IMPL}
 	${SRC_PIXPAD}
+	${SRC_PANEL}
 )
 
 set_target_properties(${PROJECT_NAME}
@@ -115,5 +122,5 @@ set_target_properties(${PROJECT_NAME}
 
 target_sources(${PROJECT_NAME} PUBLIC ${EXTRA_TARGET_RESOURCES})
 
-target_link_libraries(${PROJECT_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${EXTRA_LIBS})
+target_link_libraries(${PROJECT_NAME} sparrow ${Boost_PROGRAM_OPTIONS_LIBRARY} ${EXTRA_LIBS})
 

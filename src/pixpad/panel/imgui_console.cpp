@@ -89,10 +89,10 @@ public:
 		return s_console;
 	}
 
-	bool draw()
+	bool draw(ImVec2 size)
 	{
-		ImGui::SetNextWindowSize(ImVec2(float(m_width), float(m_height)), ImGuiCond_Always);
-		if (!ImGui::Begin("console", 0, m_flags))
+		ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+		if (!ImGui::Begin("console", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 		{
 			ImGui::End();
 			return false;
@@ -213,8 +213,6 @@ public:
 	}
 
 private:
-	int m_width, m_height;
-	ImGuiWindowFlags m_flags;
 	static constexpr size_t INPUT_BUFF_SIZE = 256;
 	char m_input_buf[INPUT_BUFF_SIZE];
 	char *m_input_beg;
@@ -224,11 +222,6 @@ private:
 
 	CImConsole()
 	{
-//		m_width = int(AppConfig::window_width * 0.382f), m_height = int(AppConfig::window_height);
-		m_width = 200;
-		m_height = 400;
-		m_flags = ImGuiWindowFlags_NoResize
-			| ImGuiWindowFlags_NoMove;
 		const char *prompt = "# ";
 		size_t prompt_len = strlen(prompt);
 		strncpy(m_input_buf, prompt, INPUT_BUFF_SIZE);
@@ -261,6 +254,7 @@ void console_unregister_command(const std::string &cmd_name)
 bool show_console()
 {
 	auto &console = CImConsole::singleton();
-	return console.draw();
+	ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Once);
+	return console.draw({400, 600});
 }
 
