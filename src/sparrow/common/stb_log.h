@@ -258,7 +258,9 @@ struct LogData
 	
 struct LogEvent
 {
+	// 1 cacheline for shared publish flag
 	Sequence publish;
+	// 1 cacheline for data
 	std::shared_ptr<void> data;
 	char _padding[CACHELINE_SIZE - sizeof(std::shared_ptr<void>)];
 };
@@ -273,7 +275,8 @@ constexpr auto index_apply(F f) {
 	return index_apply_impl(f, std::make_index_sequence<N>{});
 }
 	
-enum ELogWriterType {
+enum ELogWriterType
+{
 	LOG_WRITER_STDOUT,
 	LOG_WRITER_FILE,
 	LOG_WRITER_STRING,
@@ -607,7 +610,7 @@ private:
 #include <string>
 #include <algorithm>
 
-#define ASSERT_ALIGNMENT(ptr, align) assert((uintptr_t(ptr) % (align)) == 0)
+#define ASSERT_ALIGNMENT(ptr, align) assert((ptr) && ((uintptr_t(ptr) % (align)) == 0))
 
 #ifdef USE_NAMESPACE
 namespace STB_LOG_NAMESPACE {
@@ -730,14 +733,14 @@ CLogger::CLogger(size_t size) {
 	static_assert(sizeof(LogEvent) % CACHELINE_SIZE == 0, "LogEvent should be fit in cacheline.");
 	size_t buf_size = sizeof(LogEvent) * size;
 	m_event_queue = (LogEvent *) aligned_alloc(CACHELINE_SIZE, buf_size);
-	assert(m_event_queue);
+	ASSERT_ALIGNMENT(m_event_queue, CACHELINE_SIZE);
 	m_size_mask = size - 1;
 	for (size_t i = 0; i < size; ++i) {
 		LogEvent *log = &m_event_queue[i];
 		ASSERT_ALIGNMENT(log, CACHELINE_SIZE);
 		ASSERT_ALIGNMENT(&log->publish, CACHELINE_SIZE);
 		// initialize LogEvent
-		log->data = nullptr;
+		new(log) LogEvent;
 		log->publish.set(0);
 	}
 	m_seq_claim.set(0);
@@ -751,7 +754,7 @@ CLogger::~CLogger() {
 	for (size_t i = 0; i <= m_size_mask; ++i) {
 		// clean up LogEvent
 		LogEvent *log = &m_event_queue[i];
-		log->data = nullptr;
+		log->~LogEvent();
 	}
 	aligned_free(m_event_queue);
 	m_event_queue = nullptr;
