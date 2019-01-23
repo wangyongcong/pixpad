@@ -5,11 +5,62 @@
 extern void show_demo();
 // console window
 extern void show_console();
+//
+extern void show_pixel();
 
 // main window entry
 void show_main_frame()
 {
+	show_pixel();
+	//	show_demo();
 	show_console();
+}
+
+void show_pixel()
+{
+	constexpr int row = 64, col = 64;
+	constexpr int cell_size = 12;
+	constexpr int point_size = 2;
+	constexpr int origin_x = 400, origin_y = 2;
+	
+	ImDrawList* draw_list = ImGui::GetOverlayDrawList();
+	draw_list->PushClipRectFullScreen();
+	
+	ImVec2 x0, x1;
+	x0.x = origin_x;
+	x0.y = origin_y;
+	x1.x = origin_x + col * cell_size;
+	x1.y = origin_y;
+	for(int r = 0; r <= row; ++r)
+	{
+		draw_list->AddLine(x0, x1, 0xFF00FF00);
+		x0.y += cell_size;
+		x1.y += cell_size;
+	}
+	
+	x0.x = origin_x;
+	x0.y = origin_y;
+	x1.x = origin_x;
+	x1.y = origin_y + row * cell_size;
+	for(int c = 0; c <= col; ++c)
+	{
+		draw_list->AddLine(x0, x1, 0xFF00FF00);
+		x0.x += cell_size;
+		x1.x += cell_size;
+	}
+	
+	x0.y = origin_y + cell_size * 0.5;
+	for(int r = 0; r < row; ++r, x0.y += cell_size)
+	{
+		x0.x = origin_x + cell_size * 0.5;
+		for(int c = 0; c < col; ++c)
+		{
+			draw_list->AddCircleFilled(x0, point_size, 0xFFFFFFFF, 6);
+			x0.x += cell_size;
+		}
+	}
+	
+	draw_list->PopClipRect();
 }
 
 void show_demo()

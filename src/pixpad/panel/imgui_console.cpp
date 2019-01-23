@@ -120,12 +120,19 @@ public:
 
 	bool draw()
 	{
+		ImGuiIO &io = ImGui::GetIO();
+		if(io.KeyCtrl && ImGui::IsKeyReleased(int('`')))
+		{
+			m_is_show = !m_is_show;
+		}
+		ImGui::SetNextWindowCollapsed(!m_is_show);
+		
 		if (!ImGui::Begin("console", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 		{
 			ImGui::End();
 			return false;
 		}
-
+		
 		const auto &style = ImGui::GetStyle();
 		float progress_bar_height = 4;
 		ImGui::SetCursorPosX(style.WindowPadding.x * 0.5f);
@@ -146,7 +153,10 @@ public:
 		// BEGIN input
 		ImGui::Separator();
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
-		if (ImGui::InputText("", m_input_beg, m_input_max, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory,
+		int input_flag = 0;
+		if(!io.KeyCtrl)
+			input_flag = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
+		if (ImGui::InputText("", m_input_beg, m_input_max, input_flag,
 			[] (ImGuiTextEditCallbackData *ctx) -> int {
 			((CImConsole*)ctx)->on_input_end();
 			return 0;
@@ -262,6 +272,7 @@ private:
 	size_t m_input_max;
 	std::unordered_map<std::string, wyc::IShellCommand*> m_commands;
 	CImLog *m_log;
+	bool m_is_show;
 
 	CImConsole()
 	{
@@ -270,6 +281,7 @@ private:
 		m_input_max = INPUT_BUFF_SIZE - IMLOG_PROMPT_SIZE;
 		m_log = new CImLog;
 		add_log_handler(m_log);
+		m_is_show = false;
 	}
 	
 	~CImConsole()
@@ -296,7 +308,7 @@ bool show_console()
 {
 	auto &console = CImConsole::singleton();
 	ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Once);
-	ImGui::SetNextWindowSize({400, 600}, ImGuiCond_Once);
+	ImGui::SetNextWindowSize({300, 600}, ImGuiCond_Once);
 	return console.draw();
 }
 
