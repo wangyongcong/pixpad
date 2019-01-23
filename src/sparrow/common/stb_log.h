@@ -510,6 +510,7 @@ public:
 protected:
 	virtual std::pair<char*, size_t> getstr(size_t required_size) = 0;
 	virtual void setstr(size_t size) {}
+	virtual void handle_error(const LogData *log);
 	
 	std::pair<char*, size_t> m_str;
 };
@@ -1119,8 +1120,6 @@ CCustomLog::CCustomLog()
 	
 void CCustomLog::process_event(const LogData *log)
 {
-	constexpr unsigned s_error_len = 9;
-	static char s_error[s_error_len + 1] = "LOG ERROR";
 	size_t capacity;
 	m_str = getstr(1);
 	if(!m_str.first) {
@@ -1154,9 +1153,13 @@ void CCustomLog::process_event(const LogData *log)
 	
 ERROR_EXIT:
 	// encounter error
-	m_str.first = s_error;
-	m_str.second = s_error_len;
+	handle_error(log);
 	return;
+}
+
+void CCustomLog::handle_error(const LogData *log)
+{
+	printf("Fail to write log.\n");
 }
 
 

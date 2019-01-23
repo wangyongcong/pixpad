@@ -20,7 +20,14 @@ set(SRC_MATHEX
 	mathex/vecmath.cpp
 	mathex/vecmath.h
 	mathex/xs_float.h
-) 
+)
+
+set(SRC_CORE
+	core/spw_config.h
+	core/spw_tile_buffer.h
+	core/spw_tile_buffer.cpp
+)
+
 set(SRC_RENDERER 
 	renderer/clipping.cpp
 	renderer/clipping.h
@@ -40,7 +47,6 @@ set(SRC_RENDERER
 	renderer/renderer.h
 	renderer/spw_command.cpp
 	renderer/spw_command.h
-	renderer/spw_config.h
 	renderer/spw_pipeline.cpp
 	renderer/spw_pipeline.h
 	renderer/spw_rasterizer.h
@@ -74,20 +80,23 @@ set(SRC_THREAD
 ) 
  
 source_group(common FILES ${SRC_COMMON}) 
-source_group(mathex FILES ${SRC_MATHEX}) 
-source_group(renderer FILES ${SRC_RENDERER}) 
+source_group(mathex FILES ${SRC_MATHEX})
+source_group(core FILES ${SRC_CORE})
+source_group(renderer FILES ${SRC_RENDERER})
 source_group(thread FILES ${SRC_THREAD}) 
- 
+
 include_directories(
 	common 
-	mathex 
+	mathex
+	core
 	renderer 
 	thread 
 ) 
 
 add_library(sparrow STATIC 
 	${SRC_COMMON} 
-	${SRC_MATHEX} 
+	${SRC_MATHEX}
+	${SRC_CORE}
 	${SRC_RENDERER} 
 	${SRC_THREAD} 
 	${SRC_SCENE} 

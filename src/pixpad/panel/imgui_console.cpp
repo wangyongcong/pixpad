@@ -9,6 +9,22 @@
 #include "util.h"
 #include "shellcmd.h"
 
+#define IMLOG_MIN_BUFFER_SIZE 512
+
+const char *IMLOG_PROMPT = "# ";
+constexpr unsigned IMLOG_PROMPT_SIZE = 2;
+
+
+struct ImLogEntry {
+	ImLogEntry(int v1) : level(v1), str(nullptr), size(0)
+	{
+	}
+	
+	int level;
+	const char *str;
+	size_t size;
+};
+
 
 class CImLog : public CCustomLog
 {
@@ -24,7 +40,13 @@ public:
 		}
 	}
 	
-	typedef std::vector<std::pair<const char*, size_t>>::const_iterator iterator;
+	virtual void process_event(const LogData *log) override
+	{
+		m_log_data.emplace_back(log->level);
+		CCustomLog::process_event(log);
+	}
+	
+	typedef std::vector<ImLogEntry>::const_iterator iterator;
 	
 	inline iterator begin() const {
 		return m_log_data.begin();
@@ -41,6 +63,8 @@ protected:
 		{
 			size_t size = required_size + sizeof(BufferHead);
 			size = wyc::next_power2(size);
+			if (size < IMLOG_MIN_BUFFER_SIZE)
+				size = IMLOG_MIN_BUFFER_SIZE;
 			char *new_buf = new char[size];
 			BufferHead *head = (BufferHead*)new_buf;
 			head->buf = new_buf + sizeof(BufferHead);
@@ -65,8 +89,12 @@ protected:
 			assert(0);
 			m_cur_buf->buf[len] = 0;
 		}
-		m_log_data.emplace_back(m_cur_buf->buf, len);
-		m_cur_buf->buf += size;
+		if(!m_log_data.empty()) {
+			auto &last = m_log_data.back();
+			last.str = m_cur_buf->buf;
+			last.size = len;
+			m_cur_buf->buf += size;
+		}
 	}
 
 private:
@@ -75,8 +103,9 @@ private:
 		char *end;
 		BufferHead *_next;
 	};
+	
 	BufferHead *m_cur_buf;
-	std::vector<std::pair<const char*, size_t>> m_log_data;
+	std::vector<ImLogEntry> m_log_data;
 };
 
 
@@ -89,9 +118,8 @@ public:
 		return s_console;
 	}
 
-	bool draw(ImVec2 size)
+	bool draw()
 	{
-		ImGui::SetNextWindowSize(size, ImGuiCond_Always);
 		if (!ImGui::Begin("console", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 		{
 			ImGui::End();
@@ -109,8 +137,8 @@ public:
 			false, ImGuiWindowFlags_HorizontalScrollbar);
 		if(m_log) {
 			m_log->process();
-			for(auto s : *m_log) {
-				draw_log(s.first);
+			for(auto &s : *m_log) {
+				draw_log(s);
 			}
 		}
 		ImGui::EndChild(); // END log
@@ -150,6 +178,10 @@ public:
 		std::string cmd_name = strtok(m_input_beg, " ");
 		if (cmd_name == "help")
 		{
+			if(m_commands.empty()) {
+				log_info("No commands available.");
+				return;
+			}
 			int max_len = 4;
 			for (auto &it : m_commands)
 			{
@@ -163,11 +195,10 @@ public:
 			ss << std::left << std::setfill(' ');
 			ss << "- " << std::setw(c) << "help" << "show help message" << std::setw(0);
 			log_info(ss.str().c_str());
-			ss.str("");
 			for (auto &it : m_commands) {
+				ss.str("");
 				ss << "- " << std::setw(c) << it.first << it.second->description() << std::setw(0);
 				log_info(ss.str().c_str());
-				ss.str("");
 			}
 			return;
 		}
@@ -179,22 +210,34 @@ public:
 		iter->second->execute(m_input_beg + cmd_name.size() + 1);
 	}
 
-	void draw_log(const std::string &str)
+	void draw_log(const ImLogEntry &log)
 	{
-		static const std::pair<std::string, ImVec4> s_tag_color[] = {
-			std::make_pair(std::string("# "), ImVec4(0.0f, 1.0f, 0.0f, 1.0f)),
-			std::make_pair(std::string("[ERROR]") , ImVec4(1.0f, 0.4f, 0.4f, 1.0f)),
-			std::make_pair(std::string("[WARNING]"), ImVec4(1.0f, 1.0f, 0.0f, 1.0f)),
-		};
-		for (auto &tag : s_tag_color) {
-			if (!str.compare(0, tag.first.size(), tag.first)) {
-				ImGui::PushStyleColor(ImGuiCol_Text, tag.second);
-				ImGui::TextUnformatted(str.c_str());
-				ImGui::PopStyleColor();
-				return;
+		static ImVec4 COLOR_PROMPT = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+		static ImVec4 COLOR_ERROR = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
+		static ImVec4 COLOR_WARNING = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
+		
+		ImVec4 *color = nullptr;
+		if(strncmp(log.str, IMLOG_PROMPT, IMLOG_PROMPT_SIZE) == 0) {
+			// prompt
+			color = &COLOR_PROMPT;
+		}
+		else { // log level
+			switch(log.level)
+			{
+				case LOG_ERROR:
+					color = &COLOR_ERROR;
+					break;
+				case LOG_WARNING:
+					color = &COLOR_WARNING;
+					break;
+				default:
+					ImGui::TextUnformatted(log.str);
+					return;
 			}
 		}
-		ImGui::TextUnformatted(str.c_str());
+		ImGui::PushStyleColor(ImGuiCol_Text, *color);
+		ImGui::TextUnformatted(log.str);
+		ImGui::PopStyleColor();
 	}
 
 	bool add_command(wyc::IShellCommand *cmd)
@@ -222,11 +265,9 @@ private:
 
 	CImConsole()
 	{
-		const char *prompt = "# ";
-		size_t prompt_len = strlen(prompt);
-		strncpy(m_input_buf, prompt, INPUT_BUFF_SIZE);
-		m_input_beg = m_input_buf + prompt_len;
-		m_input_max = INPUT_BUFF_SIZE - prompt_len;
+		strncpy(m_input_buf, IMLOG_PROMPT, INPUT_BUFF_SIZE);
+		m_input_beg = m_input_buf + IMLOG_PROMPT_SIZE;
+		m_input_max = INPUT_BUFF_SIZE - IMLOG_PROMPT_SIZE;
 		m_log = new CImLog;
 		add_log_handler(m_log);
 	}
@@ -255,6 +296,7 @@ bool show_console()
 {
 	auto &console = CImConsole::singleton();
 	ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Once);
-	return console.draw({400, 600});
+	ImGui::SetNextWindowSize({400, 600}, ImGuiCond_Once);
+	return console.draw();
 }
 
