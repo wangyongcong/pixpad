@@ -25,7 +25,6 @@ set(SRC_MATHEX
 set(SRC_CORE
 	core/spw_config.h
 	core/spw_tile_buffer.h
-	core/spw_tile_buffer.cpp
 )
 
 set(SRC_RENDERER 
