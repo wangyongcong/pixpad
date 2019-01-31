@@ -1,113 +1,20 @@
 #include <cstdio>
 #include "imgui.h"
-#include "core/spw_tile_buffer.h"
+#include "demo_base.h"
 
 // ImGui demo window
 extern void show_demo();
 // console window
 extern void show_console();
-//
-extern void show_pixel();
+// show demo
+extern void draw_one_triangle();
 
 // main window entry
 void show_main_frame()
 {
 //	show_demo();
-	show_pixel();
-	show_console();
-	
-//	ImDrawList* draw_list = ImGui::GetOverlayDrawList();
-//	draw_list->PushClipRectFullScreen();
-//	draw_list->AddQuadFilled(ImVec2(100, 100), ImVec2(200, 100), ImVec2(200, 200), ImVec2(100, 200), 0xFFFFFFFF);
-//	draw_list->PopClipRect();
-}
-
-class CPixelMap
-{
-public:
-	CPixelMap()
-	{
-		m_buf.storage(64, 64);
-		ImU32 colors[] = {
-			0xFFFFFFFF, 0xFFFF0000, 0xFF0000FF,
-			0xFFFFFF00, 0xFFFF00FF, 0xFF00FFFF,
-			0xFF88FF00, 0xFF8800FF, 0xFF00FF88,
-			0xFF0088FF,
-		};
-		unsigned color_count = sizeof(colors) / sizeof(ImU32);
-		for(auto i=0u; i < m_buf.tile_count(); ++i) {
-			m_buf.set_tile(i, colors[i % color_count]);
-		}
-//		m_buf.clear(0xFFFFFFFF);
-	}
-	
-	~CPixelMap() {
-	}
-	
-	void draw() {
-		constexpr int row = 64, col = 64;
-		constexpr int cell_size = 11.2;
-		constexpr int point_size = 2;
-		constexpr int origin_x = 400, origin_y = 2;
-		
-		ImDrawList* draw_list = ImGui::GetOverlayDrawList();
-		draw_list->PushClipRectFullScreen();
-		
-		ImVec2 x0, x1;
-		x0.x = origin_x;
-		x0.y = origin_y;
-		x1.x = origin_x + col * cell_size;
-		x1.y = origin_y;
-		for(int r = 0; r <= row; ++r)
-		{
-			draw_list->AddLine(x0, x1, 0xFF00FF00);
-			x0.y += cell_size;
-			x1.y += cell_size;
-		}
-		
-		x0.x = origin_x;
-		x0.y = origin_y;
-		x1.x = origin_x;
-		x1.y = origin_y + row * cell_size;
-		for(int c = 0; c <= col; ++c)
-		{
-			draw_list->AddLine(x0, x1, 0xFF00FF00);
-			x0.x += cell_size;
-			x1.x += cell_size;
-		}
-		
-		ImVec2 va, vb, vc, vd;
-		x0.x = origin_x + cell_size * 0.5 - point_size * 0.5;
-		va.y = origin_y + cell_size * 0.5 - point_size * 0.5;
-		for(int r = 0; r < row; ++r, x0.y += cell_size)
-		{
-			va.x = x0.x;
-			vb.x = va.x + point_size; vb.y = va.y;
-			vc.x = vb.x; vc.y = vb.y + point_size;
-			vd.x = va.x; vd.y = vc.y;
-			for(int c = 0; c < col; ++c)
-			{
-				draw_list->AddQuadFilled(va, vb, vc, vd, m_buf.get(c, r));
-				va.x += cell_size;
-				vb.x += cell_size;
-				vc.x += cell_size;
-				vd.x += cell_size;
-			}
-			va.y += cell_size;
-		}
-		
-		draw_list->PopClipRect();
-	}
-	
-private:
-	wyc::CSpwTileBuffer<ImU32> m_buf;
-	
-};
-
-void show_pixel()
-{
-	static CPixelMap s_pixelmap;
-	s_pixelmap.draw();
+//	show_console();
+	draw_one_triangle();
 }
 
 void show_demo()

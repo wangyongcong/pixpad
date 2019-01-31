@@ -105,7 +105,8 @@ set(SPARROW_INCLUDE_DIR
 	"${SRC_ROOT}/sparrow"
 	"${SRC_ROOT}/sparrow/common" 
 	"${SRC_ROOT}/sparrow/mathex" 
-	"${SRC_ROOT}/sparrow/renderer" 
+	"${SRC_ROOT}/sparrow/core"
+	"${SRC_ROOT}/sparrow/renderer"
 	"${SRC_ROOT}/sparrow/thread" 
 )
 include_directories(${SPARROW_INCLUDE_DIR})

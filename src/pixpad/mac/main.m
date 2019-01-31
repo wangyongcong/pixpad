@@ -1,6 +1,9 @@
 
 #import <TargetConditionals.h>
 
+// Demo entry
+void demo_main();
+
 #if TARGET_OS_IPHONE
 
 #import <UIKit/UIKit.h>
@@ -17,6 +20,7 @@ int main(int argc, char * argv[]) {
 #import <Cocoa/Cocoa.h>
 
 int main(int argc, const char * argv[]) {
+	demo_main();
     return NSApplicationMain(argc, argv);
 }
 

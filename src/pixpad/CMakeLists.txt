@@ -51,15 +51,25 @@ endif()
 set(SRC_PANEL
 	panel/imgui_main.cpp
 	panel/imgui_console.cpp
+	panel/imgui_pixpad.h
+	panel/imgui_pixpad.cpp
+)
+
+set(SRC_DEMO
+	demo/demo_base.cpp
+	demo/one_triangle.cpp
 )
 
 source_group(imgui FILES ${SRC_IMGUI})
 source_group(imgui_impl FILES ${SRC_IMGUI_IMPL})
 source_group(panel FILES ${SRC_PANEL})
+source_group(demo FILES ${SRC_DEMO})
 
 include_directories(
 	imgui
 	${INCLUDE_IMGUI_IMPL}
+	panel
+	demo
 )
 
 set(EXTRA_LIBS)
@@ -112,6 +122,7 @@ add_executable(${PROJECT_NAME} ${EXTRA_TARGET_OPTIONS}
 	${SRC_IMGUI_IMPL}
 	${SRC_PIXPAD}
 	${SRC_PANEL}
+	${SRC_DEMO}
 )
 
 set_target_properties(${PROJECT_NAME}

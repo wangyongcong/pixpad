@@ -37,6 +37,12 @@ namespace wyc
 		inline unsigned height() const {
 			return m_height;
 		}
+		inline unsigned tile_row() const {
+			return m_tile_row;
+		}
+		inline unsigned tile_col() const {
+			return m_tile_col;
+		}
 
 	private:
 		T* _address(unsigned x, unsigned y) const;
