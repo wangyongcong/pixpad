@@ -113,6 +113,11 @@ namespace wyc
 	{
 		return int64_t(v1.x - v0.x) * int64_t(v2.y - v0.y) - int64_t(v1.y - v0.y) * int64_t(v2.x - v0.x);
 	}
+	
+	inline int64_t edge_function_fixed(const vec2i &v0, const vec2i &v1)
+	{
+		return int64_t(v0.x) * int64_t(v1.y) - int64_t(v0.y) * int64_t(v1.x);
+	}
 
 	template<typename Vertex>
 	inline Vertex interpolate(const Vertex &v0, const Vertex &v1, const Vertex &v2, float t0, float t1, float t2)

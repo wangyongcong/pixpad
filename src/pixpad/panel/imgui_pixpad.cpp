@@ -4,13 +4,17 @@
 
 void show_pixpad(const wyc::CSpwTileBuffer<uint32_t> &buf, const wyc::vec2f *triangles, unsigned vertex_count)
 {
-	constexpr int cell_size = 11.2;
-	constexpr int point_size = 2;
-	constexpr int origin_x = 281.6, origin_y = 3.2;
+	constexpr float cell_size = 11.2f;
+	constexpr float cell_thickness = 1.0f;
+	constexpr float point_size = 2.0f;
+	constexpr float canvas_width = 1280.0f, canvas_height = 720.0f;
 	
 	int row = (int)buf.width(), col = (int)buf.height();
 	if(row < 1 || col < 1)
 		return;
+	
+	float origin_x = (canvas_width - cell_size * col - cell_thickness) * 0.5f;
+	float origin_y = (canvas_height - cell_size * row - cell_thickness) * 0.5f;
 	
 	ImDrawList* draw_list = ImGui::GetOverlayDrawList();
 	draw_list->PushClipRectFullScreen();
@@ -22,7 +26,7 @@ void show_pixpad(const wyc::CSpwTileBuffer<uint32_t> &buf, const wyc::vec2f *tri
 	x1.y = origin_y;
 	for(int r = 0; r <= row; ++r)
 	{
-		draw_list->AddLine(x0, x1, 0xFF00FF00);
+		draw_list->AddLine(x0, x1, 0xFFFFFFFF, cell_thickness);
 		x0.y += cell_size;
 		x1.y += cell_size;
 	}
@@ -33,7 +37,7 @@ void show_pixpad(const wyc::CSpwTileBuffer<uint32_t> &buf, const wyc::vec2f *tri
 	x1.y = origin_y + row * cell_size;
 	for(int c = 0; c <= col; ++c)
 	{
-		draw_list->AddLine(x0, x1, 0xFF00FF00);
+		draw_list->AddLine(x0, x1, 0xFFFFFFFF, cell_thickness);
 		x0.x += cell_size;
 		x1.x += cell_size;
 	}
@@ -65,7 +69,7 @@ void show_pixpad(const wyc::CSpwTileBuffer<uint32_t> &buf, const wyc::vec2f *tri
 			{origin_x + cell_size * triangle[0].x, origin_y + cell_size * triangle[0].y},
 			{origin_x + cell_size * triangle[1].x, origin_y + cell_size * triangle[1].y},
 			{origin_x + cell_size * triangle[2].x, origin_y + cell_size * triangle[2].y},
-			0xff000000, 1.0f
+			0xff00ff00, 1.6f
 		);
 	}
 	

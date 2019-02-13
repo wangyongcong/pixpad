@@ -124,15 +124,17 @@ public:
 		if(io.KeyCtrl && ImGui::IsKeyReleased(int('`')))
 		{
 			m_is_show = !m_is_show;
+			ImGui::SetNextWindowCollapsed(!m_is_show);
 		}
-		ImGui::SetNextWindowCollapsed(!m_is_show);
 		
 		if (!ImGui::Begin("console", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 		{
+			m_is_show = false;
 			ImGui::End();
 			return false;
 		}
-		
+
+		m_is_show = true;
 		const auto &style = ImGui::GetStyle();
 		float progress_bar_height = 4;
 		ImGui::SetCursorPosX(style.WindowPadding.x * 0.5f);

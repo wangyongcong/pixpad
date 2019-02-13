@@ -51,8 +51,6 @@ endif()
 set(SRC_PANEL
 	panel/imgui_main.cpp
 	panel/imgui_console.cpp
-	panel/imgui_pixpad.h
-	panel/imgui_pixpad.cpp
 )
 
 set(SRC_DEMO

@@ -1,6 +1,5 @@
 #include <cstdio>
 #include "imgui.h"
-#include "demo_base.h"
 
 // ImGui demo window
 extern void show_demo();
@@ -13,8 +12,8 @@ extern void draw_one_triangle();
 void show_main_frame()
 {
 //	show_demo();
-//	show_console();
 	draw_one_triangle();
+	show_console();
 }
 
 void show_demo()

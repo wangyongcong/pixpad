@@ -7,7 +7,7 @@
 #define FRAGMENT_ALIGNMENT 4
 
 namespace wyc
-{
+{	
 	template<class T>
 	class CSpwTileBuffer
 	{
@@ -42,6 +42,9 @@ namespace wyc
 		}
 		inline unsigned tile_col() const {
 			return m_tile_col;
+		}
+		inline unsigned tile_size() const {
+			return TILE_SIZE;
 		}
 
 	private:
