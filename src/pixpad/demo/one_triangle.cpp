@@ -8,6 +8,8 @@
 
 using namespace wyc;
 
+#define SUB_PIXEL_PRECISION 8
+
 struct TileState {
 	bool trival_reject;
 	uint8_t trival_accept = 0;
@@ -47,19 +49,19 @@ void demo_one_triangle()
 	}
 	
 	auto &triangle = context->triangle;
-	triangle[0] = {14.9f, 25.1f};
-	triangle[1] = {34.5f, 17.8f};
+	triangle[0] = {6.9f, 25.1f};
+	triangle[1] = {24.5f, 4.8f};
 	triangle[2] = {48.6f, 37.3f};
 	
 	auto &verts = context->vertex;
-	verts[0] = snap_to_subpixel<8>(triangle[0]);
-	verts[1] = snap_to_subpixel<8>(triangle[1]);
-	verts[2] = snap_to_subpixel<8>(triangle[2]);
+	verts[0] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[0]);
+	verts[1] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[1]);
+	verts[2] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[2]);
 
 	auto &edges = context->edges;
-	edges[0] = snap_to_subpixel<8>(triangle[1] - triangle[0]);
-	edges[1] = snap_to_subpixel<8>(triangle[2] - triangle[1]);
-	edges[2] = snap_to_subpixel<8>(triangle[0] - triangle[2]);
+	edges[0] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[1] - triangle[0]);
+	edges[1] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[2] - triangle[1]);
+	edges[2] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[0] - triangle[2]);
 	
 	auto &tile_states = context->tile_states;
 	tile_states.resize(buf.tile_count());
@@ -77,7 +79,7 @@ void next_tile()
 	}
 	auto &buf = context->buf;
 
-	const int tile_size = buf.tile_size() * 8;
+	const int tile_size = buf.tile_size() << SUB_PIXEL_PRECISION;
 	wyc::vec2i corner[2];
 	const vec2i edge = context->edges[context->edge_index];
 	float t = edge.x * edge.y;
@@ -152,7 +154,7 @@ void draw_one_triangle()
 	const float origin_x = (canvas_width - cell_size * col - cell_thickness) * 0.5f;
 	const float origin_y = (canvas_height - cell_size * row - cell_thickness) * 0.5f;
 	
-	if(ImGui::IsKeyReleased(ImGuiKey_Space))
+	if(ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_Space)))
 	{
 		next_tile();
 		log_info("tile[%d]", context->tile_index);
@@ -204,10 +206,11 @@ void draw_one_triangle()
 		va.y += cell_size;
 	}
 	
+	float top = origin_y + cell_size * row;
 	ImColor color;
 	const float tile_size = buf.tile_size() * cell_size;
 	int tile_index = 0;
-	va.y = origin_y;
+	va.y = top - tile_size;
 	for(int r = 0; r < buf.tile_row(); ++r)
 	{
 		va.x = origin_x;
@@ -230,10 +233,9 @@ void draw_one_triangle()
 			vc.x += tile_size;
 			vd.x += tile_size;
 		}
-		va.y += tile_size;
+		va.y -= tile_size;
 	}
 	
-	float top = origin_y + cell_size * row;
 	ImVec2 tri[3] = {
 		{origin_x + cell_size * triangles[0].x, top - cell_size * triangles[0].y},
 		{origin_x + cell_size * triangles[1].x, top - cell_size * triangles[1].y},
