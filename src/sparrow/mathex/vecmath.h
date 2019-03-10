@@ -13,6 +13,8 @@ namespace wyc
 	typedef Imath::Vec4<int> vec4i;
 	typedef Imath::Matrix33<float> mat3f;
 	typedef Imath::Matrix44<float> mat4f;
+	typedef Imath::Matrix33<int> mat3i;
+	typedef Imath::Matrix44<int> mat4i;
 	typedef Imath::Box<vec2f> box2f;
 	typedef Imath::Box<vec3f> box3f;
 	typedef Imath::Box<vec2i> box2i;

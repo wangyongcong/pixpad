@@ -109,6 +109,7 @@ namespace wyc
 		return vec2i(fast_to_fixed<N>(v.x), fast_to_fixed<N>(v.y));
 	}
 
+	// v1v0 cross product v2v0
 	inline int64_t edge_function_fixed(const vec2i &v0, const vec2i &v1, const vec2i &v2)
 	{
 		return int64_t(v1.x - v0.x) * int64_t(v2.y - v0.y) - int64_t(v1.y - v0.y) * int64_t(v2.x - v0.x);

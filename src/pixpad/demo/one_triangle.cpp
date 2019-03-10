@@ -1,5 +1,6 @@
 #include <vector>
 #include "ImathVec.h"
+#include "ImathMatrix.h"
 #include "vecmath.h"
 #include "spw_tile_buffer.h"
 #include "spw_rasterizer.h"
@@ -11,8 +12,8 @@ using namespace wyc;
 #define SUB_PIXEL_PRECISION 8
 
 struct TileState {
-	bool trival_reject;
-	uint8_t trival_accept = 0;
+	bool trivial_reject = false;
+	bool trivial_accept = false;
 };
 
 struct ContextOneTriangle
@@ -24,6 +25,8 @@ struct ContextOneTriangle
 	vec2i edges[3];
 	unsigned tile_index;
 	unsigned edge_index;
+	std::vector<TileState> tile0;
+	std::vector<TileState> tile1;
 };
 
 static ContextOneTriangle* get_demo_context()
@@ -66,16 +69,16 @@ void demo_one_triangle()
 	auto &tile_states = context->tile_states;
 	tile_states.resize(buf.tile_count());
 	for(auto &t: tile_states){
-		t.trival_reject = false;
-		t.trival_accept = 0;
+		t.trivial_reject = false;
+		t.trivial_accept = 0;
 	}
 }
 
-void next_tile()
+bool next_tile()
 {
 	auto context = get_demo_context();
 	if(context->tile_index >= context->tile_states.size() || context->edge_index >= 3) {
-		return;
+		return false;
 	}
 	auto &buf = context->buf;
 
@@ -118,13 +121,12 @@ void next_tile()
 	auto t0 = wyc::edge_function_fixed(edge, e0);
 	auto t1 = wyc::edge_function_fixed(edge, e1);
 	// most positive
-	auto w = std::max(t0, t1);
-	if(w < 0) {
-		tile.trival_reject = true;
-	}
-	else {
-		tile.trival_accept += 1;
-	}
+	if(t0 > t1)
+		std::swap(t0, t1);
+	if(t1 < 0)
+		tile.trivial_reject = true;
+	else
+		tile.trivial_accept &= t0 > 0;
 	
 	// advace to next tile/edge
 	context->tile_index += 1;
@@ -133,6 +135,212 @@ void next_tile()
 		context->tile_index = 0;
 		context->edge_index += 1;
 	}
+	return true;
+}
+
+void fill_tiles()
+{
+	constexpr int canvas_size = 64;
+	constexpr int tile_size = 16;
+	constexpr int tile_size_shift = 4;
+	constexpr int tile_size_hp = 16 << SUB_PIXEL_PRECISION;
+	constexpr int tile_row = canvas_size / tile_size;
+	constexpr int tile_col = tile_row;
+	constexpr int tile_count = tile_row * tile_col;
+
+	struct Block {
+		int row;
+		int col;
+		int reject[3];
+		int accept[3];
+		
+		Block() {
+			reject[0] = reject[1] = reject[2] = 0;
+			accept[0] = accept[1] = accept[2] = 0;
+		}
+	};
+	
+	auto context = get_demo_context();
+	const vec2i *edges = context->edges;
+	const vec2i *vertex = context->vertex;
+	const vec2i &v0 = vertex[0];
+	const vec2i &v1 = vertex[1];
+	const vec2i &v2 = vertex[2];
+	
+	// vertex index of edges
+	vec2i edge_index[3] = {
+		{0, 1},
+		{1, 2},
+		{2, 0},
+	};
+	// edge function step factor
+	vec2i edge_step[3] = {
+		{v0.y - v1.y, v1.x - v0.x},
+		{v1.y - v2.y, v2.x - v1.x},
+		{v2.y - v0.y, v0.x - v2.x},
+	};
+	// high precision edge function value at reject corner
+	int64_t edge_reject_hp[3];
+	// reject value offset of 4x4 sub-blocks
+	mat4i edge_mat[3];
+	
+	Block block_list[tile_count];
+	Block* partial_blocks[tile_count];
+	int partial_count = 0;
+	
+	// edges are in counter-clockwise
+	for(auto e = 0; e < 3; ++e)
+	{
+		const vec2i &edge = edges[e];
+		const vec2i &step = edge_step[e];
+		const vec2i &index = edge_index[e];
+		vec2i rp;  // reject point
+		vec2i ap;  // accpet point
+		if(edge.x >= 0) {
+			if(edge.y >= 0) {
+				// point to 1st quadrant
+				// the trivial reject point is at *
+				// * -- o
+				// |    |
+				// o -- o
+				rp.setValue(0, tile_size_hp);
+				ap.setValue(step.x, -step.y);
+			}
+			else {
+				// point to 4th quadrant
+				// the trivial reject point is at *
+				// o -- *
+				// |    |
+				// o -- o
+				rp.setValue(tile_size_hp, tile_size_hp);
+				ap.setValue(-step.x, -step.y);
+			}
+		}
+		else {
+			if(edge.y >= 0) {
+				// point to 2nd quadrand
+				// the trivial reject point is at *
+				// o -- o
+				// |    |
+				// * -- o
+				rp.setValue(0, 0);
+				ap.setValue(step.x, step.y);
+			}
+			else {
+				// point to 3rd quadrand
+				// the trivial reject point is at *
+				// o -- o
+				// |    |
+				// o -- *
+				rp.setValue(tile_size_hp, 0);
+				ap.setValue(-step.x, step.y);
+			}
+		} // detect edge direction
+		int r1 = ap.y;
+		int r2 = r1 * 2;
+		int r3 = r1 * 3;
+		int c1 = ap.x;
+		int c2 = c1 * 2;
+		int c3 = c1 * 3;
+		edge_mat[e] = {
+			0, c1, c2, c3,
+			r1, r1 + c1, r1 + c2, r1 + c3,
+			r2, r2 + c1, r2 + c2, r2 + c3,
+			r3, r3 + c1, r3 + c2, r3 + c3,
+		};
+
+		int64_t hp = edge_function_fixed(vertex[index.x], vertex[index.y], rp);
+		edge_reject_hp[e] = hp;
+		int y = int(hp >> (SUB_PIXEL_PRECISION + tile_size_shift));
+		int offset = ap.x + ap.y;
+		Block *block = block_list;
+		for(auto r = 0; r < tile_row; ++r, y += step.y)
+		{
+			for(auto c = 0, x = y; c < tile_col; ++c, x += step.x)
+			{
+				block->reject[e] = x;
+				block->accept[e] = x + offset;
+				++block;
+			}
+		} // tile loop
+	} // edge loop
+	
+	Block *block = block_list;
+	auto &tile_list = context->tile0;
+	tile_list.resize(tile_count);
+	auto *tile = &tile_list[0];
+	for(auto r = 0; r < tile_row; ++r)
+	{
+		for(auto c = 0; c < tile_col; ++c, ++block, ++tile)
+		{
+			block->row = r;
+			block->col = c;
+			if((block->reject[0] | block->reject[1] | block->reject[2]) < 0) {
+				// trivial reject
+				tile->trivial_reject = true;
+				continue;
+			}
+			if((block->accept[0] | block->accept[1] | block->accept[2]) > 0) {
+				// trivial accept
+				tile->trivial_accept = true;
+			}
+			else {
+				// partial accept
+				partial_blocks[partial_count++] = block;
+			}
+		}
+	} // block loop
+	
+	// step into partial blocks
+	constexpr int tile1_size = 4;
+	constexpr int tile1_size_hp = 4 << SUB_PIXEL_PRECISION;
+	constexpr int tile1_count = tile_count * 16;
+	constexpr int tile1_row = 4;
+	constexpr int tile1_col = 4;
+	
+	auto &tile1 = context->tile1;
+	tile1.resize(tile1_count);
+	for(int i = 0; i < partial_count; ++i) {
+		block = partial_blocks[i];
+		mat4i m0(block->reject[0]);
+		mat4i m1(block->reject[1]);
+		mat4i m2(block->reject[2]);
+		m0 += edge_mat[0];
+		m1 += edge_mat[1];
+		m2 += edge_mat[2];
+//		m0 |= m1;
+//		m0 |= m2;
+	} // loop partial blocks
+}
+
+void draw_tile(ImDrawList* draw_list, float x, float y, const TileState *tiles, int row, int col, float tile_size)
+{
+	ImColor color;
+	ImVec2 va, vb, vc, vd;
+	const TileState *tile = tiles;
+	va.y = y;
+	for(int r = 0; r < row; ++r)
+	{
+		va.x = x;
+		vb.x = va.x + tile_size; vb.y = va.y;
+		vc.x = vb.x; vc.y = vb.y - tile_size;
+		vd.x = va.x; vd.y = vc.y;
+		for(int c = 0; c < col; ++c, ++tile)
+		{
+			if(!tile->trivial_reject) {
+				if(tile->trivial_accept)
+					color = 0x8000FF00;
+				else
+					color = 0x8000FFFF;
+				draw_list->AddQuadFilled(va, vb, vc, vd, color);
+			}
+			va.x += tile_size;
+			vb.x += tile_size;
+			vc.x += tile_size;
+			vd.x += tile_size;
+		}
+		va.y -= tile_size;
+	}
 }
 
 void draw_one_triangle()
@@ -140,7 +348,7 @@ void draw_one_triangle()
 	auto context = get_demo_context();
 	auto &buf = context->buf;
 	auto &triangles = context->triangle;
-	auto &tile_states = context->tile_states;
+//	auto &tile_states = context->tile_states;
 
 	constexpr float cell_size = 11.2f;
 	constexpr float cell_thickness = 1.0f;
@@ -153,12 +361,6 @@ void draw_one_triangle()
 	
 	const float origin_x = (canvas_width - cell_size * col - cell_thickness) * 0.5f;
 	const float origin_y = (canvas_height - cell_size * row - cell_thickness) * 0.5f;
-	
-	if(ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_Space)))
-	{
-		next_tile();
-		log_info("tile[%d]", context->tile_index);
-	}
 	
 	ImDrawList* draw_list = ImGui::GetOverlayDrawList();
 	draw_list->PushClipRectFullScreen();
@@ -206,35 +408,15 @@ void draw_one_triangle()
 		va.y += cell_size;
 	}
 	
-	float top = origin_y + cell_size * row;
-	ImColor color;
-	const float tile_size = buf.tile_size() * cell_size;
-	int tile_index = 0;
-	va.y = top - tile_size;
-	for(int r = 0; r < buf.tile_row(); ++r)
+	float top = origin_y + cell_size * row + cell_thickness * 0.5;
+//	if(ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_Space)))
+	if(ImGui::IsKeyReleased('1'))
 	{
-		va.x = origin_x;
-		vb.x = va.x + tile_size; vb.y = va.y;
-		vc.x = vb.x; vc.y = vb.y + tile_size;
-		vd.x = va.x; vd.y = vc.y;
-		for(int c = 0; c < buf.tile_col(); ++c)
-		{
-			assert(tile_index < tile_states.size());
-			auto &t = tile_states[tile_index++];
-			if(t.trival_reject)
-				color = 0x800000FF;
-			else if(t.trival_accept >= 3)
-				color = 0x8000FF00;
-			else
-				color = 0x80FFFFFF;
-			draw_list->AddQuadFilled(va, vb, vc, vd, color);
-			va.x += tile_size;
-			vb.x += tile_size;
-			vc.x += tile_size;
-			vd.x += tile_size;
-		}
-		va.y -= tile_size;
+		fill_tiles();
 	}
+	
+	if (context->tile0.size() > 0)
+		draw_tile(draw_list, origin_x, top, &context->tile0[0], 4, 4, 16 * cell_size);
 	
 	ImVec2 tri[3] = {
 		{origin_x + cell_size * triangles[0].x, top - cell_size * triangles[0].y},
@@ -242,11 +424,9 @@ void draw_one_triangle()
 		{origin_x + cell_size * triangles[2].x, top - cell_size * triangles[2].y},
 	};
 
-	ImColor edge_color1 = 0xFF00FF00;
-	ImColor edge_color2 = 0xFFFF0000;
-	draw_list->AddLine(tri[0], tri[1], context->edge_index == 0 ? edge_color2 : edge_color1);
-	draw_list->AddLine(tri[1], tri[2], context->edge_index == 1 ? edge_color2 : edge_color1);
-	draw_list->AddLine(tri[2], tri[0], context->edge_index == 2 ? edge_color2 : edge_color1);
+	draw_list->AddLine(tri[0], tri[1], 0xFFFF0000);
+	draw_list->AddLine(tri[1], tri[2], 0xFFFF0000);
+	draw_list->AddLine(tri[2], tri[0], 0xFFFF0000);
 	
 	draw_list->PopClipRect();
 }
