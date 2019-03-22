@@ -16,11 +16,6 @@ inline int coordinate_precision(int available_bits)
 	return available_bits / 2 - 2;
 }
 
-//struct TileState {
-//	bool trivial_reject = false;
-//	bool trivial_accept = false;
-//};
-
 inline bool is_pod(int v)
 {
 	return (v & (v-1)) == 0;
@@ -62,18 +57,8 @@ public:
 	virtual void fill_block(int index, const vec3i &reject) = 0;
 	virtual void fill_partial_tile(int index, const vec3i &reject) = 0;
 	virtual void fill_tile(int index, const vec3i &reject) = 0;
+	virtual void shade(int index, int offset, const vec3i &w) = 0;
 };
-
-//struct Block
-//{
-//	int index;
-//	vec3i rc;  // reject corners for 3 edges
-//
-//	Block(int i, const vec3i &v)
-//	: index(i)
-//	, rc(v)
-//	{}
-//};
 
 template<class T>
 class DataArena
@@ -135,8 +120,10 @@ void setup_triangle(TriangleEdgeInfo *edge, const vec2f &vf0, const vec2f &vf1, 
 		vec2i ac;  // offset of reject corner to accpet corner
 		vec2i &dv = edge->dxdy[j];
 		dv.setValue(vi1.y - vi2.y, vi2.x - vi1.x);
-		if(dv.x >= 0) {
-			if(dv.y >= 0) {
+		int dx = vi2.x - vi1.x;
+		int dy = vi2.y - vi1.y;
+		if(dx >= 0) {
+			if(dy >= 0) {
 				// point to 1st quadrant
 				// the trivial reject point is at *
 				// * -- o
@@ -180,7 +167,7 @@ void setup_triangle(TriangleEdgeInfo *edge, const vec2f &vf0, const vec2f &vf1, 
 			}
 		}
 		else {
-			if(dv.y >= 0) {
+			if(dy >= 0) {
 				// point to 2nd quadrand
 				// the trivial reject point is at *
 				// o -- o
@@ -253,11 +240,11 @@ void scan_block(const TriangleEdgeInfo *edge, int row, int col, ITileBin *bin)
 			accept = reject + edge->rc2ac;
 			if((accept.x | accept.y | accept.z) > 0) {
 				// trivial accept
-				bin->fill_partial_block(i, reject);
+				bin->fill_block(i, reject);
 			}
 			else {
 				// partial accept
-				bin->fill_block(i, reject);
+				bin->fill_partial_block(i, reject);
 			}
 		}
 	} // loop of blocks
@@ -267,12 +254,20 @@ void scan_tile(const TriangleEdgeInfo *edge, int index, const vec3i &reject_valu
 {
 	int lod = index & LOD_MASK;
 	assert(lod > 0);
-	int tile_size_bits = (lod + 1) * 2;
+	int tile_size_bits = lod * 2;
 	int tile_shift = SUB_PIXEL_PRECISION + tile_size_bits;
-	int tile_mask = (1 << tile_shift) - 1;
-	mat4i m0(int(edge->rc_hp[0] >> tile_shift) & tile_mask);
-	mat4i m1(int(edge->rc_hp[1] >> tile_shift) & tile_mask);
-	mat4i m2(int(edge->rc_hp[2] >> tile_shift) & tile_mask);
+	int tile_mask = TILE_SIZE_MASK;
+	vec3i r = {
+		int(edge->rc_hp[0] >> tile_shift) & tile_mask,
+		int(edge->rc_hp[1] >> tile_shift) & tile_mask,
+		int(edge->rc_hp[2] >> tile_shift) & tile_mask,
+	};
+	r.x += reject_value.x << TILE_SIZE_BITS;
+	r.y += reject_value.y << TILE_SIZE_BITS;
+	r.z += reject_value.z << TILE_SIZE_BITS;
+	mat4i m0(r.x);
+	mat4i m1(r.y);
+	mat4i m2(r.z);
 	m0 += edge->rc_steps[0];
 	m1 += edge->rc_steps[1];
 	m2 += edge->rc_steps[2];
@@ -282,7 +277,8 @@ void scan_tile(const TriangleEdgeInfo *edge, int index, const vec3i &reject_valu
 	int *x1 = (int*)m1.x;
 	int *x2 = (int*)m2.x;
 	int *xm = (int*)mask.x;
-	int istep = 1 << (lod * 4 + LOD_BITS);
+	int istep = 1 << ((lod - 1) * 4 + LOD_BITS);
+	index -= 1;
 	for(int i = 0; i < 16; ++i, index += istep)
 	{
 		if(xm[i] < 0)
@@ -291,14 +287,14 @@ void scan_tile(const TriangleEdgeInfo *edge, int index, const vec3i &reject_valu
 		vec3i accept = reject + edge->rc2ac;
 		if((accept.x | accept.y | accept.z) > 0)
 			bin->fill_tile(index, reject);
-		else if(lod > 0)
-			scan_tile(edge, index - 1, reject, bin);
+		else if(lod > 1)
+			scan_tile(edge, index, reject, bin);
 		else
 			bin->fill_partial_tile(index, reject);
 	}
 }
 
-void scan_pixel(const TriangleEdgeInfo *edge, const vec3i &reject_value, ITileBin *bin)
+void scan_pixel(const TriangleEdgeInfo *edge, int index, const vec3i &reject_value, ITileBin *bin)
 {
 	constexpr int pixel_center_shift = HALF_SUB_PIXEL_PRECISION;
 	constexpr int sub_pixel_shift = pixel_center_shift + TILE_SIZE_BITS;
@@ -332,7 +328,7 @@ void scan_pixel(const TriangleEdgeInfo *edge, const vec3i &reject_value, ITileBi
 		w += edge->tail;
 		float sum = w.x + w.y + w.z;
 		w /= sum;
-		// shade_pixel(w);
+		bin->shade(index, i, w);
 	}
 }
 
@@ -351,6 +347,7 @@ class CTilePalette : public ITileBin
 	struct LodData
 	{
 		int tile_size;
+		int tile_row;
 		int tile_col;
 		int index_shift;
 		int index_mask;
@@ -369,18 +366,21 @@ public:
 		m_max_lod = lod_count - 1;
 		assert(m_max_lod < 4);
 		m_lod.resize(lod_count);
-		int l = 0;
 		int size = 4;
-		int tile_col = col * block_size / 4;
+		int shift = 0;
 		for(auto &v: m_lod) {
 			v.tile_size = size;
-			v.tile_col = tile_col;
-			v.index_shift = l * 4;
-			v.index_mask = 0xF;
+			v.tile_row = 4;
+			v.tile_col = 4;
+			v.index_shift = shift;
+			v.index_mask = 0xF << shift;
 			size *= 4;
-			tile_col /= 4;
+			shift += 4;
 		}
-		m_lod.back().index_mask = ~((1 << (m_max_lod * 4)) - 1);
+		auto &last = m_lod.back();
+		last.index_mask = ~((1 << (m_max_lod * 4)) - 1);
+		last.tile_row = col;
+		last.tile_col = row;
 	}
 	
 	virtual void fill_partial_block(int index, const vec3i &reject) override
@@ -403,36 +403,45 @@ public:
 		int x = m_block_size * col;
 		int y = m_block_size * row;
 		auto &lod_data = m_lod.back();
-		lod_data.partial_tiles.emplace_back(x, y);
+		lod_data.filled_tiles.emplace_back(x, y);
 	}
 	
 	virtual void fill_partial_tile(int index, const vec3i &reject) override
 	{
-		int x = 0, y = 0;
-		int lod = index & LOD_MASK;
-		for(int l = m_max_lod; l >= lod; --l)
-		{
-			auto &v = m_lod[l];
-			int i = (index >> v.index_shift) & v.index_mask;
-			x += (i % v.tile_col) * v.tile_size;
-			y += (i / v.tile_col) * v.tile_size;
-		}
+		int x, y, lod;
+		_get_tile_pos(index, x, y, lod);
 		m_lod[lod].partial_tiles.emplace_back(x, y);
 		m_partial_tiles.emplace_back(index, reject);
 	}
 	
 	virtual void fill_tile(int index, const vec3i &reject) override
 	{
-		int x = 0, y = 0;
-		int lod = index & LOD_MASK;
+		int x, y, lod;
+		_get_tile_pos(index, x, y, lod);
+		m_lod[lod].filled_tiles.emplace_back(x, y);
+	}
+	
+	virtual void shade(int index, int offset, const vec3i &w) override
+	{
+		int x, y, lod;
+		_get_tile_pos(index, x, y, lod);
+		x += offset & 3;
+		y += offset >> 2;
+		m_shaded_pixels.emplace_back(x, y);
+	}
+	
+	void _get_tile_pos(int index, int &x, int &y, int &lod)
+	{
+		x = 0, y = 0;
+		lod = index & LOD_MASK;
+		index >>= LOD_BITS;
 		for(int l = m_max_lod; l >= lod; --l)
 		{
 			auto &v = m_lod[l];
-			int i = (index >> v.index_shift) & v.index_mask;
+			int i = (index & v.index_mask) >> v.index_shift;
 			x += (i % v.tile_col) * v.tile_size;
 			y += (i / v.tile_col) * v.tile_size;
 		}
-		m_lod[lod].filled_tiles.emplace_back(x, y);
 	}
 	
 	void draw_triangle(const vec2f triangle[3])
@@ -443,6 +452,9 @@ public:
 		scan_block(edge, m_block_row, m_block_col, this);
 		for(auto &tile : m_partial_blocks) {
 			scan_tile(edge, tile.index, tile.reject, this);
+		}
+		for(auto &tile: m_partial_tiles) {
+			scan_pixel(edge, tile.index, tile.reject, this);
 		}
 	}
 	
@@ -456,23 +468,24 @@ public:
 		m_partial_tiles.clear();
 	}
 	
-	int get_max_lod() const {
-		return m_max_lod;
+	int lod_count() const {
+		return (int)m_lod.size();
 	}
 	
-	bool get_lod(int i, int &tile_size, const std::vector<vec2i> **fill, const std::vector<vec2i> **partial)
+	void get_lod(int i, int &tile_size, const std::vector<vec2i> **fill, const std::vector<vec2i> **partial)
 	{
-		if(m_lod.empty())
-			return false;
 		LodData *lod_data;
-		if(i < m_lod.size())
+		if(i < 0 || i >= m_lod.size()) {
+			tile_size = 1;
+			*fill = &m_shaded_pixels;
+			*partial = 0;
+		}
+		else {
 			lod_data = &m_lod[i];
-		else
-			lod_data = &m_lod.back();
-		tile_size = lod_data->tile_size;
-		*fill = &lod_data->filled_tiles;
-		*partial = &lod_data->partial_tiles;
-		return true;
+			tile_size = lod_data->tile_size;
+			*fill = &lod_data->filled_tiles;
+			*partial = &lod_data->partial_tiles;
+		}
 	}
 	
 private:
@@ -483,336 +496,21 @@ private:
 	std::vector<LodData> m_lod;
 	std::vector<Tile> m_partial_tiles;
 	std::vector<Tile> m_partial_blocks;
+	std::vector<vec2i> m_shaded_pixels;
 };
 
-void fill_triangle()
+void draw_tile(ImDrawList* draw_list, float x, float y, float tile_size, float scale, ImColor color, const std::vector<vec2i> *tile_list)
 {
-//	constexpr int canvas_size = 64;
-//	constexpr int tile_size = 16;
-//	constexpr int tile_size_shift = 4;
-//	constexpr int tile_size_hp = 16 << SUB_PIXEL_PRECISION;
-//	constexpr int tile_row = canvas_size / tile_size;
-//	constexpr int tile_col = tile_row;
-//	constexpr int tile_count = tile_row * tile_col;
-//
-//	struct Block {
-//		int row;
-//		int col;
-//		int reject[3];
-//		int accept[3];
-//
-//		Block() {
-//			reject[0] = reject[1] = reject[2] = 0;
-//			accept[0] = accept[1] = accept[2] = 0;
-//		}
-//	};
-//
-//	auto context = get_demo_context();
-//	const vec2i *edges = context->edges;
-//	const vec2i *vertex = context->vertex;
-//	const vec2i &v0 = vertex[0];
-//	const vec2i &v1 = vertex[1];
-//	const vec2i &v2 = vertex[2];
-//
-//	// vertex index of edges
-//	const vec2i edge_index[3] = {
-//		{0, 1},
-//		{1, 2},
-//		{2, 0},
-//	};
-//	// edge function step factor
-//	const vec2i edge_step[3] = {
-//		{v0.y - v1.y, v1.x - v0.x},
-//		{v1.y - v2.y, v2.x - v1.x},
-//		{v2.y - v0.y, v0.x - v2.x},
-//	};
-//	// high precision edge function value at reject corner
-//	int64_t edge_reject_hp[3];
-//	// reject value offset of 4x4 sub-blocks
-//	mat4i edge_mat[3];
-//	int edge_ap[3];
-//
-//	Block block_list[tile_count];
-//	Block* partial_blocks[tile_count];
-//	int partial_count = 0;
-//
-//	// edges are in counter-clockwise
-//	for(auto e = 0; e < 3; ++e)
-//	{
-//		const vec2i &edge = edges[e];
-//		const vec2i &step = edge_step[e];
-//		const vec2i &index = edge_index[e];
-//		vec2i rp;  // reject point
-//		vec2i ap;  // accpet point
-//		if(edge.x >= 0) {
-//			if(edge.y >= 0) {
-//				// point to 1st quadrant
-//				// the trivial reject point is at *
-//				// * -- o
-//				// |    |
-//				// o -- o
-//				rp.setValue(0, tile_size_hp);
-//				ap.setValue(step.x, -step.y);
-//				int r1 = ap.y;
-//				int r2 = r1 * 2;
-//				int r3 = r1 * 3;
-//				int c1 = ap.x;
-//				int c2 = c1 * 2;
-//				int c3 = c1 * 3;
-//				edge_mat[e] = {
-//					r3, r3 + c1, r3 + c2, r3 + c3,
-//					r2, r2 + c1, r2 + c2, r2 + c3,
-//					r1, r1 + c1, r1 + c2, r1 + c3,
-//					0, c1, c2, c3,
-//				};
-//			}
-//			else {
-//				// point to 4th quadrant
-//				// the trivial reject point is at *
-//				// o -- *
-//				// |    |
-//				// o -- o
-//				rp.setValue(tile_size_hp, tile_size_hp);
-//				ap.setValue(-step.x, -step.y);
-//				int r1 = ap.y;
-//				int r2 = r1 * 2;
-//				int r3 = r1 * 3;
-//				int c1 = ap.x;
-//				int c2 = c1 * 2;
-//				int c3 = c1 * 3;
-//				edge_mat[e] = {
-//					r3 + c3, r3 + c2, r3 + c1, r3,
-//					r2 + c3, r2 + c2, r2 + c1, r2,
-//					r1 + c3, r1 + c2, r1 + c1, r1,
-//					c3, c2, c1, 0,
-//				};
-//			}
-//		}
-//		else {
-//			if(edge.y >= 0) {
-//				// point to 2nd quadrand
-//				// the trivial reject point is at *
-//				// o -- o
-//				// |    |
-//				// * -- o
-//				rp.setValue(0, 0);
-//				ap.setValue(step.x, step.y);
-//				int r1 = ap.y;
-//				int r2 = r1 * 2;
-//				int r3 = r1 * 3;
-//				int c1 = ap.x;
-//				int c2 = c1 * 2;
-//				int c3 = c1 * 3;
-//				edge_mat[e] = {
-//					0, c1, c2, c3,
-//					r1, r1 + c1, r1 + c2, r1 + c3,
-//					r2, r2 + c1, r2 + c2, r2 + c3,
-//					r3, r3 + c1, r3 + c2, r3 + c3,
-//				};
-//			}
-//			else {
-//				// point to 3rd quadrand
-//				// the trivial reject point is at *
-//				// o -- o
-//				// |    |
-//				// o -- *
-//				rp.setValue(tile_size_hp, 0);
-//				ap.setValue(-step.x, step.y);
-//				int r1 = ap.y;
-//				int r2 = r1 * 2;
-//				int r3 = r1 * 3;
-//				int c1 = ap.x;
-//				int c2 = c1 * 2;
-//				int c3 = c1 * 3;
-//				edge_mat[e] = {
-//					c3, c2, c1, 0,
-//					r1 + c3, r1 + c2, r1 + c1, r1,
-//					r2 + c3, r2 + c2, r2 + c1, r2,
-//					r3 + c3, r3 + c2, r3 + c1, r3,
-//				};
-//			}
-//		} // detect edge direction
-//		int64_t hp = edge_function_fixed(vertex[index.x], vertex[index.y], rp);
-//		edge_reject_hp[e] = hp;
-//		int y = int(hp >> (SUB_PIXEL_PRECISION + tile_size_shift));
-//		int offset = ap.x + ap.y;
-//		edge_ap[e] = offset;
-//		Block *block = block_list;
-//		for(auto r = 0; r < tile_row; ++r, y += step.y)
-//		{
-//			for(auto c = 0, x = y; c < tile_col; ++c, x += step.x)
-//			{
-//				block->reject[e] = x;
-//				block->accept[e] = x + offset;
-//				++block;
-//			}
-//		} // tile loop
-//	} // edge loop
-//
-//	Block *block = block_list;
-//	auto &tile_list = context->tile0;
-//	tile_list.resize(tile_count, {false, false});
-//	auto *tile = &tile_list[0];
-//	for(auto r = 0; r < tile_row; ++r)
-//	{
-//		for(auto c = 0; c < tile_col; ++c, ++block, ++tile)
-//		{
-//			block->row = r;
-//			block->col = c;
-//			if((block->reject[0] | block->reject[1] | block->reject[2]) < 0) {
-//				// trivial reject
-//				tile->trivial_reject = true;
-//				continue;
-//			}
-//			if((block->accept[0] | block->accept[1] | block->accept[2]) > 0) {
-//				// trivial accept
-//				tile->trivial_accept = true;
-//			}
-//			else {
-//				// partial accept
-//				partial_blocks[partial_count++] = block;
-//			}
-//		}
-//	} // block loop
-//
-//	// step into partial blocks
-//	constexpr int tile1_size = 4;
-//	constexpr int tile1_size_shift = 2;
-//	constexpr int tile1_count = tile_count * 16;
-//
-//	context->tile1.resize(tile1_count, {true, false});
-//	int tails[3] = {
-//		int(edge_reject_hp[0] >> (SUB_PIXEL_PRECISION + tile1_size_shift)) & 3,
-//		int(edge_reject_hp[1] >> (SUB_PIXEL_PRECISION + tile1_size_shift)) & 3,
-//		int(edge_reject_hp[2] >> (SUB_PIXEL_PRECISION + tile1_size_shift)) & 3,
-//	};
-//	Block partial_tiles[partial_count * 16];
-//	int partial_tile_count = 0;
-//	for(int i = 0; i < partial_count; ++i) {
-//		block = partial_blocks[i];
-//		mat4i m0((block->reject[0] << 2) + tails[0]);
-//		mat4i m1((block->reject[1] << 2) + tails[1]);
-//		mat4i m2((block->reject[2] << 2) + tails[2]);
-//		m0 += edge_mat[0];
-//		m1 += edge_mat[1];
-//		m2 += edge_mat[2];
-//		mat4i reject_mask = m0;
-//		reject_mask |= m1;
-//		reject_mask |= m2;
-//		mat4i ap0 = m0 + edge_ap[0];
-//		mat4i ap1 = m1 + edge_ap[1];
-//		mat4i ap2 = m2 + edge_ap[2];
-//		mat4i accept_mask = ap0;
-//		accept_mask |= ap1;
-//		accept_mask |= ap2;
-//		int *x = (int*)reject_mask.x;
-//		int *y = (int*)accept_mask.x;
-//		int row_count = tile_col * tile1_size;
-//		int tile1_row = block->row * tile1_size;
-//		int tile1_col = block->col * tile1_size;
-//		int row_begin = tile1_row * row_count + tile1_col;
-//		for(int r = 0; r < tile1_size; ++r, row_begin += row_count)
-//		{
-//			auto *st = &context->tile1[row_begin];
-//			for(int c = 0; c < tile1_size; ++c, ++x, ++y, ++st)
-////			for(int c = row_begin, col_end = row_begin + tile1_size; c < col_end; ++c, ++x, ++y)
-//			{
-////				auto &st = context->tile1[c];
-//				if(*x < 0) {
-//					st->trivial_reject = true;
-//				}
-//				else {
-//					st->trivial_reject = false;
-//					if(*y > 0)
-//						st->trivial_accept = true;
-//					else {
-//						// partial reject
-//						Block &t = partial_tiles[partial_tile_count++];
-//						t.row = tile1_row + r;
-//						t.col = tile1_col + c;
-//						t.reject[0] = m0[r][c];
-//						t.reject[1] = m1[r][c];
-//						t.reject[2] = m2[r][c];
-//					}
-//				}
-//			}
-//		} // L1 tiles loop
-//	} // partial blocks loop
-//
-//	// step into each pixel
-//	// top-left bias
-//	const int edge_bias[3] = {
-//		is_top_left(v0, v1) ? 0 : -1,
-//		is_top_left(v1, v2) ? 0 : -1,
-//		is_top_left(v2, v0) ? 0 : -1,
-//	};
-//	constexpr int tail_bits = HALF_SUB_PIXEL_PRECISION + 2;
-//	constexpr int tail_mask = (1 << tail_bits) - 1;
-//	auto &tile2 = context->tile2;
-//	tile2.resize(64 * 64, {true, false});
-//	for(int i = 0; i < partial_tile_count; ++i)
-//	{
-//		block = partial_tiles + i;
-//		// edge function at pixel center
-//		int64_t e0 = ((block->reject[0] << tail_bits) | ((edge_reject_hp[0] >> HALF_SUB_PIXEL_PRECISION) & tail_mask)) + edge_ap[0];
-//		int64_t e1 = ((block->reject[1] << tail_bits) | ((edge_reject_hp[1] >> HALF_SUB_PIXEL_PRECISION) & tail_mask)) + edge_ap[1];
-//		int64_t e2 = ((block->reject[2] << tail_bits) | ((edge_reject_hp[2] >> HALF_SUB_PIXEL_PRECISION) & tail_mask)) + edge_ap[2];
-//		mat4i m0 = int(e0 >> HALF_SUB_PIXEL_PRECISION) + edge_bias[0];
-//		mat4i m1 = int(e1 >> HALF_SUB_PIXEL_PRECISION) + edge_bias[1];
-//		mat4i m2 = int(e2 >> HALF_SUB_PIXEL_PRECISION) + edge_bias[2];
-//		m0 += edge_mat[0];
-//		m1 += edge_mat[1];
-//		m2 += edge_mat[2];
-//		mat4i reject_mask = m0;
-//		reject_mask |= m1;
-//		reject_mask |= m2;
-//		int *x = (int*)reject_mask.x;
-//		int tile2_row = block->row * 4;
-//		int tile2_col = block->col * 4;
-//		int row_count = 64;
-//		int row_begin = tile2_row * row_count + tile2_col;
-//		for(int r = 0; r < 4; ++r, row_begin += row_count)
-//		{
-//			for(int c = 0; c < 4; ++c, ++x)
-//			{
-//				if(*x >= 0) {
-//					auto &t = tile2[row_begin + c];
-//					t.trivial_reject = false;
-//					t.trivial_accept = true;
-//				}
-//			}
-//		} // pixels loop
-//	} // tile2 loop
-}
-
-void draw_tile(ImDrawList* draw_list, float x, float y, float tile_size, const std::vector<vec2i> &fill_list, const std::vector<vec2i> &partial_list)
-{
-/*	ImColor color;
 	ImVec2 va, vb, vc, vd;
-	const TileState *tile = tiles;
-	va.y = y;
-	for(int r = 0; r < row; ++r)
+	tile_size *= scale;
+	for(auto &v: *tile_list)
 	{
-		va.x = x;
+		va.x = x + v.x * scale; va.y = y - v.y * scale;
 		vb.x = va.x + tile_size; vb.y = va.y;
 		vc.x = vb.x; vc.y = vb.y - tile_size;
 		vd.x = va.x; vd.y = vc.y;
-		for(int c = 0; c < col; ++c, ++tile)
-		{
-			if(!tile->trivial_reject) {
-				if(tile->trivial_accept)
-					color = 0x8000FF00;
-				else
-					color = 0x8000FFFF;
-				draw_list->AddQuadFilled(va, vb, vc, vd, color);
-			}
-			va.x += tile_size;
-			vb.x += tile_size;
-			vc.x += tile_size;
-			vd.x += tile_size;
-		}
-		va.y -= tile_size;
-	}*/
+		draw_list->AddQuadFilled(va, vb, vc, vd, color);
+	}
 }
 
 struct ContextOneTriangle
@@ -831,41 +529,15 @@ static ContextOneTriangle* get_demo_context()
 void demo_one_triangle()
 {
 	auto context = get_demo_context();
-	
-	
-//	auto &buf = context->buf;
-//	buf.storage(64, 64);
-//	uint32_t colors[] = {
-//		0xFFFFFFFF, 0xFFFF0000, 0xFF0000FF,
-//		0xFFFFFF00, 0xFFFF00FF, 0xFF00FFFF,
-//		0xFF88FF00, 0xFF8800FF, 0xFF00FF88,
-//		0xFF0088FF,
-//	};
-//	unsigned color_count = sizeof(colors) / sizeof(uint32_t);
-//	for(auto i=0u; i < buf.tile_count(); ++i) {
-//		buf.set_tile(i, colors[i % color_count]);
-//	}
 
 	auto &triangle = context->triangle;
 	triangle[0] = {6.9f, 25.1f};
 	triangle[1] = {24.5f, 4.8f};
 	triangle[2] = {48.6f, 37.3f};
 
-//	auto &verts = context->vertex;
-//	verts[0] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[0]);
-//	verts[1] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[1]);
-//	verts[2] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[2]);
-//
-//	auto &edges = context->edges;
-//	edges[0] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[1] - triangle[0]);
-//	edges[1] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[2] - triangle[1]);
-//	edges[2] = snap_to_subpixel<SUB_PIXEL_PRECISION>(triangle[0] - triangle[2]);
-//
-//	context->show_tile_index = -1;
-//	fill_triangle();
-	
 	CTilePalette *palette = new CTilePalette(4, 4, 16);
 	context->palette = palette;
+	context->show_lod = -1;
 	palette->draw_triangle(triangle);
 }
 
@@ -879,10 +551,6 @@ void draw_one_triangle()
 	
 	auto context = get_demo_context();
 	auto &triangles = context->triangle;
-	
-//	const int row = (int)buf.width(), col = (int)buf.height();
-//	if(row < 1 || col < 1)
-//		return;
 	
 	const float origin_x = (canvas_width - cell_size * col - cell_thickness) * 0.5f;
 	const float origin_y = (canvas_height - cell_size * row - cell_thickness) * 0.5f;
@@ -940,39 +608,33 @@ void draw_one_triangle()
 	
 	if(ImGui::IsKeyReleased('1'))
 	{
-		context->show_lod = context->palette->get_max_lod();
+		context->show_lod = context->palette->lod_count();
 	}
 	else if(ImGui::IsKeyReleased('2'))
 	{
-		context->show_lod = context->palette->get_max_lod() - 1;
+		context->show_lod = context->palette->lod_count() - 1;
 	}
 	else if(ImGui::IsKeyReleased('3'))
 	{
-		context->show_lod = context->palette->get_max_lod() - 2;
+		context->show_lod = context->palette->lod_count() - 2;
 	}
 	
 	if(context->show_lod >= 0) {
 		int tile_size;
-		const std::vector<vec2i> *fill_list, *partial_list;
-		if(context->palette->get_lod(context->show_lod, tile_size, &fill_list, &partial_list))
-			draw_tile(draw_list, left, bottom, tile_size, *fill_list, *partial_list);
+		const std::vector<vec2i> *fill_list = nullptr, *partial_list = nullptr;
+		int lod = context->show_lod	- 1;
+		context->palette->get_lod(lod, tile_size, &fill_list, &partial_list);
+		if(partial_list)
+			draw_tile(draw_list, left, bottom, tile_size, cell_size, 0x8000FFFF, partial_list);
+		if(fill_list)
+			draw_tile(draw_list, left, bottom, tile_size, cell_size, 0x8000FF00, fill_list);
+		for(int l = context->palette->lod_count() - 1; l > lod; --l) {
+			context->palette->get_lod(l, tile_size, &fill_list, &partial_list);
+			if(fill_list)
+				draw_tile(draw_list, left, bottom, tile_size, cell_size, 0x8000C000, fill_list);
+		}
 	}
-//	if(context->show_tile_index == 1)
-//	{
-//		if (context->tile0.size() > 0)
-//			draw_tile(draw_list, origin_x, top, &context->tile0[0], 4, 4, 16 * cell_size);
-//	}
-//	else if(context->show_tile_index == 2)
-//	{
-//		if (context->tile1.size() > 0)
-//			draw_tile(draw_list, origin_x, top, &context->tile1[0], 16, 16, 4 * cell_size);
-//	}
-//	else if(context->show_tile_index == 3)
-//	{
-//		if (context->tile2.size() > 0)
-//			draw_tile(draw_list, origin_x, top, &context->tile2[0], 64, 64, cell_size);
-//	}
-	
+
 	ImVec2 tri[3] = {
 		{left + cell_size * triangles[0].x, bottom - cell_size * triangles[0].y},
 		{left + cell_size * triangles[1].x, bottom - cell_size * triangles[1].y},
