@@ -13,7 +13,7 @@ void show_main_frame()
 {
 //	show_demo();
 	draw_one_triangle();
-	show_console();
+//	show_console();
 }
 
 void show_demo()

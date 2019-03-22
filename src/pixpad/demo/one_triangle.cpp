@@ -22,7 +22,7 @@ inline bool is_pod(int v)
 }
 
 #define SUB_PIXEL_PRECISION 8
-#define HALF_SUB_PIXEL_PRECISION 4
+#define HALF_SUB_PIXEL_PRECISION 7
 //
 #define BLOCK_SIZE 16
 #define BLOCK_SIZE_BITS 4
@@ -296,15 +296,16 @@ void scan_tile(const TriangleEdgeInfo *edge, int index, const vec3i &reject_valu
 
 void scan_pixel(const TriangleEdgeInfo *edge, int index, const vec3i &reject_value, ITileBin *bin)
 {
-	constexpr int pixel_center_shift = HALF_SUB_PIXEL_PRECISION;
+	constexpr int pixel_center_shift = 1;
+	constexpr int hp_shift = SUB_PIXEL_PRECISION - pixel_center_shift;
 	constexpr int sub_pixel_shift = pixel_center_shift + TILE_SIZE_BITS;
 	constexpr int sub_pixel_mask = (1 << sub_pixel_shift) - 1;
 	int64_t e0 = reject_value.x << sub_pixel_shift;
 	int64_t e1 = reject_value.y << sub_pixel_shift;
 	int64_t e2 = reject_value.z << sub_pixel_shift;
-	e0 |= (edge->rc_hp[0] >> pixel_center_shift) & sub_pixel_mask;
-	e1 |= (edge->rc_hp[1] >> pixel_center_shift) & sub_pixel_mask;
-	e2 |= (edge->rc_hp[2] >> pixel_center_shift) & sub_pixel_mask;
+	e0 |= (edge->rc_hp[0] >> hp_shift) & sub_pixel_mask;
+	e1 |= (edge->rc_hp[1] >> hp_shift) & sub_pixel_mask;
+	e2 |= (edge->rc_hp[2] >> hp_shift) & sub_pixel_mask;
 	e0 += edge->rc2ac.x;
 	e1 += edge->rc2ac.y;
 	e2 += edge->rc2ac.z;
@@ -547,7 +548,7 @@ void draw_one_triangle()
 	constexpr float cell_size = 11.2f;
 	constexpr float cell_thickness = 1.0f;
 //	constexpr float point_size = 2.0f;
-	constexpr float canvas_width = 1280.0f, canvas_height = 720.0f;
+	constexpr float canvas_width = 960.0f, canvas_height = 720.0f;
 	
 	auto context = get_demo_context();
 	auto &triangles = context->triangle;
