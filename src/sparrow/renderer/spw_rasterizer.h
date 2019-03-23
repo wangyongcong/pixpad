@@ -155,29 +155,30 @@ namespace wyc
 		vec2i p = block.min;
 		p.x = (p.x << 8) | 0x80;
 		p.y = (p.y << 8) | 0x80;
-		int64_t hp_w0 = edge_function_fixed(v1, v2, p);
-		int64_t hp_w1 = edge_function_fixed(v2, v0, p);
-		int64_t hp_w2 = edge_function_fixed(v0, v1, p);
+
+		// top-left bias
+		int bias_v01 = is_top_left(v0, v1) ? 0 : -1;
+		int bias_v12 = is_top_left(v1, v2) ? 0 : -1;
+		int bias_v20 = is_top_left(v2, v0) ? 0 : -1;
+		
+		int64_t hp_w0 = edge_function_fixed(v1, v2, p) + bias_v12;
+		int64_t hp_w1 = edge_function_fixed(v2, v0, p) + bias_v20;
+		int64_t hp_w2 = edge_function_fixed(v0, v1, p) + bias_v01;
 
 		// edge function delta
 		int edge_a01 = v0.y - v1.y, edge_b01 = v1.x - v0.x;
 		int edge_a12 = v1.y - v2.y, edge_b12 = v2.x - v1.x;
 		int edge_a20 = v2.y - v0.y, edge_b20 = v0.x - v2.x;
 
-		// top-left bias
-		int bias_v01 = is_top_left(v0, v1) ? 0 : -1;
-		int bias_v12 = is_top_left(v1, v2) ? 0 : -1;
-		int bias_v20 = is_top_left(v2, v0) ? 0 : -1;
-
 		// edge function increment
-		int row_w0 = int(hp_w0 >> 8) + bias_v12;
-		int row_w1 = int(hp_w1 >> 8) + bias_v20;
-		int row_w2 = int(hp_w2 >> 8) + bias_v01;
+		int row_w0 = int(hp_w0 >> 8);
+		int row_w1 = int(hp_w1 >> 8);
+		int row_w2 = int(hp_w2 >> 8);
 
 		// .8 sub pixel part which is constant during iteration
-		float fw0 = float(hp_w0 & 0xFF) / 255;
-		float fw1 = float(hp_w1 & 0xFF) / 255;
-		float fw2 = float(hp_w2 & 0xFF) / 255;
+		float fw0 = ((hp_w0 & 0xFF) - bias_v12) / 255.0f;
+		float fw1 = ((hp_w1 & 0xFF) - bias_v20) / 255.0f;
+		float fw2 = ((hp_w2 & 0xFF) - bias_v01) / 255.0f;
 
 		int w0, w1, w2;
 		float t_sum, t0, t1, t2;
@@ -189,9 +190,9 @@ namespace wyc
 			for (int x = block.min.x; x < block.max.x; x += 1)
 			{
 				if ((w0 | w1 | w2) >= 0) {
-					t0 = (w0 - bias_v12) + fw0;
-					t1 = (w1 - bias_v20) + fw1;
-					t2 = (w2 - bias_v01) + fw2;
+					t0 = w0 + fw0;
+					t1 = w1 + fw1;
+					t2 = w2 + fw2;
 					t_sum = t0 + t1 + t2;
 					t0 /= t_sum;
 					t1 /= t_sum;

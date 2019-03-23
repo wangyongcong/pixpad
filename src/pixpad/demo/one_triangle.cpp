@@ -213,8 +213,9 @@ void setup_triangle(TriangleEdgeInfo *edge, const vec2f &vf0, const vec2f &vf1, 
 		edge->rc2ac[j] = ac.x + ac.y;
 		int64_t v = edge_function_fixed(vi1, vi2, rc);
 		edge->rc_hp[j] = v;
-		edge->tail[j] = float(v & 0xFF) / 255;
-		edge->bias[j] = is_top_left(vi1, vi2) ? 0 : -1;
+		int b = is_top_left(vi1, vi2) ? 0 : -1;
+		edge->bias[j] = b;
+		edge->tail[j] = float((v & 0xFF) - b) / 255;
 	}
 }
 
@@ -296,22 +297,34 @@ void scan_tile(const TriangleEdgeInfo *edge, int index, const vec3i &reject_valu
 
 void scan_pixel(const TriangleEdgeInfo *edge, int index, const vec3i &reject_value, ITileBin *bin)
 {
-	constexpr int pixel_center_shift = 1;
-	constexpr int hp_shift = SUB_PIXEL_PRECISION - pixel_center_shift;
-	constexpr int sub_pixel_shift = pixel_center_shift + TILE_SIZE_BITS;
-	constexpr int sub_pixel_mask = (1 << sub_pixel_shift) - 1;
-	int64_t e0 = reject_value.x << sub_pixel_shift;
-	int64_t e1 = reject_value.y << sub_pixel_shift;
-	int64_t e2 = reject_value.z << sub_pixel_shift;
-	e0 |= (edge->rc_hp[0] >> hp_shift) & sub_pixel_mask;
-	e1 |= (edge->rc_hp[1] >> hp_shift) & sub_pixel_mask;
-	e2 |= (edge->rc_hp[2] >> hp_shift) & sub_pixel_mask;
-	e0 += edge->rc2ac.x;
-	e1 += edge->rc2ac.y;
-	e2 += edge->rc2ac.z;
-	mat4i m0 = int(e0 >> pixel_center_shift) + edge->bias.x;
-	mat4i m1 = int(e1 >> pixel_center_shift) + edge->bias.y;
-	mat4i m2 = int(e2 >> pixel_center_shift) + edge->bias.z;
+//	constexpr int pixel_center_shift = 1;
+//	constexpr int hp_shift = SUB_PIXEL_PRECISION - pixel_center_shift;
+//	constexpr int sub_pixel_shift = pixel_center_shift + TILE_SIZE_BITS;
+//	constexpr int sub_pixel_mask = (1 << sub_pixel_shift) - 1;
+//	int64_t e0 = reject_value.x << sub_pixel_shift;
+//	int64_t e1 = reject_value.y << sub_pixel_shift;
+//	int64_t e2 = reject_value.z << sub_pixel_shift;
+//	e0 |= ((edge->rc_hp[0] + edge->bias.x) >> hp_shift) & sub_pixel_mask;
+//	e1 |= ((edge->rc_hp[1] + edge->bias.y) >> hp_shift) & sub_pixel_mask;
+//	e2 |= ((edge->rc_hp[2] + edge->bias.z) >> hp_shift) & sub_pixel_mask;
+//	e0 += edge->rc2ac.x;
+//	e1 += edge->rc2ac.y;
+//	e2 += edge->rc2ac.z;
+	int64_t e[3];
+	vec3f tail;
+	for(int i=0; i<3; ++i)
+	{
+		e[i] = reject_value[i];
+		e[i] <<= (SUB_PIXEL_PRECISION + TILE_SIZE_BITS);
+		// per triangle constant
+		e[i] |= edge->rc_hp[i] & (SUB_PIXEL_PRECISION + TILE_SIZE_BITS);
+		e[i] += edge->rc2ac[i] << 7;
+		e[i] += edge->bias[i];
+		tail[i] = float((e[i] - edge->bias[i]) & 0xFF) / 255;
+	}
+	mat4i m0 = int(e[0] >> SUB_PIXEL_PRECISION);
+	mat4i m1 = int(e[1] >> SUB_PIXEL_PRECISION);
+	mat4i m2 = int(e[2] >> SUB_PIXEL_PRECISION);
 	m0 += edge->rc_steps[0];
 	m1 += edge->rc_steps[1];
 	m2 += edge->rc_steps[2];
@@ -325,8 +338,7 @@ void scan_pixel(const TriangleEdgeInfo *edge, int index, const vec3i &reject_val
 		if(*xm < 0)
 			continue;
 		vec3f w(x0[i], x1[i], x2[i]);
-		w -= edge->bias;
-		w += edge->tail;
+		w += tail;
 		float sum = w.x + w.y + w.z;
 		w /= sum;
 		bin->shade(index, i, w);
