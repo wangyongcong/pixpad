@@ -125,8 +125,18 @@ namespace wyc
 	{
 		return v0 * t0 + v1 * t1 + v2 * t2;
 	}
+	
+	// Triangle winding: 1 clockwise; -1 counter clockwise
+	template<class T, int Winding=-1>
+	bool is_backface(const T &p0, const T &p1, const T &p2) {
+		// p = {x, y, z, w}
+		vec2f v10(p0[0] - p1[0], p0[1] - p1[1]);
+		vec2f v12(p2[0] - p1[0], p2[1] - p1[1]);
+		float d = v10.cross(v12) * Winding + 0.001f;
+		return d <= 0;
 
-
+	}
+	
 #define ASSERT_INSIDE(v, r) assert(v.x >= -r && v.x < r && v.y >= -r && v.y < r)
 
 	// fill triangle {pos0, pos1, pos2} in counter-clockwise

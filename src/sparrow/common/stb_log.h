@@ -185,6 +185,37 @@ CLogHandler* start_file_logger(const char *log_file_path,
 CLogHandler* start_string_logger(size_t buffer_size = LOG_STRING_SIZE,
 								 bool async = true, millisecond_t sleep_time = LOG_WORKER_SLEEP_TIME);
 
+// convert to data that can be copied between threads
+template<class T>
+struct CopyableType
+{
+	typedef T type;
+};
+
+template<>
+struct CopyableType<const char*>
+{
+	typedef std::string type;
+};
+
+template<>
+struct CopyableType<char*>
+{
+	typedef std::string type;
+};
+	
+template<>
+struct CopyableType<const wchar_t*>
+{
+	typedef std::wstring type;
+};
+
+template<>
+struct CopyableType<wchar_t*>
+{
+	typedef std::wstring type;
+};
+
 // convert any value to primitive types that can be recognized by printf
 // add overload functions to customize type conversion
 template<class T>
@@ -316,7 +347,6 @@ struct GenericLogWriter {
 		index_apply<tuple_size>([t, c](auto... Is) {
 			c->second = snprintf(c->first, c->second, to_printable(std::get<Is>(*t))...);
 		});
-
 	}
 	
 #pragma clang diagnostic pop
@@ -330,7 +360,7 @@ struct GenericLogWriter {
 		return s_writer_table;
 	}
 };
-
+	
 typedef bool (*LogFilter)(const LogData *);
 
 class CLogger;
@@ -545,14 +575,14 @@ public:
 	// send log message to handlers
 	template<class... Args>
 	void write(int level, const char *channel, const char *format, Args... args) {
-		using tuple_t = std::tuple<const char *, Args...>;
+		using tuple_t = std::tuple<const char *, typename CopyableType<Args>::type...>;
 		struct entry_t  {
 			LogData base;
 			tuple_t data;
 		};
 		auto sptr = std::make_shared<entry_t>();
 		sptr->data = {format, args...};
-		sptr->base.writer = GenericLogWriter<Args...>::get_writer();
+		sptr->base.writer = GenericLogWriter<typename CopyableType<Args>::type...>::get_writer();
 		_publish(level, channel, sptr);
 	}
 	// send any data to handlers
@@ -566,6 +596,14 @@ public:
 		sptr->data = obj;
 		sptr->base.writer = nullptr;
 		_publish(level, channel, sptr);
+	}
+	
+	void write(int level, const char *channel, const std::string &obj) {
+		write(level, channel, "%s", obj);
+	}
+
+	inline void write(int level, const char *channel, const char *cstr) {
+		write(level, channel, "%s", cstr);
 	}
 
 	inline const LogEvent *get_event(uint64_t seq) const {

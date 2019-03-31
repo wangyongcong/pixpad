@@ -12,11 +12,15 @@ int main(int argc, char *argv[])
 	start_logger();
 	auto &info = wyc::get_platform_info();
 	log_info("%s %d-core %.1fGHz %s", info.architecture, info.ncpu, info.cpu_freq / (1024 * 1024 * 1024.0), info.os);
+	for(int i = 0; i < argc; ++i) {
+		log_info("[%d] %s", i, argv[i]);
+	}
 	auto *cmd = get_test_command();
+	int ret = 0;
 	if (!cmd->execute(argc, argv))
-		return 1;
+		ret = 1;
 	close_logger();
-	return 0;
+	return ret;
 }
 
 #else

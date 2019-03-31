@@ -25,7 +25,7 @@ namespace wyc
 		std::ifstream fin(path, std::ios_base::in);
 		if (!fin.is_open())
 		{
-			log_error("Can't open file: %s", path.c_str());
+			log_error("Can't open file: %s", path);
 			return false;
 		}
 		std::string token;
@@ -273,8 +273,7 @@ namespace wyc
 	{
 		std::ostringstream ss;
 		CPlyFile::read_header(ss, path);
-		std::string s = ss.str();
-		log_info(ss.str().c_str());
+//		log_info(ss.str());
 		CPlyFile ply(path);
 		if (!ply) {
 			log_error("fail to load: %s", ply.get_error_desc());

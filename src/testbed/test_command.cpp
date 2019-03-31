@@ -14,6 +14,7 @@ ENABLE_TEST(CTestMipmap)
 ENABLE_TEST(CTestDepth)
 ENABLE_TEST(CTestWireframe)
 ENABLE_TEST(CTestLambert)
+ENABLE_TEST(CTestRasterizer)
 
 std::unordered_map<std::string, std::function<CTest*()>> g_test_suit =
 {
@@ -24,6 +25,7 @@ std::unordered_map<std::string, std::function<CTest*()>> g_test_suit =
 	{ "depth", &CREATE_TEST(CTestDepth)},
 	{ "wireframe", &CREATE_TEST(CTestWireframe)},
 	{ "lambert", &CREATE_TEST(CTestLambert)},
+	{ "rasterizer", &CREATE_TEST(CTestRasterizer)},
 };
 
 class CTestTask;
@@ -94,7 +96,7 @@ public:
 		}
 		if (args["list"].as<bool>()) {
 			for (auto &it : g_test_suit) {
-				log_info("- %s", it.first.c_str());
+				log_info("- %s", it.first);
 			}
 			return true;
 		}
@@ -105,14 +107,14 @@ public:
 		auto &test_name = args["name"].as<std::string>();
 		auto it = g_test_suit.find(test_name.c_str());
 		if (it == g_test_suit.end()) {
-			log_error("test is not found: %s", test_name.c_str());
+			log_error("test is not found: %s", test_name);
 			return false;
 		}
 		if (g_task) {
 			log_error("previous test is still running, please be patient");
 			return false;
 		}
-		log_info("start test [%s]...", test_name.c_str());
+		log_info("start test [%s]...", test_name);
 		CTest *test = it->second();
 		test->init(args);
 		auto task = std::make_shared<CTestTask>(test);
@@ -132,7 +134,7 @@ public:
 		ss << "  [2] list tests: test -l" << std::endl;
 		ss << "options:" << std::endl;
 		ss << m_opt;
-		log_info(ss.str().c_str());
+		log_info(ss.str());
 	}
 };
 

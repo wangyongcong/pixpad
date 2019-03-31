@@ -4,27 +4,28 @@ project(testbed)
 option(TEST_STAND_ALONE "Test program build as executable" ON)
 
 set(SRC_COMMON
-	"test_main.cpp"
-	"test.h"
-	"test.cpp"
-	"test_command.cpp"
+	test_main.cpp
+	test.h
+	test.cpp
+	test_command.cpp
 )
 
 set(SRC_TESTBED
-	"test_line.cpp"
-	"test_box.cpp"
-	"test_texture.cpp"
-	"test_mipmap.cpp"
-	"test_depth.cpp"
-	"test_wireframe.cpp"
-	"test_lambert.cpp"
+	test_line.cpp
+	test_box.cpp
+	test_texture.cpp
+	test_mipmap.cpp
+	test_depth.cpp
+	test_wireframe.cpp
+	test_lambert.cpp
+	test_rasterizer.cpp
 )
 
 set(SRC_MATERIAL
-	"material/mtl_color.h"
-	"material/mtl_diffuse.h"
-	"material/mtl_wireframe.h"
-	"material/mtl_lambert.h"
+	material/mtl_color.h
+	material/mtl_diffuse.h
+	material/mtl_wireframe.h
+	material/mtl_lambert.h
 )
 
 source_group("common" FILES ${SRC_COMMON})
