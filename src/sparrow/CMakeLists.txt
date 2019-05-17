@@ -25,6 +25,8 @@ set(SRC_MATHEX
 set(SRC_CORE
 	core/spw_config.h
 	core/spw_tile_buffer.h
+	core/spw_rasterizer.h
+	core/spw_rasterizer.cpp
 )
 
 set(SRC_RENDERER 
@@ -48,7 +50,6 @@ set(SRC_RENDERER
 	renderer/spw_command.h
 	renderer/spw_pipeline.cpp
 	renderer/spw_pipeline.h
-	renderer/spw_rasterizer.h
 	renderer/spw_render_target.cpp
 	renderer/spw_render_target.h
 	renderer/spw_renderer.cpp

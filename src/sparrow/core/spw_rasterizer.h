@@ -3,6 +3,8 @@
 #include <ImathBox.h>
 #include "floatmath.h"
 
+#define SPW_SUB_PIXEL_PRECISION 8
+
 namespace wyc
 {
 	// bresenham line rasterization
@@ -335,5 +337,31 @@ namespace wyc
 			_INC_QUAD(row_w2, edge_b01);
 		}
 	}
+	
+	// Larrabee rasterizer
+	class ITileShader
+	{
+	public:
+		virtual void fill_partial_block(int index, const vec3i &reject) = 0;
+		virtual void fill_block(int index, const vec3i &reject) = 0;
+		virtual void fill_partial_tile(int index, const vec3i &reject) = 0;
+		virtual void fill_tile(int index, const vec3i &reject) = 0;
+		virtual void shade(int index, int offset, const vec3i &w) = 0;
+	};
+	
+	struct PixelTile
+	{
+		int index;
+		vec3i reject;
+		
+		PixelTile(int i, const vec3i &v)
+		: index(i), reject(v)
+		{}
+	};
+	
+#define SPW_LOD_BITS 2
+#define SPW_LOD_MASK 3
+
+	void fill_triangle_larrabee(int block_row, int block_col, const vec2f &v0, const vec2f &v1, const vec2f &v2, ITileShader *shader);
 
 } // namespace wyc

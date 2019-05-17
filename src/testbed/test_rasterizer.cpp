@@ -34,9 +34,28 @@ public:
 		if (!m_mesh->load_ply(ply_file)) {
 			return;
 		}
-		
+		setup_viewport();
 		log_info("init ok");
 	}
+	
+	void setup_viewport()
+	{
+		// setup viewport
+		int canvas_w = (int)m_image_w, canvas_h = (int)m_image_h;
+		m_viewport_translate = {canvas_w * 0.5f, canvas_h * 0.5f, 0};
+		m_viewport_scale = {canvas_w * 0.5f, canvas_h * 0.5f, 1};
+		m_viewport_bounding = {{0, 0}, {canvas_w, canvas_h}};
+		constexpr int block_size = 64;
+		int block_row = canvas_h / block_size;
+		int block_col = canvas_w / block_size;
+		m_block_boundings.reserve(block_row * block_col);
+		for(int r = 0; r < block_row; ++r) {
+			for(int c = 0; c < block_col; ++c) {
+				int x = r * block_size, y = c * block_size;
+				m_block_boundings.emplace_back(vec2i(x, y), vec2i(x + block_size, y + block_size));
+			}
+		}
+}
 	
 	virtual void run() override
 	{
@@ -49,14 +68,6 @@ public:
 		wyc::mat4f proj_from_world;
 		proj_from_world = proj * translate_world * rx_world;
 		
-		// setup viewport
-		int canvas_w = (int)m_image_w, canvas_h = (int)m_image_h;
-		vec3f vp_translate = {canvas_w * 0.5f, canvas_h * 0.5f, 0};
-		vec3f vp_scale = {canvas_w * 0.5f, canvas_h * 0.5f, 1};
-		Imath::Box2i vp_bounding = {
-			{0, 0}, {canvas_w, canvas_h}
-		};
-
 		// process vertices
 		const auto &vb = m_mesh->vertex_buffer();
 		const auto &ib = m_mesh->index_buffer();
@@ -72,25 +83,27 @@ public:
 		}
 		const vec3i *indices = (const vec3i*)ib.data();
 		unsigned triangle_count = ib.size() / 3;
-		unsigned draw_count = 0;
-		unsigned backface_count = 0;
-		unsigned outside_count = 0;
-		constexpr int block_size = 64;
-		int block_row = canvas_h / block_size;
-		int block_col = canvas_w / block_size;
-		std::vector<Imath::Box2i> block_boundings;
-		block_boundings.reserve(block_row * block_col);
-		for(int r = 0; r < block_row; ++r) {
-			for(int c = 0; c < block_col; ++c) {
-				int x = r * block_size, y = c * block_size;
-				block_boundings.emplace_back(vec2i(x, y), vec2i(x + block_size, y + block_size));
-			}
-		}
 
+		m_backface_count = 0;
+		m_outside_viewport = 0;
+		m_draw_count = 0;
 		m_pixel_count = 0;
 		m_shade_count = 0;
 		m_min_z = 1.0f;
 		m_max_z = -1.0f;
+		
+		draw_triangles(triangle_count, indices, vertices);
+
+		log_info("cull backface: %d", m_backface_count);
+		log_info("outside viewport: %d", m_outside_viewport);
+		log_info("draw triangles: %d/%d", m_draw_count, triangle_count);
+		log_info("draw pixel: %d/%d", m_shade_count, m_pixel_count);
+		log_info("z range: [%f, %f]", m_min_z, m_max_z);
+//		save_image("bin/torus.png");
+	}
+	
+	void draw_triangles(unsigned triangle_count, const vec3i *indices, const std::vector<vec4f> &vertices)
+	{
 		for(int i = 0; i < triangle_count; i += 1)
 		{
 			const vec3i &index = indices[i];
@@ -99,37 +112,37 @@ public:
 			const auto &v2 = vertices[index.z];
 			// backface culling
 			if(is_backface(v0, v1, v2)) {
-				backface_count += 1;
+				m_backface_count += 1;
 				continue;
 			}
 			// viewport transform
 			vec3f pos[3];
-			pos[0] = viewport_tranform(v0, vp_translate, vp_scale);
-			pos[1] = viewport_tranform(v1, vp_translate, vp_scale);
-			pos[2] = viewport_tranform(v2, vp_translate, vp_scale);
+			pos[0] = viewport_tranform(v0, m_viewport_translate, m_viewport_scale);
+			pos[1] = viewport_tranform(v1, m_viewport_translate, m_viewport_scale);
+			pos[2] = viewport_tranform(v2, m_viewport_translate, m_viewport_scale);
 			// bounding test
 			Imath::Box2i bounding;
 			Imath::bounding(bounding, pos, pos+1, pos+2);
-			Imath::intersection(bounding, vp_bounding);
+			Imath::intersection(bounding, m_viewport_bounding);
 			if(bounding.isEmpty()) {
-				outside_count += 1;
+				m_outside_viewport += 1;
 				continue;
 			}
-			for(auto b : block_boundings) {
+			for(auto b : m_block_boundings) {
 				Imath::intersection(b, bounding);
 				if(!b.isEmpty()) {
 					fill_triangle(b, pos[0], pos[1], pos[2], *this);
 				}
 			}
 			// draw triangle
-			draw_count += 1;
+			m_draw_count += 1;
 		}
-		log_info("cull backface: %d", backface_count);
-		log_info("outside viewport: %d", outside_count);
-		log_info("draw triangles: %d/%d", draw_count, triangle_count);
-		log_info("draw pixel: %d/%d", m_shade_count, m_pixel_count);
-		log_info("z range: [%f, %f]", m_min_z, m_max_z);
-		save_image("torus.png");
+	}
+	
+	void draw_triangle_larrabee(unsigned triangle_count, const vec3i *indices, const std::vector<vec4f> &vertices)
+	{
+		
+		
 	}
 	
 	void operator() (int x, int y, float z, float w0, float w1, float w2)
@@ -163,8 +176,17 @@ public:
 private:
 	std::shared_ptr<wyc::CMesh> m_mesh;
 	CSurface m_depth;
+	// viewport settings
+	vec3f m_viewport_translate;
+	vec3f m_viewport_scale;
+	Imath::Box2i m_viewport_bounding;
+	std::vector<Imath::Box2i> m_block_boundings;
+	// counter
 	unsigned m_pixel_count;
 	unsigned m_shade_count;
+	unsigned m_backface_count;
+	unsigned m_outside_viewport;
+	unsigned m_draw_count;
 	float m_min_z, m_max_z;
 };
 

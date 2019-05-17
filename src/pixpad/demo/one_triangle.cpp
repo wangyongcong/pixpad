@@ -8,7 +8,7 @@
 #include "stb_log.h"
 
 using namespace wyc;
-
+/*
 // when individual coordinates are in [-2^p, 2^p-1], the result of edge function fits inside a 2*(p+2)-bit signed integer
 // e.g with 32-bit integer, the precision bits [p] is 32/2-2=14, coordinates should be in range [-16384, 16383]
 inline int coordinate_precision(int available_bits)
@@ -354,8 +354,9 @@ struct Tile
 	: index(i), reject(v)
 	{}
 };
+*/
 
-class CTilePalette : public ITileBin
+class CTilePalette : public ITileShader
 {
 	struct LodData
 	{
@@ -374,7 +375,6 @@ public:
 		m_block_row = row;
 		m_block_col = col;
 		m_block_size = block_size;
-		assert(is_pod(block_size));
 		int lod_count = wyc::log2p2(block_size) / 2;
 		m_max_lod = lod_count - 1;
 		assert(m_max_lod < 4);
@@ -404,9 +404,9 @@ public:
 		int y = m_block_size * row;
 		auto &lod_data = m_lod.back();
 		lod_data.partial_tiles.emplace_back(x, y);
-		index <<= m_max_lod * 4 + LOD_BITS;
-		index += m_max_lod;
-		m_partial_blocks.emplace_back(index, reject);
+//		index <<= m_max_lod * 4 + SPW_LOD_BITS;
+//		index += m_max_lod;
+//		m_partial_blocks.emplace_back(index, reject);
 	}
 	
 	virtual void fill_block(int index, const vec3i &reject) override
@@ -424,7 +424,7 @@ public:
 		int x, y, lod;
 		_get_tile_pos(index, x, y, lod);
 		m_lod[lod].partial_tiles.emplace_back(x, y);
-		m_partial_tiles.emplace_back(index, reject);
+//		m_partial_tiles.emplace_back(index, reject);
 	}
 	
 	virtual void fill_tile(int index, const vec3i &reject) override
@@ -446,8 +446,8 @@ public:
 	void _get_tile_pos(int index, int &x, int &y, int &lod)
 	{
 		x = 0, y = 0;
-		lod = index & LOD_MASK;
-		index >>= LOD_BITS;
+		lod = index & SPW_LOD_MASK;
+		index >>= SPW_LOD_BITS;
 		for(int l = m_max_lod; l >= lod; --l)
 		{
 			auto &v = m_lod[l];
@@ -460,15 +460,16 @@ public:
 	void draw_triangle(const vec2f triangle[3])
 	{
 		clear();
-		TriangleEdgeInfo *edge = &m_edge;
-		setup_triangle(edge, triangle[0], triangle[1], triangle[2]);
-		scan_block(edge, m_block_row, m_block_col, this);
-		for(auto &tile : m_partial_blocks) {
-			scan_tile(edge, tile.index, tile.reject, this);
-		}
-		for(auto &tile: m_partial_tiles) {
-			scan_pixel(edge, tile.index, tile.reject, this);
-		}
+		fill_triangle_larrabee(m_block_row, m_block_col, triangle[0], triangle[1], triangle[2], this);
+//		TriangleEdgeInfo *edge = &m_edge;
+//		setup_triangle(edge, triangle[0], triangle[1], triangle[2]);
+//		scan_block(edge, m_block_row, m_block_col, this);
+//		for(auto &tile : m_partial_blocks) {
+//			scan_tile(edge, tile.index, tile.reject, this);
+//		}
+//		for(auto &tile: m_partial_tiles) {
+//			scan_pixel(edge, tile.index, tile.reject, this);
+//		}
 	}
 	
 	void clear()
@@ -477,8 +478,8 @@ public:
 			v.partial_tiles.clear();
 			v.filled_tiles.clear();
 		}
-		m_partial_blocks.clear();
-		m_partial_tiles.clear();
+//		m_partial_blocks.clear();
+//		m_partial_tiles.clear();
 	}
 	
 	int lod_count() const {
@@ -505,10 +506,10 @@ private:
 	int m_block_row, m_block_col;
 	int m_block_size;
 	int m_max_lod;
-	TriangleEdgeInfo m_edge;
+//	TriangleEdgeInfo m_edge;
 	std::vector<LodData> m_lod;
-	std::vector<Tile> m_partial_tiles;
-	std::vector<Tile> m_partial_blocks;
+//	std::vector<PixelTile> m_partial_tiles;
+//	std::vector<PixelTile> m_partial_blocks;
 	std::vector<vec2i> m_shaded_pixels;
 };
 
@@ -548,7 +549,7 @@ void demo_one_triangle()
 	triangle[1] = {24.5f, 4.8f};
 	triangle[2] = {48.6f, 37.3f};
 
-	CTilePalette *palette = new CTilePalette(4, 4, 16);
+	CTilePalette *palette = new CTilePalette(1, 1, 64);
 	context->palette = palette;
 	context->show_lod = -1;
 	palette->draw_triangle(triangle);
