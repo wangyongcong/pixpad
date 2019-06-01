@@ -721,7 +721,7 @@ namespace wyc
 				std::string sub = type.substr(3);
 				int sz = 0;
 				try {
-					sz = std::stol(sub);
+					sz = (int)std::stol(sub);
 				}
 				catch (std::invalid_argument) {
 					return std::make_pair(PLY_NULL, 0);
@@ -738,7 +738,7 @@ namespace wyc
 				std::string sub = type.substr(4);
 				int sz = 0;
 				try {
-					sz = std::stol(sub);
+					sz = (int)std::stol(sub);
 				}
 				catch (std::invalid_argument) {
 					return std::make_pair(PLY_NULL, 0);
@@ -756,7 +756,7 @@ namespace wyc
 				std::string sub = type.substr(5);
 				int sz = 0;
 				try {
-					sz = std::stol(sub);
+					sz = (int)std::stol(sub);
 				}
 				catch (std::invalid_argument) {
 					return std::make_pair(PLY_NULL, 0);

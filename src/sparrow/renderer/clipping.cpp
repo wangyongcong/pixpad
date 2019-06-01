@@ -277,7 +277,7 @@ namespace wyc
 		{
 			dot = vertices[i + 3] - w_epsilon;
 			if (pdot * dot < 0) {
-				unsigned j = vertices.size();
+				unsigned j = (unsigned)vertices.size();
 				vertices.resize(j + stride);
 				intersect(&vertices[prev_i], pdot, &vertices[i], dot, stride, &vertices[j]);
 				indices_out.push_back(j);
@@ -301,7 +301,7 @@ namespace wyc
 			for (auto i : indices_in) {
 				dot = vertices[i + 3] - vertices[i + k];
 				if (pdot * dot < 0) {
-					unsigned j = vertices.size();
+					unsigned j = (unsigned)vertices.size();
 					vertices.resize(j + stride);
 					intersect(&vertices[prev_i], pdot, &vertices[i], dot, stride, &vertices[j]);
 					indices_out.push_back(j);
@@ -326,7 +326,7 @@ namespace wyc
 			for (auto i : indices_in) {
 				dot = vertices[i + 3] + vertices[i + k];
 				if (pdot * dot < 0) {
-					unsigned j = vertices.size();
+					unsigned j = (unsigned)vertices.size();
 					vertices.resize(j + stride);
 					intersect(&vertices[prev_i], pdot, &vertices[i], dot, stride, &vertices[j]);
 					indices_out.push_back(j);

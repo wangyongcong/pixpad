@@ -24,8 +24,8 @@ namespace wyc
 
 	bool CSurface::storage(unsigned w, unsigned h, unsigned fragment_size, unsigned char alignment) {
 		if (m_data) release();
-		size_t pitch = (w * fragment_size + alignment - 1) / alignment * alignment;
-		size_t required_bytes = pitch*h;
+		unsigned pitch = (w * fragment_size + alignment - 1) / alignment * alignment;
+		unsigned required_bytes = pitch*h;
 		if (required_bytes < 1)
 			return false;
 		m_data = new uint8_t[required_bytes];

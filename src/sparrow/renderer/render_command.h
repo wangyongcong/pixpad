@@ -15,10 +15,10 @@ namespace wyc
 	class CCommandAllocator
 	{
 	public:
-		CCommandAllocator(size_t chunk_size, unsigned short granularity);
+		CCommandAllocator(unsigned chunk_size, unsigned short granularity);
 		~CCommandAllocator();
 		// Allocate raw memory
-		void* alloc(size_t sz);
+		void* alloc(unsigned sz);
 		// Recycle all allocated memory 
 		void reset();
 		// Release physical memory

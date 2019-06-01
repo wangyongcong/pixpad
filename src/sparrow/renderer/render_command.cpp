@@ -9,10 +9,10 @@
 namespace wyc
 {
 
-	CCommandAllocator::CCommandAllocator(size_t chunk_size, unsigned short granularity)
+	CCommandAllocator::CCommandAllocator(unsigned chunk_size, unsigned short granularity)
 	{
-		constexpr size_t align = 8;
-		constexpr size_t align_mask = ~(align - 1);
+		constexpr unsigned align = 8;
+		constexpr unsigned align_mask = ~(align - 1);
 		granularity = (granularity + align - 1) & align_mask;
 		assert(granularity > 1);
 		m_grain = granularity;
@@ -32,7 +32,7 @@ namespace wyc
 		clear();
 	}
 
-	void * CCommandAllocator::alloc(size_t sz)
+	void * CCommandAllocator::alloc(unsigned sz)
 	{
 		unsigned slot_cnt = (sz + m_grain - 1) / m_grain;
 		if (slot_cnt > m_capacity)

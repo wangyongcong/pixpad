@@ -89,7 +89,7 @@ public:
 		auto in = reinterpret_cast<const Vertex*>(frag_in);
 		auto du_dx = ctx->ddx(&Vertex::uv);
 		auto du_dy = ctx->ddy(&Vertex::uv);
-		auto texture_size = m_sample_data.size();
+		auto texture_size = (unsigned)m_sample_data.size();
 		float a[3], f;
 		for (int i = 0; i < 3; ++i) {
 			int lvl = wyc::mipmap_level(du_dx[i], du_dy[i], texture_size, f);

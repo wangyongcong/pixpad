@@ -129,7 +129,7 @@ namespace wyc
 		unsigned output_stride = attrib_def.out_stride;
 
 		// generate vertex processors
-		unsigned triangle_count = ib.size() / 3;
+		unsigned triangle_count = unsigned(ib.size() / 3);
 		unsigned index_per_core = (triangle_count / m_num_vertex_unit) * 3;
 		unsigned index_beg = 0, index_end = index_per_core + (triangle_count % m_num_vertex_unit) * 3;
 		std::vector<std::future<void>> producers;
@@ -157,7 +157,7 @@ namespace wyc
 					{
 						vertex_in[j] = attribs[j] + offset;
 					}
-					auto cur_vert = vertex_out.size();
+					auto cur_vert = (unsigned)vertex_out.size();
 					vertex_out.resize(cur_vert + output_stride);
 					// #1 vertex shader
 					material->vertex_shader(vertex_in, &vertex_out[cur_vert]);
@@ -198,7 +198,7 @@ namespace wyc
 		}
 
 		// generate fragement processors
-		int tile_per_core = m_tiles.size() / m_num_fragment_unit;
+		int tile_per_core = int(m_tiles.size() / m_num_fragment_unit);
 		int tile_beg = 0, tile_end = tile_per_core + m_tiles.size() % m_num_fragment_unit;
 		for (auto &tile : m_tiles) {
 			tile.set_fragment(output_stride, material);
@@ -293,7 +293,7 @@ namespace wyc
 
 	void CSpwPipeline::clear_async()
 	{
-		int tile_per_core = m_tiles.size() / m_num_fragment_unit;
+		int tile_per_core = int(m_tiles.size() / m_num_fragment_unit);
 		int tile_beg = 0, tile_end = tile_per_core + m_tiles.size() % m_num_fragment_unit;
 		std::vector<std::future<void>> consumers;
 		constexpr int COLOR_COUNT = 6;
@@ -368,7 +368,7 @@ namespace wyc
 			{
 				vertex_in[j] = attribs[j] + offset;
 			}
-			auto cur_vert = vertex_out.size();
+			auto cur_vert = (unsigned)vertex_out.size();
 			vertex_out.resize(cur_vert + output_stride);
 			material->vertex_shader(vertex_in, &vertex_out[cur_vert]);
 			indices_in.push_back(cur_vert);

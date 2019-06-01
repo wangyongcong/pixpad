@@ -238,7 +238,7 @@ namespace wyc
 		if (has_normal)
 			m_vb.set_attribute(ATTR_NORMAL, 3);
 		// alloc buffer
-		m_vb.resize(faces.size());
+		m_vb.resize((unsigned)faces.size());
 		// copy data
 		auto pos = m_vb.get_attribute(ATTR_POSITION).begin();
 		auto uv = m_vb.get_attribute(ATTR_UV0).begin();
@@ -247,20 +247,20 @@ namespace wyc
 		for (const vec3i &index : faces)
 		{
 			if (index.x <= 0)
-				i = index.x + vertices.size();
+				i = index.x + (int)vertices.size();
 			else
 				i -= 1;
 			*pos++ = vertices[i];
 			if (has_uv) {
 				if (index.y <= 0)
-					i = index.y + texcoords.size();
+					i = index.y + (int)texcoords.size();
 				else
 					i -= 1;
 				*uv++ = texcoords[i];
 			}
 			if (has_normal) {
 				if (index.z <= 0)
-					i = index.z + normals.size();
+					i = index.z + (int)normals.size();
 				else
 					i -= 1;
 				*normal++ = normals[i];
@@ -523,7 +523,7 @@ namespace wyc
 			auto v3 = vertices[f0] + vertices[f1];
 			v3 *= 0.5f;
 			v3.normalize();
-			auto i = vertices.size();
+			auto i = (unsigned)vertices.size();
 			vertices.emplace_back(v3);
 			divisions.emplace(key, i);
 			return i;
@@ -565,7 +565,7 @@ namespace wyc
 			{ ATTR_POSITION, 3, offsetof(Vertex, pos) },
 			{ ATTR_NORMAL, 3, offsetof(Vertex, normal) },
 		};
-		set_vertices(attrib_array, 2, (Vertex*)0, vertices.size());
+		set_vertices(attrib_array, 2, (Vertex*)0, (unsigned)vertices.size());
 		unsigned i = 0;
 		for (auto &v : m_vb)
 		{

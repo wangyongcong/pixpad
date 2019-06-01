@@ -87,7 +87,7 @@ namespace wyc
 			: m_cursor(nullptr), m_stride(0)
 		{
 		}
-		CAnyStrideIterator(void *beg, size_t stride = 0)
+		CAnyStrideIterator(void *beg, unsigned stride = 0)
 			: m_cursor((char*)beg), m_stride(stride)
 		{
 		}

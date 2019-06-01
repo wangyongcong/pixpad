@@ -3,7 +3,7 @@
 namespace wyc
 {
 	CRenderer::CRenderer()
-	: m_cmd_alloc(get_platform_info().page_size, 16)
+	: m_cmd_alloc((unsigned)get_platform_info().page_size, 16)
 	, m_cmd_queue(1024)
 	{
 	}

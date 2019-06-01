@@ -52,11 +52,7 @@ public:
 			m_renderer->enqueue(draw2);
 		}
 
-		TIMER_BEG(1)
-			m_renderer->process();
-		TIMER_END
-		wyc::CSpwMetric::singleton()->report();
-
+		m_renderer->process();
 		save_image("box.png");
 	}
 };

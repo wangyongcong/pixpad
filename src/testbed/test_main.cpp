@@ -10,6 +10,7 @@ wyc::IShellCommand* get_test_command();
 int main(int argc, char *argv[])
 {
 	start_logger();
+//	start_file_logger("log/log.txt");
 	auto &info = wyc::get_platform_info();
 	log_info("%s %d-core %.1fGHz %s", info.architecture, info.ncpu, info.cpu_freq / (1024 * 1024 * 1024.0), info.os);
 //	for(int i = 0; i < argc; ++i) {
