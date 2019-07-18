@@ -61,7 +61,7 @@ protected:
 	{
 		if(!m_cur_buf || m_cur_buf->buf + required_size > m_cur_buf->end)
 		{
-			size_t size = required_size + sizeof(BufferHead);
+			unsigned size = (unsigned)required_size + sizeof(BufferHead);
 			size = wyc::next_power2(size);
 			if (size < IMLOG_MIN_BUFFER_SIZE)
 				size = IMLOG_MIN_BUFFER_SIZE;
@@ -197,7 +197,7 @@ public:
 			int max_len = 4;
 			for (auto &it : m_commands)
 			{
-				int s = it.first.size();
+				int s = (int)it.first.size();
 				if (s > max_len)
 					max_len = s;
 			}

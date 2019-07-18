@@ -9,6 +9,8 @@
 #include "image.h"
 #include "metric.h"
 
+#define RASTERIZER_LARRABEE 1
+
 using namespace wyc;
 
 inline vec3f viewport_tranform(const vec4f &pos, const vec3f &translate, const vec3f &scale)
@@ -91,16 +93,19 @@ public:
 
 		const vec3i *indices = (const vec3i*)ib.data();
 		int triangle_count = (int)(ib.size() / 3);
-
 		m_min_z = 1.0f;
 		m_max_z = -1.0f;
-		
-		draw_triangles(triangle_count, indices, vertices);
 
+#ifdef RASTERIZER_LARRABEE		
+		draw_triangle_larrabee(triangle_count, indices, vertices);
+		save_image("bin/torus_larrabee.png");
+#else
+		draw_triangles(triangle_count, indices, vertices);
+		save_image("bin/torus.png");
+#endif
 		wyc::CSpwMetric::singleton()->report();
 		log_info("z range: [%f, %f]", m_min_z, m_max_z);
 
-//		save_image("bin/torus.png");
 	}
 	
 	void draw_triangles(unsigned triangle_count, const vec3i *indices, const std::vector<vec4f> &vertices)
@@ -136,8 +141,8 @@ public:
 					TIME_DRAW_TRIANGLE
 					fill_triangle(b, pos[0], pos[1], pos[2], *this);
 				}
-			}
-		}
+			} // block_boundings
+		} // triangle_coung
 	}
 	
 	void draw_triangle_larrabee(unsigned triangle_count, const vec3i *indices, const std::vector<vec4f> &vertices)

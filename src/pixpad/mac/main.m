@@ -2,7 +2,7 @@
 #import <TargetConditionals.h>
 
 // Demo entry
-void demo_main();
+void demo_main(void);
 
 #if TARGET_OS_IPHONE
 

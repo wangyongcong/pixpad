@@ -1,9 +1,16 @@
 #pragma once
+#include <vector>
 #include <ImathExc.h>
 #include <ImathBox.h>
 #include "floatmath.h"
 
 #define SPW_SUB_PIXEL_PRECISION 8
+#define SPW_TILE_SIZE_MASK 3
+#define SPW_TILE_SIZE_BITS 2
+#define SPW_LOD_COUNT 3
+#define SPW_LOD_MAX (SPW_LOD_COUNT - 1)
+#define SPW_BLOCK_SIZE 64
+#define SPW_BLOCK_SIZE_BITS 6
 
 namespace wyc
 {
@@ -359,8 +366,161 @@ namespace wyc
 		{}
 	};
 	
+	static_assert(sizeof(PixelTile) <= (sizeof(uint32_t) * 16), "sizeof(PixelTile) overflow");
+	
 #define SPW_LOD_BITS 2
 #define SPW_LOD_MASK 3
+
+	struct Triangle
+	{
+		vec4i bounding;
+		// 4x4 reject corner offsets
+		mat4i rc_steps[3];
+		// offset of reject corner to accept corner
+		vec3i rc2ac;
+		// edge function value at reject corner (high precision)
+		int64_t rc_hp[3];
+		vec2i dxdy[3];
+		// top-left fill rule bias
+		vec3i bias;
+		vec3f tail;
+	};
+	
+	template<class T>
+	class CMemoryArena
+	{
+	public:
+		CMemoryArena()
+		: m_objs(nullptr)
+		, m_bucket(nullptr)
+		, m_bucket_count(0)
+		, m_bucket_size(64 * sizeof(T))
+		{
+		}
+		
+		~CMemoryArena() {
+			_free();
+			m_bucket = nullptr;
+			m_objs = nullptr;
+		}
+		
+		void reserve(unsigned capacity)
+		{
+			unsigned bucket_size = sizeof(T) * capacity;
+			if(m_bucket) {
+				if(bucket_size <= m_bucket_size)
+					return;
+				_free();
+			}
+			m_bucket_size = bucket_size;
+			m_bucket_count = 1;
+			_reset_bucket();
+		}
+		
+		void clear() {
+			if(m_bucket_count <= 1)
+			{
+				m_objs = (T*)(m_bucket - m_bucket_size);
+				return;
+			}
+			_free();
+			m_bucket_size *= m_bucket_count;
+			m_bucket_count = 1;
+			_reset_bucket();
+		}
+		
+		T* alloc() {
+			if((char*)m_objs >= m_bucket)
+			{
+				char *buf = new char[m_bucket_size + sizeof(void*)];
+				char *node = buf + m_bucket_size;
+				*(char**)node = m_bucket;
+				m_bucket = node;
+				m_objs = (T*)buf;
+				m_bucket_count += 1;
+			}
+			return m_objs++;
+		}
+		
+	private:
+		void _reset_bucket() {
+			char *buf = new char[m_bucket_size + sizeof(void*)];
+			m_bucket = buf + m_bucket_size;
+			*(char**)m_bucket = nullptr;
+			m_objs = (T*)buf;
+		}
+		
+		void _free() {
+			while(m_bucket) {
+				char *buf = m_bucket - m_bucket_size;
+				m_bucket = *(char**)m_bucket;
+				delete [] buf;
+			}
+		}
+		
+		T *m_objs;
+		char *m_bucket;
+		unsigned m_bucket_count;
+		unsigned m_bucket_size;
+	};
+	
+	struct TileBlock
+	{
+		TileBlock *_next;
+		char *storage;
+		vec3i reject;
+		int shift;
+		vec2i index;
+	};
+	
+	typedef CMemoryArena<TileBlock> BlockArena;
+	
+	struct RenderTarget
+	{
+		char *storage;
+		int w, h;
+		int x, y;
+	};
+	
+	struct TileQueue
+	{
+		TileBlock *head;
+		TileBlock **tail;
+		
+		TileQueue() {
+			head = nullptr;
+			tail = &head;
+		}
+		
+		inline void push(TileBlock *b) {
+			*tail = b;
+			tail = &b->_next;
+		}
+		
+		inline TileBlock* pop() {
+			if(!head)
+				return nullptr;
+			auto *b = head;
+			head = head->_next;
+			return b;
+		}
+		
+		inline void clear() {
+			head = nullptr;
+			tail = &head;
+		}
+		
+		inline operator bool () const {
+			return head != nullptr;
+		}
+	};
+
+	void setup_triangle(Triangle *edge, const vec2f *vf0, const vec2f *vf1, const vec2f *vf2);
+
+	void scan_block(RenderTarget *rt, const Triangle *tri, BlockArena *arena, TileQueue *full_blocks, TileQueue *partial_blocks);
+	void scan_tile(const Triangle *prim, TileBlock *block, BlockArena *arena, TileQueue *full_tiles, TileQueue *partial_tiles);
+
+	void scan_block(const Triangle *edge, int row, int col);
 
 	void fill_triangle_larrabee(int block_row, int block_col, const vec2f &v0, const vec2f &v1, const vec2f &v2, ITileShader *shader);
 

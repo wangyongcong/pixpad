@@ -4,13 +4,6 @@
 #include "spw_rasterizer.h"
 #include <vector>
 
-#define SPW_TILE_SIZE_MASK 3
-#define SPW_TILE_SIZE_BITS 2
-#define SPW_LOD_COUNT 3
-#define SPW_LOD_MAX (SPW_LOD_COUNT - 1)
-#define SPW_BLOCK_SIZE 64
-#define SPW_BLOCK_SIZE_BITS 6
-
 namespace wyc
 {
 	// Larrabee rasterizer
@@ -26,29 +19,33 @@ namespace wyc
 		return (v & (v-1)) == 0;
 	}
 	
-	struct TriangleEdgeInfo
-	{
-		// 4x4 reject corner offsets
-		mat4i rc_steps[3];
-		// offset of reject corner to accept corner
-		vec3i rc2ac;
-		// edge function value at reject corner (high precision)
-		int64_t rc_hp[3];
-		vec2i dxdy[3];
-		// top-left fill rule bias
-		vec3i bias;
-		vec3f tail;
-	};
-
 	// 1. vertices are in counter-clockwise order
-	template<class Vector>
-	void setup_triangle(TriangleEdgeInfo *edge, const Vector &vf0, const Vector &vf1, const Vector &vf2)
+	void setup_triangle(Triangle *prim, const vec2f *vf0, const vec2f *vf1, const vec2f *vf2)
 	{
 		const vec2i vi[3] = {
-			snap_to_subpixel<SPW_SUB_PIXEL_PRECISION>(vf1),
-			snap_to_subpixel<SPW_SUB_PIXEL_PRECISION>(vf2),
-			snap_to_subpixel<SPW_SUB_PIXEL_PRECISION>(vf0),
+			snap_to_subpixel<SPW_SUB_PIXEL_PRECISION>(*vf1),
+			snap_to_subpixel<SPW_SUB_PIXEL_PRECISION>(*vf2),
+			snap_to_subpixel<SPW_SUB_PIXEL_PRECISION>(*vf0),
 		};
+		
+		vec4i &bounding = prim->bounding;
+		bounding.x = vi[0].x >> SPW_SUB_PIXEL_PRECISION;
+		bounding.y = vi[0].y >> SPW_SUB_PIXEL_PRECISION;
+		bounding.z = bounding.x;
+		bounding.w = bounding.y;
+		for(int i = 1; i < 3; ++i)
+		{
+			int x = vi[i].x >> SPW_SUB_PIXEL_PRECISION;
+			int y = vi[i].y >> SPW_SUB_PIXEL_PRECISION;
+			if(x < bounding.x)
+				bounding.x = x;
+			if(x > bounding.z)
+				bounding.z = x;
+			if(y < bounding.y)
+				bounding.y = y;
+			if(y > bounding.w)
+				bounding.w = y;
+		}
 		
 		// block size with sub pixel precision
 		constexpr int block_size_hp = SPW_BLOCK_SIZE << SPW_SUB_PIXEL_PRECISION;
@@ -59,7 +56,7 @@ namespace wyc
 			auto &vi2 = vi[i2];
 			vec2i rc;  // reject corner
 			vec2i ac;  // offset of reject corner to accpet corner
-			vec2i &dv = edge->dxdy[j];
+			vec2i &dv = prim->dxdy[j];
 			dv.setValue(vi1.y - vi2.y, vi2.x - vi1.x);
 			int dx = vi2.x - vi1.x;
 			int dy = vi2.y - vi1.y;
@@ -78,7 +75,7 @@ namespace wyc
 					int c1 = ac.x;
 					int c2 = c1 * 2;
 					int c3 = c1 * 3;
-					edge->rc_steps[j] = {
+					prim->rc_steps[j] = {
 						r3, r3 + c1, r3 + c2, r3 + c3,
 						r2, r2 + c1, r2 + c2, r2 + c3,
 						r1, r1 + c1, r1 + c2, r1 + c3,
@@ -99,7 +96,7 @@ namespace wyc
 					int c1 = ac.x;
 					int c2 = c1 * 2;
 					int c3 = c1 * 3;
-					edge->rc_steps[j] = {
+					prim->rc_steps[j] = {
 						r3 + c3, r3 + c2, r3 + c1, r3,
 						r2 + c3, r2 + c2, r2 + c1, r2,
 						r1 + c3, r1 + c2, r1 + c1, r1,
@@ -122,7 +119,7 @@ namespace wyc
 					int c1 = ac.x;
 					int c2 = c1 * 2;
 					int c3 = c1 * 3;
-					edge->rc_steps[j] = {
+					prim->rc_steps[j] = {
 						0, c1, c2, c3,
 						r1, r1 + c1, r1 + c2, r1 + c3,
 						r2, r2 + c1, r2 + c2, r2 + c3,
@@ -143,7 +140,7 @@ namespace wyc
 					int c1 = ac.x;
 					int c2 = c1 * 2;
 					int c3 = c1 * 3;
-					edge->rc_steps[j] = {
+					prim->rc_steps[j] = {
 						c3, c2, c1, 0,
 						r1 + c3, r1 + c2, r1 + c1, r1,
 						r2 + c3, r2 + c2, r2 + c1, r2,
@@ -151,17 +148,81 @@ namespace wyc
 					};
 				}
 			} // detect edge direction
-			edge->rc2ac[j] = ac.x + ac.y;
+			prim->rc2ac[j] = ac.x + ac.y;
 			int64_t v = edge_function_fixed(vi1, vi2, rc);
-			edge->rc_hp[j] = v;
+			prim->rc_hp[j] = v;
 			int b = is_top_left(vi1, vi2) ? 0 : -1;
-			edge->bias[j] = b;
-			edge->tail[j] = float((v & 0xFF) - b) / 255;
+			prim->bias[j] = b;
+			prim->tail[j] = float((v & 0xFF) - b) / 255;
 		}
 	}
 	
+	void scan_block(RenderTarget *rt, const Triangle *prim, BlockArena *arena, TileQueue *full_blocks, TileQueue *partial_blocks)
+	{
+		// find blocks covered by primitive's aabb
+		// block range: {beg_col, beg_row, end_col, end_row}
+		vec4i bounding = prim->bounding;
+		bounding.z += SPW_BLOCK_SIZE - 1;
+		bounding.w += SPW_BLOCK_SIZE - 1;
+		bounding /= SPW_BLOCK_SIZE;
+		vec4i block_range = {-rt->x, -rt->y, -rt->x, -rt->y};
+		block_range += bounding;
+		block_range.x = std::max(block_range.x, 0);
+		block_range.y = std::max(block_range.y, 0);
+		block_range.z = std::min(block_range.z, rt->w);
+		block_range.w = std::min(block_range.w, rt->h);
+		
+		// find partial covered blocks and full covered blocks
+		constexpr int block_shift = SPW_SUB_PIXEL_PRECISION + SPW_BLOCK_SIZE_BITS;
+		vec3i dy(prim->dxdy[0].y, prim->dxdy[1].y, prim->dxdy[2].y);
+		vec3i dx(prim->dxdy[0].x, prim->dxdy[1].x, prim->dxdy[2].x);
+		vec3i reject_row = {
+			int(prim->rc_hp[0] >> block_shift),
+			int(prim->rc_hp[1] >> block_shift),
+			int(prim->rc_hp[2] >> block_shift),
+		};
+		reject_row += dx * block_range.x;
+		reject_row += dy * block_range.y;
+		vec3i reject, accept;
+		// 4 ^ SPW_LOD_MAX = SPW_BLOCK_SIZE
+		constexpr int shift = SPW_LOD_MAX * 2;
+//		*full_blocks	= nullptr;
+//		*partial_blocks = nullptr;
+//		TileBlock **next_full = full_blocks, **next_partial = partial_blocks;
+		for(int r = block_range.y; r < block_range.w; ++r, reject_row += dy)
+		{
+			reject = reject_row;
+			for(int c = block_range.x; c < block_range.z; ++c, reject += dx)
+			{
+				if((reject.x | reject.y | reject.z) < 0)
+					// trivial reject
+					continue;
+				accept = reject + prim->rc2ac;
+				auto *block = arena->alloc();
+				block->_next = nullptr;
+				block->storage = nullptr;
+				block->reject = reject;
+				block->shift = shift;
+				block->index = {c, r};
+				if((accept.x | accept.y | accept.z) > 0) {
+					// trivial accept
+					full_blocks->push(block);
+				}
+				else {
+					// partial accept
+					partial_blocks->push(block);
+				}
+			}
+		} // loop of blocks
+	}
+	
+	void scan_tile(const Triangle *prim, TileBlock *block, BlockArena *arena, TileQueue *full_tiles, TileQueue *partial_tiles)
+	{
+		
+	}
+	
 	template<class T>
-	void scan_block(const TriangleEdgeInfo *edge, int row, int col, std::vector<PixelTile> &partial_blocks, T *shader)
+	void scan_block(const Triangle *edge, int row, int col, std::vector<PixelTile> &partial_blocks, T *shader)
 	{
 		constexpr int block_shift = SPW_SUB_PIXEL_PRECISION + SPW_BLOCK_SIZE_BITS;
 		vec3i dy(edge->dxdy[0].y, edge->dxdy[1].y, edge->dxdy[2].y);
@@ -196,7 +257,7 @@ namespace wyc
 	}
 	
 	template<class T>
-	void scan_tile(const TriangleEdgeInfo *edge, int index, const vec3i &reject_value, std::vector<PixelTile> &partial_tiles, T *shader)
+	void scan_tile(const Triangle *edge, int index, const vec3i &reject_value, std::vector<PixelTile> &partial_tiles, T *shader)
 	{
 		int lod = index & SPW_LOD_MASK;
 		assert(lod > 0);
@@ -245,7 +306,7 @@ namespace wyc
 	}
 	
 	template<class T>
-	void scan_pixel(const TriangleEdgeInfo *edge, int index, const vec3i &reject_value, T *shader)
+	void scan_pixel(const Triangle *edge, int index, const vec3i &reject_value, T *shader)
 	{
 		int64_t e[3];
 		vec3f tail;
@@ -286,11 +347,11 @@ namespace wyc
 	
 	void fill_triangle_larrabee(int block_row, int block_col, const vec2f &v0, const vec2f &v1, const vec2f &v2, ITileShader *shader)
 	{
-		TriangleEdgeInfo edge;
+		Triangle edge;
 		std::vector<PixelTile> partial_blocks;
 		std::vector<PixelTile> partial_tiles;
 
-		setup_triangle(&edge, v0, v1, v2);
+		setup_triangle(&edge, &v0, &v1, &v2);
 		scan_block(&edge, block_row, block_col, partial_blocks, shader);
 		for(auto &tile : partial_blocks) {
 			scan_tile(&edge, tile.index, tile.reject, partial_tiles, shader);

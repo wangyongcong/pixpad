@@ -68,8 +68,7 @@ namespace wyc
 	{
 		static_assert((sizeof(T) & (FRAGMENT_ALIGNMENT - 1)) == 0, "Fragment size alignment error");
 		constexpr size_t TILE_SIZE_IN_BYTES = sizeof(T) * FRAGMENT_PER_TILE;
-		static_assert((TILE_SIZE_IN_BYTES % CACHE_LINE_SIZE == 0) || (CACHE_LINE_SIZE % TILE_SIZE_IN_BYTES == 0),
-					  "Tile size do not fit in cache line");
+		static_assert((TILE_SIZE_IN_BYTES % CACHE_LINE_SIZE == 0) || (CACHE_LINE_SIZE % TILE_SIZE_IN_BYTES == 0), "Tile size do not fit in cache line");
 	}
 	
 	template<class T>
