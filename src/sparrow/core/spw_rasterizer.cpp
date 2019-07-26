@@ -185,14 +185,17 @@ namespace wyc
 		reject_row += dy * block_range.y;
 		vec3i reject, accept;
 		// 4 ^ SPW_LOD_MAX = SPW_BLOCK_SIZE
-		constexpr int shift = SPW_LOD_MAX * 2;
-//		*full_blocks	= nullptr;
-//		*partial_blocks = nullptr;
-//		TileBlock **next_full = full_blocks, **next_partial = partial_blocks;
-		for(int r = block_range.y; r < block_range.w; ++r, reject_row += dy)
+		constexpr int shift = SPW_SUB_PIXEL_PRECISION + SPW_LOD_MAX * 2;
+		int size = SPW_BLOCK_SIZE * SPW_BLOCK_SIZE * rt->pixel_size;
+		assert(rt->pitch % SPW_BLOCK_SIZE == 0);
+		unsigned row_size = rt->pitch * SPW_BLOCK_SIZE;
+//		unsigned col_size = SPW_BLOCK_SIZE * SPW_BLOCK_SIZE * rt->pixel_size;
+		char *row_start = rt->storage + block_range.y * row_size + block_range.x * size;
+		for(int r = block_range.y; r < block_range.w; ++r, reject_row += dy, row_start += row_size)
 		{
 			reject = reject_row;
-			for(int c = block_range.x; c < block_range.z; ++c, reject += dx)
+			char *storage = row_start;
+			for(int c = block_range.x; c < block_range.z; ++c, reject += dx, storage += size)
 			{
 				if((reject.x | reject.y | reject.z) < 0)
 					// trivial reject
@@ -200,10 +203,11 @@ namespace wyc
 				accept = reject + prim->rc2ac;
 				auto *block = arena->alloc();
 				block->_next = nullptr;
-				block->storage = nullptr;
-				block->reject = reject;
+				block->storage = storage;
+				block->size = size;
 				block->shift = shift;
-				block->index = {c, r};
+				block->lod = 0;
+				block->reject = reject;
 				if((accept.x | accept.y | accept.z) > 0) {
 					// trivial accept
 					full_blocks->push(block);
@@ -218,7 +222,52 @@ namespace wyc
 	
 	void scan_tile(const Triangle *prim, TileBlock *block, BlockArena *arena, TileQueue *full_tiles, TileQueue *partial_tiles)
 	{
-		
+		int shift = block->shift;
+		// todo: per triangle constant
+		vec3i r = {
+			int(prim->rc_hp[0] >> shift) & SPW_TILE_SIZE_MASK,
+			int(prim->rc_hp[1] >> shift) & SPW_TILE_SIZE_MASK,
+			int(prim->rc_hp[2] >> shift) & SPW_TILE_SIZE_MASK,
+		};
+		r.x += block->reject.x << SPW_TILE_SIZE_BITS;
+		r.y += block->reject.y << SPW_TILE_SIZE_BITS;
+		r.z += block->reject.z << SPW_TILE_SIZE_BITS;
+		mat4i m0(r.x);
+		mat4i m1(r.y);
+		mat4i m2(r.z);
+		m0 += prim->rc_steps[0];
+		m1 += prim->rc_steps[1];
+		m2 += prim->rc_steps[2];
+		mat4i mask = m0 | m1;
+		mask |= m2;
+		int *x0 = (int*)m0.x;
+		int *x1 = (int*)m1.x;
+		int *x2 = (int*)m2.x;
+		int *xm = (int*)mask.x;
+		shift -= 2;
+		int size = block->size >> 4;
+		int lod = block->lod + 1;
+		char* storage = block->storage;
+		for(int i = 0; i < 16; ++i, storage += size)
+		{
+			if(xm[i] < 0)
+				continue;
+			vec3i reject(x0[i], x1[i], x2[i]);
+			vec3i accept = reject + prim->rc2ac;
+			TileBlock *b = arena->alloc();
+			b->_next = nullptr;
+			b->storage = storage;
+			b->size = size;
+			b->shift = shift;
+			b->lod = lod;
+			b->reject = reject;
+			if((accept.x | accept.y | accept.z) > 0) {
+				full_tiles->push(b);
+			}
+			else {
+				partial_tiles->push(b);
+			}
+		}
 	}
 	
 	template<class T>

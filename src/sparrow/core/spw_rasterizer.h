@@ -389,19 +389,27 @@ namespace wyc
 	template<class T>
 	class CMemoryArena
 	{
+		struct Node {
+			T *_next;
+		};
+		
 	public:
-		CMemoryArena()
+		CMemoryArena(unsigned capacity=0)
 		: m_objs(nullptr)
+		, m_free(nullptr)
 		, m_bucket(nullptr)
 		, m_bucket_count(0)
-		, m_bucket_size(64 * sizeof(T))
+		, m_bucket_size(0)
 		{
+			if(capacity > 0)
+				reserve(capacity);
 		}
 		
 		~CMemoryArena() {
-			_free();
+			_free_bucket();
 			m_bucket = nullptr;
 			m_objs = nullptr;
+			m_free = nullptr;
 		}
 		
 		void reserve(unsigned capacity)
@@ -410,7 +418,7 @@ namespace wyc
 			if(m_bucket) {
 				if(bucket_size <= m_bucket_size)
 					return;
-				_free();
+				_free_bucket();
 			}
 			m_bucket_size = bucket_size;
 			m_bucket_count = 1;
@@ -423,13 +431,19 @@ namespace wyc
 				m_objs = (T*)(m_bucket - m_bucket_size);
 				return;
 			}
-			_free();
+			_free_bucket();
 			m_bucket_size *= m_bucket_count;
 			m_bucket_count = 1;
 			_reset_bucket();
 		}
 		
 		T* alloc() {
+			if(m_free)
+			{
+				T *obj = m_free;
+				m_free = ((Node*)obj)->_next;
+				return obj;
+			}
 			if((char*)m_objs >= m_bucket)
 			{
 				char *buf = new char[m_bucket_size + sizeof(void*)];
@@ -442,15 +456,22 @@ namespace wyc
 			return m_objs++;
 		}
 		
+		void free(T *obj)
+		{
+			((Node*)obj)->_next = m_free;
+			m_free = obj;
+		}
+		
 	private:
 		void _reset_bucket() {
 			char *buf = new char[m_bucket_size + sizeof(void*)];
 			m_bucket = buf + m_bucket_size;
 			*(char**)m_bucket = nullptr;
 			m_objs = (T*)buf;
+			m_free = nullptr;
 		}
 		
-		void _free() {
+		void _free_bucket() {
 			while(m_bucket) {
 				char *buf = m_bucket - m_bucket_size;
 				m_bucket = *(char**)m_bucket;
@@ -459,6 +480,7 @@ namespace wyc
 		}
 		
 		T *m_objs;
+		T *m_free;
 		char *m_bucket;
 		unsigned m_bucket_count;
 		unsigned m_bucket_size;
@@ -468,9 +490,10 @@ namespace wyc
 	{
 		TileBlock *_next;
 		char *storage;
-		vec3i reject;
+		int size;
 		int shift;
-		vec2i index;
+		int lod;
+		vec3i reject;
 	};
 	
 	typedef CMemoryArena<TileBlock> BlockArena;
@@ -478,6 +501,8 @@ namespace wyc
 	struct RenderTarget
 	{
 		char *storage;
+		unsigned pixel_size;
+		unsigned pitch;
 		int w, h;
 		int x, y;
 	};
@@ -502,7 +527,18 @@ namespace wyc
 				return nullptr;
 			auto *b = head;
 			head = head->_next;
+			if(!head)
+				tail = &head;
 			return b;
+		}
+		
+		inline void join(TileQueue *queue)
+		{
+			if(queue->head) {
+				*tail = queue->head;
+				tail = queue->tail;
+				queue->clear();
+			}
 		}
 		
 		inline void clear() {
@@ -519,7 +555,7 @@ namespace wyc
 
 	void scan_block(RenderTarget *rt, const Triangle *tri, BlockArena *arena, TileQueue *full_blocks, TileQueue *partial_blocks);
 	void scan_tile(const Triangle *prim, TileBlock *block, BlockArena *arena, TileQueue *full_tiles, TileQueue *partial_tiles);
-
+	
 	void scan_block(const Triangle *edge, int row, int col);
 
 	void fill_triangle_larrabee(int block_row, int block_col, const vec2f &v0, const vec2f &v1, const vec2f &v2, ITileShader *shader);
