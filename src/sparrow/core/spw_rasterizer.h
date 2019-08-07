@@ -556,6 +556,9 @@ namespace wyc
 	void scan_block(RenderTarget *rt, const Triangle *tri, BlockArena *arena, TileQueue *full_blocks, TileQueue *partial_blocks);
 	void scan_tile(const Triangle *prim, TileBlock *block, BlockArena *arena, TileQueue *full_tiles, TileQueue *partial_tiles);
 	
+	typedef void (*PixelShader) (char *dst, const vec3f &w);
+	void draw_tile(const Triangle *prim, TileBlock *tile, PixelShader shader);
+
 	void scan_block(const Triangle *edge, int row, int col);
 
 	void fill_triangle_larrabee(int block_row, int block_col, const vec2f &v0, const vec2f &v1, const vec2f &v2, ITileShader *shader);

@@ -7,8 +7,9 @@
 namespace wyc
 {
 	// Larrabee rasterizer
-	// when individual coordinates are in [-2^p, 2^p-1], the result of edge function fits inside a 2*(p+2)-bit signed integer
-	// e.g with 32-bit integer, the precision bits [p] is 32/2-2=14, coordinates should be in range [-16384, 16383]
+	// when individual coordinates are in range [-2^p, 2^p-1], the result of edge function fits inside 2*(p+2) bit signed integer
+	// if we use a 32-bit integer to store edge function, then p=32/2-2=14, so the coordinates should be in range [-16384, 16383]
+	// if we use a 24.8 sub-pixel precision, then p=24/2-2=10, so coordinates should be [-1024, 1024]
 	inline int coordinate_precision(int available_bits)
 	{
 		return available_bits / 2 - 2;
@@ -153,7 +154,9 @@ namespace wyc
 			prim->rc_hp[j] = v;
 			int b = is_top_left(vi1, vi2) ? 0 : -1;
 			prim->bias[j] = b;
-			prim->tail[j] = float((v & 0xFF) - b) / 255;
+			// .8 sub-pixel part with reversed bias
+			prim->tail[j] = float(int((v + b) & 0xFF) - b) / 256;
+//			prim->tail[j] = float((v & 0xFF) - b) / 255;
 		}
 	}
 	
@@ -270,6 +273,53 @@ namespace wyc
 		}
 	}
 	
+	template<class Shader>
+	void fill_tile(const Triangle *prim, TileBlock *tile, Shader shader)
+	{
+		
+	}
+	
+	void draw_tile(const Triangle *prim, TileBlock *tile, PixelShader shader)
+	{
+		constexpr int last_shift = SPW_SUB_PIXEL_PRECISION + SPW_TILE_SIZE_BITS;
+		constexpr int last_mask = (1 << last_shift) - 1;
+		int64_t e[3];
+		for(int i=0; i<3; ++i)
+		{
+			e[i] = tile->reject[i];
+			e[i] <<= last_shift;
+			// recover the full precision edge function at reject corner
+			e[i] |= prim->rc_hp[i] & last_mask;
+			// edge function at pixel center (0.5 sub-pixel precision)
+			e[i] += prim->rc2ac[i] << 7;
+			// add the top-left rule bias
+			e[i] += prim->bias[i];
+		}
+		mat4i m0 = int(e[0] >> SPW_SUB_PIXEL_PRECISION);
+		mat4i m1 = int(e[1] >> SPW_SUB_PIXEL_PRECISION);
+		mat4i m2 = int(e[2] >> SPW_SUB_PIXEL_PRECISION);
+		m0 += prim->rc_steps[0];
+		m1 += prim->rc_steps[1];
+		m2 += prim->rc_steps[2];
+		mat4i mask = m0 | m1;
+		mask |= m2;
+		int *x0 = (int*)m0.x;
+		int *x1 = (int*)m1.x;
+		int *x2 = (int*)m2.x;
+		int *xm = (int*)mask.x;
+		constexpr int PIXEL_SIZE = 4;
+		char *dst = tile->storage;
+		for(int i = 0; i < 16; ++i, ++xm) {
+			if(*xm < 0)
+				continue;
+			vec3f w(x0[i], x1[i], x2[i]);
+			w += prim->tail;
+			float sum = w.x + w.y + w.z;
+			w /= sum;
+			shader(dst + (i*PIXEL_SIZE), w);
+		}
+	}
+	
 	template<class T>
 	void scan_block(const Triangle *edge, int row, int col, std::vector<PixelTile> &partial_blocks, T *shader)
 	{
@@ -366,9 +416,13 @@ namespace wyc
 			e[i] = reject_value[i];
 			e[i] <<= last_shift;
 			// todo: per triangle constant
+			// recover the full precision edge function at reject corner
 			e[i] |= edge->rc_hp[i] & last_mask;
+			// edge function at pixel center (0.5 sub-pixel precision)
 			e[i] += edge->rc2ac[i] << 7;
+			// add the top-left rule bias
 			e[i] += edge->bias[i];
+			// .8 sub-pixel part
 			tail[i] = float((e[i] - edge->bias[i]) & 0xFF) / 255;
 		}
 		mat4i m0 = int(e[0] >> SPW_SUB_PIXEL_PRECISION);

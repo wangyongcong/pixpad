@@ -49,4 +49,34 @@ namespace wyc
 		log_info("| time used by draw: %.2fs", my_timer(DRAW_TRIANGLE));
 		log_info(splitter);
 	}
+	
+	CSimpleTimer::CSimpleTimer(const char *name)
+	: m_name(name)
+	, m_begin()
+	, m_result(0)
+	, m_is_paused(false)
+	{
+		m_begin = clock_t::now();
+	}
+	
+	CSimpleTimer::~CSimpleTimer() {
+		pause();
+		log_info("Time used for [%s]: %f miliseconds", m_name, m_result);
+	}
+	
+	void CSimpleTimer::pause()
+	{
+		if(m_is_paused) return;
+		auto end = clock_t::now();
+		auto dt = std::chrono::duration<float, std::milli>(end - m_begin).count();
+		m_result += dt;
+		m_is_paused = true;
+	}
+	
+	void CSimpleTimer::resume()
+	{
+		if(!m_is_paused) return;
+		m_is_paused = false;
+		m_begin = clock_t::now();
+	}
 }

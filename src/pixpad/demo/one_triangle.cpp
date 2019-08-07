@@ -7,6 +7,7 @@
 #include "spw_rasterizer.h"
 #include "imgui.h"
 #include "stb_log.h"
+#include "metric.h"
 
 using namespace wyc;
 
@@ -22,6 +23,7 @@ struct ContextOneTriangle
 	TileQueue full_tiles, partial_tiles;
 	std::vector<vec2i> lod_full[SPW_LOD_COUNT];
 	std::vector<vec2i> lod_partial[SPW_LOD_COUNT];
+	std::vector<vec2i> pixels;
 	
 	ContextOneTriangle()
 	: color_buf(nullptr)
@@ -57,10 +59,13 @@ static ContextOneTriangle* get_context()
 
 vec2i get_location(long offset, int block_per_row)
 {
-	offset >>= 4;
 	int i = offset & 0xF;
-	int y = (i / 4) * 4;
-	int x = (i % 4) * 4;
+	int y = i / 4;
+	int x = i % 4;
+	offset >>= 4;
+	i = offset & 0xF;
+	y += (i / 4) * 4;
+	x += (i % 4) * 4;
 	offset >>= 4;
 	i = offset & 0xF;
 	y += (i / 4) * 16;
@@ -74,8 +79,8 @@ vec2i get_location(long offset, int block_per_row)
 void save_tile_coordinate(const TileQueue &tiles, bool is_partial)
 {
 	auto context = get_context();
-	auto &rt = context->rt;
-	int block_per_row = rt.pitch / (SPW_BLOCK_SIZE * rt.pixel_size);
+	const RenderTarget &rt = context->rt;
+	const int block_per_row = rt.pitch / (SPW_BLOCK_SIZE * rt.pixel_size);
 	std::vector<vec2i> *tile_array;
 	if(is_partial)
 		tile_array = context->lod_partial;
@@ -138,12 +143,27 @@ void demo_one_triangle()
 	setup_triangle(&prim, verts, verts + 1, verts + 2);
 	
 	TileQueue partial_blocks;
-	scan_block(&rt, &prim, context->arena, &context->full_tiles, &partial_blocks);
-	save_tile_coordinate(partial_blocks, true);
 	
-	scan_partial_queue(&prim, &partial_blocks, context->arena, &context->full_tiles, &context->partial_tiles);
+	{
+		TIMER(t, "draw");
+		scan_block(&rt, &prim, context->arena, &context->full_tiles, &partial_blocks);
+		t.pause();
+		save_tile_coordinate(partial_blocks, true);
+		t.resume();
+		scan_partial_queue(&prim, &partial_blocks, context->arena, &context->full_tiles, &context->partial_tiles);
+		for(auto it = context->partial_tiles.head; it; it = it->_next)
+		{
+			draw_tile(&prim, it, [](char *dst, const vec3f &w) {
+				auto context = get_context();
+				const RenderTarget &rt = context->rt;
+				const int block_per_row = rt.pitch / (SPW_BLOCK_SIZE * rt.pixel_size);
+				long offset = dst - rt.storage;
+				context->pixels.emplace_back(get_location(offset / rt.pixel_size, block_per_row));
+			});
+		}
+	}
+	
 	save_tile_coordinate(context->full_tiles, false);
-	
 	int count_full = 0, count_partial = 0;
 	log_info("     FULL  PART");
 	for(int i = 0; i < SPW_LOD_COUNT; ++i) {
@@ -194,10 +214,10 @@ void fill_block(ImVec2 *verts, const vec2f &b, int size, const Imath::V2f &scale
 void draw_one_triangle()
 {
 	// detail level
-	int show_lod = 1;
-	assert(show_lod < SPW_LOD_MAX);
+	int show_lod = 2;
+	assert(show_lod <= SPW_LOD_MAX);
 	// camera zoom
-	float zoom = 3.0f;
+	float zoom = 4.0f;
 	// focus view
 	bool is_focus = true;
 
@@ -259,7 +279,7 @@ void draw_one_triangle()
 	draw_list->AddQuad(verts[0], verts[1], verts[2], verts[3], 0xFFFFFFFF);
 	
 	// draw tiles
-	int block_size = SPW_BLOCK_SIZE >> (show_lod * 2);
+/*	int block_size = SPW_BLOCK_SIZE >> (show_lod * 2);
 	for(auto &b: context->lod_partial[show_lod])
 	{
 		draw_block(verts.data(), b, block_size, scale, translate, 0xFF00FFFF);
@@ -271,6 +291,12 @@ void draw_one_triangle()
 		{
 			fill_block(verts.data(), b, block_size, scale, translate, 0x8000FF00);
 		}
+	}
+*/
+	// draw pixels
+	for(auto &b : context->pixels)
+	{
+		fill_block(verts.data(), b, 1, scale, translate, 0x8000FF00);
 	}
 
 	// draw triangle

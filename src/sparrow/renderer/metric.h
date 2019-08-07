@@ -2,6 +2,7 @@
 #include <vector>
 #include <stack>
 #include <chrono>
+#include <string>
 
 namespace wyc
 {
@@ -59,7 +60,23 @@ namespace wyc
 			CSpwMetric::singleton()->time_end();
 		}
 	};
-
+	
+	class CSimpleTimer
+	{
+	public:
+		CSimpleTimer(const char *name);
+		~CSimpleTimer();
+		void pause();
+		void resume();
+		
+	private:
+		std::string m_name;
+		typedef std::chrono::steady_clock clock_t;
+		typedef clock_t::time_point time_point_t;
+		time_point_t m_begin;
+		float m_result;
+		bool m_is_paused;
+	};
 } // namespace wyc
 
 #ifdef NO_PERF
@@ -96,3 +113,5 @@ namespace wyc
 #define DEPTH_CULLING _INC_COUNTER(DEPTH_CULLING_COUNT)
 
 #endif // NO_PEF
+
+#define TIMER(v, n)  CSimpleTimer v((n))
