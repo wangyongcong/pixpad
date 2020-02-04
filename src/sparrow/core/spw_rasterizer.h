@@ -345,45 +345,33 @@ namespace wyc
 		}
 	}
 	
-	// Larrabee rasterizer
-	class ITileShader
-	{
-	public:
-		virtual void fill_partial_block(int index, const vec3i &reject) = 0;
-		virtual void fill_block(int index, const vec3i &reject) = 0;
-		virtual void fill_partial_tile(int index, const vec3i &reject) = 0;
-		virtual void fill_tile(int index, const vec3i &reject) = 0;
-		virtual void shade(int index, int offset, const vec3i &w) = 0;
-	};
-	
-	struct PixelTile
-	{
-		int index;
-		vec3i reject;
-		
-		PixelTile(int i, const vec3i &v)
-		: index(i), reject(v)
-		{}
-	};
-	
-	static_assert(sizeof(PixelTile) <= (sizeof(uint32_t) * 16), "sizeof(PixelTile) overflow");
-	
+/*
+ * Larrabee rasterization method
+ * render traget is padded to 64*64 blocks
+ * each block is 4*4 tile in Morton order
+ */
+
 #define SPW_LOD_BITS 2
 #define SPW_LOD_MASK 3
 
 	struct Triangle
 	{
+		// bouding box of triangle
 		vec4i bounding;
 		// 4x4 reject corner offsets
-		mat4i rc_steps[3];
+		alignas(64) mat4i rc_steps[3];
 		// offset of reject corner to accept corner
 		vec3i rc2ac;
 		// edge function value at reject corner (high precision)
 		int64_t rc_hp[3];
+		// edge function delta in x/y direction
 		vec2i dxdy[3];
 		// top-left fill rule bias
 		vec3i bias;
+		// low bits of full precision edge function value
 		vec3f tail;
+		// pixcel center offset
+		vec3i center_offset;
 	};
 	
 	template<class T>
@@ -429,6 +417,7 @@ namespace wyc
 			if(m_bucket_count <= 1)
 			{
 				m_objs = (T*)(m_bucket - m_bucket_size);
+				m_free = nullptr;
 				return;
 			}
 			_free_bucket();
@@ -460,6 +449,10 @@ namespace wyc
 		{
 			((Node*)obj)->_next = m_free;
 			m_free = obj;
+		}
+		
+		unsigned bucket_count() const {
+			return m_bucket_count;
 		}
 		
 	private:
@@ -552,15 +545,17 @@ namespace wyc
 	};
 
 	void setup_triangle(Triangle *edge, const vec2f *vf0, const vec2f *vf1, const vec2f *vf2);
-
-	void scan_block(RenderTarget *rt, const Triangle *tri, BlockArena *arena, TileQueue *full_blocks, TileQueue *partial_blocks);
+	// search all blocks covered by triangle
+	unsigned scan_block(RenderTarget *rt, const Triangle *tri, BlockArena *arena, TileQueue *full_blocks, TileQueue *partial_blocks);
+	// search all full/partial tiles covered by triangle
 	void scan_tile(const Triangle *prim, TileBlock *block, BlockArena *arena, TileQueue *full_tiles, TileQueue *partial_tiles);
-	
+	// divide full-covered blocks into tiles
+	void split_tile(const Triangle *prim, BlockArena *arena, TileBlock *block, TileQueue *full_tiles);
+
 	typedef void (*PixelShader) (char *dst, const vec3f &w);
+	// draw partial-covered tile
 	void draw_tile(const Triangle *prim, TileBlock *tile, PixelShader shader);
-
-	void scan_block(const Triangle *edge, int row, int col);
-
-	void fill_triangle_larrabee(int block_row, int block_col, const vec2f &v0, const vec2f &v1, const vec2f &v2, ITileShader *shader);
+	// draw full-covered tile
+	void fill_tile(const Triangle *prim, TileBlock *tile, PixelShader shader);
 
 } // namespace wyc

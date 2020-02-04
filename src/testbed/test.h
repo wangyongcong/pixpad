@@ -28,8 +28,8 @@ public:
 	virtual ~CTest() {
 	}
 
-	virtual void init(const boost::program_options::variables_map &args);
-	virtual void setup_renderer(unsigned img_w, unsigned img_h, unsigned max_core=0);
+	virtual bool init(const boost::program_options::variables_map &args);
+	virtual bool setup_renderer(unsigned img_w, unsigned img_h, unsigned max_core=0);
 	virtual void run() = 0;
 
 	bool has_param(const std::string &name) const {

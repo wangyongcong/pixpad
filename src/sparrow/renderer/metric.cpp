@@ -44,9 +44,9 @@ namespace wyc
 		log_info("| triangles count: %d", my_counter(TRIANGLE_COUNT));
 		log_info("| vertex count: %d", my_counter(VERTEX_COUNT));
 		log_info("| pixel count: %d", my_counter(PIXEL_COUNT));
-		log_info("| time used by vs: %.2fs", my_timer(VERTEX_SHADER));
-		log_info("| time used by ps: %.2fs", my_timer(PIXEL_SHADER));
-		log_info("| time used by draw: %.2fs", my_timer(DRAW_TRIANGLE));
+		log_info("| time used by vs: %.2f ms", my_timer(VERTEX_SHADER));
+		log_info("| time used by ps: %.2f ms", my_timer(PIXEL_SHADER));
+		log_info("| time used by draw: %.2f ms", my_timer(DRAW_TRIANGLE));
 		log_info(splitter);
 	}
 	

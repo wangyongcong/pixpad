@@ -279,11 +279,11 @@ void draw_one_triangle()
 	draw_list->AddQuad(verts[0], verts[1], verts[2], verts[3], 0xFFFFFFFF);
 	
 	// draw tiles
-/*	int block_size = SPW_BLOCK_SIZE >> (show_lod * 2);
-	for(auto &b: context->lod_partial[show_lod])
+	int block_size = SPW_BLOCK_SIZE >> (show_lod * 2);
+/*	for(auto &b: context->lod_partial[show_lod])
 	{
 		draw_block(verts.data(), b, block_size, scale, translate, 0xFF00FFFF);
-	}
+	} */
 	for(int lod = show_lod; lod >= 0; --lod)
 	{
 		block_size = SPW_BLOCK_SIZE >> (lod * 2);
@@ -292,7 +292,6 @@ void draw_one_triangle()
 			fill_block(verts.data(), b, block_size, scale, translate, 0x8000FF00);
 		}
 	}
-*/
 	// draw pixels
 	for(auto &b : context->pixels)
 	{
@@ -300,11 +299,11 @@ void draw_one_triangle()
 	}
 
 	// draw triangle
-	verts[0] = {triangles[0].x, triangles[0].y};
-	verts[1] = {triangles[1].x, triangles[1].y};
-	verts[2] = {triangles[2].x, triangles[2].y};
-	transform(verts.data(), 3, scale, translate);
-	draw_list->AddTriangle(verts[0], verts[1], verts[2], 0xFF0000FF);
+//	verts[0] = {triangles[0].x, triangles[0].y};
+//	verts[1] = {triangles[1].x, triangles[1].y};
+//	verts[2] = {triangles[2].x, triangles[2].y};
+//	transform(verts.data(), 3, scale, translate);
+//	draw_list->AddTriangle(verts[0], verts[1], verts[2], 0xFF0000FF);
 	
 	draw_list->PopClipRect();
 }

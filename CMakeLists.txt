@@ -92,6 +92,7 @@ set(LIB_IMATH Iex_static IexMath_static Imath_static)
 include_directories(
     ${3RD_INSTALL_PATH}
     ${SRC_ROOT}
+    ${3RD_PATH}/rtm/includes
 )
 
 if(WIN32)
@@ -107,7 +108,7 @@ set(SPARROW_INCLUDE_DIR
 	"${SRC_ROOT}/sparrow/mathex" 
 	"${SRC_ROOT}/sparrow/core"
 	"${SRC_ROOT}/sparrow/renderer"
-	"${SRC_ROOT}/sparrow/thread" 
+	"${SRC_ROOT}/sparrow/thread"
 )
 include_directories(${SPARROW_INCLUDE_DIR})
 

@@ -116,7 +116,10 @@ public:
 		}
 		log_info("start test [%s]...", test_name);
 		CTest *test = it->second();
-		test->init(args);
+		if(!test->init(args)) {
+			log_error("test initialize fail");
+			return false;
+		}
 		auto task = std::make_shared<CTestTask>(test);
 		g_task = task;
 		std::async([task] {

@@ -30,14 +30,14 @@ namespace wyc
 		};
 		
 		vec4i &bounding = prim->bounding;
-		bounding.x = vi[0].x >> SPW_SUB_PIXEL_PRECISION;
-		bounding.y = vi[0].y >> SPW_SUB_PIXEL_PRECISION;
+		bounding.x = vi[0].x;
+		bounding.y = vi[0].y;
 		bounding.z = bounding.x;
 		bounding.w = bounding.y;
 		for(int i = 1; i < 3; ++i)
 		{
-			int x = vi[i].x >> SPW_SUB_PIXEL_PRECISION;
-			int y = vi[i].y >> SPW_SUB_PIXEL_PRECISION;
+			int x = vi[i].x;
+			int y = vi[i].y;
 			if(x < bounding.x)
 				bounding.x = x;
 			if(x > bounding.z)
@@ -50,7 +50,9 @@ namespace wyc
 		
 		// block size with sub pixel precision
 		constexpr int block_size_hp = SPW_BLOCK_SIZE << SPW_SUB_PIXEL_PRECISION;
-		
+		constexpr int last_shift = SPW_SUB_PIXEL_PRECISION + SPW_TILE_SIZE_BITS;
+		constexpr int last_mask = (1 << last_shift) - 1;
+
 		for(int i1=2, i2=0, j=0; i2 < 3; i1 = i2, i2 += 1, ++j)
 		{
 			auto &vi1 = vi[i1];
@@ -157,17 +159,21 @@ namespace wyc
 			// .8 sub-pixel part with reversed bias
 			prim->tail[j] = float(int((v + b) & 0xFF) - b) / 256;
 //			prim->tail[j] = float((v & 0xFF) - b) / 255;
+			// factor to calculate full precision edge function at pixel center (0.5 sub-pixel precision)
+			prim->center_offset[j] = int(v & last_mask) + (prim->rc2ac[j] << 7) + b;
 		}
 	}
 	
-	void scan_block(RenderTarget *rt, const Triangle *prim, BlockArena *arena, TileQueue *full_blocks, TileQueue *partial_blocks)
+	unsigned scan_block(RenderTarget *rt, const Triangle *prim, BlockArena *arena, TileQueue *full_blocks, TileQueue *partial_blocks)
 	{
 		// find blocks covered by primitive's aabb
 		// block range: {beg_col, beg_row, end_col, end_row}
 		vec4i bounding = prim->bounding;
-		bounding.z += SPW_BLOCK_SIZE - 1;
-		bounding.w += SPW_BLOCK_SIZE - 1;
-		bounding /= SPW_BLOCK_SIZE;
+		constexpr int adjust = (SPW_BLOCK_SIZE << SPW_SUB_PIXEL_PRECISION) - 1;
+		unsigned block_count = 0;
+		bounding.z += adjust;
+		bounding.w += adjust;
+		bounding /= (SPW_BLOCK_SIZE << SPW_SUB_PIXEL_PRECISION);
 		vec4i block_range = {-rt->x, -rt->y, -rt->x, -rt->y};
 		block_range += bounding;
 		block_range.x = std::max(block_range.x, 0);
@@ -211,6 +217,7 @@ namespace wyc
 				block->shift = shift;
 				block->lod = 0;
 				block->reject = reject;
+				block_count += 1;
 				if((accept.x | accept.y | accept.z) > 0) {
 					// trivial accept
 					full_blocks->push(block);
@@ -221,6 +228,7 @@ namespace wyc
 				}
 			}
 		} // loop of blocks
+		return block_count;
 	}
 	
 	void scan_tile(const Triangle *prim, TileBlock *block, BlockArena *arena, TileQueue *full_tiles, TileQueue *partial_tiles)
@@ -272,195 +280,133 @@ namespace wyc
 			}
 		}
 	}
-	
-	template<class Shader>
-	void fill_tile(const Triangle *prim, TileBlock *tile, Shader shader)
-	{
 		
-	}
-	
 	void draw_tile(const Triangle *prim, TileBlock *tile, PixelShader shader)
 	{
 		constexpr int last_shift = SPW_SUB_PIXEL_PRECISION + SPW_TILE_SIZE_BITS;
-		constexpr int last_mask = (1 << last_shift) - 1;
-		int64_t e[3];
+//		constexpr int last_mask = (1 << last_shift) - 1;
+//		assert(tile->shift == last_shift);
+		int e[3];
 		for(int i=0; i<3; ++i)
 		{
-			e[i] = tile->reject[i];
-			e[i] <<= last_shift;
+			int64_t r = tile->reject[i];
 			// recover the full precision edge function at reject corner
-			e[i] |= prim->rc_hp[i] & last_mask;
-			// edge function at pixel center (0.5 sub-pixel precision)
-			e[i] += prim->rc2ac[i] << 7;
-			// add the top-left rule bias
-			e[i] += prim->bias[i];
+			r <<= last_shift;
+			
+//			r |= prim->rc_hp[i] & last_mask;
+//			// edge function at pixel center (0.5 sub-pixel precision)
+//			r += prim->rc2ac[i] << 7;
+//			// add the top-left rule bias
+//			r += prim->bias[i];
+			
+			r += prim->center_offset[i];
+			e[i] = int(r >> SPW_SUB_PIXEL_PRECISION);
 		}
-		mat4i m0 = int(e[0] >> SPW_SUB_PIXEL_PRECISION);
-		mat4i m1 = int(e[1] >> SPW_SUB_PIXEL_PRECISION);
-		mat4i m2 = int(e[2] >> SPW_SUB_PIXEL_PRECISION);
+
+		mat4i m0 = e[0];
+		mat4i m1 = e[1];
+		mat4i m2 = e[2];
 		m0 += prim->rc_steps[0];
 		m1 += prim->rc_steps[1];
 		m2 += prim->rc_steps[2];
 		mat4i mask = m0 | m1;
 		mask |= m2;
+
 		int *x0 = (int*)m0.x;
 		int *x1 = (int*)m1.x;
 		int *x2 = (int*)m2.x;
 		int *xm = (int*)mask.x;
+
 		constexpr int PIXEL_SIZE = 4;
 		char *dst = tile->storage;
-		for(int i = 0; i < 16; ++i, ++xm) {
+		for(int i = 0; i < 16; ++i, ++xm, dst += PIXEL_SIZE) {
 			if(*xm < 0)
 				continue;
 			vec3f w(x0[i], x1[i], x2[i]);
 			w += prim->tail;
 			float sum = w.x + w.y + w.z;
 			w /= sum;
-			shader(dst + (i*PIXEL_SIZE), w);
+			shader(dst, w);
 		}
 	}
-	
-	template<class T>
-	void scan_block(const Triangle *edge, int row, int col, std::vector<PixelTile> &partial_blocks, T *shader)
+		
+	void split_tile(const Triangle *prim, BlockArena *arena, TileBlock *block, TileQueue *full_tiles)
 	{
-		constexpr int block_shift = SPW_SUB_PIXEL_PRECISION + SPW_BLOCK_SIZE_BITS;
-		vec3i dy(edge->dxdy[0].y, edge->dxdy[1].y, edge->dxdy[2].y);
-		vec3i dx(edge->dxdy[0].x, edge->dxdy[1].x, edge->dxdy[2].x);
-		vec3i reject_row = {
-			int(edge->rc_hp[0] >> block_shift),
-			int(edge->rc_hp[1] >> block_shift),
-			int(edge->rc_hp[2] >> block_shift),
-		};
-		vec3i reject, accept;
-		for(int r = 0, i = 0; r < row; ++r, reject_row += dy)
-		{
-			reject = reject_row;
-			for(int c = 0; c < col; ++c, ++i, reject += dx)
-			{
-				if((reject.x | reject.y | reject.z) < 0)
-					// trivial reject
-					continue;
-				accept = reject + edge->rc2ac;
-				if((accept.x | accept.y | accept.z) > 0) {
-					// trivial accept
-					shader->fill_block(i, reject);
-				}
-				else {
-					// partial accept
-					int index = (i << ((SPW_LOD_MAX * 4) + SPW_LOD_BITS)) + SPW_LOD_MAX;
-					partial_blocks.emplace_back(index, reject);
-					shader->fill_partial_block(i, reject);
-				}
-			}
-		} // loop of blocks
-	}
-	
-	template<class T>
-	void scan_tile(const Triangle *edge, int index, const vec3i &reject_value, std::vector<PixelTile> &partial_tiles, T *shader)
-	{
-		int lod = index & SPW_LOD_MASK;
-		assert(lod > 0);
-		int tile_shift = SPW_SUB_PIXEL_PRECISION + lod * 2;
+		int shift = block->shift;
 		// todo: per triangle constant
 		vec3i r = {
-			int(edge->rc_hp[0] >> tile_shift) & SPW_TILE_SIZE_MASK,
-			int(edge->rc_hp[1] >> tile_shift) & SPW_TILE_SIZE_MASK,
-			int(edge->rc_hp[2] >> tile_shift) & SPW_TILE_SIZE_MASK,
+			int(prim->rc_hp[0] >> shift) & SPW_TILE_SIZE_MASK,
+			int(prim->rc_hp[1] >> shift) & SPW_TILE_SIZE_MASK,
+			int(prim->rc_hp[2] >> shift) & SPW_TILE_SIZE_MASK,
 		};
-		r.x += reject_value.x << SPW_TILE_SIZE_BITS;
-		r.y += reject_value.y << SPW_TILE_SIZE_BITS;
-		r.z += reject_value.z << SPW_TILE_SIZE_BITS;
+		r.x += block->reject.x << SPW_TILE_SIZE_BITS;
+		r.y += block->reject.y << SPW_TILE_SIZE_BITS;
+		r.z += block->reject.z << SPW_TILE_SIZE_BITS;
 		mat4i m0(r.x);
 		mat4i m1(r.y);
 		mat4i m2(r.z);
-		m0 += edge->rc_steps[0];
-		m1 += edge->rc_steps[1];
-		m2 += edge->rc_steps[2];
-		mat4i mask = m0 | m1;
-		mask |= m2;
+		m0 += prim->rc_steps[0];
+		m1 += prim->rc_steps[1];
+		m2 += prim->rc_steps[2];
 		int *x0 = (int*)m0.x;
 		int *x1 = (int*)m1.x;
 		int *x2 = (int*)m2.x;
-		int *xm = (int*)mask.x;
-		int istep = 1 << ((lod - 1) * 4 + SPW_LOD_BITS);
-		// decrease LOD level
-		index -= 1;
-		for(int i = 0; i < 16; ++i, index += istep)
+		shift -= 2;
+		int size = block->size >> 4;
+		int lod = block->lod + 1;
+		char* storage = block->storage;
+		for(int i = 0; i < 16; ++i, storage += size)
 		{
-			if(xm[i] < 0)
-				continue;
 			vec3i reject(x0[i], x1[i], x2[i]);
-			vec3i accept = reject + edge->rc2ac;
-			if((accept.x | accept.y | accept.z) > 0)
-				shader->fill_tile(index, reject);
-			else if(lod > 1) {
-				scan_tile(edge, index, reject, partial_tiles, shader);
-				shader->fill_partial_tile(index, reject);
-			}
-			else {
-				partial_tiles.emplace_back(index, reject);
-				shader->fill_partial_tile(index, reject);
-			}
+			TileBlock *b = arena->alloc();
+			b->_next = nullptr;
+			b->storage = storage;
+			b->size = size;
+			b->shift = shift;
+			b->lod = lod;
+			b->reject = reject;
+			full_tiles->push(b);
 		}
 	}
-	
-	template<class T>
-	void scan_pixel(const Triangle *edge, int index, const vec3i &reject_value, T *shader)
+
+	void fill_tile(const Triangle *prim, TileBlock *tile, PixelShader shader)
 	{
-		int64_t e[3];
-		vec3f tail;
 		constexpr int last_shift = SPW_SUB_PIXEL_PRECISION + SPW_TILE_SIZE_BITS;
-		constexpr int last_mask = (1 << last_shift) - 1;
+//		constexpr int last_mask = (1 << last_shift) - 1;
+//		assert(tile->shift == last_shift);
+		int e[3];
 		for(int i=0; i<3; ++i)
 		{
-			e[i] = reject_value[i];
-			e[i] <<= last_shift;
-			// todo: per triangle constant
+			int64_t r = tile->reject[i];
 			// recover the full precision edge function at reject corner
-			e[i] |= edge->rc_hp[i] & last_mask;
-			// edge function at pixel center (0.5 sub-pixel precision)
-			e[i] += edge->rc2ac[i] << 7;
-			// add the top-left rule bias
-			e[i] += edge->bias[i];
-			// .8 sub-pixel part
-			tail[i] = float((e[i] - edge->bias[i]) & 0xFF) / 255;
+			r <<= last_shift;
+
+//			r |= prim->rc_hp[i] & last_mask;
+//			// edge function at pixel center (0.5 sub-pixel precision)
+//			r += prim->rc2ac[i] << 7;
+//			// add the top-left rule bias
+//			r += prim->bias[i];
+			
+			r += prim->center_offset[i];
+			e[i] = int(r >> SPW_SUB_PIXEL_PRECISION);
 		}
-		mat4i m0 = int(e[0] >> SPW_SUB_PIXEL_PRECISION);
-		mat4i m1 = int(e[1] >> SPW_SUB_PIXEL_PRECISION);
-		mat4i m2 = int(e[2] >> SPW_SUB_PIXEL_PRECISION);
-		m0 += edge->rc_steps[0];
-		m1 += edge->rc_steps[1];
-		m2 += edge->rc_steps[2];
-		mat4i mask = m0 | m1;
-		mask |= m2;
+		mat4i m0 = e[0];
+		mat4i m1 = e[1];
+		mat4i m2 = e[2];
+		m0 += prim->rc_steps[0];
+		m1 += prim->rc_steps[1];
+		m2 += prim->rc_steps[2];
 		int *x0 = (int*)m0.x;
 		int *x1 = (int*)m1.x;
 		int *x2 = (int*)m2.x;
-		int *xm = (int*)mask.x;
-		for(int i = 0; i < 16; ++i, ++xm) {
-			if(*xm < 0)
-				continue;
+		constexpr int PIXEL_SIZE = 4;
+		char *dst = tile->storage;
+		for(int i = 0; i < 16; ++i, dst += PIXEL_SIZE) {
 			vec3f w(x0[i], x1[i], x2[i]);
-			w += tail;
+			w += prim->tail;
 			float sum = w.x + w.y + w.z;
 			w /= sum;
-			shader->shade(index, i, w);
-		}
-	}
-	
-	void fill_triangle_larrabee(int block_row, int block_col, const vec2f &v0, const vec2f &v1, const vec2f &v2, ITileShader *shader)
-	{
-		Triangle edge;
-		std::vector<PixelTile> partial_blocks;
-		std::vector<PixelTile> partial_tiles;
-
-		setup_triangle(&edge, &v0, &v1, &v2);
-		scan_block(&edge, block_row, block_col, partial_blocks, shader);
-		for(auto &tile : partial_blocks) {
-			scan_tile(&edge, tile.index, tile.reject, partial_tiles, shader);
-		}
-		for(auto &tile: partial_tiles) {
-			scan_pixel(&edge, tile.index, tile.reject, shader);
+			shader(dst, w);
 		}
 	}
 

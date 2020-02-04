@@ -9,7 +9,7 @@
 #include "image.h"
 #include "metric.h"
 
-#define RASTERIZER_LARRABEE 1
+//#define RASTERIZER_LARRABEE 1
 
 using namespace wyc;
 
@@ -22,7 +22,7 @@ inline vec3f viewport_tranform(const vec4f &pos, const vec3f &translate, const v
 class CTestRasterizer : public CTest
 {
 public:
-	virtual void setup_renderer(unsigned img_w, unsigned img_h, unsigned max_core=0) override
+	virtual bool setup_renderer(unsigned img_w, unsigned img_h, unsigned max_core=0) override
 	{
 		m_ldr_image.storage(img_w, img_h, 4);
 		m_ldr_image.clear(0xFF000000);
@@ -32,14 +32,15 @@ public:
 		std::string ply_file;
 		if (!get_param("model", ply_file)) {
 			log_error("no model");
-			return;
+			return false;
 		}
 		m_mesh = std::make_shared<wyc::CMesh>();
 		if (!m_mesh->load_ply(ply_file)) {
-			return;
+			return false;
 		}
 		setup_viewport();
 		log_info("init ok");
+		return true;
 	}
 	
 	void setup_viewport()
@@ -50,12 +51,12 @@ public:
 		m_viewport_scale = {canvas_w * 0.5f, canvas_h * 0.5f, 1};
 		m_viewport_bounding = {{0, 0}, {canvas_w, canvas_h}};
 		constexpr int block_size = 64;
-		int block_row = canvas_h / block_size;
-		int block_col = canvas_w / block_size;
+		int block_row = (canvas_h + block_size - 1) / block_size;
+		int block_col = (canvas_w + block_size - 1) / block_size;
 		m_block_boundings.reserve(block_row * block_col);
 		for(int r = 0; r < block_row; ++r) {
 			for(int c = 0; c < block_col; ++c) {
-				int x = r * block_size, y = c * block_size;
+				int x = c * block_size, y = r * block_size;
 				m_block_boundings.emplace_back(vec2i(x, y), vec2i(x + block_size, y + block_size));
 			}
 		}
@@ -134,26 +135,110 @@ public:
 				VIEWPORT_CULLING
 				continue;
 			}
+			COUNT_TRIANGLE
 			for(auto b : m_block_boundings) {
 				Imath::intersection(b, bounding);
 				if(!b.isEmpty()) {
-					COUNT_TRIANGLE
 					TIME_DRAW_TRIANGLE
 					fill_triangle(b, pos[0], pos[1], pos[2], *this);
 				}
 			} // block_boundings
 		} // triangle_coung
 	}
+
+	void scan_partial_queue(const Triangle *prim, BlockArena *arena, TileQueue *queue, TileQueue *full_tiles, TileQueue *partial_tiles) {
+		TileQueue output;
+		while(queue->head) {
+			TileBlock *t = queue->pop();
+			scan_tile(prim, t, arena, full_tiles, &output);
+			arena->free(t);
+			if(output.head) {
+				if(output.head->lod < SPW_LOD_MAX)
+					scan_partial_queue(prim, arena, &output, full_tiles, partial_tiles);
+				else
+					partial_tiles->join(&output);
+			}
+		}
+	}
+	
+	void scan_full_queue(const Triangle *prim, BlockArena *arena, TileQueue *queue, PixelShader shader)
+	{
+		while(queue->head) {
+			TileBlock *t = queue->pop();
+			if(t->lod < SPW_LOD_MAX) {
+				split_tile(prim, arena, t, queue);
+			}
+			else {
+				fill_tile(prim, t, shader);
+			}
+			arena->free(t);
+		}
+	}
 	
 	void draw_triangle_larrabee(unsigned triangle_count, const vec3i *indices, const std::vector<vec4f> &vertices)
 	{
+		BlockArena arena(256);
+		unsigned max_bucket_count = 1;
+		unsigned max_block_count = 0;
+		RenderTarget rt;
+		rt.storage = (char*)m_ldr_image.get_buffer();
+		rt.pixel_size = m_ldr_image.fragment_size();
+		rt.pitch = m_ldr_image.pitch();
+		rt.w = m_ldr_image.row_length();
+		rt.h = m_ldr_image.row();
+		rt.x = 0;
+		rt.y = 0;
 		
-		
+		auto shader = [](char *dst, const vec3f &w) {
+			COUNT_PIXEL
+			*((unsigned*)dst) = 0xFF00FF00;
+		};
+
+		for(int i = 0; i < triangle_count; i += 1)
+		{
+			const vec3i &index = indices[i];
+			const auto &v0 = vertices[index.x];
+			const auto &v1 = vertices[index.y];
+			const auto &v2 = vertices[index.z];
+			// backface culling
+			if(is_backface(v0, v1, v2)) {
+				BACKFACE_CULLING
+				continue;
+			}
+			// viewport transform
+			vec3f pos[3];
+			pos[0] = viewport_tranform(v0, m_viewport_translate, m_viewport_scale);
+			pos[1] = viewport_tranform(v1, m_viewport_translate, m_viewport_scale);
+			pos[2] = viewport_tranform(v2, m_viewport_translate, m_viewport_scale);
+			// draw triangle
+			COUNT_TRIANGLE
+			{
+				TIME_DRAW_TRIANGLE
+				Triangle prim;
+				setup_triangle(&prim, (const vec2f*)pos, (const vec2f*)(pos+1), (const vec2f*)(pos+2));
+				TileQueue partial_blocks, full_tiles, partial_tiles;
+				auto block_count = scan_block(&rt, &prim, &arena, &full_tiles, &partial_blocks);
+				if (block_count > max_block_count)
+					max_block_count = block_count;
+				scan_partial_queue(&prim, &arena, &partial_blocks, &full_tiles, &partial_tiles);
+				scan_full_queue(&prim, &arena, &full_tiles, shader);
+				for(auto it = partial_tiles.head; it; it = it->_next)
+				{
+					draw_tile(&prim, it, shader);
+				}
+				if(arena.bucket_count() > max_bucket_count) {
+					max_bucket_count = arena.bucket_count();
+				}
+				arena.clear();
+			}
+		}
+		log_info("max bucket count: %d", max_bucket_count);
+		log_info("max block count: %d", max_block_count);
 	}
 	
 	void operator() (int x, int y, float z, float w0, float w1, float w2)
 	{
-		TIME_PIXEL_SHADER
+/*		TIME_PIXEL_SHADER
 		if(z < m_min_z)
 			m_min_z = z;
 		if(z > m_max_z)
@@ -167,6 +252,9 @@ public:
 		m_depth.set(x, y, z);
 		unsigned c = (int((1.0f - z) * 255) << 8) | 0xFF000000;
 		m_ldr_image.set(x, y, c);
+ */
+		COUNT_PIXEL
+		m_ldr_image.set(x, y, 0xFF00FF00);
 	}
 	
 	void save_image(const char *name)
