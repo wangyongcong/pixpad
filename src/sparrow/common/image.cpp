@@ -33,14 +33,7 @@ namespace wyc
 
 	CImage::~CImage()
 	{
-		if (m_data)
-		{
-			if (m_is_stbi_mem)
-				stbi_image_free(m_data);
-			else
-				delete[] m_data;
-			m_data = nullptr;
-		}
+		clear();
 	}
 
 	CImage::CImage(CImage && other)
@@ -57,13 +50,16 @@ namespace wyc
 
 	CImage & CImage::operator=(CImage && other)
 	{
+		clear();
 		m_data = other.m_data;
 		m_is_stbi_mem = other.m_is_stbi_mem;
 		m_width = other.m_width;
 		m_height = other.m_height;
+		m_pitch = other.m_pitch;
 		other.m_data = nullptr;
 		other.m_width = 0;
 		other.m_height = 0;
+		other.m_pitch = 0;
 		return *this;
 	}
 

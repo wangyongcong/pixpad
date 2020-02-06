@@ -8,8 +8,9 @@
 #include "ImathBoxAlgo.h"
 #include "image.h"
 #include "metric.h"
+#include "spw_tile.h"
 
-//#define RASTERIZER_LARRABEE 1
+#define RASTERIZER_LARRABEE 1
 
 using namespace wyc;
 
@@ -24,6 +25,8 @@ class CTestRasterizer : public CTest
 public:
 	virtual bool setup_renderer(unsigned img_w, unsigned img_h, unsigned max_core=0) override
 	{
+		img_w = align_up(img_w, 64);
+		img_h = align_up(img_h, 64);
 		m_ldr_image.storage(img_w, img_h, 4);
 		m_ldr_image.clear(0xFF000000);
 		m_depth.storage(img_w, img_h, 4);
@@ -259,7 +262,14 @@ public:
 	
 	void save_image(const char *name)
 	{
+#ifdef RASTERIZER_LARRABEE
+		CImage image;
+		image.create_empty(m_image_w, m_image_h);
+		uint32_t *data = (uint32_t*)image.buffer();
+		linearize_32bpp(data, m_image_w, m_image_h, m_image_w, (uint32_t*)m_ldr_image.get_buffer(), 0, 0, m_ldr_image.row_length(), m_ldr_image.row());
+#else
 		CImage image(m_ldr_image.get_buffer(), m_image_w, m_image_h, m_ldr_image.pitch());
+#endif
 		if (m_outfile.empty()) {
 			m_outfile = name;
 		}

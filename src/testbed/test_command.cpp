@@ -15,6 +15,7 @@ ENABLE_TEST(CTestDepth)
 ENABLE_TEST(CTestWireframe)
 ENABLE_TEST(CTestLambert)
 ENABLE_TEST(CTestRasterizer)
+ENABLE_TEST(CTestSwizzle)
 
 std::unordered_map<std::string, std::function<CTest*()>> g_test_suit =
 {
@@ -26,6 +27,7 @@ std::unordered_map<std::string, std::function<CTest*()>> g_test_suit =
 	{ "wireframe", &CREATE_TEST(CTestWireframe)},
 	{ "lambert", &CREATE_TEST(CTestLambert)},
 	{ "rasterizer", &CREATE_TEST(CTestRasterizer)},
+	{ "swizzle", &CREATE_TEST(CTestSwizzle)},
 };
 
 class CTestTask;

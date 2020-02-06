@@ -64,7 +64,7 @@ namespace wyc
 	class CSimpleTimer
 	{
 	public:
-		CSimpleTimer(const char *name);
+		CSimpleTimer(const char *name, bool start=true);
 		~CSimpleTimer();
 		void pause();
 		void resume();
@@ -96,13 +96,13 @@ namespace wyc
 
 #else // !NO_PERF
 
-#define NEW_TIMER(name) wyc::CSpwMetricTimer __TIMER_##name##__(wyc::SPW_TIMER::name);
+#define _NEW_TIMER(name) wyc::CSpwMetricTimer __TIMER_##name##__(wyc::SPW_TIMER::name);
 #define _INC_COUNTER(name) {wyc::CSpwMetric::singleton()->count(name);}
 
 // timer
-#define TIME_VERTEX_SHADER NEW_TIMER(VERTEX_SHADER)
-#define TIME_PIXEL_SHADER NEW_TIMER(PIXEL_SHADER)
-#define TIME_DRAW_TRIANGLE NEW_TIMER(DRAW_TRIANGLE)
+#define TIME_VERTEX_SHADER _NEW_TIMER(VERTEX_SHADER)
+#define TIME_PIXEL_SHADER _NEW_TIMER(PIXEL_SHADER)
+#define TIME_DRAW_TRIANGLE _NEW_TIMER(DRAW_TRIANGLE)
 
 // counter
 #define COUNT_VERTEX _INC_COUNTER(VERTEX_COUNT)
@@ -114,4 +114,4 @@ namespace wyc
 
 #endif // NO_PEF
 
-#define TIMER(v, n)  CSimpleTimer v((n))
+#define TIMER(name)  CSimpleTimer __SIMPER_TIMER_##name##__(#name)

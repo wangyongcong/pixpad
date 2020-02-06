@@ -50,18 +50,19 @@ namespace wyc
 		log_info(splitter);
 	}
 	
-	CSimpleTimer::CSimpleTimer(const char *name)
+	CSimpleTimer::CSimpleTimer(const char *name, bool start)
 	: m_name(name)
 	, m_begin()
 	, m_result(0)
-	, m_is_paused(false)
+	, m_is_paused(!start)
 	{
-		m_begin = clock_t::now();
+		if(start)
+			m_begin = clock_t::now();
 	}
 	
 	CSimpleTimer::~CSimpleTimer() {
 		pause();
-		log_info("Time used for [%s]: %f miliseconds", m_name, m_result);
+		log_info("Time used for [%s]: %f ms", m_name, m_result);
 	}
 	
 	void CSimpleTimer::pause()
