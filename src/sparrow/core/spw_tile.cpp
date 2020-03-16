@@ -107,7 +107,7 @@ static void storepixel4(uint32_t *dest, pixel4_t vals)
 
 void swizzle_32bpp_fast(uint32_t *dst, uint32_t dw, const uint32_t *src, uint32_t sw, uint32_t sh, uint32_t spitch)
 {
-	assert(sw % SWIZZLE_INNEr_TILE_W == 0);
+	assert(sw % SWIZZLE_INNER_TILE_W == 0);
 	assert(sh % SWIZZLE_INNER_TILE_H == 0);
 
 	auto mask_x = swizzle_x_tile(~0u * SWIZZLE_INNER_TILE_W);
@@ -144,8 +144,8 @@ void swizzle_32bpp_fast(uint32_t *dst, uint32_t dw, const uint32_t *src, uint32_
 
 void linearize_32bpp_fast(uint32_t *dst, uint32_t dw, uint32_t dh, uint32_t dpitch, const uint32_t *src, uint32_t sw)
 {
-	assert(sw % SWIZZLE_INNEr_TILE_W == 0);
-	assert(sh % SWIZZLE_INNER_TILE_H == 0);
+	assert(dw % SWIZZLE_INNER_TILE_W == 0);
+	assert(dh % SWIZZLE_INNER_TILE_H == 0);
 
 	auto mask_x = swizzle_x_tile(~0u * SWIZZLE_INNER_TILE_W);
 	auto mask_y = swizzle_y(~0u * SWIZZLE_INNER_TILE_H);

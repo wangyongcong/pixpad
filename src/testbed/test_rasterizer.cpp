@@ -10,7 +10,13 @@
 #include "metric.h"
 #include "spw_tile.h"
 
-#define RASTERIZER_LARRABEE 1
+enum ERasterizerType
+{
+	RT_LINEAR,
+	RT_LARRABEE,
+	
+	RT_COUNT
+};
 
 using namespace wyc;
 
@@ -37,6 +43,20 @@ public:
 			log_error("no model");
 			return false;
 		}
+		std::string param;
+		m_type = RT_LINEAR;
+		if(get_param("type", param)) {
+			try {
+				m_type = (ERasterizerType)std::stoi(param);
+			}
+			catch(const std::invalid_argument &e) {
+				log_error("invalid raterizer type: %s", param);
+			}
+			if(m_type >= RT_COUNT) {
+				m_type = RT_LINEAR;
+			}
+		}
+		log_info("rasterizer type: %d", m_type);
 		m_mesh = std::make_shared<wyc::CMesh>();
 		if (!m_mesh->load_ply(ply_file)) {
 			return false;
@@ -100,13 +120,14 @@ public:
 		m_min_z = 1.0f;
 		m_max_z = -1.0f;
 
-#ifdef RASTERIZER_LARRABEE		
-		draw_triangle_larrabee(triangle_count, indices, vertices);
-		save_image("bin/torus_larrabee.png");
-#else
-		draw_triangles(triangle_count, indices, vertices);
-		save_image("bin/torus.png");
-#endif
+		if(m_type == RT_LARRABEE) {
+			draw_triangle_larrabee(triangle_count, indices, vertices);
+			save_image("bin/torus_larrabee.png");
+		}
+		else {
+			draw_triangles(triangle_count, indices, vertices);
+			save_image("bin/torus.png");
+		}
 		wyc::CSpwMetric::singleton()->report();
 		log_info("z range: [%f, %f]", m_min_z, m_max_z);
 
@@ -139,10 +160,10 @@ public:
 				continue;
 			}
 			COUNT_TRIANGLE
+			TIME_DRAW_TRIANGLE
 			for(auto b : m_block_boundings) {
 				Imath::intersection(b, bounding);
 				if(!b.isEmpty()) {
-					TIME_DRAW_TRIANGLE
 					fill_triangle(b, pos[0], pos[1], pos[2], *this);
 				}
 			} // block_boundings
@@ -262,21 +283,24 @@ public:
 	
 	void save_image(const char *name)
 	{
-#ifdef RASTERIZER_LARRABEE
-		CImage image;
-		image.create_empty(m_image_w, m_image_h);
-		uint32_t *data = (uint32_t*)image.buffer();
-		linearize_32bpp(data, m_image_w, m_image_h, m_image_w, (uint32_t*)m_ldr_image.get_buffer(), 0, 0, m_ldr_image.row_length(), m_ldr_image.row());
-#else
-		CImage image(m_ldr_image.get_buffer(), m_image_w, m_image_h, m_ldr_image.pitch());
-#endif
+		CImage *image = nullptr;
+		if(m_type == RT_LARRABEE) {
+			image = new CImage();
+			image->create_empty(m_image_w, m_image_h);
+			uint32_t *data = (uint32_t*)image->buffer();
+			linearize_32bpp(data, m_image_w, m_image_h, m_image_w, (uint32_t*)m_ldr_image.get_buffer(), 0, 0, m_ldr_image.row_length(), m_ldr_image.row());
+		}
+		else {
+			image = new CImage(m_ldr_image.get_buffer(), m_image_w, m_image_h, m_ldr_image.pitch());
+		}
 		if (m_outfile.empty()) {
 			m_outfile = name;
 		}
-		if (!image.save(m_outfile))
+		if (!image->save(m_outfile))
 		{
 			log_error("Failed to save image file");
 		}
+		delete image;
 	}
 
 private:
@@ -288,6 +312,7 @@ private:
 	Imath::Box2i m_viewport_bounding;
 	std::vector<Imath::Box2i> m_block_boundings;
 	float m_min_z, m_max_z;
+	ERasterizerType m_type;
 };
 
 REGISTER_TEST(CTestRasterizer)

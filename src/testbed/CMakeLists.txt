@@ -19,6 +19,7 @@ set(SRC_TESTBED
 	test_wireframe.cpp
 	test_lambert.cpp
 	test_rasterizer.cpp
+	test_swizzle.cpp
 )
 
 set(SRC_MATERIAL
