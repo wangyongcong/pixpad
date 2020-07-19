@@ -12,6 +12,8 @@ namespace wyc
 {
 	CMesh::CMesh()
 		: m_vb()
+		, m_ib()
+		, m_primitive_type(PRIM_TYPE_TRIANGLE)
 	{
 	}
 

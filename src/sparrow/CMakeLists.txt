@@ -29,6 +29,8 @@ set(SRC_CORE
 	core/spw_rasterizer.cpp
 	core/spw_tile.h
 	core/spw_tile.cpp
+	core/spw_pipeline2.h
+	core/spw_pipeline2.cpp
 )
 
 set(SRC_RENDERER 
