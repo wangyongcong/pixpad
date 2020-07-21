@@ -142,7 +142,7 @@ public:
 		ImGui::Separator();
 
 		// BEGIN log
-		ImGui::BeginChild("console_log", ImVec2(0, -ImGui::GetItemsLineHeightWithSpacing() - progress_bar_height - style.ItemSpacing.y), 
+		ImGui::BeginChild("console_log", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - progress_bar_height - style.ItemSpacing.y), 
 			false, ImGuiWindowFlags_HorizontalScrollbar);
 		if(m_log) {
 			m_log->process();
@@ -173,7 +173,7 @@ public:
 		ImGui::PopItemWidth();
 
 		 // Demonstrate keeping auto focus on the input box
-		if (ImGui::IsItemHovered() || (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)))
+		if (ImGui::IsItemHovered() || (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)))
 			ImGui::SetKeyboardFocusHere(-1); // Auto focus previous widget
 		// END input
 

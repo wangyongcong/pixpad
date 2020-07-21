@@ -36,12 +36,11 @@ public:
 		uint32_t *src = (uint32_t*)aligned_alloc(64, image_size);
 		memset(src, 0xcc, image_size);
 		
-		int ret = 0;
 		{
 			TIMER(swizzle);
 			swizzle_32bpp_fast(dst, texture_w, image, image_w, image_h, image_w);
 		}
-		ret = stbi_write_png("swizzle-1.png", texture_w, texture_h, 4, dst, 0);
+		int ret = stbi_write_png("swizzle-1.png", texture_w, texture_h, 4, dst, 0);
 		if (!ret) {
 			log_error("fail to save swizzle image: %d", ret);
 		}
@@ -63,10 +62,10 @@ public:
 		for(uint32_t *iter=dst, *end=dst + texture_w * texture_h; iter < end; iter += 16) {
 			float r = 0, g = 0, b = 0;
 			for(auto i=0; i<16; ++i) {
-				auto v = iter[i];
-				r += (v & 0xFF) / 255.0f;
-				g += ((v & 0xFF00) >> 8) / 255.0f;
-				b += ((v & 0xFF0000) >> 16) / 255.0f;
+				const unsigned v = iter[i];
+				r += float(v & 0xFF) / 255.0f;
+				g += float((v & 0xFF00) >> 8) / 255.0f;
+				b += float((v & 0xFF0000) >> 16) / 255.0f;
 			}
 			r /= 16;
 			g /= 16;
@@ -101,14 +100,14 @@ public:
 			// determine random destination texture size that fits target rect
 			uint32_t dw = x1;
 			uint32_t dh = y1;
-			if (dw < image_w) dw += rand() % (image_w - dw);
-			if (dh < image_h) dh += rand() % (image_h - dh);
+			if (dw < (unsigned)image_w) dw += rand() % (image_w - dw);
+			if (dh < (unsigned)image_h) dh += rand() % (image_h - dh);
 
 			// swizzle two ways
 			wyc::swizzle_32bpp(dst, x0, y0, dw, dh, image, x1 - x0, y1 - y0, image_w);
 			wyc::linearize_32bpp(src, x1 - x0, y1 - y0, image_w, dst, x0, y0, dw, dh);
 
-			for(int y = 0; y < y1 - y0; ++y)
+			for(unsigned y = 0; y < y1 - y0; ++y)
 			{
 				auto ref_line = image + y * image_w;
 				auto src_line = src + y * image_w;

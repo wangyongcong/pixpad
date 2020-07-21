@@ -302,7 +302,7 @@ namespace wyc
 			{ 1, 1, 0 },{ 1, 0, 1 },{ 0, 1, 1 },
 		};
 		for (auto c = 0; c < m_num_fragment_unit; ++c) {
-			consumers.push_back(std::async(std::launch::async, [this, tile_beg, tile_end, &colors] {
+			consumers.push_back(std::async(std::launch::async, [=, &colors] {
 				for (auto i = tile_beg; i < tile_end; ++i)
 				{
 					auto &tile = m_tiles[i];

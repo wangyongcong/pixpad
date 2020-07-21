@@ -3,6 +3,8 @@
 #include "vecmath.h"
 #include "spw_rasterizer.h"
 #include <vector>
+#include <algorithm>
+#include <cassert>
 
 namespace wyc
 {

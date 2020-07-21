@@ -49,7 +49,7 @@ public:
 			try {
 				m_type = (ERasterizerType)std::stoi(param);
 			}
-			catch(const std::invalid_argument &e) {
+			catch(const std::invalid_argument&) {
 				log_error("invalid raterizer type: %s", param);
 			}
 			if(m_type >= RT_COUNT) {
@@ -135,7 +135,7 @@ public:
 	
 	void draw_triangles(unsigned triangle_count, const vec3i *indices, const std::vector<vec4f> &vertices)
 	{
-		for(int i = 0; i < triangle_count; i += 1)
+		for(unsigned i = 0; i < triangle_count; i += 1)
 		{
 			const vec3i &index = indices[i];
 			const auto &v0 = vertices[index.x];
@@ -218,7 +218,7 @@ public:
 			*((unsigned*)dst) = 0xFF00FF00;
 		};
 
-		for(int i = 0; i < triangle_count; i += 1)
+		for(unsigned i = 0; i < triangle_count; i += 1)
 		{
 			const vec3i &index = indices[i];
 			const auto &v0 = vertices[index.x];

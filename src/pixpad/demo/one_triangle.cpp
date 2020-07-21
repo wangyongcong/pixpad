@@ -1,5 +1,6 @@
 #include <vector>
 #include <stack>
+#include <algorithm>
 #include "ImathVec.h"
 #include "ImathMatrix.h"
 #include "vecmath.h"
@@ -89,7 +90,7 @@ void save_tile_coordinate(const TileQueue &tiles, bool is_partial)
 	for(auto *b = tiles.head; b; b = b->_next)
 	{
 		assert(b->lod < SPW_LOD_COUNT);
-		long offset = b->storage - rt.storage;
+		long offset = long(b->storage - rt.storage);
 		tile_array[b->lod].emplace_back(get_location(offset / rt.pixel_size, block_per_row));
 	}
 }
@@ -144,12 +145,10 @@ void demo_one_triangle()
 	
 	TileQueue partial_blocks;
 	
-	{
-		TIMER(t, "draw");
+	{		
+		TIMER(draw);
 		scan_block(&rt, &prim, context->arena, &context->full_tiles, &partial_blocks);
-		t.pause();
 		save_tile_coordinate(partial_blocks, true);
-		t.resume();
 		scan_partial_queue(&prim, &partial_blocks, context->arena, &context->full_tiles, &context->partial_tiles);
 		for(auto it = context->partial_tiles.head; it; it = it->_next)
 		{
@@ -157,27 +156,27 @@ void demo_one_triangle()
 				auto context = get_context();
 				const RenderTarget &rt = context->rt;
 				const int block_per_row = rt.pitch / (SPW_BLOCK_SIZE * rt.pixel_size);
-				long offset = dst - rt.storage;
+				long offset = long(dst - rt.storage);
 				context->pixels.emplace_back(get_location(offset / rt.pixel_size, block_per_row));
 			});
 		}
 	}
 	
 	save_tile_coordinate(context->full_tiles, false);
-	int count_full = 0, count_partial = 0;
+	size_t count_full = 0, count_partial = 0;
 	log_info("     FULL  PART");
 	for(int i = 0; i < SPW_LOD_COUNT; ++i) {
 		count_full += context->lod_full[i].size();
 		count_partial += context->lod_partial[i].size();
 		log_info("[%d] %5d %5d", i, context->lod_full[i].size(), context->lod_partial[i].size());
 	}
-	log_info("SUM %5d %5d", count_full, count_partial);
+	log_info("SUM %5d %5d", (unsigned)count_full, (unsigned)count_partial);
 }
 
 void transform(ImVec2 *vertices, unsigned count, const Imath::V2f &scale, const Imath::V2f &translate)
 {
 	Imath::V2f *vec = (Imath::V2f*)vertices;
-	for(int i = 0; i < count; ++i) {
+	for(unsigned i = 0; i < count; ++i) {
 		vec[i] *= scale;
 		vec[i] += translate;
 	}
@@ -228,7 +227,7 @@ void draw_one_triangle()
 	auto *triangles = context->triangle;
 	
 	// canvas transform
-	vec2f canvas_size(context->width, context->height);
+	vec2f canvas_size(float(context->width), float(context->height));
 	vec2f canvas_center = canvas_size * 0.5f;
 	constexpr float margin = 10;
 	float ratio = std::min((display_size.x - margin) / canvas_size.x, (display_size.y - margin) / canvas_size.y);

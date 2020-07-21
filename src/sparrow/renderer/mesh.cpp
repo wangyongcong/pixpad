@@ -63,7 +63,7 @@ namespace wyc
 			pool.push_back(vec);
 		};
 
-		auto read_face = [&ss, &token, &faces]() {
+		auto read_face = [=, &ss, &token, &faces]() {
 			std::string str;
 			std::istringstream tmp;
 			int vert_cnt = 0;

@@ -19,12 +19,11 @@ set(SRC_IMGUI
 
 if(WIN32)
 	set(SRC_IMGUI_IMPL
-		${3RD_PATH}/gl3w/GL/gl3w.h
-		${3RD_PATH}/gl3w/GL/gl3w.c
-		${3RD_PATH}/gl3w/GL/glcorearb.h
 		windows/main.cpp
-		windows/imgui_impl_glfw_gl3.cpp
-		windows/imgui_impl_glfw_gl3.h
+		windows/imgui_impl_dx12.cpp
+		windows/imgui_impl_dx12.h
+		windows/imgui_impl_win32.cpp
+		windows/imgui_impl_win32.h
 	)
 	set(INCLUDE_IMGUI_IMPL
 		${3RD_PATH}/gl3w
@@ -76,12 +75,7 @@ set(EXTRA_TARGET_PROTERTIES)
 set(EXTRA_TARGET_RESOURCES)
 
 if(WIN32)
-	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-		link_directories(${3RD_PATH}/glfw/lib-vc2015-64)
-	else()
-		link_directories(${3RD_PATH}/glfw/lib-vc2015-32)
-	endif()
-	set(EXTRA_LIBS glfw3 opengl32 gdi32 imm32)
+	set(EXTRA_LIBS d3d12 d3dcompiler dxgi)
 	set(EXTRA_TARGET_OPTIONS WIN32)
 	set(EXTRA_TARGET_PROTERTIES
 		RUNTIME_OUTPUT_DIRECTORY "${BIN_DIR}"

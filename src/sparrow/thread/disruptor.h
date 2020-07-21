@@ -19,9 +19,10 @@ namespace disruptor
 		virtual const char* what() const noexcept { return "eof"; }
 	};
 
-
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
 	/**
 	 *  A sequence number must be padded to prevent false sharing and
 	 *  access to the sequence number must be protected by memory barriers.
@@ -54,7 +55,9 @@ namespace disruptor
 		volatile int64_t     _alert;
 		int64_t              _post_pad[CACHE_LINE_SIZE / sizeof(int64_t) - 2];
 	};
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 	class event_cursor;
 

@@ -317,8 +317,10 @@ enum ELogWriterType
 
 template<typename... Args>
 struct GenericLogWriter {
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
+#endif
 
 	static void write_stdout(const LogData *log, void *context) {
 		using tuple_t = std::tuple<const char *, Args...>;
@@ -348,8 +350,10 @@ struct GenericLogWriter {
 			c->second = snprintf(c->first, c->second, to_printable(std::get<Is>(*t))...);
 		});
 	}
-	
+
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 	static const LogWriter* get_writer() {
 		static const LogWriter s_writer_table[LOG_WRITER_COUNT] = {
@@ -917,7 +921,7 @@ void CLogHandler::process() {
 		data = (LogData*)(log->data.get());
 		if (!data) {
 			m_closed = true;
-		} else if (!m_filter or m_filter(data)) {
+		} else if (!m_filter || m_filter(data)) {
 			m_batch.push_back(log->data);
 		}
 		m_seq.store(pub);

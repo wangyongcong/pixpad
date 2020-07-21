@@ -73,10 +73,9 @@ namespace wyc
 			architecture = "unknown";
 			break;
 		}
-		cpu_count = si.dwNumberOfProcessors;
+		ncpu = si.dwNumberOfProcessors;
 		page_size = si.dwPageSize;
-		relation_core = 0;
-		memset(cacheline_size, 0, sizeof(cacheline_size));
+		cache_size = {0, 0, 0};
 
 		SYSTEM_LOGICAL_PROCESSOR_INFORMATION * buffer = 0;
 		DWORD buffer_size = 0;
@@ -92,10 +91,9 @@ namespace wyc
 					if(i == 0)
 						cacheline = buffer[i].Cache.LineSize;
 					if(buffer[i].Cache.Level <= 3)
-						cacheline_size[buffer[i].Cache.Level - 1] = buffer[i].Cache.Size;
+						cache_size[buffer[i].Cache.Level - 1] = buffer[i].Cache.Size;
 					break;
 				case RelationProcessorCore:
-					relation_core += 1;
 					break;
 				default:
 					break;
@@ -103,7 +101,7 @@ namespace wyc
 			}
 		}
 		free(buffer);
-		assert(cacheline_size[0] == CACHE_LINE_SIZE && "cache line size not match!");
+		assert(cache_size[0] == CACHE_LINE_SIZE && "cache line size not match!");
 #elif defined(__APPLE__)
 		std::string s1;
 		int val;
