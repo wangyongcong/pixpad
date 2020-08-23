@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 project(pixpad)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
 
@@ -11,6 +11,7 @@ include(ExternalProject)
 
 set(3RD_PATH "${CMAKE_SOURCE_DIR}/3rd")
 set(3RD_INSTALL_PATH "${CMAKE_SOURCE_DIR}/install")
+set(3RD_INCLUDE_PATH "${3RD_PATH}/include")
 
 # boost
 set(Boost_USE_STATIC_LIBS ON)
@@ -90,6 +91,8 @@ set(SRC_ROOT ${CMAKE_SOURCE_DIR}/src)
 set(LIB_IMATH Iex_static IexMath_static Imath_static)
 
 include_directories(
+	${3RD_PATH}
+	${3RD_INCLUDE_PATH}
     ${3RD_INSTALL_PATH}
     ${SRC_ROOT}
     ${3RD_PATH}/rtm/includes
