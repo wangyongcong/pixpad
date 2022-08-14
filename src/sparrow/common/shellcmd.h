@@ -21,7 +21,7 @@ namespace wyc
 #ifdef WYC_SHELLCMD_IMPLEMENTATION
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
-#include "stb_log.h"
+#include "stb/stb_log.h"
 
 namespace po = boost::program_options;
 

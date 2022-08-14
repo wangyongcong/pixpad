@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include <sstream>
-#include "stb_log.h"
+#include "stb/stb_log.h"
 #include "util.h"
 #include "ply.h"
 

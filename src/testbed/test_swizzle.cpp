@@ -1,9 +1,9 @@
 #include <stdlib.h>
-#include "stb_image.h"
-#include "stb_image_write.h"
+#include "stb/stb_image.h"
+#include "stb/stb_image_write.h"
+#include "stb/stb_log.h"
 #include "test.h"
 #include "spw_tile.h"
-#include "stb_log.h"
 #include "metric.h"
 
 using namespace wyc;
@@ -11,6 +11,28 @@ using namespace wyc;
 class CTestSwizzle : public CTest
 {
 public:
+	// @todo replace it with common implementation
+	static void *aligned_alloc(size_t alignment, size_t size) {
+		// [Memory returned][ptr to start of memory][aligned memory][extra memory]
+		size_t request_size = size + alignment;
+		void *raw = malloc(request_size + sizeof(void *));
+		if (!raw)
+			return nullptr;
+		void *ptr = (void **) raw + 1;
+		ptr = std::align(alignment, size, ptr, request_size);
+		if (!ptr) {
+			free(raw);
+			return nullptr;
+		}
+		*((void **) ptr - 1) = raw;
+		return ptr;
+	}
+
+	static void aligned_free(void *ptr) {
+		void *raw = *((void **) ptr - 1);
+		free(raw);
+	}
+
 	virtual void run() override
 	{
 		const char *path = "assets/texture/lenna.png";

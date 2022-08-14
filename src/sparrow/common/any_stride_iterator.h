@@ -79,10 +79,16 @@ namespace wyc
 	}
 
 	template<typename T, typename Ref=T&, typename Ptr=T*>
-	class CAnyStrideIterator : public std::iterator<std::random_access_iterator_tag, T>
+	class CAnyStrideIterator
 	{
 		typedef CAnyStrideIterator MyType;
 	public:
+		using iterator_category = std::random_access_iterator_tag;
+	    using value_type        = T;
+	    using difference_type   = ptrdiff_t;
+	    using pointer           = T*;
+	    using reference         = T&;
+
 		CAnyStrideIterator()
 			: m_cursor(nullptr), m_stride(0)
 		{

@@ -1,7 +1,7 @@
 #include "test.h"
 #include "shellcmd.h"
-#define STB_LOG_IMPLEMENTATION
-#include "stb_log.h"
+// #define STB_LOG_IMPLEMENTATION
+#include "stb/stb_log.h"
 
 #ifndef testbed_EXPORTS
 

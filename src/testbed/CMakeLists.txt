@@ -34,6 +34,7 @@ source_group("material" FILES ${SRC_MATERIAL})
 source_group("test" FILES ${SRC_TESTBED})
 
 include_directories(
+	${SPARROW_INCLUDE_DIR}
 	"material"
 )
 

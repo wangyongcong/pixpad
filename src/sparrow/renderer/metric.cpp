@@ -1,5 +1,5 @@
 #include "metric.h"
-#include "stb_log.h"
+#include "stb/stb_log.h"
 
 #define my_counter(name) m_counters[int(name)]
 #define my_timer(name) m_timers[int(name)]

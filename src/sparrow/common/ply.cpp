@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <cassert>
 #include "util.h"
-#include "stb_log.h"
+#include "stb/stb_log.h"
 
 namespace wyc
 {

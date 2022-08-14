@@ -4,7 +4,7 @@
 #include <strstream>
 #define WYC_SHELLCMD_IMPLEMENTATION
 #include "shellcmd.h"
-#include "stb_log.h"
+#include "stb/stb_log.h"
 #include "test.h"
 
 ENABLE_TEST(CTestLine)
@@ -124,7 +124,7 @@ public:
 		}
 		auto task = std::make_shared<CTestTask>(test);
 		g_task = task;
-		std::async([task] {
+		auto ret = std::async([task] {
 			task->start();
 		});
 		return true;
