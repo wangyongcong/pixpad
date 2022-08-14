@@ -5,7 +5,7 @@
 #include <iomanip>
 #include "imgui.h"
 #define STB_LOG_IMPLEMENTATION
-#include "stb_log.h"
+#include "stb/stb_log.h"
 #include "util.h"
 #include "shellcmd.h"
 

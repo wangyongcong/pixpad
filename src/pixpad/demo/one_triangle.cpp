@@ -7,7 +7,7 @@
 #include "spw_tile_buffer.h"
 #include "spw_rasterizer.h"
 #include "imgui.h"
-#include "stb_log.h"
+#include "stb/stb_log.h"
 #include "metric.h"
 
 using namespace wyc;

@@ -7,13 +7,17 @@ set(SRC_COMMON
 	common/unitest.h
 	common/util.cpp
 	common/util.h
-	common/stb_image.h
-	common/stb_image_resize.h
-	common/stb_image_write.h
-	common/stb_log.h
 	common/ply.h
 	common/ply.cpp
-	) 
+) 
+
+set(SRC_STB
+	${3RD_PATH}/stb/stb_image.h
+	${3RD_PATH}/stb/stb_image_resize.h
+	${3RD_PATH}/stb/stb_image_write.h
+	${3RD_PATH}/stb/stb_log.h
+	${3RD_PATH}/stb/module.cpp
+)
 
 set(SRC_MATHEX 
 	mathex/floatmath.h
@@ -69,7 +73,7 @@ set(SRC_RENDERER
 	renderer/shader_api.cpp
 ) 
 set(SRC_THREAD 
-	# ßthread/atomicops.h
+	# thread/atomicops.h
 	thread/disruptor.cpp
 	thread/disruptor.h
 	# thread/folly_queue.h
@@ -88,6 +92,8 @@ source_group(mathex FILES ${SRC_MATHEX})
 source_group(core FILES ${SRC_CORE})
 source_group(renderer FILES ${SRC_RENDERER})
 source_group(thread FILES ${SRC_THREAD}) 
+source_group(stb FILES ${SRC_STB}) 
+
 
 include_directories(
 	common 
@@ -104,5 +110,6 @@ add_library(sparrow STATIC
 	${SRC_RENDERER} 
 	${SRC_THREAD} 
 	${SRC_SCENE} 
+	${SRC_STB}
 )
 

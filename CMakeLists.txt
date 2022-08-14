@@ -2,11 +2,38 @@ cmake_minimum_required(VERSION 3.3)
 project(pixpad)
 
 set(CMAKE_CXX_STANDARD 17)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# source encoding 
+if(WIN32)
+	set(SUPRESS_WARNINGS
+		# use STL in dll
+		/wd4251 
+	)
+	add_definitions(-DUNICODE -D_UNICODE)
+	add_compile_options("/utf-8" ${SUPRESS_WARNINGS})
+endif()
+
+# 将 CMake 相关的 project 放到 solution 目录里面
+set_property(GLOBAL 
+    PROPERTY USE_FOLDERS ON 
+)
+
+# setup CMake paths
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib/$<CONFIGURATION>)  # LIB 输出目录
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<CONFIGURATION>)  # DLL 输出目录
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<CONFIGURATION>)  # EXE 输出目录
+set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")  # install directory
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")  # CMake script path
+
+set(SRC_ROOT ${CMAKE_SOURCE_DIR}/src)
+set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
+set(ASSET_DIR ${CMAKE_SOURCE_DIR}/assets)
 
 #--------------------------------------------------
 # setup 3rd libs
+#--------------------------------------------------
+
 include(ExternalProject)
 
 set(3RD_PATH "${CMAKE_SOURCE_DIR}/3rd")
@@ -64,6 +91,10 @@ add_subdirectory(${ILMBASE_PATH}/Iex)
 add_subdirectory(${ILMBASE_PATH}/IexMath)
 add_subdirectory(${ILMBASE_PATH}/Imath)
 
+# RTM lib
+set(RTM_INCLUDE ${3RD_PATH}/rtm/includes)
+
+# end 3rd libs
 #--------------------------------------------------
 
 # definitions according build type
@@ -86,8 +117,6 @@ add_compile_definitions(
 	$<$<CONFIG:Release>:LOG_SEVERITY_LEVEL=40>
 )
 
-set(BIN_DIR ${CMAKE_SOURCE_DIR}/${CMAKE_BUILD_TYPE}/bin)
-set(SRC_ROOT ${CMAKE_SOURCE_DIR}/src)
 set(LIB_IMATH Iex_static IexMath_static Imath_static)
 
 include_directories(
@@ -95,12 +124,8 @@ include_directories(
 	${3RD_INCLUDE_PATH}
     ${3RD_INSTALL_PATH}
     ${SRC_ROOT}
-    ${3RD_PATH}/rtm/includes
+    ${RTM_INCLUDE}
 )
-
-if(WIN32)
-	add_compile_options("/utf-8")
-endif()
 
 # setup targets
 add_subdirectory(src/sparrow)
@@ -113,10 +138,16 @@ set(SPARROW_INCLUDE_DIR
 	"${SRC_ROOT}/sparrow/renderer"
 	"${SRC_ROOT}/sparrow/thread"
 )
-include_directories(${SPARROW_INCLUDE_DIR})
+# include_directories(${SPARROW_INCLUDE_DIR})
 
-# tests
+# unit test
 add_subdirectory(src/testbed)
+
+# engine
+add_subdirectory(src/engine)
 
 # pixpad
 add_subdirectory(src/pixpad)
+
+# demo
+add_subdirectory(src/demo/d3d_start)

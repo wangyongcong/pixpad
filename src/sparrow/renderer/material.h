@@ -6,7 +6,7 @@
 #include "vecmath.h"
 #include "vertex_buffer.h"
 #include "vertex_layout.h"
-#include "stb_log.h"
+#include "stb/stb_log.h"
 
 namespace wyc
 {

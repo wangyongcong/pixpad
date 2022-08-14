@@ -1,5 +1,5 @@
 #include "spw_renderer.h"
-#include "stb_log.h"
+#include "stb/stb_log.h"
 #include "spw_command.h"
 
 #ifdef DEBUG

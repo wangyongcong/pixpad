@@ -38,23 +38,23 @@ include_directories(
 )
 
 if(TEST_STAND_ALONE)
-	add_executable("testbed" ${SRC_COMMON} ${SRC_MATERIAL} ${SRC_TESTBED})
+	add_executable(${PROJECT_NAME} ${SRC_COMMON} ${SRC_MATERIAL} ${SRC_TESTBED})
 	# message(STATUS "testbed stand alone executable")
-	set_target_properties(testbed
+	set_target_properties(${PROJECT_NAME}
 		PROPERTIES
-		VS_DEBUGGER_WORKING_DIRECTORY "${BIN_DIR}"
+		VS_DEBUGGER_WORKING_DIRECTORY ${BIN_DIR}
 	)	
 else()
 	add_library(testbed SHARED ${SRC_COMMON} ${SRC_MATERIAL} ${SRC_TESTBED})
 	# message(STATUS "testbed shared lib")
 endif()
 
-set_target_properties(testbed
+set_target_properties(${PROJECT_NAME}
 	PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY "${BIN_DIR}"
+	RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
 )
 
-target_link_libraries(testbed 
+target_link_libraries(${PROJECT_NAME} 
 	sparrow 
 	${LIB_IMATH}
 	${Boost_SYSTEM_LIBRARY}

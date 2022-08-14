@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include "unitest.h"
-#include "stb_log.h"
+#include "stb/stb_log.h"
 
 namespace wyc
 {

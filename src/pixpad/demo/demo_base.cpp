@@ -1,4 +1,4 @@
-#include "stb_log.h"
+#include "stb/stb_log.h"
 
 // all demo process
 void demo_one_triangle();
