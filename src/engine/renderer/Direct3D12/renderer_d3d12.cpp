@@ -134,7 +134,7 @@ namespace wyc
 		// create default command list
 		m_command_allocators = (ID3D12CommandAllocator**)tf_calloc(m_frame_buffer_count, sizeof(ID3D12CommandAllocator*));
 		memset(m_command_allocators, 0, sizeof(ID3D12CommandAllocator*) * m_frame_buffer_count);
-		// mpCommandFences = (D3D12Fence*)tf_calloc_memalign(m_frame_buffer_count, alignof(D3D12Fence), sizeof(D3D12Fence));
+
 		for(uint8_t i = 0; i < m_frame_buffer_count; ++i)
 		{
 			if(FAILED(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_command_allocators[i]))))

@@ -29,6 +29,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")  # CMake script path
 set(SRC_ROOT ${CMAKE_SOURCE_DIR}/src)
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(ASSET_DIR ${CMAKE_SOURCE_DIR}/assets)
+set(RUNTIME_WORK_DIR ${CMAKE_SOURCE_DIR})
 
 #--------------------------------------------------
 # setup 3rd libs

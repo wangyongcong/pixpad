@@ -175,8 +175,7 @@ namespace wyc
 	void GameApplication::start_logger()
 	{
 		auto path = std::filesystem::current_path();
-		path /= "Saved";
-		path /= "Logs";
+		path /= "logs";
 		std::wstring logName = mAppName + L".log";
 		std::replace(logName.begin(), logName.end(), L' ', L'-');
 		path /= logName.c_str();
