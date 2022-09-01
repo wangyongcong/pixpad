@@ -88,13 +88,13 @@ namespace wyc
 		return true;
 	}
 
-	void WindowsWindow::set_visible(bool bIsVisible)
+	void WindowsWindow::set_visible(bool is_visible)
 	{
 		if(!IS_WINDOW_VALID(m_hwnd))
 		{
 			return;
 		}
-		if(bIsVisible)
+		if(is_visible)
 		{
 			ShowWindow(m_hwnd, SW_NORMAL);
 		}

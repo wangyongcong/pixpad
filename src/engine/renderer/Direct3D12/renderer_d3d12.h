@@ -2,6 +2,7 @@
 
 #include <d3d12.h>
 #include "renderer.h"
+#include "util_macros.h"
 
 
 namespace wyc
@@ -25,12 +26,13 @@ namespace wyc
 
 	class RendererD3D12 : public IRenderer
 	{
+		DISALLOW_COPY_MOVE_AND_ASSIGN(RendererD3D12);
 	public:
 		RendererD3D12();
 		~RendererD3D12() override;
 
 		// Implement IRenderer
-		bool initialize(IGameWindow* gameWindow, const RendererConfig& config) override;
+		bool initialize(IGameWindow* game_window, const RendererConfig& config) override;
 		void release() override;
 		void begin_frame() override;
 		void end_frame() override;
@@ -41,10 +43,11 @@ namespace wyc
 		// IRenderer
 
 	protected:
-		void EnableDebugLayer();
-		bool CreateDevice(HWND hWnd, uint32_t width, uint32_t height, const RendererConfig& config);
-		void ReportLiveObjects(const wchar_t* prompt=nullptr);
-		void WaitForComplete(uint64_t frameIndex);
+		void enable_debug_layer();
+		bool create_device(HWND hwnd, uint32_t width, uint32_t height, const RendererConfig& config);
+		void release_device();
+		void report_live_objects(const wchar_t* prompt=nullptr);
+		void wait_for_complete(uint64_t frame_index);
 
 		ERenderDeviceState m_device_state;
 		uint8_t m_frame_buffer_count;
@@ -55,6 +58,7 @@ namespace wyc
 		unsigned m_descriptor_size[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 		DXGI_FORMAT m_color_format;
 		DXGI_FORMAT m_depth_format;
+		D3D12_VIEWPORT m_viewport;
 
 		HWND m_window_handle;
 		D3D12GpuInfo m_gpu_info;

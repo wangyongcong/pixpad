@@ -3,14 +3,6 @@
 #include <cstdint>
 #include <string>
 
-#ifndef DISALLOW_COPY_MOVE_AND_ASSIGN
-#define DISALLOW_COPY_MOVE_AND_ASSIGN(TypeName) \
-	TypeName(const TypeName&) = delete;			\
-	void operator=(const TypeName&) = delete;	\
-	TypeName(TypeName&&) = delete;				\
-	void operator=(TypeName&&) = delete;
-#endif
-
 namespace wyc
 {
 
@@ -49,6 +41,9 @@ namespace wyc
 	bool wstr_to_ansi(const std::wstring& in_str, std::string& out_str);
 	// ANSI string (CP936) to wstring
 	bool ansi_to_wstr(const std::string in_str, std::wstring& out_str);
+
+	const char* format_memory_size(size_t size, unsigned &out_size);
+	const char* format_memory_size(size_t size, float &out_size);
 
 } // end of namespace wyc
 

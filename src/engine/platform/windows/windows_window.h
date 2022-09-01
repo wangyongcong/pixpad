@@ -1,7 +1,7 @@
 #pragma once
 #include "game_framework.h"
 #include "game_window.h"
-#include "utility.h"
+#include "util_macros.h"
 
 namespace wyc
 {
@@ -14,7 +14,7 @@ namespace wyc
 
 		// Implement IGameWinodw
 		bool create(const wchar_t* title, uint32_t width, uint32_t height) override;
-		void set_visible(bool bIsVisible) override;
+		void set_visible(bool is_visible) override;
 		bool is_valid() const override;
 		void get_window_size(unsigned& width, unsigned& height) const override;
 		// IGameWindow 

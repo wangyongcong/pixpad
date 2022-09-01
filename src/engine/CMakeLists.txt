@@ -33,6 +33,7 @@ set(PUBLIC_SOURCE
 	game/public/game_window.h
 	game/public/assertion_macros.h
 	game/public/log_macros.h
+	game/public/util_macros.h
 	game/public/utility.h
 	game/public/memory.h
 	game/public/platform.h
@@ -87,9 +88,9 @@ set(RENDERER_PRIVATE
 )
 endif() # Direct3D 12
 
-set(STB_SOURCE
-	${3RD_PATH}/stb/module.cpp
-	${3RD_PATH}/stb/stb_log.h
+file(GLOB_RECURSE STB_SOURCE LIST_DIRECTORIES false
+	${3RD_PATH}/stb/*.h
+	${3RD_PATH}/stb/*.cpp
 )
 
 # ---------------
@@ -104,29 +105,13 @@ set(MEMORY_MANAGER_SOURCE
 )
 
 # real time math lib
+file(GLOB_RECURSE RTM_INCLUDE_FILES LIST_DIRECTORIES false
+	${3RD_PATH}/rtm/includes/*.h
+)
+
 set(RTM_SOURCE
-	${RTM_INCLUDE}/rtm/macros.h
-	${RTM_INCLUDE}/rtm/mask4d.h
-	${RTM_INCLUDE}/rtm/mask4f.h
-	${RTM_INCLUDE}/rtm/mask4i.h
-	${RTM_INCLUDE}/rtm/mask4q.h
-	${RTM_INCLUDE}/rtm/math.h
-	${RTM_INCLUDE}/rtm/matrix3x3d.h
-	${RTM_INCLUDE}/rtm/matrix3x3f.h
-	${RTM_INCLUDE}/rtm/matrix3x4d.h
-	${RTM_INCLUDE}/rtm/matrix3x4f.h
-	${RTM_INCLUDE}/rtm/matrix4x4d.h
-	${RTM_INCLUDE}/rtm/matrix4x4f.h
-	${RTM_INCLUDE}/rtm/quatd.h
-	${RTM_INCLUDE}/rtm/quatf.h
-	${RTM_INCLUDE}/rtm/qvvd.h
-	${RTM_INCLUDE}/rtm/qvvf.h
-	${RTM_INCLUDE}/rtm/scalard.h
-	${RTM_INCLUDE}/rtm/scalarf.h
-	${RTM_INCLUDE}/rtm/type_traits.h
-	${RTM_INCLUDE}/rtm/types.h
-	${RTM_INCLUDE}/rtm/vector4d.h
-	${RTM_INCLUDE}/rtm/vector4f.h
+	${RTM_INCLUDE_FILES}
+	${3RD_PATH}/rtm/tools/vs_visualizers/rtm.natvis
 )
 
 set(THIRD_PARTY_PUBLIC

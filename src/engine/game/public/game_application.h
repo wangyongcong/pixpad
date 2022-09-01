@@ -5,7 +5,7 @@
 #include "game_framework.h"
 #include "game_window.h"
 #include "renderer.h"
-#include "utility.h"
+#include "util_macros.h"
 
 namespace wyc
 {

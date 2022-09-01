@@ -13,7 +13,7 @@ namespace wyc
 		bool enable_debug;
 	};
 
-	#define GPU_VENDOR_NAME_SIZE 64
+#define GPU_VENDOR_NAME_SIZE 64
 
 	struct GpuInfo
 	{
@@ -29,30 +29,30 @@ namespace wyc
 
 	enum EFenceStatus
 	{
-		Complete,
-		Incomplete,
+		COMPLETE,
+		INCOMPLETE,
 	};
 
 	enum ECommandType
 	{
-		Draw,
-		Compute,
-		Copy,
+		DRAW,
+		COMPUTE,
+		COPY,
 		// count of command list type
-		MaxCount
+		MAX_COUNT
 	};
 
 	class GAME_FRAMEWORK_API IRenderer
 	{
 	public:
 		virtual ~IRenderer() = default;
-		virtual bool initialize(IGameWindow* gameWindow, const RendererConfig& config) = 0;
+		virtual bool initialize(IGameWindow* game_window, const RendererConfig& config) = 0;
 		virtual void release() = 0;
 		virtual void begin_frame() = 0;
 		virtual void end_frame() = 0;
 		virtual void present() = 0;
 		virtual void resize() = 0;
 		virtual void close() = 0;
-		virtual const GpuInfo& get_gpu_info(int index=0) = 0;
+		virtual const GpuInfo& get_gpu_info(int index = 0) = 0;
 	};
 } // namespace wyc
