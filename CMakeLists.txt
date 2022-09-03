@@ -127,17 +127,20 @@ include_directories(
     ${SRC_ROOT}
     ${RTM_INCLUDE}
 )
+set(ENGINE_PATH ${SRC_ROOT}/engine)
+set(SPARROW_PATH ${SRC_ROOT}/engine/renderer/sparrow)
 
 # setup targets
 add_subdirectory(src/sparrow)
 add_dependencies(sparrow ${LIB_IMATH})
 set(SPARROW_INCLUDE_DIR 
-	"${SRC_ROOT}/sparrow"
-	"${SRC_ROOT}/sparrow/common" 
-	"${SRC_ROOT}/sparrow/mathex" 
-	"${SRC_ROOT}/sparrow/core"
-	"${SRC_ROOT}/sparrow/renderer"
-	"${SRC_ROOT}/sparrow/thread"
+	${ENGINE_PATH}
+	${ENGINE_PATH}/common
+	${ENGINE_PATH}/mathex
+	${SPARROW_PATH}
+	${SPARROW_PATH}/core
+	${SPARROW_PATH}/renderer
+	${SPARROW_PATH}/thread
 )
 # include_directories(${SPARROW_INCLUDE_DIR})
 
