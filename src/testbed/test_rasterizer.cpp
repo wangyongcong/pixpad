@@ -6,7 +6,7 @@
 #include "surface.h"
 #include "spw_rasterizer.h"
 #include "ImathBoxAlgo.h"
-#include "image.h"
+#include "renderer/image.h"
 #include "metric.h"
 #include "spw_tile.h"
 

@@ -3,7 +3,8 @@
 
 #include <cstdint>
 #include <cassert>
-#include "util.h"
+#include "util_macros.h"
+#include "utility.h"
 
 namespace wyc
 {

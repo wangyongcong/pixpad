@@ -1,9 +1,8 @@
-#include "game_framework_pch.h"
+#include "engine_pch.h"
 #include "resource.h"
 #include "windows_platform.h"
 #include "windows_window.h"
-
-#include "log_macros.h"
+#include "common/log_macros.h"
 
 namespace wyc
 {

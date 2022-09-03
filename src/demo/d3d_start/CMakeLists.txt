@@ -13,9 +13,8 @@ add_executable(${PROJECT_NAME} WIN32
 	${GAME_SOURCE}
 )
 
-target_link_libraries(${PROJECT_NAME}
-	engine
-)
+target_link_libraries(${PROJECT_NAME} engine)
+target_include_directories(${PROJECT_NAME} PRIVATE ${ENGINE_PATH})
 
 set_target_properties(${PROJECT_NAME} 
 	PROPERTIES

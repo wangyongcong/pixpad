@@ -6,7 +6,7 @@
 #include "imgui.h"
 #define STB_LOG_IMPLEMENTATION
 #include "stb/stb_log.h"
-#include "util.h"
+#include "utility.h"
 #include "shellcmd.h"
 
 #define IMLOG_MIN_BUFFER_SIZE 512
@@ -62,7 +62,7 @@ protected:
 		if(!m_cur_buf || m_cur_buf->buf + required_size > m_cur_buf->end)
 		{
 			unsigned size = (unsigned)required_size + sizeof(BufferHead);
-			size = wyc::next_power2(size);
+			size = wyc::minimal_power2(size);
 			if (size < IMLOG_MIN_BUFFER_SIZE)
 				size = IMLOG_MIN_BUFFER_SIZE;
 			char *new_buf = new char[size];

@@ -1,6 +1,6 @@
 #include "test.h"
 #include <cmath>
-#include "image.h"
+#include "renderer/image.h"
 #include "spw_renderer.h"
 #include "clipping.h"
 #include "spw_rasterizer.h"

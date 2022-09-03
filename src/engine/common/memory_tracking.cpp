@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <memory.h>
 
-#include "platform.h"
+#include "platform/platform.h"
 
 #define MEM_MAX(a, b) ((a) > (b) ? (a) : (b))
 

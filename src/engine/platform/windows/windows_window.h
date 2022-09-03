@@ -1,11 +1,10 @@
 #pragma once
-#include "game_framework.h"
-#include "game_window.h"
-#include "util_macros.h"
+#include "game/game_window.h"
+#include "common/util_macros.h"
 
 namespace wyc
 {
-	class GAME_FRAMEWORK_API WindowsWindow : public IGameWindow
+	class WYCAPI WindowsWindow : public IGameWindow
 	{
 		DISALLOW_COPY_MOVE_AND_ASSIGN(WindowsWindow)
 	public:

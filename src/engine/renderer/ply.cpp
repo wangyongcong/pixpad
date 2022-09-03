@@ -4,7 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <cassert>
-#include "util.h"
+#include "common/utility.h"
 #include "stb/stb_log.h"
 
 namespace wyc

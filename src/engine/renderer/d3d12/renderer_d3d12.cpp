@@ -1,7 +1,5 @@
-#include "game_framework_pch.h"
-#include "game_framework.h"
+#include "engine_pch.h"
 #include "renderer_d3d12.h"
-#include <chrono>
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -11,12 +9,12 @@
 // D3D12 extension library.
 #include <d3dx12.h>
 
-#include "assertion_macros.h"
-#include "log_macros.h"
-#include "windows_window.h"
+#include "common/assertion_macros.h"
+#include "common/log_macros.h"
+#include "common/memory.h"
+#include "common/utility.h"
+#include "platform/windows/windows_window.h"
 #include "d3d_helper.h"
-#include "memory.h"
-#include "utility.h"
 
 
 namespace wyc
@@ -140,7 +138,7 @@ namespace wyc
 		}
 
 		// create default command list
-		m_command_allocators = (ID3D12CommandAllocator**)tf_calloc(m_frame_buffer_count, sizeof(ID3D12CommandAllocator*));
+		m_command_allocators = (ID3D12CommandAllocator**)wyc_calloc(m_frame_buffer_count, sizeof(ID3D12CommandAllocator*));
 		memset(m_command_allocators, 0, sizeof(ID3D12CommandAllocator*) * m_frame_buffer_count);
 
 		for(uint8_t i = 0; i < m_frame_buffer_count; ++i)
@@ -163,7 +161,7 @@ namespace wyc
 		}
 
 		size_t sz = sizeof(DeviceFence) + sizeof(uint64_t) * (m_frame_buffer_count - 1);
-		m_frame_fence = (DeviceFence*) tf_malloc(sz);
+		m_frame_fence = (DeviceFence*) wyc_malloc(sz);
 		memset(m_frame_fence, 0, sz);
 
 		if(FAILED((m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_frame_fence->fence)))))
@@ -243,7 +241,7 @@ namespace wyc
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtv_handle(m_rtv_heap->GetCPUDescriptorHandleForHeapStart());
 		const unsigned descriptor_size = m_descriptor_size[D3D12_DESCRIPTOR_HEAP_TYPE_RTV];
 		ID3D12Resource* buffer = nullptr;
-		m_swap_chain_buffers = (ID3D12Resource**)tf_calloc(m_frame_buffer_count, sizeof(ID3D12Resource*));
+		m_swap_chain_buffers = (ID3D12Resource**)wyc_calloc(m_frame_buffer_count, sizeof(ID3D12Resource*));
 		for (int i = 0; i < m_frame_buffer_count; ++i)
 		{
 			m_swap_chain->GetBuffer(i, IID_PPV_ARGS(&buffer));
@@ -629,7 +627,7 @@ namespace wyc
 			{
 				m_command_allocators[i]->Release();
 			}
-			tf_free(m_command_allocators);
+			wyc_free(m_command_allocators);
 			m_command_allocators = nullptr;
 		}
 
@@ -640,7 +638,7 @@ namespace wyc
 				ID3D12Resource* buff = m_swap_chain_buffers[i];
 				SAFE_RELEASE(buff);
 			}
-			tf_free(m_swap_chain_buffers);
+			wyc_free(m_swap_chain_buffers);
 			m_swap_chain_buffers = nullptr;
 		}
 		SAFE_RELEASE(m_depth_buffer);
@@ -654,7 +652,7 @@ namespace wyc
 		{
 			SAFE_RELEASE(m_frame_fence->fence);
 			SAFE_CLOSE_HANDLE(m_frame_fence->wait_event);
-			tf_free(m_frame_fence);
+			wyc_free(m_frame_fence);
 			m_frame_fence = nullptr;
 		}
 

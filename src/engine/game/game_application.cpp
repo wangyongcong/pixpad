@@ -1,22 +1,22 @@
-#include "game_framework_pch.h"
-
+#include "engine_pch.h"
+#include "engine.h"
 #include <algorithm>
 #include <filesystem>
 
 #include "game_application.h"
-#include "memory.h"
 #include "game_instance.h"
-#include "log_macros.h"
+#include "common/log_macros.h"
+#include "common/memory.h"
 
 #ifdef PLATFORM_WINDOWS
-#include "windows_application.h"
-#include "windows_window.h"
+#include "platform/windows/windows_application.h"
+#include "platform/windows/windows_window.h"
 using ApplicationClass = wyc::WindowsApplication;
 using GameWindowClass = wyc::WindowsWindow;
 #endif
 
 #ifdef RENDERER_DIRECT3D12
-#include "renderer_d3d12.h"
+#include "renderer/d3d12/renderer_d3d12.h"
 using RenderClass = wyc::RendererD3D12;
 #endif
 
@@ -25,16 +25,16 @@ extern void MemAllocExit();
 
 namespace wyc
 {
-	GAME_FRAMEWORK_API GameApplication* gApplication = nullptr;
+	WYCAPI GameApplication* gApplication = nullptr;
 
 	bool GameApplication::create_application(const wchar_t* appName, uint32_t windowWidth, uint32_t windowHeight)
 	{
 		MemAllocInit();
-		gApplication = tf_new(ApplicationClass, appName);
+		gApplication = wyc_new(ApplicationClass, appName);
 		gApplication->start_logger();
 		if(!gApplication->initialize(appName, windowWidth, windowHeight))
 		{
-			tf_delete(gApplication);
+			wyc_delete(gApplication);
 			return false;
 		}
 		Log("Application started");
@@ -45,7 +45,7 @@ namespace wyc
 	{
 		if(gApplication)
 		{
-			tf_delete(gApplication);
+			wyc_delete(gApplication);
 			gApplication = nullptr;
 			Log("Application exited");
 		}
@@ -102,12 +102,12 @@ namespace wyc
 		if (mpRenderer)
 		{
 			mpRenderer->release();
-			tf_delete(mpRenderer);
+			wyc_delete(mpRenderer);
 			mpRenderer = nullptr;
 		}
 		if(mpWindow)
 		{
-			tf_delete(mpWindow);
+			wyc_delete(mpWindow);
 			mpWindow = nullptr;
 		}
 	}
@@ -146,12 +146,12 @@ namespace wyc
 
 	bool GameApplication::initialize(const wchar_t* appName, uint32_t windowWidth, uint32_t windowHeight)
 	{
-		mpWindow = tf_new(GameWindowClass);
+		mpWindow = wyc_new(GameWindowClass);
 		if(!mpWindow->create(appName, windowWidth, windowHeight))
 		{
 			return false;
 		}
-		mpRenderer = tf_new(RenderClass);
+		mpRenderer = wyc_new(RenderClass);
 		const RendererConfig config {
 			3,
 			1,

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <d3d12.h>
-#include "renderer.h"
-#include "util_macros.h"
+#include "renderer/renderer.h"
+#include "common/util_macros.h"
 
 
 namespace wyc

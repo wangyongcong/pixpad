@@ -6,7 +6,7 @@
 #include <future>
 #include <ImathForward.h>
 #include <ImathColor.h>
-#include "util.h"
+#include "util_macros.h"
 #include "mesh.h"
 #include "material.h"
 

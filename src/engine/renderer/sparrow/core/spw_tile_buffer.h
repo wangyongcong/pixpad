@@ -1,6 +1,7 @@
 #pragma once
 #include "spw_config.h"
-#include "util.h"
+#include "util_macros.h"
+#include "utility.h"
 
 #define TILE_SIZE 4
 #define FRAGMENT_PER_TILE (TILE_SIZE * TILE_SIZE)

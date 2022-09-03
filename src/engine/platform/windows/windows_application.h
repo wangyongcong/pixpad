@@ -1,5 +1,5 @@
 #pragma once
-#include "game_application.h"
+#include "game/game_application.h"
 
 namespace wyc
 {

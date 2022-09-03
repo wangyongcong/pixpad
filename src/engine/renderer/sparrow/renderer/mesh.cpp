@@ -5,7 +5,7 @@
 #include <vector>
 #include <sstream>
 #include "stb/stb_log.h"
-#include "util.h"
+#include "utility.h"
 #include "ply.h"
 
 namespace wyc

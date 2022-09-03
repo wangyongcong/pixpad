@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 #include <ImathColorAlgo.h>
-#include "vecmath.h"
+#include "mathex/vecmath.h"
 
 namespace wyc
 {

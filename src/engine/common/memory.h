@@ -63,29 +63,29 @@ static void tf_delete_internal(T* ptr, const char *f, int l, const char *sf)
 	}
 }
 
-#ifndef tf_malloc
-#define tf_malloc(size) tf_malloc_internal(size, __FILE__, __LINE__, __FUNCTION__)
+#ifndef wyc_malloc
+#define wyc_malloc(size) tf_malloc_internal(size, __FILE__, __LINE__, __FUNCTION__)
 #endif
-#ifndef tf_memalign
-#define tf_memalign(align,size) tf_memalign_internal(align, size, __FILE__, __LINE__, __FUNCTION__)
+#ifndef wyc_memalign
+#define wyc_memalign(align,size) tf_memalign_internal(align, size, __FILE__, __LINE__, __FUNCTION__)
 #endif
-#ifndef tf_calloc
-#define tf_calloc(count,size) tf_calloc_internal(count, size, __FILE__, __LINE__, __FUNCTION__)
+#ifndef wyc_calloc
+#define wyc_calloc(count,size) tf_calloc_internal(count, size, __FILE__, __LINE__, __FUNCTION__)
 #endif
-#ifndef tf_calloc_memalign
-#define tf_calloc_memalign(count,align,size) tf_calloc_memalign_internal(count, align, size, __FILE__, __LINE__, __FUNCTION__)
+#ifndef wyc_calloc_memalign
+#define wyc_calloc_memalign(count,align,size) tf_calloc_memalign_internal(count, align, size, __FILE__, __LINE__, __FUNCTION__)
 #endif
-#ifndef tf_realloc
-#define tf_realloc(ptr,size) tf_realloc_internal(ptr, size, __FILE__, __LINE__, __FUNCTION__)
+#ifndef wyc_realloc
+#define wyc_realloc(ptr,size) tf_realloc_internal(ptr, size, __FILE__, __LINE__, __FUNCTION__)
 #endif
-#ifndef tf_free
-#define tf_free(ptr) tf_free_internal(ptr,  __FILE__, __LINE__, __FUNCTION__)
+#ifndef wyc_free
+#define wyc_free(ptr) tf_free_internal(ptr,  __FILE__, __LINE__, __FUNCTION__)
 #endif
-#ifndef tf_new
-#define tf_new(ObjectType, ...) tf_new_internal<ObjectType>(__FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+#ifndef wyc_new
+#define wyc_new(ObjectType, ...) tf_new_internal<ObjectType>(__FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #endif
-#ifndef tf_delete
-#define tf_delete(ptr) tf_delete_internal(ptr,  __FILE__, __LINE__, __FUNCTION__)
+#ifndef wyc_delete
+#define wyc_delete(ptr) tf_delete_internal(ptr,  __FILE__, __LINE__, __FUNCTION__)
 #endif
 
 #endif 

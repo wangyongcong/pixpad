@@ -1,14 +1,16 @@
 project(sparrow)
 
+set(ENGINE_PATH ${SRC_ROOT}/engine)
+set(SPARROW_PATH ${SRC_ROOT}/engine/renderer/sparrow)
+
 set(SRC_COMMON 
-	common/any_stride_iterator.h
-	common/image.cpp
-	common/image.h
-	common/unitest.h
-	common/util.cpp
-	common/util.h
-	common/ply.h
-	common/ply.cpp
+	${ENGINE_PATH}/common/any_stride_iterator.h
+	${ENGINE_PATH}/common/utility.h
+	${ENGINE_PATH}/common/utility.cpp
+	${ENGINE_PATH}/renderer/image.h
+	${ENGINE_PATH}/renderer/image.cpp
+	${ENGINE_PATH}/renderer/ply.h
+	${ENGINE_PATH}/renderer/ply.cpp
 ) 
 
 set(SRC_STB
@@ -20,70 +22,70 @@ set(SRC_STB
 )
 
 set(SRC_MATHEX 
-	mathex/floatmath.h
-	mathex/vecmath.cpp
-	mathex/vecmath.h
-	mathex/xs_float.h
+	${ENGINE_PATH}/mathex/floatmath.h
+	${ENGINE_PATH}/mathex/vecmath.cpp
+	${ENGINE_PATH}/mathex/vecmath.h
+	${ENGINE_PATH}/mathex/xs_float.h
 )
 
 set(SRC_CORE
-	core/spw_config.h
-	core/spw_tile_buffer.h
-	core/spw_rasterizer.h
-	core/spw_rasterizer.cpp
-	core/spw_tile.h
-	core/spw_tile.cpp
-	core/spw_pipeline2.h
-	core/spw_pipeline2.cpp
+	${SPARROW_PATH}/core/spw_config.h
+	${SPARROW_PATH}/core/spw_tile_buffer.h
+	${SPARROW_PATH}/core/spw_rasterizer.h
+	${SPARROW_PATH}/core/spw_rasterizer.cpp
+	${SPARROW_PATH}/core/spw_tile.h
+	${SPARROW_PATH}/core/spw_tile.cpp
+	${SPARROW_PATH}/core/spw_pipeline2.h
+	${SPARROW_PATH}/core/spw_pipeline2.cpp
 )
 
 set(SRC_RENDERER 
-	renderer/clipping.cpp
-	renderer/clipping.h
-	renderer/index_buffer.h
-	renderer/material.cpp
-	renderer/material.h
-	renderer/mesh.cpp
-	renderer/mesh.h
-	renderer/sampler.h
-	renderer/sampler.cpp
-	renderer/metric.cpp
-	renderer/metric.h
-	renderer/render_command.cpp
-	renderer/render_command.h
-	renderer/render_target.h
-	renderer/renderer.cpp
-	renderer/renderer.h
-	renderer/spw_command.cpp
-	renderer/spw_command.h
-	renderer/spw_pipeline.cpp
-	renderer/spw_pipeline.h
-	renderer/spw_render_target.cpp
-	renderer/spw_render_target.h
-	renderer/spw_renderer.cpp
-	renderer/spw_renderer.h
-	renderer/surface.cpp
-	renderer/surface.h
-	renderer/tile.cpp
-	renderer/tile.h
-	renderer/vertex_buffer.cpp
-	renderer/vertex_buffer.h
-	renderer/vertex_layout.h
-	renderer/shader_api.h
-	renderer/shader_api.cpp
+	${SPARROW_PATH}/renderer/clipping.cpp
+	${SPARROW_PATH}/renderer/clipping.h
+	${SPARROW_PATH}/renderer/index_buffer.h
+	${SPARROW_PATH}/renderer/material.cpp
+	${SPARROW_PATH}/renderer/material.h
+	${SPARROW_PATH}/renderer/mesh.cpp
+	${SPARROW_PATH}/renderer/mesh.h
+	${SPARROW_PATH}/renderer/sampler.h
+	${SPARROW_PATH}/renderer/sampler.cpp
+	${SPARROW_PATH}/renderer/metric.cpp
+	${SPARROW_PATH}/renderer/metric.h
+	${SPARROW_PATH}/renderer/render_command.cpp
+	${SPARROW_PATH}/renderer/render_command.h
+	${SPARROW_PATH}/renderer/render_target.h
+	${SPARROW_PATH}/renderer/renderer.cpp
+	${SPARROW_PATH}/renderer/renderer.h
+	${SPARROW_PATH}/renderer/spw_command.cpp
+	${SPARROW_PATH}/renderer/spw_command.h
+	${SPARROW_PATH}/renderer/spw_pipeline.cpp
+	${SPARROW_PATH}/renderer/spw_pipeline.h
+	${SPARROW_PATH}/renderer/spw_render_target.cpp
+	${SPARROW_PATH}/renderer/spw_render_target.h
+	${SPARROW_PATH}/renderer/spw_renderer.cpp
+	${SPARROW_PATH}/renderer/spw_renderer.h
+	${SPARROW_PATH}/renderer/surface.cpp
+	${SPARROW_PATH}/renderer/surface.h
+	${SPARROW_PATH}/renderer/tile.cpp
+	${SPARROW_PATH}/renderer/tile.h
+	${SPARROW_PATH}/renderer/vertex_buffer.cpp
+	${SPARROW_PATH}/renderer/vertex_buffer.h
+	${SPARROW_PATH}/renderer/vertex_layout.h
+	${SPARROW_PATH}/renderer/shader_api.h
+	${SPARROW_PATH}/renderer/shader_api.cpp
 ) 
 set(SRC_THREAD 
 	# thread/atomicops.h
-	thread/disruptor.cpp
-	thread/disruptor.h
+	${SPARROW_PATH}/thread/disruptor.cpp
+	${SPARROW_PATH}/thread/disruptor.h
 	# thread/folly_queue.h
 	# thread/lockfree_rb_q.h
 	# thread/mpmc_queue.h
-	thread/platform_info.cpp
-	thread/platform_info.h
+	${SPARROW_PATH}/thread/platform_info.cpp
+	${SPARROW_PATH}/thread/platform_info.h
 	# thread/readerwriterqueue.h
-	thread/ring_queue.h
-	thread/spin_lock.h
+	${SPARROW_PATH}/thread/ring_queue.h
+	${SPARROW_PATH}/thread/spin_lock.h
 	# thread/spsc_queue.h
 ) 
  
@@ -96,11 +98,13 @@ source_group(stb FILES ${SRC_STB})
 
 
 include_directories(
-	common 
-	mathex
-	core
-	renderer 
-	thread 
+	${ENGINE_PATH}
+	${ENGINE_PATH}/common
+	${ENGINE_PATH}/renderer
+	${ENGINE_PATH}/mathex
+	${SPARROW_PATH}/core
+	${SPARROW_PATH}/renderer 
+	${SPARROW_PATH}/thread 
 ) 
 
 add_library(sparrow STATIC 

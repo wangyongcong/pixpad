@@ -1,12 +1,11 @@
 #pragma once
-#include "game_framework.h"
+#include "engine.h"
 
 namespace wyc
 {
-
 	class IRenderer;
 
-	class GAME_FRAMEWORK_API IGameInstance
+	class WYCAPI IGameInstance
 	{
 	public:
 		virtual void initialize() = 0;

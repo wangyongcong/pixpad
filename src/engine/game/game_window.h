@@ -1,8 +1,9 @@
 #pragma once
+#include "engine.h"
 
 namespace wyc
 {
-	class GAME_FRAMEWORK_API IGameWindow
+	class WYCAPI IGameWindow
 	{
 	public:
 		virtual ~IGameWindow() = default;

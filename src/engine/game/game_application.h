@@ -1,17 +1,17 @@
 #pragma once
 #include <string>
 #include <cstdint>
-#include "platform.h"
-#include "game_framework.h"
+#include "engine.h"
 #include "game_window.h"
-#include "renderer.h"
-#include "util_macros.h"
+#include "renderer/renderer.h"
+#include "common/util_macros.h"
+#include "platform/platform.h"
 
 namespace wyc
 {
 	class IGameInstance;
 
-	class GAME_FRAMEWORK_API GameApplication
+	class WYCAPI GameApplication
 	{
 		DISALLOW_COPY_MOVE_AND_ASSIGN(GameApplication)
 	public:
@@ -44,14 +44,14 @@ namespace wyc
 		IRenderer* mpRenderer;
 	};
 
-	extern GAME_FRAMEWORK_API GameApplication* gApplication;
+	extern WYCAPI GameApplication* gApplication;
 } // namespace wyc
 
 #ifdef PLATFORM_WINDOWS
 #define APPLICATION_MAIN(GameInstanceClass) \
 namespace wyc \
 {\
-	extern GAME_FRAMEWORK_API HINSTANCE gAppInstance;\
+	extern WYCAPI HINSTANCE gAppInstance;\
 }\
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR lpCmdLine, _In_ int nShowCmd) \
 {\

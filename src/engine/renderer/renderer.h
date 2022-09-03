@@ -1,5 +1,6 @@
 #pragma once
-#include "game_window.h"
+#include "engine.h"
+#include "game/game_window.h"
 #include "tinyimageformat/tinyimageformat_base.h"
 
 namespace wyc
@@ -42,7 +43,7 @@ namespace wyc
 		MAX_COUNT
 	};
 
-	class GAME_FRAMEWORK_API IRenderer
+	class WYCAPI IRenderer
 	{
 	public:
 		virtual ~IRenderer() = default;

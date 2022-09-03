@@ -2,7 +2,6 @@
 
 #include "render_target.h"
 #include "surface.h"
-#include "util.h"
 
 namespace wyc
 {

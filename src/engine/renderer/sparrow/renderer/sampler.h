@@ -1,8 +1,8 @@
 #pragma once
 #include <ImathVec.h>
 #include <ImathColor.h>
-#include "vecmath.h"
-#include "image.h"
+#include "mathex/vecmath.h"
+#include "renderer/image.h"
 
 namespace wyc
 {

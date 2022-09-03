@@ -1,5 +1,6 @@
 #pragma once
 
+#if defined(PLATFORM_WINDOWS) || defined(WIN32) 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <shellapi.h> // For CommandLineToArgvW
@@ -23,7 +24,9 @@
 // Windows Runtime Library. Needed for Microsoft::WRL::ComPtr<> template class.
 #include <wrl.h>
 using namespace Microsoft::WRL;
+#endif
 
+#ifdef RENDERER_DIRECT3D12
 // DirectX 12 specific headers.
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -32,8 +35,9 @@ using namespace Microsoft::WRL;
 
 // D3D12 extension library.
 #include <d3dx12.h>
+#endif
 
-// STL Headers
+// STL headers
 #include <string>
 #include <algorithm>
 #include <cassert>

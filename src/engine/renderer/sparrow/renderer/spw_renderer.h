@@ -4,7 +4,7 @@
 #include "spw_render_target.h"
 #include "ring_queue.h"
 #include "render_command.h"
-#include "util.h"
+#include "utility.h"
 #include "spw_pipeline.h"
 
 namespace wyc

@@ -1,5 +1,5 @@
 #include "test.h"
-#include "image.h"
+#include "renderer/image.h"
 
 bool CTest::init(const boost::program_options::variables_map &args) {
 	if (args.count("out")) {

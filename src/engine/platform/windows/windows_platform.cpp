@@ -2,8 +2,8 @@
 
 namespace wyc
 {
-	GAME_FRAMEWORK_API HINSTANCE gModuleInstance = NULL;
-	GAME_FRAMEWORK_API HINSTANCE gAppInstance = NULL;
+	WYCAPI HINSTANCE gModuleInstance = NULL;
+	WYCAPI HINSTANCE gAppInstance = NULL;
 }
 
 BOOL WINAPI DllMain(

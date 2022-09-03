@@ -1,5 +1,5 @@
-#include "game_application.h"
-#include "game_instance.h"
+#include "game/game_application.h"
+#include "game/game_instance.h"
 #include "rtm/types.h"
 
 using namespace wyc;

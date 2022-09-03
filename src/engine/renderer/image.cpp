@@ -3,7 +3,7 @@
 #include "stb/stb_image_resize.h"
 #include "stb/stb_image_write.h"
 #include "stb/stb_log.h"
-#include "util.h"
+#include "common/utility.h"
 
 namespace wyc
 {
@@ -74,7 +74,7 @@ namespace wyc
 	bool CImage::load(const std::wstring &w_file_path)
 	{
 		std::string file_name;
-		if (!wstr2str(file_name, w_file_path)) {
+		if (!wstr_to_ansi(w_file_path, file_name)) {
 			log_error("load_image: Invalid file path");
 			return false;
 		}
@@ -84,7 +84,7 @@ namespace wyc
 	bool CImage::save(const std::wstring & w_file_path)
 	{
 		std::string file_name;
-		if (!wstr2str(file_name, w_file_path)) {
+		if (!wstr_to_ansi(w_file_path, file_name)) {
 			log_error("load_image: Invalid file path");
 			return false;
 		}
@@ -150,7 +150,7 @@ namespace wyc
 	void CImage::create_checkerboard(unsigned size, const color3f &color1, const color3f &color2)
 	{
 		clear();
-		size = wyc::next_power2(size);
+		size = wyc::minimal_power2(size);
 		m_width = m_height = size;
 		m_pitch = size * sizeof(uint32_t);
 		m_data = new unsigned char[m_pitch * size];
