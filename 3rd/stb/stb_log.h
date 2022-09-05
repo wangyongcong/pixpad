@@ -723,6 +723,9 @@ void start_string_logger(size_t buffer_size, bool async, millisecond_t sleep_tim
 		add_log_handler(handler);
 }
 
+#ifdef __APPLE__
+#define aligned_free free
+#else
 static void *aligned_alloc(size_t alignment, size_t size) {
 	// [Memory returned][ptr to start of memory][aligned memory][extra memory]
 	size_t request_size = size + alignment;
@@ -743,6 +746,7 @@ static void aligned_free(void *ptr) {
 	void *raw = *((void **) ptr - 1);
 	free(raw);
 }
+#endif
 
 size_t CLogger::get_next_power2(size_t val) {
 	// val maybe power of 2

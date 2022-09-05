@@ -38,6 +38,7 @@ namespace wyc
 
 	bool wcs_to_mbcs(uint32_t charset, const std::wstring& wcs, std::string& out_mbcs)
 	{
+#if defined(WIN32) || defined(WINDOWS)
 		int len = WideCharToMultiByte(CP_ACP, 0, wcs.c_str(), int(wcs.size()), NULL, 0, NULL, NULL);
 		if (len <= 0)
 		{
@@ -47,11 +48,16 @@ namespace wyc
 		char* cstr = buff.get();
 		WideCharToMultiByte(charset, 0, wcs.c_str(), int(wcs.size()), buff.get(), len, NULL, NULL);
 		out_mbcs.assign(cstr, cstr + len);
+#else
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		out_mbcs = converter.to_bytes(wcs);
+#endif
 		return true;
 	}
 
 	bool mbcs_to_wcs(uint32_t charset, const std::string& mbcs, std::wstring& out_wcs)
 	{
+#if defined(WIN32) || defined(WINDOWS)
 		int len = MultiByteToWideChar(CP_ACP, 0, mbcs.c_str(), int(mbcs.size()), NULL, 0);
 		if (len <= 0)
 		{
@@ -61,6 +67,10 @@ namespace wyc
 		wchar_t* wcs = buff.get();
 		MultiByteToWideChar(CP_ACP, 0, mbcs.c_str(), int(mbcs.size()), wcs, len);
 		out_wcs.assign(wcs, wcs + len);
+#else
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		out_wcs = converter.from_bytes(mbcs);
+#endif
 		return true;
 	}
 
@@ -71,38 +81,56 @@ namespace wyc
 			out_str.resize(0);
 			return true;
 		}
+#if defined(WIN32) || defined(WINDOWS)
 		return wcs_to_mbcs(CP_UTF8, in_str, out_str);
+#else
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		out_str = converter.to_bytes(in_str);
+#endif
 	}
 
-	bool utf8_to_wstr(const std::string in_str, std::wstring& out_dst)
+	bool utf8_to_wstr(const std::string in_str, std::wstring& out_str)
 	{
 		if (in_str.size() < 1)
 		{
-			out_dst.resize(0);
+			out_str.resize(0);
 			return true;
 		}
-		return mbcs_to_wcs(CP_UTF8, in_str, out_dst);
+#if defined(WIN32) || defined(WINDOWS)
+		return mbcs_to_wcs(CP_UTF8, in_str, out_str);
+#else
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		out_str = converter.from_bytes(in_str);
+#endif
 	}
 
 
 	bool wstr_to_ansi(const std::wstring& in_str, std::string& out_str)
 	{
+#if defined(WIN32) || defined(WINDOWS)
 		if (in_str.size() < 1)
 		{
 			out_str.resize(0);
 			return true;
 		}
 		return wcs_to_mbcs(CP_ACP, in_str, out_str);
+#else
+		return wstr_to_utf8(in_str, out_str);
+#endif
 	}
 
 	bool ansi_to_wstr(const std::string in_str, std::wstring& out_str)
 	{
+#if defined(WIN32) || defined(WINDOWS)
 		if (in_str.size() < 1)
 		{
 			out_str.resize(0);
 			return true;
 		}
 		return mbcs_to_wcs(CP_ACP, in_str, out_str);
+#else
+		return utf8_to_wstr(in_str, out_str);
+#endif
 	}
 
 	static const char* s_memory_unit[]={"Byte", "KB", "MB", "GB", "TB", "PB"};
