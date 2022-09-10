@@ -1,13 +1,16 @@
 project(engine)
 
-set(PLATFORM_NAME "Windows" CACHE STRING "Platform Name")
-set(RENDERER_NAME "Direct3D12" CACHE STRING "Renderer Name")
-
 # default platform/renderer name
 if(WIN32)
-	set_property(CACHE PLATFORM_NAME PROPERTY STRINGS Windows)
-	set_property(CACHE RENDERER_NAME PROPERTY STRINGS Direct3D12)
+	set(PLATFORM_NAME "Windows" CACHE STRING "Platform Name")
+	set(RENDERER_NAME "Direct3D12" CACHE STRING "Renderer Name")
+elseif(APPLE)
+	set(PLATFORM_NAME "Mac" CACHE STRING "Platform Name")
+	set(RENDERER_NAME "Metal" CACHE STRING "Renderer Name")
 endif()
+
+set_property(CACHE PLATFORM_NAME PROPERTY STRINGS Windows Mac)
+set_property(CACHE RENDERER_NAME PROPERTY STRINGS Direct3D12 Metal)
 
 string(TOLOWER ${PLATFORM_NAME} PLATFORM_NAME_LOWER)
 string(TOLOWER ${RENDERER_NAME} RENDERER_NAME_LOWER)
@@ -81,6 +84,9 @@ set(PLATFORM_PUBLIC
 	platform/platform.h
 )
 
+if(PLATFORM_NAME STREQUAL "Mac")
+# @todo support MacOS 
+else()
 set(SPECIFIC_PLATFORM_SOURCE
 	platform/${PLATFORM_NAME}/${PLATFORM_NAME_LOWER}_application.h
 	platform/${PLATFORM_NAME}/${PLATFORM_NAME_LOWER}_application.cpp
@@ -89,6 +95,7 @@ set(SPECIFIC_PLATFORM_SOURCE
 	platform/${PLATFORM_NAME}/${PLATFORM_NAME_LOWER}_platform.h
 	platform/${PLATFORM_NAME}/${PLATFORM_NAME_LOWER}_platform.cpp
 )
+endif()
 
 set(PLATFORM_MODULE_SOURCE
 	${PLATFORM_PUBLIC}
@@ -97,7 +104,9 @@ set(PLATFORM_MODULE_SOURCE
 
 if(PLATFORM_NAME STREQUAL "Windows")
 	add_definitions(-DPLATFORM_WINDOWS)
-endif() # Windows
+elseif(PLATFORM_NAME STREQUAL "Mac")
+	add_definitions(-DPLATFORM_MAC)
+endif()
 
 # -----------
 # 渲染模块
@@ -198,6 +207,9 @@ set(THIRD_PARTY_SOURCE
 	${D3D12LIB_SOURCE}
 	${D3D12_MEMORY_ALLOCATOR_SOURCE}
 )
+
+source_group("3rd/D3D12Lib" FILES ${D3D12LIB_SOURCE})
+source_group("3rd/D3D12MemoryAllocator" FILES ${D3D12_MEMORY_ALLOCATOR_SOURCE})
 endif() # End Direct3D 12
 
 # common group
@@ -213,8 +225,6 @@ source_group("renderer/${RENDERER_NAME}" FILES ${SPECIFIC_RENDERER_SOURCE})
 source_group("platform" FILES ${PLATFORM_PUBLIC} FILES ${PLATFORM_PRIVATE})
 source_group("platform/${PLATFORM_NAME}" FILES ${SPECIFIC_PLATFORM_SOURCE})
 # third parth group
-source_group("3rd/D3D12Lib" FILES ${D3D12LIB_SOURCE})
-source_group("3rd/D3D12MemoryAllocator" FILES ${D3D12_MEMORY_ALLOCATOR_SOURCE})
 source_group("3rd/MemoryManager" FILES ${MEMORY_MANAGER_SOURCE})
 source_group("3rd/rtm" FILES ${RTM_SOURCE})
 source_group("3rd/stb" FILES ${STB_SOURCE})

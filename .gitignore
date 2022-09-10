@@ -220,4 +220,5 @@ baregrep.exe
 *.udm
 install/
 build*/
-cmake_build/
+cmake-build*/
+.idea

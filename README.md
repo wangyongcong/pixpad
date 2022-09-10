@@ -11,6 +11,13 @@ Dependent 3rd libs:
 ### Windows
 Use CMake (at least 3.3) to configure the build.
 
+### Mac
+Xcode 12 (or later) should use new build system.
+
+```bash
+cmake .. -G Xcode -T buildsystem=12
+```
+
 Sparrow
 ====
 A multi-threading software renderer.

@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
+if(APPLE)
+	set(CMAKE_XCODE_BUILD_SYSTEM 12)
+endif()
 project(pixpad)
 
 set(CMAKE_CXX_STANDARD 17)
