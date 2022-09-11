@@ -29,7 +29,7 @@ void CSpwTilePipeline::draw(const CMesh *mesh, const CMaterial *material)
 		return;
 	}
 	
-	unsigned prim_count = ib.size() / vertex_per_prim;
+	unsigned prim_count = (unsigned)ib.size() / vertex_per_prim;
 	unsigned vert_count = prim_count * vertex_per_prim;
 	unsigned max_prim_per_batch = 12000;
 	unsigned prim_per_batch = std::min(prim_count, max_prim_per_batch);
@@ -43,7 +43,7 @@ void CSpwTilePipeline::draw(const CMesh *mesh, const CMaterial *material)
 	for(unsigned prim_index = 0; prim_index < prim_count; prim_index += prim_per_batch)
 	{
 		// draw primitives
-		for(int i = prim_index; i < prim_per_batch; ++i)
+		for(unsigned i = prim_index; i < prim_per_batch; ++i)
 		{
 			auto i1 = *index_data++;
 			auto i2 = *index_data++;

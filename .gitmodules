@@ -4,3 +4,6 @@
 [submodule "3rd/rtm"]
 	path = 3rd/rtm
 	url = https://github.com/nfrechette/rtm.git
+[submodule "3rd/Imath"]
+	path = 3rd/Imath
+	url = git@github.com:wangyongcong/Imath.git

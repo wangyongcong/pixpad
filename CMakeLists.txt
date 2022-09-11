@@ -74,26 +74,14 @@ if(WIN32)
 	add_definitions("/we4819")
 endif()
 
-# OpenEXR IlmBase
+# IMath lib
 set(BUILD_SHARED_LIBS OFF)
-set(BUILD_ILMBASE_STATIC ON)
-set(NAMESPACE_VERSIONING ON)
-set(ILMBASE_PATH ${3RD_PATH}/openexr/IlmBase)
-set(ILMBASE_CONFIG_PATH ${ILMBASE_PATH}/config CACHE INTERNAL "")
-set(ILMBASE_CONFIG_FILE ${ILMBASE_CONFIG_PATH}/IlmBaseConfig.h CACHE INTERNAL "")
-if (NOT EXISTS ${ILMBASE_CONFIG_FILE})
-	include(${ILMBASE_PATH}/cmake/OpenEXRVersion)
-	include(IlmBaseConf)
-endif()
-include_directories(
-	${ILMBASE_CONFIG_PATH}
-	${ILMBASE_PATH}/Iex
-	${ILMBASE_PATH}/IexMath
-	${ILMBASE_PATH}/Imath
-)
-add_subdirectory(${ILMBASE_PATH}/Iex)
-add_subdirectory(${ILMBASE_PATH}/IexMath)
-add_subdirectory(${ILMBASE_PATH}/Imath)
+set(IMATH_IS_SUBPROJECT ON)
+add_subdirectory(${3RD_PATH}/Imath)
+set(IMATH_PATH ${3RD_PATH}/Imath/src/Imath ${CMAKE_BINARY_DIR}/3rd/Imath/Config)
+
+# set(LIB_IMATH Iex_static IexMath_static Imath_static)
+set(LIB_IMATH Imath)
 
 # RTM lib
 set(RTM_INCLUDE ${3RD_PATH}/rtm/includes)
@@ -121,13 +109,12 @@ add_compile_definitions(
 	$<$<CONFIG:Release>:LOG_SEVERITY_LEVEL=40>
 )
 
-set(LIB_IMATH Iex_static IexMath_static Imath_static)
-
 include_directories(
 	${3RD_PATH}
 	${3RD_INCLUDE_PATH}
     ${3RD_INSTALL_PATH}
     ${SRC_ROOT}
+	${IMATH_PATH}
     ${RTM_INCLUDE}
 )
 set(ENGINE_PATH ${SRC_ROOT}/engine)

@@ -723,7 +723,7 @@ void start_string_logger(size_t buffer_size, bool async, millisecond_t sleep_tim
 		add_log_handler(handler);
 }
 
-static void *_aligned_alloc(size_t alignment, size_t size) {
+static void *stblog_aligned_alloc(size_t alignment, size_t size) {
 	// [Memory returned][ptr to start of memory][aligned memory][extra memory]
 	size_t request_size = size + alignment;
 	void *raw = malloc(request_size + sizeof(void *));
@@ -739,7 +739,7 @@ static void *_aligned_alloc(size_t alignment, size_t size) {
 	return ptr;
 }
 
-static void _aligned_free(void *ptr) {
+static void stblog_aligned_free(void *ptr) {
 	void *raw = *((void **) ptr - 1);
 	free(raw);
 }
@@ -768,11 +768,11 @@ size_t CLogger::get_next_power2(size_t val) {
 // --------------------------------
 	
 void* CLogger::operator new(size_t size) {
-	return _aligned_alloc(alignof(CLogger), size);
+	return stblog_aligned_alloc(alignof(CLogger), size);
 }
 
 void CLogger::operator delete(void* ptr) {
-	_aligned_free(ptr);
+	stblog_aligned_free(ptr);
 }
 
 CLogger::CLogger(size_t size) {
@@ -781,7 +781,7 @@ CLogger::CLogger(size_t size) {
 		size = get_next_power2(size);
 	static_assert(sizeof(LogEvent) % CACHELINE_SIZE == 0, "LogEvent should be fit in cacheline.");
 	size_t buf_size = sizeof(LogEvent) * size;
-	m_event_queue = (LogEvent *) _aligned_alloc(CACHELINE_SIZE, buf_size);
+	m_event_queue = (LogEvent *) stblog_aligned_alloc(CACHELINE_SIZE, buf_size);
 	ASSERT_ALIGNMENT(m_event_queue, CACHELINE_SIZE);
 	m_size_mask = size - 1;
 	for (size_t i = 0; i < size; ++i) {
@@ -805,7 +805,7 @@ CLogger::~CLogger() {
 		LogEvent *log = &m_event_queue[i];
 		log->~LogEvent();
 	}
-	_aligned_free(m_event_queue);
+	stblog_aligned_free(m_event_queue);
 	m_event_queue = nullptr;
 }
 
@@ -899,11 +899,11 @@ void CLogger::close() {
 // --------------------------------
 
 void* CLogHandler::operator new(size_t size) {
-	return _aligned_alloc(alignof(CLogHandler), size);
+	return stblog_aligned_alloc(alignof(CLogHandler), size);
 }
 
 void CLogHandler::operator delete(void* ptr) {
-	_aligned_free(ptr);
+	stblog_aligned_free(ptr);
 }
 
 CLogHandler::CLogHandler()

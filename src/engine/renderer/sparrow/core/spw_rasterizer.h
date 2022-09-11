@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include <ImathExc.h>
 #include <ImathBox.h>
 #include "floatmath.h"
 
@@ -97,8 +96,8 @@ namespace wyc
 		float z = triangle_edge_function(v0, v1, p);
 		float area = x + y + z;
 #ifdef DEBUG
-		if (area == float(0))
-			throw Imath::NullVecExc("Null barycentric vector.");
+		if (area == 0)
+			return vec3f(0, 0, 0);
 #endif			
 		return vec3f(x / area, y / area, z / area);
 	}
