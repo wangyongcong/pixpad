@@ -7,8 +7,9 @@
 #include <atomic>
 #include <assert.h>
 #include <iostream>
-#include "platform_info.h"
-#include "spw_config.h"
+
+#include "renderer/sparrow/thread/platform_info.h"
+#include "renderer/sparrow/spw_config.h"
 
 namespace disruptor
 {
@@ -457,6 +458,3 @@ namespace disruptor
 	}
 
 } // namespace disruptor
-
-#include "unitest.h"
-UNIT_TEST(disruptor_queue)

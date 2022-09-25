@@ -31,14 +31,15 @@
 
 #ifndef IMEMORY_H
 #define IMEMORY_H
+#include <engine.h>
 #include <new>
 
-void* tf_malloc_internal(size_t size, const char *f, int l, const char *sf);
-void* tf_memalign_internal(size_t align, size_t size, const char *f, int l, const char *sf);
-void* tf_calloc_internal(size_t count, size_t size, const char *f, int l, const char *sf);
-void* tf_calloc_memalign_internal(size_t count, size_t align, size_t size, const char *f, int l, const char *sf);
-void* tf_realloc_internal(void* ptr, size_t size, const char *f, int l, const char *sf);
-void  tf_free_internal(void* ptr, const char *f, int l, const char *sf);
+WYCAPI void* tf_malloc_internal(size_t size, const char *f, int l, const char *sf);
+WYCAPI void* tf_memalign_internal(size_t align, size_t size, const char *f, int l, const char *sf);
+WYCAPI void* tf_calloc_internal(size_t count, size_t size, const char *f, int l, const char *sf);
+WYCAPI void* tf_calloc_memalign_internal(size_t count, size_t align, size_t size, const char *f, int l, const char *sf);
+WYCAPI void* tf_realloc_internal(void* ptr, size_t size, const char *f, int l, const char *sf);
+WYCAPI void  tf_free_internal(void* ptr, const char *f, int l, const char *sf);
 
 template <typename T, typename... Args>
 static T* tf_placement_new(void* ptr, Args&&... args)
@@ -86,6 +87,9 @@ static void tf_delete_internal(T* ptr, const char *f, int l, const char *sf)
 #endif
 #ifndef wyc_delete
 #define wyc_delete(ptr) tf_delete_internal(ptr,  __FILE__, __LINE__, __FUNCTION__)
+#endif
+#ifndef wyc_safe_delete
+#define wyc_safe_delete(ptr) do { if(ptr) { wyc_delete(ptr); (ptr) = nullptr; } } while(0)
 #endif
 
 #endif 

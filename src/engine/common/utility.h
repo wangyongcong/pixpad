@@ -45,5 +45,6 @@ namespace wyc
 	const char* format_memory_size(size_t size, unsigned &out_size);
 	const char* format_memory_size(size_t size, float &out_size);
 
+	std::string get_file_ext(std::string file_path);
 } // end of namespace wyc
 

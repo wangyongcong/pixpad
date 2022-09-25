@@ -7,10 +7,17 @@ set(SRC_COMMON
 	${ENGINE_PATH}/common/any_stride_iterator.h
 	${ENGINE_PATH}/common/utility.h
 	${ENGINE_PATH}/common/utility.cpp
+	${ENGINE_PATH}/common/memory_tracking.cpp
 	${ENGINE_PATH}/renderer/image.h
 	${ENGINE_PATH}/renderer/image.cpp
 	${ENGINE_PATH}/renderer/ply.h
 	${ENGINE_PATH}/renderer/ply.cpp
+	${ENGINE_PATH}/renderer/vertex_layout.h
+	${ENGINE_PATH}/renderer/index_buffer.h
+	${ENGINE_PATH}/renderer/vertex_buffer.h
+	${ENGINE_PATH}/renderer/vertex_buffer.cpp
+	${ENGINE_PATH}/renderer/mesh.h
+	${ENGINE_PATH}/renderer/mesh.cpp
 ) 
 
 set(SRC_STB
@@ -42,11 +49,8 @@ set(SRC_CORE
 set(SRC_RENDERER 
 	${SPARROW_PATH}/renderer/clipping.cpp
 	${SPARROW_PATH}/renderer/clipping.h
-	${SPARROW_PATH}/renderer/index_buffer.h
 	${SPARROW_PATH}/renderer/material.cpp
 	${SPARROW_PATH}/renderer/material.h
-	${SPARROW_PATH}/renderer/mesh.cpp
-	${SPARROW_PATH}/renderer/mesh.h
 	${SPARROW_PATH}/renderer/sampler.h
 	${SPARROW_PATH}/renderer/sampler.cpp
 	${SPARROW_PATH}/renderer/metric.cpp
@@ -68,9 +72,6 @@ set(SRC_RENDERER
 	${SPARROW_PATH}/renderer/surface.h
 	${SPARROW_PATH}/renderer/tile.cpp
 	${SPARROW_PATH}/renderer/tile.h
-	${SPARROW_PATH}/renderer/vertex_buffer.cpp
-	${SPARROW_PATH}/renderer/vertex_buffer.h
-	${SPARROW_PATH}/renderer/vertex_layout.h
 	${SPARROW_PATH}/renderer/shader_api.h
 	${SPARROW_PATH}/renderer/shader_api.cpp
 ) 

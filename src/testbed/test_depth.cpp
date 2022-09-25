@@ -14,7 +14,7 @@ public:
 			return;
 		}
 		auto mesh = std::make_shared<wyc::CMesh>();
-		if (!mesh->load_ply(ply_file)) {
+		if (!mesh->load(ply_file)) {
 			return;
 		}
 

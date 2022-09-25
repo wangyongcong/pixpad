@@ -120,6 +120,12 @@ set(RENDERER_PRIVATE
 	renderer/image.cpp
 	renderer/ply.h
 	renderer/ply.cpp
+	renderer/vertex_layout.h
+	renderer/vertex_buffer.h
+	renderer/vertex_buffer.cpp
+	renderer/index_buffer.h
+	renderer/mesh.h
+	renderer/mesh.cpp
 )
 
 set(RENDERER_COMMON_SOURCE
@@ -142,6 +148,74 @@ set(RENDERER_MODULE_SOURCE
 	${RENDERER_PRIVATE}
 	${SPECIFIC_RENDERER_SOURCE}
 )
+
+# ---------------
+# Sparrow 渲染器
+# ---------------
+set(SPARROW_PATH renderer/sparrow)
+
+set(SPARROW_RENDERER_PUBLIC 
+	${SPARROW_PATH}/clipping.h
+	${SPARROW_PATH}/material.h
+	${SPARROW_PATH}/sampler.h
+	${SPARROW_PATH}/metric.h
+	${SPARROW_PATH}/render_command.h
+	${SPARROW_PATH}/render_target.h
+	${SPARROW_PATH}/renderer.h
+	${SPARROW_PATH}/spw_config.h
+	${SPARROW_PATH}/spw_command.h
+	${SPARROW_PATH}/spw_pipeline.h
+	${SPARROW_PATH}/spw_pipeline2.h
+	${SPARROW_PATH}/spw_render_target.h
+	${SPARROW_PATH}/spw_renderer.h
+	${SPARROW_PATH}/spw_rasterizer.h
+	${SPARROW_PATH}/spw_tile.h
+	${SPARROW_PATH}/spw_tile_buffer.h
+	${SPARROW_PATH}/surface.h
+	${SPARROW_PATH}/tile.h
+	${SPARROW_PATH}/shader_api.h
+) 
+
+set(SPARROW_RENDERER_PRIVATE
+	${SPARROW_PATH}/private/clipping.cpp
+	${SPARROW_PATH}/private/material.cpp
+	${SPARROW_PATH}/private/sampler.cpp
+	${SPARROW_PATH}/private/metric.cpp
+	${SPARROW_PATH}/private/render_command.cpp
+	${SPARROW_PATH}/private/renderer.cpp
+	${SPARROW_PATH}/private/spw_command.cpp
+	${SPARROW_PATH}/private/spw_pipeline.cpp
+	${SPARROW_PATH}/private/spw_pipeline2.cpp
+	${SPARROW_PATH}/private/spw_render_target.cpp
+	${SPARROW_PATH}/private/spw_renderer.cpp
+	${SPARROW_PATH}/private/spw_rasterizer.cpp
+	${SPARROW_PATH}/private/spw_tile.cpp
+	${SPARROW_PATH}/private/surface.cpp
+	${SPARROW_PATH}/private/tile.cpp
+	${SPARROW_PATH}/private/shader_api.cpp
+)
+
+set(SPARROW_THREAD 
+	# ${SPARROW_PATH}/thread/atomicops.h
+	${SPARROW_PATH}/thread/disruptor.cpp
+	${SPARROW_PATH}/thread/disruptor.h
+	# ${SPARROW_PATH}/thread/folly_queue.h
+	# ${SPARROW_PATH}/thread/lockfree_rb_q.h
+	# ${SPARROW_PATH}/thread/mpmc_queue.h
+	${SPARROW_PATH}/thread/platform_info.cpp
+	${SPARROW_PATH}/thread/platform_info.h
+	# ${SPARROW_PATH}/thread/readerwriterqueue.h
+	${SPARROW_PATH}/thread/ring_queue.h
+	${SPARROW_PATH}/thread/spin_lock.h
+	# ${SPARROW_PATH}/thread/spsc_queue.h
+) 
+
+source_group(renderer/sparrow/public FILES ${SPARROW_RENDERER_PUBLIC})
+source_group(renderer/sparrow/private FILES ${SPARROW_RENDERER_PRIVATE})
+source_group(renderer/sparrow/thread FILES ${SPARROW_THREAD}) 
+
+set(SPARROW_MODULE ${SPARROW_RENDERER_PUBLIC} ${SPARROW_RENDERER_PRIVATE} ${SPARROW_THREAD})
+set(RENDERER_MODULE_SOURCE ${RENDERER_MODULE_SOURCE} ${SPARROW_MODULE})
 
 # ---------------
 # 设置第三方库依赖

@@ -22,49 +22,7 @@ namespace wyc
 		PLY_LIST,
 	};
 
-	class PlyProperty
-	{
-	public:
-		PlyProperty()
-		: next(nullptr)
-		, type(PLY_NULL)
-		, size(0)
-		{
-		}
-		PlyProperty *next;
-		std::string name;
-		PLY_PROPERTY_TYPE type;
-		unsigned size;
-	};
-
-	class PlyElement
-	{
-	public:
-		PlyElement()
-			: next(nullptr)
-			, count(0)
-			, size(0)
-			, properties(nullptr)
-			, is_variant(false)
-			, chunk_size(0)
-		{
-		}
-		~PlyElement()
-		{
-			while (properties) {
-				auto to_del = properties;
-				properties = properties->next;
-				delete to_del;
-			}
-		}
-		PlyElement *next;
-		std::string name;
-		unsigned count;
-		unsigned size;
-		PlyProperty *properties;
-		bool is_variant;
-		std::streamoff chunk_size;
-	};
+	class PlyElement;
 
 	class CPlyFile
 	{
@@ -77,11 +35,7 @@ namespace wyc
 		void detail(std::ostream &out) const;
 
 		// read vertex
-		inline unsigned vertex_count() const {
-			auto *elem = _find_element("vertex");
-			return elem ? elem->count : 0;
-
-		}
+		unsigned vertex_count() const;
 		inline bool has_position() const {
 			return _find_vector3(PLY_FLOAT, "x", "y", "z");
 		}

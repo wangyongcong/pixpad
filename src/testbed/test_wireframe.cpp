@@ -23,7 +23,7 @@ public:
 		}
 
 		auto mesh = std::make_shared<CMesh>();
-		if (!mesh->load_ply(ply_file)) {
+		if (!mesh->load(ply_file)) {
 			return;
 		}
 

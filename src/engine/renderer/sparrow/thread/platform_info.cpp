@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #endif
 
-#include "spw_config.h"
+#include "renderer/sparrow/spw_config.h"
 
 namespace wyc
 {

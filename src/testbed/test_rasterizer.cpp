@@ -58,7 +58,7 @@ public:
 		}
 		log_info("rasterizer type: %d", m_type);
 		m_mesh = std::make_shared<wyc::CMesh>();
-		if (!m_mesh->load_ply(ply_file)) {
+		if (!m_mesh->load(ply_file)) {
 			return false;
 		}
 		setup_viewport();

@@ -22,6 +22,7 @@
  * under the License.
 */
 
+#include <engine.h>
 #include <stdlib.h>
 #include <memory.h>
 
@@ -39,7 +40,7 @@
 // Just include the cpp here so we don't have to add it to the all projects
 #include "MemoryManager/mmgr.h"
 
-void* tf_memalign_internal(size_t align, size_t size, const char *f, int l, const char *sf)
+WYCAPI void* tf_memalign_internal(size_t align, size_t size, const char *f, int l, const char *sf)
 {
 	void* pMemAlign = mmgrAllocator(f, l, sf, m_alloc_malloc, align, size);
 
@@ -47,7 +48,7 @@ void* tf_memalign_internal(size_t align, size_t size, const char *f, int l, cons
 	return pMemAlign;
 }
 
-void* tf_calloc_memalign_internal(size_t count, size_t align, size_t size, const char *f, int l, const char *sf)
+WYCAPI void* tf_calloc_memalign_internal(size_t count, size_t align, size_t size, const char *f, int l, const char *sf)
 {
 	size = ALIGN_TO(size, align);
 
@@ -57,17 +58,17 @@ void* tf_calloc_memalign_internal(size_t count, size_t align, size_t size, const
 	return pMemAlign;
 }
 
-void* tf_malloc_internal(size_t size, const char* f, int l, const char* sf)
+WYCAPI void* tf_malloc_internal(size_t size, const char* f, int l, const char* sf)
 {
 	return tf_memalign_internal(MIN_ALLOC_ALIGNMENT, size, f, l, sf);
 }
 
-void* tf_calloc_internal(size_t count, size_t size, const char* f, int l, const char* sf)
+WYCAPI void* tf_calloc_internal(size_t count, size_t size, const char* f, int l, const char* sf)
 {
 	return tf_calloc_memalign_internal(count, MIN_ALLOC_ALIGNMENT, size, f, l, sf);
 }
 
-void* tf_realloc_internal(void* ptr, size_t size, const char *f, int l, const char *sf) 
+WYCAPI void* tf_realloc_internal(void* ptr, size_t size, const char *f, int l, const char *sf) 
 {
 	void* pRealloc = mmgrReallocator(f, l, sf, m_alloc_realloc, size, ptr);
 
@@ -75,7 +76,7 @@ void* tf_realloc_internal(void* ptr, size_t size, const char *f, int l, const ch
 	return pRealloc;
 }
 
-void tf_free_internal(void* ptr, const char *f, int l, const char *sf)
+WYCAPI void tf_free_internal(void* ptr, const char *f, int l, const char *sf)
 {
 	mmgrDeallocator(f, l, sf, m_alloc_free, ptr);
 }

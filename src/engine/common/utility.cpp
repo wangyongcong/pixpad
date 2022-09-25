@@ -163,4 +163,14 @@ namespace wyc
 		return s_memory_unit[i];
 	}
 
+	std::string get_file_ext(std::string file_path)
+	{
+		std::string ext;
+		size_t pos = file_path.rfind(".");
+		if(pos != std::string::npos)
+		{
+			ext = file_path.substr(pos + 1);
+		}
+		return ext;
+	}
 } // end of namespace wyc

@@ -1,14 +1,19 @@
+#include "engine.h"
+#include "common/log_macros.h"
+#include "common/memory.h"
 #include "game/game_application.h"
 #include "game/game_instance.h"
-#include "rtm/types.h"
+// #include "rtm/types.h"
+#include "renderer/mesh.h"
+#include <sstream>
 
 using namespace wyc;
-using namespace rtm;
+// using namespace rtm;
 
 struct Vertex
 {
-	float3f position;
-	float4f color;
+	vec3f position;
+	vec4f color;
 };
 
 void GenerateTriangleVertex(float r)
@@ -33,14 +38,25 @@ void GenerateTriangleVertex(float r)
 class D3DStartDemo : public IGameInstance
 {
 public:
-	
+	D3DStartDemo()
+		: m_mesh(nullptr)
+	{
+		
+	}
+
 	void initialize() override
 	{
+		m_mesh = wyc_new(CMesh);
+		if(!m_mesh->load("assets/icosahedron.ply"))
+		{
+			log_error("Can't load mesh");
+		}
 	}
 
 
 	void exit() override
 	{
+		wyc_safe_delete(m_mesh);
 	}
 
 
@@ -53,6 +69,8 @@ public:
 	{
 	}
 
+private:
+	CMesh *m_mesh;
 };
 
 APPLICATION_MAIN(D3DStartDemo)

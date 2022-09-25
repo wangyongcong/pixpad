@@ -118,30 +118,31 @@ include_directories(
     ${RTM_INCLUDE}
 )
 set(ENGINE_PATH ${SRC_ROOT}/engine)
-set(SPARROW_PATH ${SRC_ROOT}/engine/renderer/sparrow)
+#set(SPARROW_PATH ${SRC_ROOT}/engine/renderer/sparrow)
 
 # setup targets
-add_subdirectory(src/sparrow)
-add_dependencies(sparrow ${LIB_IMATH})
-set(SPARROW_INCLUDE_DIR 
-	${ENGINE_PATH}
-	${ENGINE_PATH}/common
-	${ENGINE_PATH}/mathex
-	${SPARROW_PATH}
-	${SPARROW_PATH}/core
-	${SPARROW_PATH}/renderer
-	${SPARROW_PATH}/thread
-)
+#add_subdirectory(src/sparrow)
+#add_dependencies(sparrow ${LIB_IMATH})
+#set(SPARROW_INCLUDE_DIR 
+#	${ENGINE_PATH}
+#	${ENGINE_PATH}/common
+#	${ENGINE_PATH}/mathex
+#	${ENGINE_PATH}/renderer
+#	${SPARROW_PATH}
+#	${SPARROW_PATH}/core
+#	${SPARROW_PATH}/renderer
+#	${SPARROW_PATH}/thread
+#)
 # include_directories(${SPARROW_INCLUDE_DIR})
 
 # unit test
-add_subdirectory(src/testbed)
+# add_subdirectory(src/testbed)
 
 # engine
 add_subdirectory(src/engine)
 
 # pixpad
-add_subdirectory(src/pixpad)
+# add_subdirectory(src/pixpad)
 
 # demo
 add_subdirectory(src/demo/d3d_start)

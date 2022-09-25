@@ -3,9 +3,9 @@
 #include <cassert>
 #include <atomic>
 #include <vector>
-#include "spw_config.h"
-#include "util_macros.h"
-#include "platform_info.h"
+#include "renderer/sparrow/spw_config.h"
+#include "common/util_macros.h"
+#include "renderer/sparrow/thread/platform_info.h"
 
 namespace wyc
 {
@@ -160,6 +160,3 @@ namespace wyc
 	};
 
 } // namespace wyc
-
-#include "unitest.h"
-UNIT_TEST(ring_queue)

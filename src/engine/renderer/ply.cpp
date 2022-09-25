@@ -5,10 +5,55 @@
 #include <unordered_map>
 #include <cassert>
 #include "common/utility.h"
+#include "common/memory.h"
 #include "stb/stb_log.h"
 
 namespace wyc
 {
+	class PlyProperty
+	{
+	public:
+		PlyProperty()
+		: next(nullptr)
+		, type(PLY_NULL)
+		, size(0)
+		{
+		}
+		PlyProperty *next;
+		std::string name;
+		PLY_PROPERTY_TYPE type;
+		unsigned size;
+	};
+
+	class PlyElement
+	{
+	public:
+		PlyElement()
+			: next(nullptr)
+			, count(0)
+			, size(0)
+			, properties(nullptr)
+			, is_variant(false)
+			, chunk_size(0)
+		{
+		}
+		~PlyElement()
+		{
+			while (properties) {
+				auto to_del = properties;
+				properties = properties->next;
+				wyc_delete(to_del);
+			}
+		}
+		PlyElement *next;
+		std::string name;
+		unsigned count;
+		unsigned size;
+		PlyProperty *properties;
+		bool is_variant;
+		std::streamoff chunk_size;
+	};
+
 	const char* PLY_TAGS[] = {
 		"comment",
 		"format",
@@ -24,7 +69,6 @@ namespace wyc
 		PROPERTY,
 		END_HEADER,
 	};
-
 
 	class IPlyReader
 	{
@@ -323,8 +367,6 @@ namespace wyc
 		unsigned *m_count;
 	};
 
-	
-
 	void CPlyFile::read_header(std::ostream &out, const std::string &path)
 	{
 		std::ifstream fin(path, std::ios_base::in);
@@ -359,7 +401,7 @@ namespace wyc
 		while (m_elements) {
 			auto to_del = m_elements;
 			m_elements = m_elements->next;
-			delete to_del;
+			wyc_delete(to_del);
 		}
 	}
 
@@ -399,6 +441,12 @@ namespace wyc
 				out << ")" << std::endl;
 			}
 		}
+	}
+
+	unsigned CPlyFile::vertex_count() const
+	{
+		auto *elem = _find_element("vertex");
+		return elem ? elem->count : 0;
 	}
 
 	const PlyElement* CPlyFile::_find_element(const char *elem_name) const {
@@ -789,10 +837,12 @@ namespace wyc
 			m_error = PLY_INVALID_FILE;
 			return false;
 		}
-		unsigned count;
 //		constexpr auto max_size = std::numeric_limits<std::streamsize>::max();
 		if (m_elements)
+		{
 			_clear();
+		}
+		unsigned count = 0;
 		PlyElement *cur_elem = nullptr;
 		PlyElement **tail = &m_elements;
 		PlyProperty **prop_tail = nullptr;
@@ -839,7 +889,7 @@ namespace wyc
 				if (line.fail()) 
 					continue;
 				if (!value.empty() && count) {
-					cur_elem = new PlyElement;
+					cur_elem = wyc_new(PlyElement);
 					cur_elem->count = count;
 					cur_elem->name = value;
 					*tail = cur_elem;
@@ -853,7 +903,7 @@ namespace wyc
 				line >> value;
 				if (line.fail() || value.empty())
 					continue;
-				PlyProperty *prop = new PlyProperty;
+				PlyProperty *prop = wyc_new(PlyProperty);
 				*prop_tail = prop;
 				prop_tail = &prop->next;
 				if (value == "list") {
