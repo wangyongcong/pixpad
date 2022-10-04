@@ -11,9 +11,9 @@ namespace wyc
 
 	struct D3D12GpuInfo : GpuInfo
 	{
-		D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL(0);
-		D3D12_FEATURE_DATA_D3D12_OPTIONS featureData;
-		D3D12_FEATURE_DATA_D3D12_OPTIONS1 featureData1;
+		D3D_FEATURE_LEVEL feature_level = D3D_FEATURE_LEVEL(0);
+		D3D12_FEATURE_DATA_D3D12_OPTIONS feature_data;
+		D3D12_FEATURE_DATA_D3D12_OPTIONS1 feature_data1;
 	};
 
 	enum class ERenderDeviceState : uint8_t

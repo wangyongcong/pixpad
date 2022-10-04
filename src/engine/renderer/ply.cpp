@@ -77,7 +77,7 @@ namespace wyc
 			: next(nullptr)
 		{
 		}
-		virtual ~IPlyReader() {}
+		virtual ~IPlyReader() = default;
 		virtual bool operator() (std::istream &in) = 0;
 		virtual void read_more(unsigned sz) {};
 		IPlyReader *next;
@@ -88,7 +88,7 @@ namespace wyc
 		auto iter = readers;
 		while (iter) {
 			auto _next = iter->next;
-			delete iter;
+			wyc_delete(iter);
 			iter = _next;
 		}
 	};
@@ -100,11 +100,11 @@ namespace wyc
 			: m_size(sz)
 		{
 		}
-		virtual bool operator() (std::istream &in) override {
+		bool operator() (std::istream &in) override {
 			in.ignore(m_size);
 			return bool(in);
 		}
-		virtual void read_more(unsigned sz) override {
+		void read_more(unsigned sz) override {
 			m_size += sz;
 		}
 	private:
@@ -120,12 +120,12 @@ namespace wyc
 			m_out_buf = (char*)(out_buf + offset);
 			m_size = sizeof(float) * count;
 		}
-		virtual bool operator() (std::istream &in) override {
+		bool operator() (std::istream &in) override {
 			in.read(m_out_buf, m_size);
 			m_out_buf += m_stride;
 			return bool(in);
 		}
-		virtual void read_more(unsigned count) override {
+		void read_more(unsigned count) override {
 			m_size += sizeof(float) * count;
 		}
 	private:
@@ -146,7 +146,8 @@ namespace wyc
 			m_out_buf = (char*)(out_buf + offset);
 			m_max_value = float((1ul << (elem_size * 8)) - 1);
 		}
-		virtual bool operator() (std::istream &in) override {
+		bool operator() (std::istream &in) override
+		{
 			unsigned v = 0;
 			float *out = (float*)m_out_buf;
 			for (uint8_t i = 0; i < m_count; ++i)
@@ -157,7 +158,8 @@ namespace wyc
 			m_out_buf += m_stride;
 			return bool(in);
 		}
-		virtual void read_more(unsigned count) override {
+		void read_more(unsigned count) override
+		{
 			m_count += count;
 		}
 	private:
@@ -177,7 +179,8 @@ namespace wyc
 		{
 		}
 
-		virtual bool operator() (std::istream &in) override {
+		bool operator() (std::istream &in) override
+		{
 			unsigned length = 0;
 			assert(m_bytes_for_length <= sizeof(length));
 			in.read((char*)&length, m_bytes_for_length);
@@ -204,7 +207,8 @@ namespace wyc
 			*m_count = 0;
 		}
 
-		virtual bool operator() (std::istream &in) override {
+		bool operator() (std::istream &in) override
+		{
 			if (*m_count + 3 > m_buf_size)
 				return false;
 			unsigned length = 0;
@@ -252,7 +256,8 @@ namespace wyc
 			assert(m_bytes_for_length <= sizeof(unsigned));
 		}
 
-		virtual bool operator() (std::istream &in) override {
+		bool operator() (std::istream &in) override
+		{
 			unsigned length = 0;
 			in.read((char*)&length, m_bytes_for_length);
 			if (length == 3) {
@@ -283,7 +288,8 @@ namespace wyc
 			*m_count = 0;
 		}
 
-		virtual bool operator() (std::istream &in) override {
+		bool operator() (std::istream &in) override
+		{
 			unsigned indices_count = 0;
 			in.read((char*)&indices_count, m_bytes_for_length);
 			int k = 0, p1 = -1, p2 = -1;
@@ -344,7 +350,8 @@ namespace wyc
 			assert(m_element_size <= sizeof(int));
 		}
 
-		virtual bool operator() (std::istream &in) override {
+		bool operator() (std::istream &in) override
+		{
 			unsigned length = 0;
 			in.read((char*)&length, m_bytes_for_length);
 			int k = 0, c = 0;
@@ -557,60 +564,62 @@ namespace wyc
 		auto elem = _locate_element("vertex");
 		if (!elem)
 			return false;
-		std::string tok;
-		size_t beg_pos, end_pos;
+		// std::string tok;
 		PLY_PROPERTY_TYPE prev_type = PLY_NULL;
-		unsigned prev_size = 0, prev_offset = 0, offset;
 		IPlyReader *readers = nullptr, *r = nullptr;
 		IPlyReader **tail = &readers;
-		// split tokens
-		std::istringstream ss(layout);
-		std::vector<std::string> attrs;
-		while (std::getline(ss, tok, ',')) {
-			attrs.push_back(tok);
-		}
-		std::vector<std::string>::iterator beg, end = attrs.end();
+		unsigned prev_offset = 0, prev_size = 0;
+		StringSplitter splitter(layout, ',');
 		for (auto prop = elem->properties; prop; prop = prop->next)
 		{
 			if (prop->type == PLY_LIST) {
-				r = new CPlyIgnoreList(prop->size);
+				r = wyc_new(CPlyIgnoreList, prop->size);
 				*tail = r;
 				tail = &r->next;
 				prev_type = PLY_LIST;
 				continue;
 			}
-			offset = 0;
-			beg_pos = end_pos = 0;
-			for (beg = attrs.begin(); beg != end && *beg != prop->name; ++beg, ++offset);
-			if (beg != end) {
+			bool is_output_prop = false;
+			unsigned prop_offset = 0;
+			for (auto iter : splitter)
+			{
+				if(prop->name == iter)
+				{
+					is_output_prop = true;
+					break;
+				}
+				prop_offset += 1;
+			}
+			if (is_output_prop)
+			{
 				if (prop->type == PLY_FLOAT) {
-					if (prev_type == prop->type && prev_size == prop->size && offset == prev_offset + 1)
+					if (prev_type == prop->type && prev_size == prop->size && prop_offset == prev_offset + 1)
 					{
 						r->read_more(1);
 						prev_offset += 1;
 					}
 					else {
-						r = new CPlyReadFloat(1, vertex, offset, stride);
+						r = wyc_new(CPlyReadFloat, 1, vertex, prop_offset, stride);
 						*tail = r;
 						tail = &r->next;
 						prev_type = prop->type;
 						prev_size = prop->size;
-						prev_offset = offset;
+						prev_offset = prop_offset;
 					}
 				}
 				else if (prop->type == PLY_INTEGER) {
-					if (prev_type == prop->type && prev_size == prop->size && offset == prev_offset + 1)
+					if (prev_type == prop->type && prev_size == prop->size && prop_offset == prev_offset + 1)
 					{
 						r->read_more(1);
 						prev_offset += 1;
 					}
 					else {
-						r = new CPlyReadInteger(1, prop->size, vertex, offset, stride);
+						r = wyc_new(CPlyReadInteger, 1, prop->size, vertex, prop_offset, stride);
 						*tail = r;
 						tail = &r->next;
 						prev_type = prop->type;
 						prev_size = prop->size;
-						prev_offset = offset;
+						prev_offset = prop_offset;
 					}
 				}
 				else {
@@ -623,13 +632,14 @@ namespace wyc
 					r->read_more(prop->size);
 				}
 				else {
-					r = new CPlyIgnoreSize(prop->size);
+					r = wyc_new(CPlyIgnoreSize, prop->size);
 					*tail = r;
 					tail = &r->next;
 					prev_type = PLY_NULL;
 				}
 			}
-		}
+		} // for property
+
 		if (elem->count < count)
 			count = elem->count;
 		unsigned c = 0;
@@ -674,7 +684,7 @@ namespace wyc
 			if (prop->name == "vertex_indices") {
 				IPlyReader *r;
 				if (ignore_size) {
-					r = new CPlyIgnoreSize(ignore_size);
+					r = wyc_new(CPlyIgnoreSize, ignore_size);
 					tail = &r->next;
 					ignore_size = 0;
 				}
@@ -682,15 +692,15 @@ namespace wyc
 				unsigned sz2 = (prop->size >> 8) & 0xFF;
 				if (vertex_indices) {
 					if (is_tristrip)
-						r = new CPlyReadTristrip(sz1, sz2, vertex_indices, count, &count);
+						r = wyc_new(CPlyReadTristrip, sz1, sz2, vertex_indices, count, &count);
 					else
-						r = new CPlyReadFace(sz1, sz2, vertex_indices, count, &count);
+						r = wyc_new(CPlyReadFace, sz1, sz2, vertex_indices, count, &count);
 				}
 				else {
 					if (is_tristrip)
-						r = new CPlyCountTristrip(sz1, sz2, &count);
+						r = wyc_new(CPlyCountTristrip, sz1, sz2, &count);
 					else
-						r = new CPlyCountFace(sz1, sz2, &count);
+						r = wyc_new(CPlyCountFace, sz1, sz2, &count);
 				}
 				*tail = r;
 				tail = &r->next;
@@ -698,12 +708,12 @@ namespace wyc
 			}
 			else if(prop->type == PLY_LIST) {
 				if (ignore_size) {
-					auto r = new CPlyIgnoreSize(ignore_size);
+					auto r = wyc_new(CPlyIgnoreSize, ignore_size);
 					*tail = r;
 					tail = &r->next;
 					ignore_size = 0;
 				}
-				auto r = new CPlyIgnoreList(prop->size);
+				auto r = wyc_new(CPlyIgnoreList, prop->size);
 				*tail = r;
 				tail = &r->next;
 			}
@@ -714,7 +724,7 @@ namespace wyc
 		// last ignore
 		if (ignore_size)
 		{
-			auto r = new CPlyIgnoreSize(ignore_size);
+			auto r = wyc_new(CPlyIgnoreSize, ignore_size);
 			*tail = r;
 			tail = &r->next;
 		}
@@ -971,11 +981,11 @@ namespace wyc
 				s += prop->size;
 			else {
 				if(s > 0) {
-					IPlyReader *r1 = new CPlyIgnoreSize(s);
+					IPlyReader *r1 = wyc_new(CPlyIgnoreSize, s);
 					*tail = r1;
 					tail = &r1->next;
 				}
-				IPlyReader *r2 = new CPlyIgnoreList(prop->size);
+				IPlyReader *r2 = wyc_new(CPlyIgnoreList, prop->size);
 				*tail = r2;
 				tail = &r2->next;
 				s = 0;

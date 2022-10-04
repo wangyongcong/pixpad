@@ -2,6 +2,8 @@
 #include <type_traits>
 #include <ImathVec.h>
 #include <ImathColor.h>
+#include "tinyimageformat/tinyimageformat_base.h"
+#include "tinyimageformat/tinyimageformat_query.h"
 
 namespace wyc
 {
@@ -24,8 +26,29 @@ namespace wyc
 	struct VertexAttribute
 	{
 		EAttributeUsage usage;
-		uint8_t component;
+		TinyImageFormat format;
+		uint8_t channel:4;
+		bool is_float:1;
+		uint8_t size;
+		uint8_t stream_index;
 		uint16_t offset;
+		
+		VertexAttribute(EAttributeUsage usage, TinyImageFormat format, uint8_t stream_index=0)
+			: usage(usage), stream_index(stream_index), offset(0)
+		{
+			set_format(format);
+		}
+
+		void set_format(TinyImageFormat format)
+		{
+			this->format = format;
+			uint32_t ch = TinyImageFormat_ChannelCount(format);
+			uint32_t sz = TinyImageFormat_BitSizeOfBlock(format) / 8;
+			assert(ch < 16 && sz < 256);
+			channel = ch;
+			is_float = TinyImageFormat_IsFloat(format);
+			size = (uint8_t)sz;
+		}
 	};
 
 } // namespace wyc

@@ -2,6 +2,7 @@
 #include <locale>
 #include <codecvt>
 #include "utility.h"
+#include "memory.h"
 
 namespace wyc
 {
@@ -89,7 +90,7 @@ namespace wyc
 #endif
 	}
 
-	bool utf8_to_wstr(const std::string in_str, std::wstring& out_str)
+	bool utf8_to_wstr(const std::string& in_str, std::wstring& out_str)
 	{
 		if (in_str.size() < 1)
 		{
@@ -119,7 +120,7 @@ namespace wyc
 #endif
 	}
 
-	bool ansi_to_wstr(const std::string in_str, std::wstring& out_str)
+	bool ansi_to_wstr(const std::string& in_str, std::wstring& out_str)
 	{
 #if defined(WIN32) || defined(WINDOWS)
 		if (in_str.size() < 1)
@@ -172,5 +173,74 @@ namespace wyc
 			ext = file_path.substr(pos + 1);
 		}
 		return ext;
+	}
+
+	StringSplitter::StringSplitter(const std::string &str, char sep)
+	{
+		unsigned token_count = (unsigned)std::count(str.begin(), str.end(), sep) + 1;
+		m_token_list = (const char**)wyc_malloc(sizeof(char*) * token_count);
+
+		unsigned len = (unsigned) str.size();
+		m_buff = (char*)wyc_malloc(len + 1);
+		memcpy(m_buff, str.data(), len);
+		m_buff[len] = 0;
+
+		unsigned index = 0;
+		char* tok = m_buff;
+		for(char* iter = m_buff, *end = m_buff + len; iter != end; ++iter)
+		{
+			if(*iter == sep)
+			{
+				if(iter != tok)
+				{
+					m_token_list[index++] = tok;
+				}
+				tok = iter + 1; 
+				*iter = 0;
+			}
+		}
+		if(tok < m_buff + len)
+		{
+			m_token_list[index++] = tok;
+		}
+		m_count = index;
+	}
+
+	StringSplitter::~StringSplitter()
+	{
+		if(m_token_list)
+		{
+			wyc_free(m_token_list);
+			m_token_list = nullptr;
+		}
+		if(m_buff)
+		{
+			wyc_free(m_buff);
+			m_buff = nullptr;
+		}
+	}
+
+	StringSplitter::StringSplitter(StringSplitter&& other) noexcept
+		: m_token_list(other.m_token_list)
+		, m_buff(other.m_buff)
+		, m_count(other.m_count)
+	{
+		other.m_token_list = nullptr;
+		other.m_buff = nullptr;
+		other.m_count = 0;
+	}
+
+	StringSplitter& StringSplitter::operator=(StringSplitter&& other) noexcept
+	{
+		if(this != &other)
+		{
+			m_token_list = other.m_token_list;
+			m_buff = other.m_buff;
+			m_count = other.m_count;
+			other.m_token_list = nullptr;
+			other.m_buff = nullptr;
+			other.m_count = 0;
+		}
+		return *this;
 	}
 } // end of namespace wyc

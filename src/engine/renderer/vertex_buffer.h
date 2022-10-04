@@ -2,8 +2,10 @@
 #include <cstdint>
 #include <iterator>
 #include <cassert>
+#include <bitset>
 #include <ImathVec.h>
 #include "common/any_stride_iterator.h"
+#include "common/util_macros.h"
 #include "vertex_layout.h"
 
 namespace wyc
@@ -74,117 +76,170 @@ namespace wyc
 
 	class CVertexBuffer
 	{
+		DISALLOW_COPY_MOVE_AND_ASSIGN(CVertexBuffer);
 	public:
 		CVertexBuffer();
-		CVertexBuffer(const CVertexBuffer&) = delete;
-		CVertexBuffer& operator = (const CVertexBuffer&) = delete;
 		~CVertexBuffer();
-
-		void resize(unsigned vertex_count);
+		/**
+		 * \brief Clear vertex layout and data.
+		 */
 		void clear();
-		
-		void set_attribute(EAttributeUsage usage, uint8_t component);
+		/**
+		 * \brief Resize vertex buffer. Seal vertex layout and allocate memory for vertex data.
+		 * \param vertex_count Count of vertex
+		 */
+		void resize(unsigned vertex_count);
+		/**
+		 * \brief Setup vertex layout
+		 * \param usage Vertex attribute usage
+		 * \param format Attribute data format
+		 * \param stream_index Attribute data is store in which array. Data may be save as AOS or SOA
+		 */
+		void set_attribute(EAttributeUsage usage, TinyImageFormat format, uint8_t stream_index=0);
 		CAttribArray get_attribute(EAttributeUsage usage);
 		CConstAttribArray get_attribute(EAttributeUsage usage) const;
-		inline bool has_attribute(EAttributeUsage usage) const {
-			return m_attr_tbl[usage] != nullptr;
+
+		bool has_attribute(EAttributeUsage usage) const
+		{
+			return m_attr_mask[(int)usage];
 		}
 
 		typedef CAnyStrideIterator<float, CAnyReader> const_iterator;
 		typedef CAnyStrideIterator<float, CAnyAccessor&> iterator;
-		inline iterator begin()
+
+		iterator begin()
 		{
 			return{ m_data, m_vert_size };
 		}
-		inline iterator end()
+
+		iterator end()
 		{
-			return{ m_data + m_vert_size * m_vert_cnt };
+			return{ m_data + m_data_size };
 		}
-		inline const_iterator begin() const
+
+		const_iterator begin() const
 		{
 			return{ m_data, m_vert_size };
 		}
-		inline const_iterator end() const
+
+		const_iterator end() const
 		{
-			return{ m_data + m_vert_size * m_vert_cnt };
+			return{ m_data + m_data_size };
 		}
 
-		//class CStreamIterator : public CAnyStrideIterator<float>
-		//{
-		//public:
-		//	CStreamIterator() : CAnyStrideIterator()
-		//	{
-		//	}
-		//	CStreamIterator(void *beg, size_t stride = 0) 
-		//		: CAnyStrideIterator(beg, stride)
-		//	{
-		//	}
-		//	inline const float* operator * () const
-		//	{
-		//		return (float*)(m_cursor);
-		//	}
-		//};
-		//inline CStreamIterator stream_begin() const
-		//{
-		//	return{ m_data, m_vert_size };
-		//}
-		//inline CStreamIterator stream_end() const
-		//{
-		//	return{ m_data + m_vert_size * m_vert_cnt };
-		//}
-
-		inline float* get_buffer() 
+		float* get_buffer() 
 		{
 			return reinterpret_cast<float*>(m_data);
 		}
-		inline const float* get_buffer() const 
+
+		const float* get_buffer() const 
 		{
 			return reinterpret_cast<const float*>(m_data);
 		}
-		inline size_t size() const
+
+		size_t size() const
 		{
-			return m_vert_cnt;
-		}
-		inline uint16_t vertex_size() const
-		{
-			return m_vert_size;
-		}
-		inline uint16_t vertex_component() const 
-		{
-			return m_vert_componet;
+			return m_vert_count;
 		}
 
-		inline void* attrib_stream(EAttributeUsage usage)
-		{
-			assert(m_attr_tbl[usage]);
-			return m_data + m_attr_tbl[usage]->offset;
-		}
-		inline const void* attrib_stream(EAttributeUsage usage) const
-		{
-			assert(m_attr_tbl[usage]);
-			return m_data + m_attr_tbl[usage]->offset;
-		}
-		inline size_t attrib_stride(EAttributeUsage usage) const 
+		uint16_t vertex_size() const
 		{
 			return m_vert_size;
 		}
-		inline size_t attrib_offset(EAttributeUsage usage) const
+
+		uint16_t vertex_component() const 
 		{
-			assert(m_attr_tbl[usage]);
-			return m_attr_tbl[usage]->offset;
+			assert(m_is_float && "Vertex is not float component");
+			return m_vert_size / sizeof(float);
 		}
-		inline size_t attrib_component(EAttributeUsage usage) const {
-			assert(m_attr_tbl[usage]);
-			return m_attr_tbl[usage]->component;
+
+		void* attrib_stream(EAttributeUsage usage)
+		{
+			auto va = find_attribute_impl(usage);
+			if (!va) return nullptr;
+			auto& va_array = m_attr_stream[va->stream_index];
+			return va_array.data + va->offset;
+		}
+
+		const void* attrib_stream(EAttributeUsage usage) const
+		{
+			auto va = find_attribute_impl(usage);
+			if (!va) return nullptr;
+			auto& va_array = m_attr_stream[va->stream_index];
+			return va_array.data + va->offset;
+		}
+
+		size_t attrib_stride(EAttributeUsage usage) const 
+		{
+			auto va = find_attribute_impl(usage);
+			return va ? va->size : 0;
+		}
+
+		size_t attrib_offset(EAttributeUsage usage) const
+		{
+			auto va = find_attribute_impl(usage);
+			return va ? va->offset : 0;
+		}
+
+		size_t attrib_component(EAttributeUsage usage) const
+		{
+			auto va = find_attribute_impl(usage);
+			return (va && va->is_float) ? va->channel : 0;
+		}
+
+		const VertexAttribute* find_attribute(EAttributeUsage usage) const
+		{
+			return find_attribute_impl(usage);
 		}
 
 	protected:
 		char *m_data;
 		size_t m_data_size;
-		size_t m_vert_cnt;
+		size_t m_vert_count;
+		// vertex size in byte
 		uint16_t m_vert_size;
-		uint16_t m_vert_componet;
-		VertexAttribute* m_attr_tbl[ATTR_MAX_COUNT];
+		// attribute layout is setup
+		bool m_is_sealed;
+		// if all attributes are float data
+		bool m_is_float;
+
+		struct VertexAttributeLinkedNode : VertexAttribute
+		{
+			VertexAttributeLinkedNode* linked_next;
+			VertexAttributeLinkedNode* stream_next;
+
+			VertexAttributeLinkedNode(EAttributeUsage usage, TinyImageFormat format, uint8_t stream_index)
+				: VertexAttribute(usage, format, stream_index)
+				, linked_next(nullptr), stream_next(nullptr)
+			{
+			}
+		};
+		// attribute linked list
+		std::bitset<256> m_attr_mask;
+		VertexAttributeLinkedNode* m_attr_list;
+		VertexAttributeLinkedNode** m_attr_list_tail;
+
+		struct VertexAttribteStream
+		{
+			char* data;
+			size_t size;
+			// attribute stride in byte
+			unsigned stride; 
+			// attribute linked list
+			unsigned attr_count;
+			VertexAttributeLinkedNode* attr_list;
+			VertexAttributeLinkedNode** attr_list_tail;
+
+			VertexAttribteStream()
+				: data(nullptr), size(0), stride(0), attr_count(0)
+				, attr_list(nullptr), attr_list_tail(&attr_list)
+			{
+			}
+		};
+		// attribute layout
+		std::vector<VertexAttribteStream> m_attr_stream;
+
+		const VertexAttributeLinkedNode* find_attribute_impl(EAttributeUsage usage) const;
 	};
 
 

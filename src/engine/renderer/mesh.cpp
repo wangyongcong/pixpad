@@ -249,12 +249,12 @@ namespace wyc
 		}
 		auto &vi = faces[0];
 		m_vb.clear();
-		m_vb.set_attribute(ATTR_POSITION, 3);
+		m_vb.set_attribute(ATTR_POSITION, TinyImageFormat_R32G32B32_SFLOAT);
 		bool has_uv = vi.y != null_index, has_normal = vi.z != null_index;
 		if (has_uv)
-			m_vb.set_attribute(ATTR_UV0, 2);
+			m_vb.set_attribute(ATTR_UV0, TinyImageFormat_R32G32_SFLOAT);
 		if (has_normal)
-			m_vb.set_attribute(ATTR_NORMAL, 3);
+			m_vb.set_attribute(ATTR_NORMAL, TinyImageFormat_R32G32B32_SFLOAT);
 		// alloc buffer
 		m_vb.resize((unsigned)faces.size());
 		// copy data
@@ -302,13 +302,13 @@ namespace wyc
 			return false;
 		}
 		m_vb.clear();
-		m_vb.set_attribute(ATTR_POSITION, 3);
+		m_vb.set_attribute(ATTR_POSITION, TinyImageFormat_R32G32B32_SFLOAT);
 		bool has_normal = ply.has_normal();
 		bool has_color = ply.has_color();
 		if (has_normal)
-			m_vb.set_attribute(ATTR_NORMAL, 3);
+			m_vb.set_attribute(ATTR_NORMAL, TinyImageFormat_R32G32B32_SFLOAT);
 		if (has_color)
-			m_vb.set_attribute(ATTR_COLOR, 3);
+			m_vb.set_attribute(ATTR_COLOR, TinyImageFormat_R32G32B32_SFLOAT);
 		unsigned vertex_count = ply.vertex_count();
 		m_vb.resize(vertex_count);
 //		auto stride = m_vb.vertex_component();
@@ -340,8 +340,8 @@ namespace wyc
 			color3f color;
 		};
 		VertexAttribute attrib_array[] = {
-			{ATTR_POSITION, 3, offsetof(Vertex, pos)},
-			{ATTR_COLOR, 3, offsetof(Vertex, color)},
+			{ATTR_POSITION, TinyImageFormat_R32G32B32_SFLOAT },
+			{ATTR_COLOR, TinyImageFormat_R32G32B32_SFLOAT },
 		};
 		const float sin30 = 0.5f, cos30 = 0.866f;
 		Vertex vertices[] = {
@@ -368,8 +368,8 @@ namespace wyc
 			color3f color;
 		};
 		VertexAttribute attrib_array[] = {
-			{ ATTR_POSITION, 3, offsetof(Vertex, pos) },
-			{ ATTR_COLOR, 3, offsetof(Vertex, color) },
+			{ ATTR_POSITION, TinyImageFormat_R32G32B32_SFLOAT },
+			{ ATTR_COLOR, TinyImageFormat_R32G32B32_SFLOAT },
 		};
 		Vertex vertices[] = {
 			{
@@ -407,8 +407,8 @@ namespace wyc
 			color3f color;
 		};
 		VertexAttribute attrib_array[] = {
-			{ ATTR_POSITION, 3, offsetof(Vertex, pos) },
-			{ ATTR_COLOR, 3, offsetof(Vertex, color) },
+			{ ATTR_POSITION, TinyImageFormat_R32G32B32_SFLOAT },
+			{ ATTR_COLOR, TinyImageFormat_R32G32B32_SFLOAT },
 		};
 
 		Vertex vertices[] = {
@@ -448,9 +448,9 @@ namespace wyc
 			vec2f uv;
 		};
 		VertexAttribute attrib_array[] = {
-			{ATTR_POSITION, 3, offsetof(Vertex, pos)},
-			{ATTR_COLOR, 4, offsetof(Vertex, color)},
-			{ATTR_UV0, 2, offsetof(Vertex, color)},
+			{ATTR_POSITION, TinyImageFormat_R32G32B32_SFLOAT },
+			{ATTR_COLOR, TinyImageFormat_R32G32B32A32_SFLOAT },
+			{ATTR_UV0, TinyImageFormat_R32G32_SFLOAT },
 		};
 		Vertex vertices[16] = {
 			{ { -r, -r, -r },{ 1, 1, 1, 1 },{ 0, 0 } },
@@ -581,8 +581,8 @@ namespace wyc
 			vec3f normal;
 		};
 		VertexAttribute attrib_array[] = {
-			{ ATTR_POSITION, 3, offsetof(Vertex, pos) },
-			{ ATTR_NORMAL, 3, offsetof(Vertex, normal) },
+			{ ATTR_POSITION, TinyImageFormat_R32G32B32_SFLOAT },
+			{ ATTR_NORMAL, TinyImageFormat_R32G32B32_SFLOAT },
 		};
 		set_vertices(attrib_array, 2, (Vertex*)0, (unsigned)vertices.size());
 		unsigned i = 0;

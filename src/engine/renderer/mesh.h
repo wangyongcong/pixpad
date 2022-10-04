@@ -71,7 +71,7 @@ inline void CMesh::set_vertices(const VertexAttribute * attrib_array, unsigned a
 	m_vb.clear();
 	for (auto i = 0u; i < attrib_count; ++i) {
 		auto &attrib = attrib_array[i];
-		m_vb.set_attribute(attrib.usage, attrib.component);
+		m_vb.set_attribute(attrib.usage, attrib.format);
 	}
 	m_vb.resize(vertex_count);
 	if (vertices) {

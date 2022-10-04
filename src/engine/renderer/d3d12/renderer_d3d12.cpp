@@ -484,15 +484,15 @@ namespace wyc
 				auto &gpu = gpu_info_list[gpuCount];
 				gpuCount += 1;
 
-				gpu.featureLevel = level;
+				gpu.feature_level = level;
 				wcscpy_s(gpu.vendor_name, GPU_VENDOR_NAME_SIZE, adapter_desc.Description);
 				gpu.vendor_id = adapter_desc.VendorId;
 				gpu.device_id = adapter_desc.DeviceId;
 				gpu.revision = adapter_desc.Revision;
 				gpu.video_memory = adapter_desc.DedicatedVideoMemory;
 				gpu.shared_memory = adapter_desc.SharedSystemMemory;
-				device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &gpu.featureData, sizeof(gpu.featureData));
-				device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS1, &gpu.featureData1, sizeof(gpu.featureData1));
+				device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &gpu.feature_data, sizeof(gpu.feature_data));
+				device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS1, &gpu.feature_data1, sizeof(gpu.feature_data1));
 				break;
 			}
 			adapter->Release();
@@ -504,17 +504,17 @@ namespace wyc
 		{
 			auto &gpu1 = gpu_info_list[gpu_index];
 			auto &gpu2 = gpu_info_list[i];
-			if(gpu2.featureData1.WaveOps != gpu1.featureData1.WaveOps)
+			if(gpu2.feature_data1.WaveOps != gpu1.feature_data1.WaveOps)
 			{
-				if(gpu2.featureData1.WaveOps)
+				if(gpu2.feature_data1.WaveOps)
 				{
 					gpu_index = i;
 				}
 				continue;
 			}
-			if(gpu2.featureLevel != gpu1.featureLevel)
+			if(gpu2.feature_level != gpu1.feature_level)
 			{
-				if(gpu2.featureLevel > gpu1.featureLevel)
+				if(gpu2.feature_level > gpu1.feature_level)
 				{
 					gpu_index = i;
 				}

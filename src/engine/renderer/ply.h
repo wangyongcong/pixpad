@@ -36,22 +36,28 @@ namespace wyc
 
 		// read vertex
 		unsigned vertex_count() const;
-		inline bool has_position() const {
+		bool has_position() const
+		{
 			return _find_vector3(PLY_FLOAT, "x", "y", "z");
 		}
-		inline bool has_normal() const {
+		bool has_normal() const
+		{
 			return _find_vector3(PLY_FLOAT, "nx", "ny", "nz");
 		}
-		inline bool has_color() const {
+		bool has_color() const
+		{
 			return _find_vector3(PLY_INTEGER, "red", "green", "blue");
 		}
-		inline bool read_position(float *vector3, unsigned &count, unsigned stride) {
+		bool read_position(float *vector3, unsigned &count, unsigned stride)
+		{
 			return _read_vector3(vector3, count, stride, "x", "y", "z");
 		}
-		inline bool read_normal(float *vector3, unsigned &count, unsigned stride) {
+		bool read_normal(float *vector3, unsigned &count, unsigned stride)
+		{
 			return _read_vector3(vector3, count, stride, "nx", "ny", "nz");
 		}
-		inline bool read_color(float *vector3, unsigned &count, unsigned stride) {
+		bool read_color(float *vector3, unsigned &count, unsigned stride)
+		{
 			return _read_vector3(vector3, count, stride, "red", "green", "blue");
 		}
 		
@@ -61,10 +67,12 @@ namespace wyc
 		bool read_face(unsigned *vertex_indices, unsigned &count);
 
 		// error handling
-		inline operator bool() const {
+		operator bool() const
+		{
 			return m_error == PLY_NO_ERROR;
 		}
-		inline PLY_ERROR get_error() const {
+		PLY_ERROR get_error() const
+		{
 			return m_error;
 		}
 		const char* get_error_desc() const;
