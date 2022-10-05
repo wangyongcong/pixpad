@@ -2,92 +2,134 @@
 #include <cstdint>
 #include <numeric>
 #include <vector>
-#include <type_traits>
-#include "common/any_stride_iterator.h"
+#include "common/memory.h"
+#include "common/util_macros.h"
 
 namespace wyc
 {
-	template<typename IndexType>
-	class CIndexBufferT
+	class IndexBuffer
 	{
+		DISALLOW_COPY_MOVE_AND_ASSIGN(IndexBuffer)
 	public:
-		static_assert(std::is_integral<IndexType>::value, "Index type is not integral");
-		CIndexBufferT()
+		IndexBuffer()
 			: m_data(nullptr)
 			, m_data_size(0)
 			, m_count(0)
-			, m_stride(0)
-			, m_max_val(0)
+			, m_max_index(std::numeric_limits<uint32_t>::max())
+			, m_stride(sizeof(uint32_t))
 		{
 		}
 
-		~CIndexBufferT()
+		~IndexBuffer()
 		{
 			if (m_data) {
-				delete[] m_data;
+				wyc_free(m_data);
 				m_data = nullptr;
 			}
 		}
 
-		void resize(size_t count) {
+		void resize(size_t count, size_t max_index=std::numeric_limits<uint32_t>::max())
+		{
 			if (m_data)
+			{
 				clear();
-			size_t sz = sizeof(IndexType) * count;
-			if (!sz)
+			}
+			m_stride = 0;
+			if(max_index <= std::numeric_limits<uint16_t>::max())
+			{
+				m_stride = sizeof(uint16_t);
+				m_max_index = std::numeric_limits<uint16_t>::max();
+			}
+			else if(max_index <= std::numeric_limits<uint32_t>::max())
+			{
+				m_stride = sizeof(uint32_t);
+				m_max_index = std::numeric_limits<uint32_t>::max();
+			}
+			else
+			{
+				assert(0 && "max index value should be inside uint32_t");
 				return;
-			m_data = new char[sz];
-			m_data_size = sz;
+			}
 			m_count = count;
-			m_stride = sizeof(IndexType);
-			m_max_val = (unsigned long)std::numeric_limits<IndexType>::max();
+			m_data_size = m_stride * count;
+			if(m_data_size > 0)
+			{
+				m_data = (char*)wyc_malloc(m_data_size);
+			}
 		}
 
 		void clear()
 		{
 			if (m_data)
 			{
-				delete[] m_data;
+				wyc_free(m_data);
 				m_data = nullptr;
+				m_data_size = 0;
 			}
-			m_data_size = 0;
 			m_count = 0;
-			m_stride = 0;
 		}
 
-		size_t size() const {
+		size_t size() const
+		{
 			return m_count;
 		}
 
-		uint8_t stride() const {
+		uint8_t stride() const
+		{
 			return m_stride;
 		}
 
-		inline char* get_buffer() {
+		bool is_short() const
+		{
+			return m_stride == sizeof(uint16_t);
+		}
+
+		size_t data_size() const
+		{
+			return m_data_size;
+		}
+
+		char* data()
+		{
 			return m_data;
 		}
 
-		inline const char* get_buffer() const {
+		const char* data() const
+		{
 			return m_data;
 		}
 
-		using const_iterator = CAnyStrideIterator<unsigned, CAnyReader>;
-		using iterator = CAnyStrideIterator<unsigned, CAnyAccessor&>;
-		inline iterator begin() {
-			return{ m_data, m_stride };
+		template<class T>
+		T* data()
+		{
+			static_assert(std::is_integral_v<T>, "Index type is not integral");
+			assert(sizeof(T) == m_stride);
+			return (T*)m_data;
 		}
-		inline iterator end() {
-			return{ m_data + m_data_size };
+
+		template<class T>
+		const T* data() const
+		{
+			static_assert(std::is_integral_v<T>, "Index type is not integral");
+			assert(sizeof(T) == m_stride);
+			return (T*)m_data;
+		}
+
+		bool is_valid(void* p) const
+		{
+			return ((char*)p >= m_data) && ((char*)p < m_data + m_data_size);
+		}
+
+		bool is_valid_end(void* p) const
+		{
+			return (char*)p == (m_data + m_data_size);
 		}
 
 	protected:
 		char *m_data;
 		size_t m_data_size;
 		size_t m_count;
+		size_t m_max_index;
 		uint8_t m_stride;
-		unsigned long m_max_val;
 	};
-
-	//typedef CIndexBufferT<uint32_t> CIndexBuffer;
-	typedef std::vector<uint32_t> CIndexBuffer;
-
 } // namespace wyc

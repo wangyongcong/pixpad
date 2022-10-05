@@ -6,6 +6,7 @@
 
 namespace wyc
 {
+	std::string g_empty_string;
 
 	unsigned minimal_power2(unsigned val)
 	{

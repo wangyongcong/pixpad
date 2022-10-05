@@ -196,53 +196,86 @@ namespace wyc
 	class CPlyReadFace : public IPlyReader
 	{
 	public:
-		CPlyReadFace(unsigned bytes_for_length, unsigned element_size, unsigned *out_buf, unsigned buf_size, unsigned *count)
+		CPlyReadFace(unsigned bytes_for_length, unsigned element_size, char *out_buf, size_t buf_size, unsigned stride)
 			: m_bytes_for_length(bytes_for_length)
 			, m_element_size(element_size)
-			, m_count(count)
 			, m_out_buf(out_buf)
-			, m_buf_size(buf_size)
+			, m_buf_end(out_buf + buf_size)
+			, m_buf_stride(stride)
 		{
-			m_is_fit = sizeof(m_element_size) == sizeof(unsigned);
-			*m_count = 0;
+			assert(m_bytes_for_length <= sizeof(unsigned));
+			if(m_element_size == stride)
+			{
+				m_reader = &CPlyReadFace::fit;
+			}
+			else if(m_element_size == sizeof(uint16_t) && m_buf_stride == sizeof(uint32_t))
+			{
+				m_reader = &CPlyReadFace::read_16_32;
+			}
+			else if(m_element_size == sizeof(uint32_t) && m_buf_stride == sizeof(uint16_t))
+			{
+				m_reader = &CPlyReadFace::read_32_16;
+			}
+			else
+			{
+				assert(0);
+			}
 		}
 
 		bool operator() (std::istream &in) override
 		{
-			if (*m_count + 3 > m_buf_size)
+			if(m_out_buf + m_buf_stride * 3 > m_buf_end)
 				return false;
 			unsigned length = 0;
-			assert(m_bytes_for_length <= sizeof(length));
 			in.read((char*)&length, m_bytes_for_length);
 			if (length != 3) {
 				// if it's not a triangle, just ignore it
 				// TODO: it's better to triangulate the face
 				in.ignore(length * m_element_size);
 			}
-			else if (m_is_fit) {
-				in.read((char*)m_out_buf, 3 * m_element_size);
-				m_out_buf += 3;
-				*m_count += 3;
-			}
-			else {
-				unsigned v;
-				for (int i = 0; i < 3; ++i) {
-					v = 0;
-					in.read((char*)&v, m_element_size);
-					*m_out_buf++ = v;
-				}
-				*m_count += 3;
+			else
+			{
+				(this->*m_reader)(in);
 			}
 			return bool(in);
+		}
+
+		void fit(std::istream &in)
+		{
+			unsigned sz = 3 * m_element_size;
+			in.read(m_out_buf, sz);
+			m_out_buf += sz;
+		}
+
+		void read_16_32(std::istream &in)
+		{
+			uint16_t value[3];
+			in.read((char*)value, sizeof(uint16_t) * 3);
+			uint32_t *buf = (uint32_t*)m_out_buf;
+			buf[0] = value[0];
+			buf[1] = value[1];
+			buf[2] = value[2];
+			m_out_buf += m_buf_stride * 3;
+		}
+
+		void read_32_16(std::istream &in)
+		{
+			uint32_t value[3];
+			in.read((char*)value, sizeof(uint32_t) * 3);
+			uint16_t *buf = (uint16_t*)m_out_buf;
+			buf[0] = (uint16_t)value[0];
+			buf[1] = (uint16_t)value[1];
+			buf[2] = (uint16_t)value[2];
+			m_out_buf += m_buf_stride * 3;
 		}
 
 	private:
 		unsigned m_bytes_for_length;
 		unsigned m_element_size;
-		unsigned *m_count;
-		unsigned *m_out_buf;
-		unsigned m_buf_size;
-		bool m_is_fit;
+		char *m_out_buf;
+		char *m_buf_end;
+		size_t m_buf_stride;
+		void (CPlyReadFace::*m_reader)(std::istream&);
 	};
 
 	class CPlyCountFace : public IPlyReader
@@ -251,7 +284,7 @@ namespace wyc
 		CPlyCountFace(unsigned bytes_for_length, unsigned element_size, unsigned *count)
 			: m_bytes_for_length(bytes_for_length)
 			, m_element_size(element_size)
-			, m_count(count)
+			, m_face_count(count)
 		{
 			assert(m_bytes_for_length <= sizeof(unsigned));
 		}
@@ -262,7 +295,7 @@ namespace wyc
 			in.read((char*)&length, m_bytes_for_length);
 			if (length == 3) {
 				// ignore non-triangle face
-				*m_count += 3;
+				*m_face_count += 1;
 			}
 			in.ignore(length * m_element_size);
 			return bool(in);
@@ -271,21 +304,30 @@ namespace wyc
 	private:
 		unsigned m_bytes_for_length;
 		unsigned m_element_size;
-		unsigned *m_count;
+		unsigned *m_face_count;
 	};
 
 	class CPlyReadTristrip : public IPlyReader
 	{
 	public:
-		CPlyReadTristrip(unsigned bytes_for_length, unsigned element_size, unsigned *out_buf, unsigned buf_size, unsigned *count)
+		CPlyReadTristrip(unsigned bytes_for_length, unsigned element_size, char *out_buf, size_t buf_size, unsigned stride)
 			: m_bytes_for_length(bytes_for_length)
 			, m_element_size(element_size)
-			, m_count(count)
 			, m_out_buf(out_buf)
-			, m_buf_size(buf_size)
+			, m_buf_end(out_buf + buf_size)
+			, m_buf_stride(stride)
 		{
-			assert(sizeof(m_element_size) <= sizeof(unsigned));
-			*m_count = 0;
+			assert(m_bytes_for_length <= sizeof(unsigned));
+			assert(m_element_size <= sizeof(unsigned));
+			if(m_buf_stride == sizeof(uint16_t))
+			{
+				m_setter = &CPlyReadTristrip::set16;
+			}
+			else
+			{
+				assert(m_buf_stride == sizeof(uint32_t));
+				m_setter = &CPlyReadTristrip::set32;
+			}
 		}
 
 		bool operator() (std::istream &in) override
@@ -311,31 +353,43 @@ namespace wyc
 					p2 = k;
 					continue;
 				}
-				if (*m_count + 3 > m_buf_size)
+				if(m_out_buf + m_buf_stride * 3 > m_buf_end)
 					return false;
-				*m_count += 3;
 				flip = !flip;
 				if (flip) {
-					*m_out_buf++ = p2;
-					*m_out_buf++ = p1;
+					(this->*m_setter)(p2);
+					(this->*m_setter)(p1);
 				}
 				else {
-					*m_out_buf++ = p1;
-					*m_out_buf++ = p2;
+					(this->*m_setter)(p1);
+					(this->*m_setter)(p2);
 				}
-				*m_out_buf++ = k;
+				(this->*m_setter)(k);
 				p1 = p2;
 				p2 = k;
 			}
 			return bool(in);
 		}
 
+		void set16(int v)
+		{
+			*(uint16_t*)m_out_buf = (uint16_t)v;
+			m_out_buf += m_buf_stride;
+		}
+
+		void set32(int v)
+		{
+			*(uint32_t*)m_out_buf = (uint32_t)v;
+			m_out_buf += m_buf_stride;
+		}
+
 	private:
 		unsigned m_bytes_for_length;
 		unsigned m_element_size;
-		unsigned *m_count;
-		unsigned *m_out_buf;
-		unsigned m_buf_size;
+		char *m_out_buf;
+		char *m_buf_end;
+		size_t m_buf_stride;
+		void (CPlyReadTristrip::*m_setter)(int);
 	};
 
 	class CPlyCountTristrip : public IPlyReader
@@ -344,7 +398,7 @@ namespace wyc
 		CPlyCountTristrip(unsigned bytes_for_length, unsigned element_size, unsigned *count)
 			: m_bytes_for_length(bytes_for_length)
 			, m_element_size(element_size)
-			, m_count(count)
+			, m_face_count(count)
 		{
 			assert(m_bytes_for_length <= sizeof(unsigned));
 			assert(m_element_size <= sizeof(int));
@@ -359,19 +413,19 @@ namespace wyc
 				in.read((char*)&k, m_element_size);
 				if (k < 0) {
 					if(c > 2)
-						*m_count += c - 2;
+						*m_face_count += c - 2;
 					c = 0;
 				}
 				else c += 1;
 			}
-			*m_count *= 3;
+			// *m_face_count *= 3;
 			return bool(in);
 		}
 
 	private:
 		unsigned m_bytes_for_length;
 		unsigned m_element_size;
-		unsigned *m_count;
+		unsigned *m_face_count;
 	};
 
 	void CPlyFile::read_header(std::ostream &out, const std::string &path)
@@ -391,8 +445,10 @@ namespace wyc
 		: m_data_pos(0)
 		, m_error(PLY_NO_ERROR)
 		, m_elements(nullptr)
+		, m_face_count(0)
 		, m_is_binary(false)
 		, m_is_little_endian(false)
+		, m_is_face_counted(false)
 	{
 		_load(file_path);
 	}
@@ -426,6 +482,82 @@ namespace wyc
 		return s_ply_error_desc[m_error];
 	}
 
+	CPlyFile::PropertyIterator::PropertyIterator(const PlyProperty* prop)
+		: m_property(prop)
+	{
+	}
+
+	CPlyFile::PropertyIterator& CPlyFile::PropertyIterator::operator++()
+	{
+		if(m_property) m_property = m_property->next;
+		return *this;
+	}
+
+	CPlyFile::PropertyIterator CPlyFile::PropertyIterator::operator++(int)
+	{
+		if(m_property)
+		{
+			PropertyIterator ret(m_property);
+			m_property = m_property->next;
+			return ret;
+		}
+		return {nullptr};
+	}
+
+	CPlyFile::PropertyIterator& CPlyFile::PropertyIterator::operator+=(int c)
+	{
+		for(int i=0; i<c; ++i)
+		{
+			if(!m_property)
+			{
+				break;
+			}
+			m_property = m_property->next;
+		}
+		return *this;
+	}
+
+	bool CPlyFile::PropertyIterator::is_vector(const char* x, const char* y, const char* z) const
+	{
+		auto prop = m_property;
+		auto prop_type = prop->type;
+		if(!prop || prop->name != x)
+			return false;
+		prop = prop->next;
+		if(!prop || prop->name != y || prop->type != prop_type)
+			return false;
+		prop = prop->next;
+		if(!prop || prop->name != z || prop->type != prop_type)
+			return false;
+		return true;
+	}
+
+	bool CPlyFile::PropertyIterator::is_float() const
+	{
+		return m_property->type == PLY_FLOAT;
+	}
+
+	bool CPlyFile::PropertyIterator::is_integer() const
+	{
+		return m_property->type == PLY_INTEGER;
+	}
+
+	unsigned CPlyFile::PropertyIterator::size() const
+	{
+		return m_property ? m_property->size : 0;
+	}
+
+	const std::string& CPlyFile::PropertyIterator::name() const
+	{
+		return m_property ? m_property->name : g_empty_string;
+	}
+
+	CPlyFile::PropertyIterator CPlyFile::get_vertex_property() const
+	{
+		auto element = _find_element("vertex");
+		return {element ? element->properties : nullptr};
+	}
+
 	void CPlyFile::detail(std::ostream & out) const
 	{
 		if (!m_elements)
@@ -454,6 +586,17 @@ namespace wyc
 	{
 		auto *elem = _find_element("vertex");
 		return elem ? elem->count : 0;
+	}
+
+	unsigned CPlyFile::face_count()
+	{
+		if(!m_is_face_counted)
+		{
+			m_face_count = 0;
+			_read_face(nullptr, 0, 0, m_face_count);
+			m_is_face_counted = true;
+		}
+		return m_face_count;
 	}
 
 	const PlyElement* CPlyFile::_find_element(const char *elem_name) const {
@@ -655,14 +798,37 @@ namespace wyc
 		return true;
 	}
 
-	bool CPlyFile::read_face(unsigned * vertex_indices, unsigned & count)
+	bool CPlyFile::read_vertex(char* buffer, size_t buffer_size)
 	{
-		wyc::PlyElement *elem;
-		bool is_tristrip, has_vertex_indices = false;
+		auto elem = _locate_element("vertex");
+		if (!elem)
+			return false;
+		size_t size = elem->count * elem->size;
+		if(buffer_size < size)
+			return false;
+		m_stream.read(buffer, buffer_size);
+		return !m_stream.fail();
+	}
+
+	bool CPlyFile::read_face(char* buffer, size_t buffer_size, unsigned stride)
+	{
+		unsigned total_count = 0;
+		return _read_face(buffer, buffer_size, stride, total_count);
+	}
+
+	bool CPlyFile::_read_face(char *buffer, size_t buffer_size, unsigned stride, unsigned &count)
+	{
+		PlyElement *elem;
+		bool is_tristrip = false, has_vertex_indices = false;
 		for (elem = m_elements; elem; elem = elem->next)
 		{
 			if (elem->name == "face") {
 				is_tristrip = false;
+				if(!buffer)
+				{
+					count = elem->count;
+					return true;
+				}
 				break;
 			}
 			if (elem->name == "tristrips") {
@@ -690,11 +856,11 @@ namespace wyc
 				}
 				unsigned sz1 = (prop->size >> 24) & 0xFF;
 				unsigned sz2 = (prop->size >> 8) & 0xFF;
-				if (vertex_indices) {
+				if (buffer) {
 					if (is_tristrip)
-						r = wyc_new(CPlyReadTristrip, sz1, sz2, vertex_indices, count, &count);
+						r = wyc_new(CPlyReadTristrip, sz1, sz2, buffer, buffer_size, stride);
 					else
-						r = wyc_new(CPlyReadFace, sz1, sz2, vertex_indices, count, &count);
+						r = wyc_new(CPlyReadFace, sz1, sz2, buffer, buffer_size, stride);
 				}
 				else {
 					if (is_tristrip)

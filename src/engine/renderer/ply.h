@@ -15,7 +15,8 @@ namespace wyc
 		PLY_NOT_SUPPORT_BID_ENDIAN,
 	};
 
-	enum PLY_PROPERTY_TYPE {
+	enum PLY_PROPERTY_TYPE
+	{
 		PLY_NULL = 0,
 		PLY_FLOAT,
 		PLY_INTEGER,
@@ -23,6 +24,7 @@ namespace wyc
 	};
 
 	class PlyElement;
+	class PlyProperty;
 
 	class CPlyFile
 	{
@@ -34,37 +36,16 @@ namespace wyc
 		static void read_header(std::ostream &out, const std::string &file_path);
 		void detail(std::ostream &out) const;
 
-		// read vertex
+		// get vertex count
 		unsigned vertex_count() const;
-		bool has_position() const
-		{
-			return _find_vector3(PLY_FLOAT, "x", "y", "z");
-		}
-		bool has_normal() const
-		{
-			return _find_vector3(PLY_FLOAT, "nx", "ny", "nz");
-		}
-		bool has_color() const
-		{
-			return _find_vector3(PLY_INTEGER, "red", "green", "blue");
-		}
-		bool read_position(float *vector3, unsigned &count, unsigned stride)
-		{
-			return _read_vector3(vector3, count, stride, "x", "y", "z");
-		}
-		bool read_normal(float *vector3, unsigned &count, unsigned stride)
-		{
-			return _read_vector3(vector3, count, stride, "nx", "ny", "nz");
-		}
-		bool read_color(float *vector3, unsigned &count, unsigned stride)
-		{
-			return _read_vector3(vector3, count, stride, "red", "green", "blue");
-		}
-		
+		// get face (triangle) count
+		unsigned face_count();
+
 		// read vertex
 		bool read_vertex(float *vertex, unsigned &count, const std::string &layout, unsigned stride);
+		bool read_vertex(char *buffer, size_t buffer_size);
 		// read triangles
-		bool read_face(unsigned *vertex_indices, unsigned &count);
+		bool read_face(char *buffer, size_t buffer_size, unsigned stride);
 
 		// error handling
 		operator bool() const
@@ -77,6 +58,24 @@ namespace wyc
 		}
 		const char* get_error_desc() const;
 
+		class PropertyIterator
+		{
+		public:
+			PropertyIterator(const PlyProperty*);
+			PropertyIterator& operator++ ();
+			PropertyIterator operator++ (int);
+			PropertyIterator& operator+= (int);
+			operator bool() const { return m_property != nullptr; }
+			bool is_float() const;
+			bool is_integer() const;
+			unsigned size() const;
+			const std::string& name() const;
+			bool is_vector(const char* x, const char* y, const char* z) const;
+		private:
+			const PlyProperty* m_property;
+		};
+		PropertyIterator get_vertex_property() const;
+
 	private:
 		void _clear();
 		bool _load(const std::string &file_path);
@@ -85,13 +84,17 @@ namespace wyc
 		const PlyElement* _find_element(const char *elem_name) const;
 		bool _read_vector3(float *vector3, unsigned &count, unsigned stride, const char *v1, const char *v2, const char *v3);
 		bool _find_vector3(PLY_PROPERTY_TYPE type, const char *v1, const char *v2, const char *v3) const;
-		
+		bool _read_face(char *buffer, size_t buffer_size, unsigned stride, unsigned &count);
+
 		std::ifstream m_stream;
 		std::streampos m_data_pos;
 		PLY_ERROR m_error;
 		PlyElement *m_elements;
+		unsigned m_face_count;
+
 		bool m_is_binary;
 		bool m_is_little_endian;
+		bool m_is_face_counted;
 	};
 
 } // namespace wyc

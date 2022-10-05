@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include <sstream>
+#include <ImathColor.h>
 #include "stb/stb_log.h"
 #include "common/utility.h"
 #include "common/log_macros.h"
@@ -289,47 +290,110 @@ namespace wyc
 
 	bool CMesh::load_ply(const std::string & path)
 	{
-		std::ostringstream ss;
-		CPlyFile::read_header(ss, path);
 		CPlyFile ply(path);
-		ply.detail(ss);
-		log_info(ss.str());
 		if (!ply) {
-			log_error("fail to load [%s]: %s", path, ply.get_error_desc());
-			return false;
-		}
-		if (!ply.has_position()) {
+			log_error("[PLY] fail to load [%s]: %s", path, ply.get_error_desc());
 			return false;
 		}
 		m_vb.clear();
-		m_vb.set_attribute(ATTR_POSITION, TinyImageFormat_R32G32B32_SFLOAT);
-		bool has_normal = ply.has_normal();
-		bool has_color = ply.has_color();
-		if (has_normal)
-			m_vb.set_attribute(ATTR_NORMAL, TinyImageFormat_R32G32B32_SFLOAT);
-		if (has_color)
-			m_vb.set_attribute(ATTR_COLOR, TinyImageFormat_R32G32B32_SFLOAT);
+		auto prop = ply.get_vertex_property();
+		unsigned channel = 0;
+		unsigned prop_size = 0;
+		unsigned undefined_attr = 0;
+		bool is_undefined = false;
+		bool is_float = false;
+		while(prop)
+		{
+			if(prop.is_vector("x", "y", "z") && prop.is_float())
+			{
+				if(is_undefined)
+				{
+					m_vb.set_attribute(ATTR_UNDEFINED, channel, prop_size, is_float);
+					is_undefined = false;
+				}
+				m_vb.set_attribute(ATTR_POSITION, TinyImageFormat_R32G32B32_SFLOAT);
+				prop += 3;
+			}
+			else if(prop.is_vector("nx", "ny", "nz") && prop.is_float())
+			{
+				if(is_undefined)
+				{
+					m_vb.set_attribute(ATTR_UNDEFINED, channel, prop_size, is_float);
+					is_undefined = false;
+				}
+				m_vb.set_attribute(ATTR_NORMAL, TinyImageFormat_R32G32B32_SFLOAT);
+				prop += 3;
+			}
+			else if(prop.is_vector("red", "green", "blue"))
+			{
+				if(is_undefined)
+				{
+					m_vb.set_attribute(ATTR_UNDEFINED, channel, prop_size, is_float);
+					is_undefined = false;
+				}
+				prop += 3;
+				TinyImageFormat format;
+				if(prop.name() == "alpha")
+				{
+					format = prop.is_float() ? TinyImageFormat_R32G32B32A32_SFLOAT : TinyImageFormat_R8G8B8A8_UINT;
+					prop += 1;
+				}
+				else
+				{
+					format = prop.is_float() ? TinyImageFormat_R32G32B32_SFLOAT : TinyImageFormat_R8G8B8_UINT;
+				}
+				m_vb.set_attribute(ATTR_COLOR, format);
+			}
+			else if(is_undefined)
+			{
+				if(prop.is_float() != is_float || prop_size + prop.size() >= 256)
+				{
+					assert(prop_size < 256);
+					m_vb.set_attribute(ATTR_UNDEFINED, channel, prop_size, is_float);
+					channel = 1;
+					prop_size = prop.size();
+					is_float = prop.is_float();
+				}
+				else
+				{
+					channel += 1;
+					prop_size += prop.size();
+				}
+				++prop;
+			}
+			else
+			{
+				is_undefined = true;
+				undefined_attr += 1;
+				channel = 1;
+				prop_size = prop.size();
+				is_float = prop.is_float();
+				++prop;
+			}
+		}
+		if(is_undefined)
+		{
+			m_vb.set_attribute(ATTR_UNDEFINED, channel, prop_size, is_float);
+		}
+		if(undefined_attr > 0)
+		{
+			log_warning("[PLY] has undefined vertex attributes");
+			std::ostringstream ss;
+			ply.detail(ss);
+			log_info(ss.str());
+		}
 		unsigned vertex_count = ply.vertex_count();
 		m_vb.resize(vertex_count);
-//		auto stride = m_vb.vertex_component();
-		ply.read_vertex(m_vb.get_buffer(), vertex_count, "x,y,z", m_vb.vertex_size());
-		assert(m_vb.size() == vertex_count);
-//		auto v = (vec3f*)m_vb.get_buffer();
-		unsigned indices_count = 0;
-		if (!ply.read_face(nullptr, indices_count)) {
-			m_vb.clear();
-			log_error("fail to get face");
+		if(!ply.read_vertex(m_vb.data(), m_vb.data_size()))
+		{
 			return false;
 		}
-		m_ib.clear();
-		m_ib.resize(indices_count);
-		if (!ply.read_face(&m_ib[0], indices_count)) {
-			m_vb.clear();
-			m_ib.clear();
-			log_error("fail to read face");
+		m_ib.resize(ply.face_count() * 3, vertex_count);
+		if(!ply.read_face(m_ib.data(), m_ib.data_size(), m_ib.stride()))
+		{
 			return false;
 		}
-		assert(indices_count == m_ib.size());
+		log_debug("[PLY] ply file loaded: vertex %d, indices %d", m_vb.size(), m_ib.size());
 		return true;
 	}
 
@@ -591,7 +655,18 @@ namespace wyc
 			const auto &pos = vertices[i++];
 			v = Vertex{ pos * r, pos };
 		}
-		m_ib = std::move(faces);
+		m_ib.resize(faces.size(), vertices.size());
+		if(m_ib.is_short())
+		{
+			uint16_t* buf = m_ib.data<uint16_t>();
+			for (uint32_t v : faces)
+				*buf++ = (uint16_t)v;
+		}
+		else
+		{
+			uint32_t* buf = m_ib.data<uint32_t>();
+			memcpy(buf, faces.data(), sizeof(uint32_t) * faces.size());
+		}
 	}
 
 } // namespace wyc

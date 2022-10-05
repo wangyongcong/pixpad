@@ -74,12 +74,12 @@ namespace wyc
 	typedef CAttribArrayImpl<false> CAttribArray;
 	typedef CAttribArrayImpl<true> CConstAttribArray;
 
-	class CVertexBuffer
+	class VertexBuffer
 	{
-		DISALLOW_COPY_MOVE_AND_ASSIGN(CVertexBuffer);
+		DISALLOW_COPY_MOVE_AND_ASSIGN(VertexBuffer);
 	public:
-		CVertexBuffer();
-		~CVertexBuffer();
+		VertexBuffer();
+		~VertexBuffer();
 		/**
 		 * \brief Clear vertex layout and data.
 		 */
@@ -96,6 +96,8 @@ namespace wyc
 		 * \param stream_index Attribute data is store in which array. Data may be save as AOS or SOA
 		 */
 		void set_attribute(EAttributeUsage usage, TinyImageFormat format, uint8_t stream_index=0);
+		void set_attribute(EAttributeUsage usage, uint8_t channel, uint8_t size, bool is_float, uint8_t stream_index=0);
+
 		CAttribArray get_attribute(EAttributeUsage usage);
 		CConstAttribArray get_attribute(EAttributeUsage usage) const;
 
@@ -125,6 +127,16 @@ namespace wyc
 		const_iterator end() const
 		{
 			return{ m_data + m_data_size };
+		}
+
+		char* data()
+		{
+			return m_data;
+		}
+
+		size_t data_size() const
+		{
+			return m_data_size;
 		}
 
 		float* get_buffer() 

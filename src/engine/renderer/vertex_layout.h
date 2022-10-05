@@ -1,7 +1,4 @@
 #pragma once
-#include <type_traits>
-#include <ImathVec.h>
-#include <ImathColor.h>
 #include "tinyimageformat/tinyimageformat_base.h"
 #include "tinyimageformat/tinyimageformat_query.h"
 
@@ -10,7 +7,8 @@ namespace wyc
 
 	enum EAttributeUsage
 	{
-		ATTR_POSITION = 0,
+		ATTR_UNDEFINED,
+		ATTR_POSITION,
 		ATTR_COLOR,
 		ATTR_UV0,
 		ATTR_UV1,

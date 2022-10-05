@@ -34,7 +34,7 @@ void CSpwTilePipeline::draw(const CMesh *mesh, const CMaterial *material)
 	unsigned max_prim_per_batch = 12000;
 	unsigned prim_per_batch = std::min(prim_count, max_prim_per_batch);
 	
-	auto *index_data = ib.data();
+	auto *index_data = ib.data<uint32_t>();
 	auto *vertex_data = vb.get_buffer();
 	int stride = vb.vertex_component();
 	const float *pos_stream = (const float*)vb.attrib_stream(ATTR_POSITION);

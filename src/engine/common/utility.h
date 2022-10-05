@@ -5,6 +5,7 @@
 
 namespace wyc
 {
+	extern std::string g_empty_string;
 
 	typedef float float32_t;
 

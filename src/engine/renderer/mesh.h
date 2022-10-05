@@ -30,11 +30,11 @@ public:
 	template<typename Vertex>
 	void set_vertices(const VertexAttribute *attrib_array, unsigned attrib_count, const Vertex* vertices, unsigned vertex_count);
 	size_t vertex_count() const;
-	CVertexBuffer& vertex_buffer();
-	const CVertexBuffer& vertex_buffer() const;
+	VertexBuffer& vertex_buffer();
+	const VertexBuffer& vertex_buffer() const;
 	void set_indices(std::initializer_list<unsigned>&& indices);
-	CIndexBuffer& index_buffer();
-	const CIndexBuffer& index_buffer() const;
+	IndexBuffer& index_buffer();
+	const IndexBuffer& index_buffer() const;
 	bool has_index() const;
 	EPrimitiveType primitive_type() const;
 
@@ -59,8 +59,8 @@ protected:
 	bool load_ply(const std::string &path);
 
 private:
-	CVertexBuffer m_vb;
-	CIndexBuffer m_ib;
+	VertexBuffer m_vb;
+	IndexBuffer m_ib;
 	mat4f m_transform;
 	EPrimitiveType m_primitive_type;
 };
@@ -87,34 +87,40 @@ inline size_t CMesh::vertex_count() const
 	return m_vb.size();
 }
 
-inline CVertexBuffer & CMesh::vertex_buffer()
+inline VertexBuffer & CMesh::vertex_buffer()
 {
 	return m_vb;
 }
 
-inline const CVertexBuffer & CMesh::vertex_buffer() const
+inline const VertexBuffer & CMesh::vertex_buffer() const
 {
 	return m_vb;
 }
 
 inline void CMesh::set_indices(std::initializer_list<unsigned>&& indices)
 {
-	m_ib = indices;
+	m_ib.resize(indices.size(),	std::numeric_limits<unsigned>::max());
+	uint32_t *buf = m_ib.data<uint32_t>();
+	for (unsigned v : indices)
+	{
+		*buf++ = v;
+	}
+	assert(m_ib.is_valid_end(buf));
 }
 
-inline CIndexBuffer & CMesh::index_buffer()
+inline IndexBuffer & CMesh::index_buffer()
 {
 	return m_ib;
 }
 
-inline const CIndexBuffer & CMesh::index_buffer() const
+inline const IndexBuffer & CMesh::index_buffer() const
 {
 	return m_ib;
 }
 
 inline bool CMesh::has_index() const
 {
-	return !m_ib.empty();
+	return m_ib.size() > 0;
 }
 
 inline EPrimitiveType CMesh::primitive_type() const

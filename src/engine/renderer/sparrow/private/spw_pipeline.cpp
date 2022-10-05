@@ -106,8 +106,8 @@ namespace wyc
 	void CSpwPipeline::process_async(const CMesh * mesh, const CMaterial * material)
 	{
 		assert(mesh && material);
-		const CVertexBuffer &vb = mesh->vertex_buffer();
-		const CIndexBuffer &ib = mesh->index_buffer();
+		const VertexBuffer &vb = mesh->vertex_buffer();
+		const IndexBuffer &ib = mesh->index_buffer();
 		// setup render target
 		unsigned surfw, surfh;
 		m_rt->get_size(surfw, surfh);
@@ -136,6 +136,7 @@ namespace wyc
 		while (index_end <= ib.size())
 		{
 			producers.push_back(std::async(std::launch::async, [this, &attribs, &ib, index_beg, index_end, vertex_stride, material, output_stride] {
+				const uint32_t* ib_data = ib.data<uint32_t>();
 				auto attrib_count = attribs.size();
 				const float **vertex_in = new float const*[attrib_count];
 				// use triangle as the basic primitive (3 vertex)
@@ -152,7 +153,7 @@ namespace wyc
 
 				for (auto i = index_beg; i < index_end; ++i)
 				{
-					auto offset = ib[i] * vertex_stride;
+					auto offset = ib_data[i] * vertex_stride;
 					for (size_t j = 0; j < attrib_count; ++j)
 					{
 						vertex_in[j] = attribs[j] + offset;
@@ -322,8 +323,9 @@ namespace wyc
 	void CSpwPipeline::process(const CMesh *mesh, const CMaterial *material) const
 	{
 		assert(mesh && material);
-		const CVertexBuffer &vb = mesh->vertex_buffer();
-		const CIndexBuffer &ib = mesh->index_buffer();
+		const VertexBuffer &vb = mesh->vertex_buffer();
+		const IndexBuffer &ib = mesh->index_buffer();
+		const uint32_t* ib_data = ib.data<uint32_t>();
 		// setup render target
 		unsigned surfw, surfh;
 		m_rt->get_size(surfw, surfh);
@@ -363,7 +365,7 @@ namespace wyc
 		tile.set_fragment(output_stride, material);
 		for (size_t i = 0; i < ib.size(); ++i)
 		{
-			auto offset = ib[i] * vertex_stride;
+			auto offset = ib_data[i] * vertex_stride;
 			for (size_t j = 0; j < attrib_count; ++j)
 			{
 				vertex_in[j] = attribs[j] + offset;

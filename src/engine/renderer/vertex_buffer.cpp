@@ -6,7 +6,7 @@
 
 namespace wyc
 {
-	CVertexBuffer::CVertexBuffer() 
+	VertexBuffer::VertexBuffer() 
 		: m_data(nullptr)
 		, m_data_size(0)
 		, m_vert_count(0)
@@ -19,12 +19,12 @@ namespace wyc
 	{
 	}
 
-	CVertexBuffer::~CVertexBuffer()
+	VertexBuffer::~VertexBuffer()
 	{
 		clear();
 	}
 
-	void CVertexBuffer::set_attribute(EAttributeUsage usage, TinyImageFormat format, uint8_t stream_index)
+	void VertexBuffer::set_attribute(EAttributeUsage usage, TinyImageFormat format, uint8_t stream_index)
 	{
 		if(m_is_sealed)
 		{
@@ -53,7 +53,23 @@ namespace wyc
 		}
 }
 
-	void CVertexBuffer::resize(unsigned vertex_count)
+	void VertexBuffer::set_attribute(EAttributeUsage usage, uint8_t channel, uint8_t size, bool is_float, uint8_t stream_index)
+	{
+		if(m_is_sealed)
+		{
+			log_error("Vertex layout is sealed");
+			return;
+		}
+		VertexAttributeLinkedNode *va = wyc_new(VertexAttributeLinkedNode, usage, TinyImageFormat_UNDEFINED, stream_index);
+		va->linked_next = nullptr;
+		*m_attr_list_tail = va;
+		m_attr_list_tail = &va->linked_next;
+		va->channel = channel;
+		va->is_float = is_float;
+		va->size = size;
+	}
+
+	void VertexBuffer::resize(unsigned vertex_count)
 	{
 		if(!m_is_sealed)
 		{
@@ -113,7 +129,7 @@ namespace wyc
 		}
 	}
 
-	void CVertexBuffer::clear()
+	void VertexBuffer::clear()
 	{
 		if (m_data)
 		{
@@ -136,7 +152,7 @@ namespace wyc
 		m_attr_stream.clear();
 	}
 
-	CAttribArray CVertexBuffer::get_attribute(EAttributeUsage usage)
+	CAttribArray VertexBuffer::get_attribute(EAttributeUsage usage)
 	{
 		if(m_data)
 		{
@@ -152,7 +168,7 @@ namespace wyc
 		return CAttribArray();
 	}
 
-	CConstAttribArray CVertexBuffer::get_attribute(EAttributeUsage usage) const
+	CConstAttribArray VertexBuffer::get_attribute(EAttributeUsage usage) const
 	{
 		if(m_data)
 		{
@@ -168,7 +184,7 @@ namespace wyc
 		return CConstAttribArray();
 	}
 
-	const CVertexBuffer::VertexAttributeLinkedNode* CVertexBuffer::find_attribute_impl(EAttributeUsage usage) const
+	const VertexBuffer::VertexAttributeLinkedNode* VertexBuffer::find_attribute_impl(EAttributeUsage usage) const
 	{
 		if(!m_attr_mask[(int)usage])
 		{
