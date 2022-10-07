@@ -302,9 +302,10 @@ namespace wyc
 		unsigned undefined_attr = 0;
 		bool is_undefined = false;
 		bool is_float = false;
+		const PlyProperty* last;
 		while(prop)
 		{
-			if(prop.is_vector("x", "y", "z") && prop.is_float())
+			if(prop->is_vector("x", "y", "z", &last) && prop->is_float())
 			{
 				if(is_undefined)
 				{
@@ -312,9 +313,9 @@ namespace wyc
 					is_undefined = false;
 				}
 				m_vb.set_attribute(ATTR_POSITION, TinyImageFormat_R32G32B32_SFLOAT);
-				prop += 3;
+				prop = last;
 			}
-			else if(prop.is_vector("nx", "ny", "nz") && prop.is_float())
+			else if(prop->is_vector("nx", "ny", "nz", &last) && prop->is_float())
 			{
 				if(is_undefined)
 				{
@@ -322,78 +323,88 @@ namespace wyc
 					is_undefined = false;
 				}
 				m_vb.set_attribute(ATTR_NORMAL, TinyImageFormat_R32G32B32_SFLOAT);
-				prop += 3;
+				prop = last;
 			}
-			else if(prop.is_vector("red", "green", "blue"))
+			else if(prop->is_vector("red", "green", "blue", &last))
 			{
 				if(is_undefined)
 				{
 					m_vb.set_attribute(ATTR_UNDEFINED, channel, prop_size, is_float);
 					is_undefined = false;
 				}
-				prop += 3;
+				prop = last;
 				TinyImageFormat format;
-				if(prop.name() == "alpha")
+				if(prop->name == "alpha")
 				{
-					format = prop.is_float() ? TinyImageFormat_R32G32B32A32_SFLOAT : TinyImageFormat_R8G8B8A8_UINT;
-					prop += 1;
+					format = prop->is_float() ? TinyImageFormat_R32G32B32A32_SFLOAT : TinyImageFormat_R8G8B8A8_UINT;
+					prop = prop->next;
 				}
 				else
 				{
-					format = prop.is_float() ? TinyImageFormat_R32G32B32_SFLOAT : TinyImageFormat_R8G8B8_UINT;
+					format = prop->is_float() ? TinyImageFormat_R32G32B32_SFLOAT : TinyImageFormat_R8G8B8_UINT;
 				}
 				m_vb.set_attribute(ATTR_COLOR, format);
 			}
 			else if(is_undefined)
 			{
-				if(prop.is_float() != is_float || prop_size + prop.size() >= 256)
+				if(prop->is_float() != is_float || prop_size + prop->size >= 256)
 				{
 					assert(prop_size < 256);
 					m_vb.set_attribute(ATTR_UNDEFINED, channel, prop_size, is_float);
 					channel = 1;
-					prop_size = prop.size();
-					is_float = prop.is_float();
+					prop_size = prop->size;
+					is_float = prop->is_float();
 				}
 				else
 				{
 					channel += 1;
-					prop_size += prop.size();
+					prop_size += prop->size;
 				}
-				++prop;
+				prop = prop->next;
 			}
 			else
 			{
 				is_undefined = true;
 				undefined_attr += 1;
 				channel = 1;
-				prop_size = prop.size();
-				is_float = prop.is_float();
-				++prop;
+				prop_size = prop->size;
+				is_float = prop->is_float();
+				prop = prop->next;
 			}
 		}
+		ply.detail();
 		if(is_undefined)
 		{
 			m_vb.set_attribute(ATTR_UNDEFINED, channel, prop_size, is_float);
 		}
-		if(undefined_attr > 0)
+		if(!ply.load())
 		{
-			log_warning("[PLY] has undefined vertex attributes");
-			std::ostringstream ss;
-			ply.detail(ss);
-			log_info(ss.str());
+			log_error("[PLY] fail to load data [%s]: %s", path, ply.get_error_desc());
+			ply.detail();
+			return false;
 		}
 		unsigned vertex_count = ply.vertex_count();
 		m_vb.resize(vertex_count);
-		if(!ply.read_vertex(m_vb.data(), m_vb.data_size()))
+		if(vertex_count != ply.read_vertex(m_vb.data(), m_vb.data_size()))
 		{
+			log_error("[PLY] fail to read vertex data [%s]", path);
+			ply.detail();
 			return false;
 		}
-		m_ib.resize(ply.face_count() * 3, vertex_count);
-		if(!ply.read_face(m_ib.data(), m_ib.data_size(), m_ib.stride()))
+		unsigned index_count = ply.face_count() * 3;
+		m_ib.resize(index_count, vertex_count);
+		if(index_count != ply.read_face(m_ib.data(), m_ib.data_size(), m_ib.stride()))
 		{
+			log_error("[PLY] fail to read vertex index data [%s]", path);
+			ply.detail();
 			return false;
 		}
-		log_debug("[PLY] ply file loaded: vertex %d, indices %d", m_vb.size(), m_ib.size());
+		if(undefined_attr > 0)
+		{
+			log_warning("[PLY] has undefined vertex attributes");
+			ply.detail();
+		}
+		log_debug("[PLY] file loaded: vertex %d, indices %d", m_vb.size(), m_ib.size());
 		return true;
 	}
 

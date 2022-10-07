@@ -2,6 +2,7 @@
 #include <sstream>
 #include <limits>
 #include <vector>
+#include <functional>
 #include <unordered_map>
 #include <cassert>
 #include "common/utility.h"
@@ -10,49 +11,99 @@
 
 namespace wyc
 {
-	class PlyProperty
+	struct PlyListData
 	{
-	public:
-		PlyProperty()
-		: next(nullptr)
-		, type(PLY_NULL)
-		, size(0)
+		PlyListData* next;
+		char* data;
+		size_t capacity;
+		size_t size;
+
+		PlyListData() : next(nullptr), data(nullptr), capacity(0), size(0)
 		{
 		}
-		PlyProperty *next;
-		std::string name;
-		PLY_PROPERTY_TYPE type;
-		unsigned size;
+
+		~PlyListData()
+		{
+			if(data) wyc_free(data);
+		}
+
+		void ensure_capacity(unsigned length, unsigned item_size)
+		{
+			size_t new_size = size + length;
+			if(new_size > capacity)
+			{
+				size_t increase = std::max(new_size - capacity, capacity / 2);
+				capacity += increase;
+				data = (char*)wyc_realloc(data, capacity * item_size);
+			}
+		}
 	};
 
-	class PlyElement
+	class PlyPropertyImpl : public PlyProperty
 	{
 	public:
-		PlyElement()
-			: next(nullptr)
-			, count(0)
-			, size(0)
-			, properties(nullptr)
-			, is_variant(false)
-			, chunk_size(0)
+		PlyPropertyImpl() : PlyProperty(), list_data(nullptr)
 		{
 		}
-		~PlyElement()
+		PlyListData* list_data;
+	};
+
+	class PlyElementImpl : public PlyElement
+	{
+	public:
+		PlyElementImpl()
+			: PlyElement()
+			, data(nullptr)
+			, data_size(0)
+			, list_data(nullptr)
+			, list_count(0)
+		{
+		}
+		~PlyElementImpl()
 		{
 			while (properties) {
-				auto to_del = properties;
+				auto to_del = (PlyPropertyImpl*)properties;
 				properties = properties->next;
 				wyc_delete(to_del);
 			}
+			if(data)
+			{
+				wyc_free(data);
+			}
+			while(list_data)
+			{
+				auto to_del = list_data;
+				list_data = list_data->next;
+				wyc_delete(to_del);
+			}
 		}
-		PlyElement *next;
-		std::string name;
-		unsigned count;
-		unsigned size;
-		PlyProperty *properties;
-		bool is_variant;
-		std::streamoff chunk_size;
+		char* data;
+		unsigned data_size;
+		PlyListData* list_data;
+		unsigned list_count;
 	};
+
+#define GET_PROPERTY(e) (PlyPropertyImpl*)((e)->properties)
+#define NEXT_PROPERTY(p) (PlyPropertyImpl*)((p)->next)
+#define NEXT_ELEMENT(e) (PlyElementImpl*)((e)->next)
+#define FIND_ELEMENT(t) (const PlyElementImpl*)find_element(PLY_TAGS[(t)])
+
+	bool PlyProperty::is_vector(const char* x, const char* y, const char* z, PlyProperty const** last) const
+	{
+		auto prop = this;
+		auto prop_type = prop->type;
+		if(!prop || prop->name != x)
+			return false;
+		prop = prop->next;
+		if(!prop || prop->name != y || prop->type != prop_type)
+			return false;
+		prop = prop->next;
+		if(!prop || prop->name != z || prop->type != prop_type)
+			return false;
+		if(last)
+			*last = prop->next;
+		return true;
+	}
 
 	const char* PLY_TAGS[] = {
 		"comment",
@@ -60,372 +111,24 @@ namespace wyc
 		"element",
 		"property",
 		"end_header",
+		"vertex",
+		"face",
+		"tristrips",
+		"vertex_indices",
 	};
 
 	enum PLY_TAG_TYPE {
+		// file section name
 		COMMENT = 0,
 		FORMAT,
 		ELEMENT,
 		PROPERTY,
 		END_HEADER,
-	};
-
-	class IPlyReader
-	{
-	public:
-		IPlyReader()
-			: next(nullptr)
-		{
-		}
-		virtual ~IPlyReader() = default;
-		virtual bool operator() (std::istream &in) = 0;
-		virtual void read_more(unsigned sz) {};
-		IPlyReader *next;
-	};
-
-	static void clear_readers(IPlyReader *readers) 
-	{
-		auto iter = readers;
-		while (iter) {
-			auto _next = iter->next;
-			wyc_delete(iter);
-			iter = _next;
-		}
-	};
-
-	class CPlyIgnoreSize : public IPlyReader
-	{
-	public:
-		CPlyIgnoreSize(std::streampos sz)
-			: m_size(sz)
-		{
-		}
-		bool operator() (std::istream &in) override {
-			in.ignore(m_size);
-			return bool(in);
-		}
-		void read_more(unsigned sz) override {
-			m_size += sz;
-		}
-	private:
-		std::streampos m_size;
-	};
-
-	class CPlyReadFloat : public IPlyReader
-	{
-	public:
-		CPlyReadFloat(unsigned count, float *out_buf, unsigned offset, unsigned stride)
-			: m_stride(stride)
-		{
-			m_out_buf = (char*)(out_buf + offset);
-			m_size = sizeof(float) * count;
-		}
-		bool operator() (std::istream &in) override {
-			in.read(m_out_buf, m_size);
-			m_out_buf += m_stride;
-			return bool(in);
-		}
-		void read_more(unsigned count) override {
-			m_size += sizeof(float) * count;
-		}
-	private:
-		char *m_out_buf;
-		unsigned m_stride;
-		unsigned m_size;
-	};
-
-	class CPlyReadInteger : public IPlyReader
-	{
-	public:
-		CPlyReadInteger(uint8_t count, uint8_t elem_size, float *out_buf, unsigned offset, unsigned stride)
-			: m_stride(stride)
-			, m_count(count)
-			, m_elem_size(elem_size)
-		{
-			assert(elem_size <= sizeof(unsigned));
-			m_out_buf = (char*)(out_buf + offset);
-			m_max_value = float((1ul << (elem_size * 8)) - 1);
-		}
-		bool operator() (std::istream &in) override
-		{
-			unsigned v = 0;
-			float *out = (float*)m_out_buf;
-			for (uint8_t i = 0; i < m_count; ++i)
-			{
-				in.read((char*)&v, m_elem_size);
-				*out++ = v / m_max_value;
-			}
-			m_out_buf += m_stride;
-			return bool(in);
-		}
-		void read_more(unsigned count) override
-		{
-			m_count += count;
-		}
-	private:
-		char *m_out_buf;
-		float m_max_value;
-		uint8_t m_stride;
-		uint8_t m_count;
-		uint8_t m_elem_size;
-	};
-
-	class CPlyIgnoreList : public IPlyReader
-	{
-	public:
-		CPlyIgnoreList(unsigned prop_size)
-			: m_bytes_for_length((prop_size >> 24) & 0xFF)
-			, m_element_size((prop_size >> 8) & 0xFF)
-		{
-		}
-
-		bool operator() (std::istream &in) override
-		{
-			unsigned length = 0;
-			assert(m_bytes_for_length <= sizeof(length));
-			in.read((char*)&length, m_bytes_for_length);
-			in.ignore(length * m_element_size);
-			return bool(in);
-		}
-
-	private:
-		unsigned m_bytes_for_length;
-		unsigned m_element_size;
-	};
-
-	class CPlyReadFace : public IPlyReader
-	{
-	public:
-		CPlyReadFace(unsigned bytes_for_length, unsigned element_size, char *out_buf, size_t buf_size, unsigned stride)
-			: m_bytes_for_length(bytes_for_length)
-			, m_element_size(element_size)
-			, m_out_buf(out_buf)
-			, m_buf_end(out_buf + buf_size)
-			, m_buf_stride(stride)
-		{
-			assert(m_bytes_for_length <= sizeof(unsigned));
-			if(m_element_size == stride)
-			{
-				m_reader = &CPlyReadFace::fit;
-			}
-			else if(m_element_size == sizeof(uint16_t) && m_buf_stride == sizeof(uint32_t))
-			{
-				m_reader = &CPlyReadFace::read_16_32;
-			}
-			else if(m_element_size == sizeof(uint32_t) && m_buf_stride == sizeof(uint16_t))
-			{
-				m_reader = &CPlyReadFace::read_32_16;
-			}
-			else
-			{
-				assert(0);
-			}
-		}
-
-		bool operator() (std::istream &in) override
-		{
-			if(m_out_buf + m_buf_stride * 3 > m_buf_end)
-				return false;
-			unsigned length = 0;
-			in.read((char*)&length, m_bytes_for_length);
-			if (length != 3) {
-				// if it's not a triangle, just ignore it
-				// TODO: it's better to triangulate the face
-				in.ignore(length * m_element_size);
-			}
-			else
-			{
-				(this->*m_reader)(in);
-			}
-			return bool(in);
-		}
-
-		void fit(std::istream &in)
-		{
-			unsigned sz = 3 * m_element_size;
-			in.read(m_out_buf, sz);
-			m_out_buf += sz;
-		}
-
-		void read_16_32(std::istream &in)
-		{
-			uint16_t value[3];
-			in.read((char*)value, sizeof(uint16_t) * 3);
-			uint32_t *buf = (uint32_t*)m_out_buf;
-			buf[0] = value[0];
-			buf[1] = value[1];
-			buf[2] = value[2];
-			m_out_buf += m_buf_stride * 3;
-		}
-
-		void read_32_16(std::istream &in)
-		{
-			uint32_t value[3];
-			in.read((char*)value, sizeof(uint32_t) * 3);
-			uint16_t *buf = (uint16_t*)m_out_buf;
-			buf[0] = (uint16_t)value[0];
-			buf[1] = (uint16_t)value[1];
-			buf[2] = (uint16_t)value[2];
-			m_out_buf += m_buf_stride * 3;
-		}
-
-	private:
-		unsigned m_bytes_for_length;
-		unsigned m_element_size;
-		char *m_out_buf;
-		char *m_buf_end;
-		size_t m_buf_stride;
-		void (CPlyReadFace::*m_reader)(std::istream&);
-	};
-
-	class CPlyCountFace : public IPlyReader
-	{
-	public:
-		CPlyCountFace(unsigned bytes_for_length, unsigned element_size, unsigned *count)
-			: m_bytes_for_length(bytes_for_length)
-			, m_element_size(element_size)
-			, m_face_count(count)
-		{
-			assert(m_bytes_for_length <= sizeof(unsigned));
-		}
-
-		bool operator() (std::istream &in) override
-		{
-			unsigned length = 0;
-			in.read((char*)&length, m_bytes_for_length);
-			if (length == 3) {
-				// ignore non-triangle face
-				*m_face_count += 1;
-			}
-			in.ignore(length * m_element_size);
-			return bool(in);
-		}
-
-	private:
-		unsigned m_bytes_for_length;
-		unsigned m_element_size;
-		unsigned *m_face_count;
-	};
-
-	class CPlyReadTristrip : public IPlyReader
-	{
-	public:
-		CPlyReadTristrip(unsigned bytes_for_length, unsigned element_size, char *out_buf, size_t buf_size, unsigned stride)
-			: m_bytes_for_length(bytes_for_length)
-			, m_element_size(element_size)
-			, m_out_buf(out_buf)
-			, m_buf_end(out_buf + buf_size)
-			, m_buf_stride(stride)
-		{
-			assert(m_bytes_for_length <= sizeof(unsigned));
-			assert(m_element_size <= sizeof(unsigned));
-			if(m_buf_stride == sizeof(uint16_t))
-			{
-				m_setter = &CPlyReadTristrip::set16;
-			}
-			else
-			{
-				assert(m_buf_stride == sizeof(uint32_t));
-				m_setter = &CPlyReadTristrip::set32;
-			}
-		}
-
-		bool operator() (std::istream &in) override
-		{
-			unsigned indices_count = 0;
-			in.read((char*)&indices_count, m_bytes_for_length);
-			int k = 0, p1 = -1, p2 = -1;
-			bool flip = true;
-			for (auto i = 0u; i < indices_count; ++i) {
-				if (!in)
-					return false;
-				in.read((char*)&k, m_element_size);
-				if (k < 0) {
-					p1 = p2 = -1;
-					flip = true;
-					continue;
-				}
-				if (p1 == -1) {
-					p1 = k;
-					continue;
-				}
-				if (p2 == -1) {
-					p2 = k;
-					continue;
-				}
-				if(m_out_buf + m_buf_stride * 3 > m_buf_end)
-					return false;
-				flip = !flip;
-				if (flip) {
-					(this->*m_setter)(p2);
-					(this->*m_setter)(p1);
-				}
-				else {
-					(this->*m_setter)(p1);
-					(this->*m_setter)(p2);
-				}
-				(this->*m_setter)(k);
-				p1 = p2;
-				p2 = k;
-			}
-			return bool(in);
-		}
-
-		void set16(int v)
-		{
-			*(uint16_t*)m_out_buf = (uint16_t)v;
-			m_out_buf += m_buf_stride;
-		}
-
-		void set32(int v)
-		{
-			*(uint32_t*)m_out_buf = (uint32_t)v;
-			m_out_buf += m_buf_stride;
-		}
-
-	private:
-		unsigned m_bytes_for_length;
-		unsigned m_element_size;
-		char *m_out_buf;
-		char *m_buf_end;
-		size_t m_buf_stride;
-		void (CPlyReadTristrip::*m_setter)(int);
-	};
-
-	class CPlyCountTristrip : public IPlyReader
-	{
-	public:
-		CPlyCountTristrip(unsigned bytes_for_length, unsigned element_size, unsigned *count)
-			: m_bytes_for_length(bytes_for_length)
-			, m_element_size(element_size)
-			, m_face_count(count)
-		{
-			assert(m_bytes_for_length <= sizeof(unsigned));
-			assert(m_element_size <= sizeof(int));
-		}
-
-		bool operator() (std::istream &in) override
-		{
-			unsigned length = 0;
-			in.read((char*)&length, m_bytes_for_length);
-			int k = 0, c = 0;
-			for (unsigned i = 0u; i < length; ++i) {
-				in.read((char*)&k, m_element_size);
-				if (k < 0) {
-					if(c > 2)
-						*m_face_count += c - 2;
-					c = 0;
-				}
-				else c += 1;
-			}
-			// *m_face_count *= 3;
-			return bool(in);
-		}
-
-	private:
-		unsigned m_bytes_for_length;
-		unsigned m_element_size;
-		unsigned *m_face_count;
+		// element or property name
+		PLY_VERTEX,
+		PLY_FACE,
+		PLY_TRISTRIPS,
+		PLY_VERTEX_INDICES,
 	};
 
 	void CPlyFile::read_header(std::ostream &out, const std::string &path)
@@ -442,27 +145,29 @@ namespace wyc
 	}
 
 	CPlyFile::CPlyFile(const std::string &file_path)
-		: m_data_pos(0)
+		: m_path(file_path)
+		, m_data_pos(0)
 		, m_error(PLY_NO_ERROR)
 		, m_elements(nullptr)
-		, m_face_count(0)
+		, m_cached_face_count(std::numeric_limits<decltype(m_cached_face_count)>::max())
 		, m_is_binary(false)
 		, m_is_little_endian(false)
-		, m_is_face_counted(false)
+		, m_is_data_loaded(false)
 	{
-		_load(file_path);
+		preload(file_path);
 	}
 
 	CPlyFile::~CPlyFile()
 	{
 		m_stream.close();
-		_clear();
+		clear();
 	}
 
-	void CPlyFile::_clear()
+	void CPlyFile::clear()
 	{
-		while (m_elements) {
-			auto to_del = m_elements;
+		while (m_elements) 
+		{
+			auto to_del = (PlyElementImpl*)m_elements;
 			m_elements = m_elements->next;
 			wyc_delete(to_del);
 		}
@@ -471,95 +176,25 @@ namespace wyc
 	const char * CPlyFile::get_error_desc() const
 	{
 		static const char *s_ply_error_desc[] = {
-			"no error",
-			"file not found",
-			"invalid ply file",
-			"unknown format",
-			"invalid property",
-			"not support ascii format",
-			"not support big endian format",
+			"No error",
+			"File not found",
+			"Invalid ply file",
+			"Unknown format",
+			"Invalid property",
+			"Not support ascii format",
+			"Not support big endian format",
+			"Element contain multiple list properties",
+			"Size of list length is more then 4 bytes",
+			"Size of list item length is invalid",
+			"I/O interrupt unexpectedly",
+			"Invalid face list",
 		};
 		return s_ply_error_desc[m_error];
 	}
 
-	CPlyFile::PropertyIterator::PropertyIterator(const PlyProperty* prop)
-		: m_property(prop)
-	{
-	}
-
-	CPlyFile::PropertyIterator& CPlyFile::PropertyIterator::operator++()
-	{
-		if(m_property) m_property = m_property->next;
-		return *this;
-	}
-
-	CPlyFile::PropertyIterator CPlyFile::PropertyIterator::operator++(int)
-	{
-		if(m_property)
-		{
-			PropertyIterator ret(m_property);
-			m_property = m_property->next;
-			return ret;
-		}
-		return {nullptr};
-	}
-
-	CPlyFile::PropertyIterator& CPlyFile::PropertyIterator::operator+=(int c)
-	{
-		for(int i=0; i<c; ++i)
-		{
-			if(!m_property)
-			{
-				break;
-			}
-			m_property = m_property->next;
-		}
-		return *this;
-	}
-
-	bool CPlyFile::PropertyIterator::is_vector(const char* x, const char* y, const char* z) const
-	{
-		auto prop = m_property;
-		auto prop_type = prop->type;
-		if(!prop || prop->name != x)
-			return false;
-		prop = prop->next;
-		if(!prop || prop->name != y || prop->type != prop_type)
-			return false;
-		prop = prop->next;
-		if(!prop || prop->name != z || prop->type != prop_type)
-			return false;
-		return true;
-	}
-
-	bool CPlyFile::PropertyIterator::is_float() const
-	{
-		return m_property->type == PLY_FLOAT;
-	}
-
-	bool CPlyFile::PropertyIterator::is_integer() const
-	{
-		return m_property->type == PLY_INTEGER;
-	}
-
-	unsigned CPlyFile::PropertyIterator::size() const
-	{
-		return m_property ? m_property->size : 0;
-	}
-
-	const std::string& CPlyFile::PropertyIterator::name() const
-	{
-		return m_property ? m_property->name : g_empty_string;
-	}
-
-	CPlyFile::PropertyIterator CPlyFile::get_vertex_property() const
-	{
-		auto element = _find_element("vertex");
-		return {element ? element->properties : nullptr};
-	}
-
 	void CPlyFile::detail(std::ostream & out) const
 	{
+		out << "[PLY] " << m_path << std::endl;
 		if (!m_elements)
 		{
 			out << "No elements" << std::endl;
@@ -567,12 +202,16 @@ namespace wyc
 		}
 		for (auto elem = m_elements; elem; elem = elem->next)
 		{
-			out << elem->name << "(" << elem->count << ")" << std::endl;
+			out << elem->name << "(" << elem->count << "/" << elem->size << ")" << std::endl;
 			for (auto prop = elem->properties; prop; prop = prop->next)
 			{
 				out << "    " << prop->name << "(";
 				if (prop->type == PLY_LIST)
-					out << "L" << ((prop->size >> 24) & 0xFF) << "/" << ((prop->size >> 8) & 0xFF);
+				{
+					unsigned length_size = prop->length_size;
+					unsigned item_size = prop->item_size;
+					out << "L" << length_size << "/" << item_size;
+				}
 				else if(prop->type == PLY_INTEGER)
 					out << "i" << prop->size;
 				else
@@ -582,24 +221,20 @@ namespace wyc
 		}
 	}
 
+	void CPlyFile::detail() const
+	{
+		std::ostringstream ss;
+		detail(ss);
+		log_info(ss.str());
+	}
+
 	unsigned CPlyFile::vertex_count() const
 	{
-		auto *elem = _find_element("vertex");
+		auto elem = FIND_ELEMENT(PLY_VERTEX);
 		return elem ? elem->count : 0;
 	}
 
-	unsigned CPlyFile::face_count()
-	{
-		if(!m_is_face_counted)
-		{
-			m_face_count = 0;
-			_read_face(nullptr, 0, 0, m_face_count);
-			m_is_face_counted = true;
-		}
-		return m_face_count;
-	}
-
-	const PlyElement* CPlyFile::_find_element(const char *elem_name) const {
+	const PlyElement* CPlyFile::find_element(const char *elem_name) const {
 		auto elem = m_elements;
 		while (elem) {
 			if (elem->name == elem_name)
@@ -609,312 +244,295 @@ namespace wyc
 		return nullptr;
 	}
 
-	bool CPlyFile::_read_vector3(float * vector3, unsigned & count, unsigned stride, const char * v1, const char * v2, const char * v3)
+	const PlyProperty* CPlyFile::get_vertex_property() const
 	{
-		auto elem = _locate_element("vertex");
-		if (!elem || elem->is_variant) {
-			count = 0;
-			return false;
-		}
-		if (!vector3) {
-			count = elem->count;
-			return true;
-		}
-		std::streampos pos = 0, tail = 0;
-		PlyProperty *prop;
-		for (prop = elem->properties; prop && prop->name != v1; prop = prop->next)
-		{
-			pos += prop->size;
-		}
-		if (!prop)
-			return false;
-		auto prop_type = prop->type;
-		prop = prop->next;
-		if (!prop || prop->name != v2 || prop->type != prop_type)
-			return false;
-		prop = prop->next;
-		if (!prop || prop->name != v3 || prop->type != prop_type)
-			return false;
-		unsigned sz = prop->size * 3, c = 0;
-		tail = elem->size - sz;
-		auto out = vector3;
-		if (prop_type == PLY_FLOAT) {
-			if (prop->size != sizeof(float))
-				return false;
-			m_stream.ignore(pos);
-			for (c = 0; c < elem->count; ++c && c < count, out += stride)
-			{
-				m_stream.read((char*)out, sz);
-				m_stream.ignore(tail);
-			}
-			count = c;
-		}
-		else if (prop_type == PLY_INTEGER) {
-			unsigned max;
-			switch (prop->size) {
-			case 1:
-				max = std::numeric_limits<char>::max();
-				break;
-			case 2:
-				max = std::numeric_limits<short>::max();
-				break;
-			case 4:
-				max = std::numeric_limits<int>::max();
-				break;
-			default:
-				return false;
-			}
-			m_stream.ignore(pos);
-			unsigned tmp = 0;
-			for (c = 0; c < elem->count; ++c && c < count)
-			{
-				m_stream.read((char*)&tmp, prop->size);
-				*out++ = float(tmp) / max;
-				m_stream.read((char*)&tmp, prop->size);
-				*out++ = float(tmp) / max;
-				m_stream.read((char*)&tmp, prop->size);
-				*out++ = float(tmp) / max;
-				m_stream.ignore(tail);
-			}
-		}
-		else {
-			return false;
-		}
-		count = c;
-		return true;
+		auto elem = FIND_ELEMENT(PLY_VERTEX);
+		return elem ? elem->properties : nullptr;
 	}
 
-	bool CPlyFile::_find_vector3(PLY_PROPERTY_TYPE type, const char * v1, const char * v2, const char * v3) const
+	unsigned CPlyFile::read_vertex(char* buffer, size_t buffer_size) const
 	{
-		auto *elem = _find_element("vertex");
-		if (!elem)
+		auto elem = FIND_ELEMENT(PLY_VERTEX);
+		if(!elem || !elem->data)
+		{
 			return false;
-		PlyProperty *prop;
-		for (prop = elem->properties; prop && prop->name != v1; prop = prop->next);
-		if (!prop || prop->type != type)
-			return false;
-		prop = prop->next;
-		if (!prop || prop->name != v2 || prop->type != type)
-			return false;
-		prop = prop->next;
-		if (!prop || prop->name != v3 || prop->type != type)
-			return false;
-		return true;
+		}
+		unsigned count = (unsigned)(buffer_size / elem->size);
+		count = std::min<unsigned>(count, elem->count);
+		unsigned size = count * elem->size;
+		assert(size <= elem->data_size);
+		memcpy(buffer, elem->data, size);
+		return count;
 	}
 
-	bool CPlyFile::read_vertex(float * vertex, unsigned & count, const std::string& layout, unsigned stride)
+	template<class T>
+	unsigned count_tristrip(const T* data, unsigned size)
 	{
-		auto elem = _locate_element("vertex");
-		if (!elem)
-			return false;
-		// std::string tok;
-		PLY_PROPERTY_TYPE prev_type = PLY_NULL;
-		IPlyReader *readers = nullptr, *r = nullptr;
-		IPlyReader **tail = &readers;
-		unsigned prev_offset = 0, prev_size = 0;
-		StringSplitter splitter(layout, ',');
-		for (auto prop = elem->properties; prop; prop = prop->next)
+		unsigned total = 0;
+		unsigned start = 0;
+		for(unsigned i = 0; i < size; ++i)
 		{
-			if (prop->type == PLY_LIST) {
-				r = wyc_new(CPlyIgnoreList, prop->size);
-				*tail = r;
-				tail = &r->next;
-				prev_type = PLY_LIST;
-				continue;
-			}
-			bool is_output_prop = false;
-			unsigned prop_offset = 0;
-			for (auto iter : splitter)
+			if(data[i] < 0)
 			{
-				if(prop->name == iter)
+				auto c = i - start;
+				if(c > 2)
+					total += c - 2;
+				start = i + 1;
+			}
+		}
+		return total;
+	}
+
+	unsigned CPlyFile::face_count() const
+	{
+		if(!m_is_data_loaded)
+		{
+			return 0;
+		}
+		if(m_cached_face_count < std::numeric_limits<decltype(m_cached_face_count)>::max())
+		{
+			return m_cached_face_count;
+		}
+		m_cached_face_count = 0;
+		bool is_tristrips = false;
+		auto *elem = FIND_ELEMENT(PLY_FACE);
+		if (!elem)
+		{
+			elem = FIND_ELEMENT(PLY_TRISTRIPS);
+			if(!elem)
+			{
+				return 0;
+			}
+			is_tristrips = true;
+		}
+
+		auto prop = GET_PROPERTY(elem);
+		unsigned offset = 0;
+		while(prop && prop->name != PLY_TAGS[PLY_VERTEX_INDICES])
+		{
+			offset += prop->size;
+			prop = NEXT_PROPERTY(prop);
+		}
+		if(!prop || prop->type != PLY_LIST || prop->item_type != PLY_INTEGER)
+		{
+			log_error("[PLY] Invalid face/tristrip list");
+			return 0;
+		}
+
+		char* list_length = elem->data + offset;
+		auto* list_data = prop->list_data;
+		assert(list_data);
+		unsigned item_size = prop->item_size;
+		unsigned total = 0;
+		if(!is_tristrips)
+		{
+			for(unsigned i = 0; i < elem->count; ++i)
+			{
+				total += *(unsigned*)list_length - 2;
+				list_length += elem->size;
+			}
+		}
+		else if(item_size == sizeof(int16_t))
+		{
+			int16_t* data = (int16_t*)list_data->data;
+			for(unsigned i = 0; i < elem->count; ++i)
+			{
+				auto length = *(unsigned*)list_length;
+				list_length += elem->size;
+				total += count_tristrip<int16_t>(data, length);
+				data += length;
+			}
+			assert(data <= (int16_t*)list_data->data + list_data->size);
+		}
+		else if(item_size == sizeof(int32_t))
+		{
+			int32_t* data = (int32_t*)list_data->data;
+			for(unsigned i = 0; i < elem->count; ++i)
+			{
+				auto length = *(unsigned*)list_length;
+				list_length += elem->size;
+				total += count_tristrip<int32_t>(data, length);
+				data += length;
+			}
+			assert(data <= (int32_t*)list_data->data + list_data->size);
+		}
+		else
+		{
+			log_error("[PLY] tristrip index is neither int16 nor int32");
+		}
+		m_cached_face_count = total;
+		return total;
+	}
+
+	template<class T1, class T2>
+	unsigned copy_face(T1* dst, size_t dst_size, T2* src, size_t src_size, char* length_list, unsigned length_stride, unsigned length_count)
+	{
+		unsigned index_count = 0;
+		T2* src_end = src + src_size;
+		for(unsigned i = 0; i < length_count; ++i)
+		{
+			unsigned length = *(unsigned*)length_list;
+			length_list += length_stride;
+			if(src + length > src_end)
+				break;
+			unsigned count = (length > 2 ? length - 2 : 0) * 3;
+			if(index_count + count > dst_size)
+				break;
+			for(unsigned j = 2; j < length; ++j)
+			{
+				*dst++ = (T1)src[0];
+				*dst++ = (T1)src[j-1];
+				*dst++ = (T1)src[j];
+			}
+			src += length;
+			index_count += count;
+		}
+		return index_count;
+	}
+
+	// tristrip element format
+	// -1 means end of triangle strips
+	// e.g index list: 0 1 2 3 -1 4 5 6 7
+	// indicate 4 triangles:
+	// (0, 1, 2)
+	// (1, 2, 3)
+	// (4, 5, 6)
+	// (5, 6, 7)
+	template<class T1, class T2>
+	unsigned copy_tristrips(T1* dst, size_t dst_size, T2* src, size_t src_size, char* length_list, unsigned length_stride, unsigned length_count)
+	{
+		unsigned index_count = 0;
+		T2* src_end = src + src_size;
+		for(unsigned i = 0; i < length_count; ++i)
+		{
+			unsigned length = *(unsigned*)length_list;
+			length_list += length_stride;
+			if(src + length > src_end)
+				break;
+			if(index_count + 3 > dst_size)
+				break;
+			int p0 = 0, p1 = -1, p2 = -1;
+			bool flip = true;
+			for (unsigned j = 0; j < length; ++j)
+			{
+				p0 = (int)src[j];
+				if (p0 < 0)
 				{
-					is_output_prop = true;
-					break;
+					p1 = p2 = -1;
+					flip = true;
+					continue;
 				}
-				prop_offset += 1;
-			}
-			if (is_output_prop)
-			{
-				if (prop->type == PLY_FLOAT) {
-					if (prev_type == prop->type && prev_size == prop->size && prop_offset == prev_offset + 1)
-					{
-						r->read_more(1);
-						prev_offset += 1;
-					}
-					else {
-						r = wyc_new(CPlyReadFloat, 1, vertex, prop_offset, stride);
-						*tail = r;
-						tail = &r->next;
-						prev_type = prop->type;
-						prev_size = prop->size;
-						prev_offset = prop_offset;
-					}
-				}
-				else if (prop->type == PLY_INTEGER) {
-					if (prev_type == prop->type && prev_size == prop->size && prop_offset == prev_offset + 1)
-					{
-						r->read_more(1);
-						prev_offset += 1;
-					}
-					else {
-						r = wyc_new(CPlyReadInteger, 1, prop->size, vertex, prop_offset, stride);
-						*tail = r;
-						tail = &r->next;
-						prev_type = prop->type;
-						prev_size = prop->size;
-						prev_offset = prop_offset;
-					}
-				}
-				else {
-					assert(0 && "should not arrive here");
-				}
-			}
-			else {
-				// property not found, ignore
-				if (r && prev_type == PLY_NULL) {
-					r->read_more(prop->size);
-				}
-				else {
-					r = wyc_new(CPlyIgnoreSize, prop->size);
-					*tail = r;
-					tail = &r->next;
-					prev_type = PLY_NULL;
-				}
-			}
-		} // for property
-
-		if (elem->count < count)
-			count = elem->count;
-		unsigned c = 0;
-		for (; c < count && m_stream; ++c) {
-			for (auto r = readers; r; r = r->next)
-			{
-				if (!(*r)(m_stream))
-					break;
-			}
-		}
-		count = c;
-		clear_readers(readers);
-		return true;
-	}
-
-	bool CPlyFile::read_vertex(char* buffer, size_t buffer_size)
-	{
-		auto elem = _locate_element("vertex");
-		if (!elem)
-			return false;
-		size_t size = elem->count * elem->size;
-		if(buffer_size < size)
-			return false;
-		m_stream.read(buffer, buffer_size);
-		return !m_stream.fail();
-	}
-
-	bool CPlyFile::read_face(char* buffer, size_t buffer_size, unsigned stride)
-	{
-		unsigned total_count = 0;
-		return _read_face(buffer, buffer_size, stride, total_count);
-	}
-
-	bool CPlyFile::_read_face(char *buffer, size_t buffer_size, unsigned stride, unsigned &count)
-	{
-		PlyElement *elem;
-		bool is_tristrip = false, has_vertex_indices = false;
-		for (elem = m_elements; elem; elem = elem->next)
-		{
-			if (elem->name == "face") {
-				is_tristrip = false;
-				if(!buffer)
+				if (p1 == -1)
 				{
-					count = elem->count;
-					return true;
+					p1 = p0;
+					continue;
 				}
-				break;
-			}
-			if (elem->name == "tristrips") {
-				is_tristrip = true;
-				break;
-			}
-		}
-		if (!elem) {
-			// faces not found
-			return false;
-		}
-		elem = _locate_element(elem->name.c_str());
-		IPlyReader *readers = nullptr;
-		IPlyReader **tail = &readers;
-		unsigned ignore_size = 0;
-		PlyProperty *prop = elem->properties;
-		for (; prop; prop = prop->next)
-		{
-			if (prop->name == "vertex_indices") {
-				IPlyReader *r;
-				if (ignore_size) {
-					r = wyc_new(CPlyIgnoreSize, ignore_size);
-					tail = &r->next;
-					ignore_size = 0;
+				if (p2 == -1)
+				{
+					p2 = p0;
+					continue;
 				}
-				unsigned sz1 = (prop->size >> 24) & 0xFF;
-				unsigned sz2 = (prop->size >> 8) & 0xFF;
-				if (buffer) {
-					if (is_tristrip)
-						r = wyc_new(CPlyReadTristrip, sz1, sz2, buffer, buffer_size, stride);
-					else
-						r = wyc_new(CPlyReadFace, sz1, sz2, buffer, buffer_size, stride);
-				}
-				else {
-					if (is_tristrip)
-						r = wyc_new(CPlyCountTristrip, sz1, sz2, &count);
-					else
-						r = wyc_new(CPlyCountFace, sz1, sz2, &count);
-				}
-				*tail = r;
-				tail = &r->next;
-				has_vertex_indices = true;
-			}
-			else if(prop->type == PLY_LIST) {
-				if (ignore_size) {
-					auto r = wyc_new(CPlyIgnoreSize, ignore_size);
-					*tail = r;
-					tail = &r->next;
-					ignore_size = 0;
-				}
-				auto r = wyc_new(CPlyIgnoreList, prop->size);
-				*tail = r;
-				tail = &r->next;
-			}
-			else {
-				ignore_size += prop->size;
-			}
-		}
-		// last ignore
-		if (ignore_size)
-		{
-			auto r = wyc_new(CPlyIgnoreSize, ignore_size);
-			*tail = r;
-			tail = &r->next;
-		}
-		if (!has_vertex_indices) {
-			clear_readers(readers);
-			return false;
-		}
-		if (!readers->next) {
-			// only one reader
-			for (auto i = 0u; i < elem->count; ++i) {
-				if (!(*readers)(m_stream))
+				if (index_count + 3 > dst_size)
 					break;
-			}
-		}
-		else {
-			for (auto i = 0u; i < elem->count && m_stream; ++i) {
-				for (auto r = readers; r; r = r->next) {
-					if (!(*r)(m_stream))
-						break;
+				flip = !flip;
+				if (flip)
+				{
+					*dst++ = (T1)p2;
+					*dst++ = (T1)p1;
 				}
+				else
+				{
+					*dst++ = (T1)p1;
+					*dst++ = (T1)p2;
+				}
+				*dst++ = (T1)p0;
+				index_count += 3;
+				p1 = p2;
+				p2 = p0;
+			}
+			src += length;
+		}
+		return index_count;
+	}
+
+	unsigned CPlyFile::read_face(char* buffer, size_t buffer_size, unsigned index_size) const
+	{
+		bool is_short_index = index_size == sizeof(uint16_t);
+		if(!is_short_index && index_size != sizeof(uint32_t))
+		{
+			log_warning("[PLY] Index buffer should be uint16 or uint32");
+			return 0;
+		}
+		bool is_tristrips = false;
+		auto *elem = FIND_ELEMENT(PLY_FACE);
+		if (!elem)
+		{
+			elem = FIND_ELEMENT(PLY_TRISTRIPS);
+			if(!elem)
+			{
+				log_warning("[PLY] no face data");
+				return 0;
+			}
+			is_tristrips = true;
+		}
+
+		auto prop = GET_PROPERTY(elem);
+		unsigned offset = 0;
+		while(prop && prop->name != PLY_TAGS[PLY_VERTEX_INDICES])
+		{
+			offset += prop->size;
+			prop = NEXT_PROPERTY(prop);
+		}
+		if(!prop || prop->type != PLY_LIST || prop->item_type != PLY_INTEGER)
+		{
+			log_error("[PLY] Invalid face/tristrip list");
+			return 0;
+		}
+
+		char* list_length = elem->data + offset;
+		auto* list_data = prop->list_data;
+		assert(list_data);
+		unsigned item_size = prop->item_size;
+		bool is_short_item = item_size == sizeof(uint16_t);
+		if(!is_short_item && item_size != sizeof(uint32_t))
+		{
+			log_error("[PLY] Face and tristrip index is neither int16 nor int32");
+			return 0;
+		}
+		size_t size = buffer_size / index_size;
+		unsigned read_index = 0;
+		if(!is_tristrips)
+		{
+			if (is_short_index)
+			{
+				if (!is_short_item)
+					read_index = copy_face((uint16_t*)buffer, size, (uint32_t*)list_data->data, list_data->size, list_length, elem->size, elem->count);
+				else
+					read_index = copy_face((uint16_t*)buffer, size, (uint16_t*)list_data->data, list_data->size, list_length, elem->size, elem->count);
+			}
+			else
+			{
+				if (!is_short_item)
+					read_index = copy_face((uint32_t*)buffer, size, (uint32_t*)list_data->data, list_data->size, list_length, elem->size, elem->count);
+				else
+					read_index = copy_face((uint16_t*)buffer, size, (uint16_t*)list_data->data, list_data->size, list_length, elem->size, elem->count);
 			}
 		}
-		clear_readers(readers);
-		return true;
+		else if(is_short_index)
+		{
+			if(!is_short_item)
+				read_index = copy_tristrips((uint16_t*)buffer, size, (int32_t*)list_data->data, list_data->size, list_length, elem->size, elem->count);
+			else
+				read_index = copy_tristrips((uint16_t*)buffer, size, (int16_t*)list_data->data, list_data->size, list_length, elem->size, elem->count);
+		}
+		else
+		{
+			if(!is_short_item)
+				read_index = copy_tristrips((uint32_t*)buffer, size, (int32_t*)elem->data, elem->size, list_length, elem->size, elem->count);
+			else
+				read_index = copy_tristrips((uint32_t*)buffer, size, (int16_t*)elem->data, elem->size, list_length, elem->size, elem->count);
+		}
+		return read_index;
 	}
 
 	/*
@@ -929,7 +547,7 @@ namespace wyc
 	# float      single-precision float    4
 	# double     double-precision float    8
 	*/
-	static std::pair<PLY_PROPERTY_TYPE, uint8_t> ply_property_type(const std::string &type)
+	static std::pair<EPlyPropertyType, uint8_t> ply_property_type(const std::string &type)
 	{
 		
 		if (type == "char" || type == "uchar") {
@@ -998,7 +616,7 @@ namespace wyc
 		return std::make_pair(PLY_NULL, 0);
 	}
 
-	bool CPlyFile::_load(const std::string & path)
+	bool CPlyFile::preload(const std::string & path)
 	{
 		m_stream.open(path, std::ios_base::binary);
 		if (!m_stream.is_open())
@@ -1013,15 +631,14 @@ namespace wyc
 			m_error = PLY_INVALID_FILE;
 			return false;
 		}
-//		constexpr auto max_size = std::numeric_limits<std::streamsize>::max();
 		if (m_elements)
 		{
-			_clear();
+			clear();
 		}
 		unsigned count = 0;
-		PlyElement *cur_elem = nullptr;
-		PlyElement **tail = &m_elements;
-		PlyProperty **prop_tail = nullptr;
+		PlyElementImpl *cur_elem = nullptr;
+		PlyElementImpl **tail = (PlyElementImpl**)&m_elements;
+		PlyPropertyImpl **prop_tail = nullptr;
 		while (m_stream) {
 			std::getline(m_stream, value);
 			if (value.empty() || value == PLY_TAGS[END_HEADER])
@@ -1065,12 +682,12 @@ namespace wyc
 				if (line.fail()) 
 					continue;
 				if (!value.empty() && count) {
-					cur_elem = wyc_new(PlyElement);
+					cur_elem = wyc_new(PlyElementImpl);
 					cur_elem->count = count;
 					cur_elem->name = value;
 					*tail = cur_elem;
-					tail = &cur_elem->next;
-					prop_tail = &cur_elem->properties;
+					tail = (PlyElementImpl**)&cur_elem->next;
+					prop_tail = (PlyPropertyImpl**)&cur_elem->properties;
 				}
 			}
 			else if (value == PLY_TAGS[PROPERTY])
@@ -1079,9 +696,10 @@ namespace wyc
 				line >> value;
 				if (line.fail() || value.empty())
 					continue;
-				PlyProperty *prop = wyc_new(PlyProperty);
+				PlyPropertyImpl *prop = wyc_new(PlyPropertyImpl);
 				*prop_tail = prop;
-				prop_tail = &prop->next;
+				prop_tail = (PlyPropertyImpl**)&prop->next;
+				cur_elem->property_count += 1;
 				if (value == "list") {
 					prop->type = PLY_LIST;
 					line >> value;
@@ -1092,8 +710,12 @@ namespace wyc
 						m_error = PLY_INVALID_PROPERTY;
 						return false;
 					}
-					prop->size = (t1.second << 24) | (t1.first << 16) | (t2.second << 8) | t2.first;
-					cur_elem->is_variant = true;
+					// prop->size = (t1.second << 24) | (t1.first << 16) | (t2.second << 8) | t2.first;
+					prop->length_size = t1.second;
+					prop->item_size = t2.second;
+					prop->item_type = t2.first;
+					cur_elem->size += sizeof(unsigned);
+					cur_elem->list_count += 1;
 				}
 				else {
 					auto t = ply_property_type(value);
@@ -1109,68 +731,123 @@ namespace wyc
 		return true;
 	}
 
-	PlyElement* CPlyFile::_locate_element(const char *elem_name)
+
+	bool CPlyFile::load()
 	{
-		assert(m_stream.is_open());
-		if (!m_stream) {
+		if(m_is_data_loaded)
+		{
+			return true;
+		}
+		if(!m_stream.is_open())
+		{
+			m_error = PLY_INVALID_FILE;
+			return false;
+		}
+		if (!m_stream)
+		{
 			m_stream.clear();
 		}
-		std::streampos pos = 0;
-		PlyElement *elem;
-		for (elem = m_elements; elem && elem->name != elem_name; elem = elem->next)
+		m_stream.seekg(m_data_pos);
+		for(PlyElementImpl* elem = (PlyElementImpl*)m_elements; elem; elem = NEXT_ELEMENT(elem))
 		{
-			if (!elem->chunk_size) {
-				if (!elem->is_variant) 
-					elem->chunk_size = elem->size * elem->count;
-				else {
-					elem->chunk_size = _calculate_chunk_size(elem, pos);
-					if (!elem->chunk_size)
-						return nullptr;
-				}
-			}
-			pos += elem->chunk_size;
-		}
-		if (!elem) 
-			return nullptr;
-		m_stream.seekg(m_data_pos + pos);
-		return elem;
-	}
-
-	std::streamoff CPlyFile::_calculate_chunk_size(PlyElement * elem, std::streampos pos)
-	{
-		unsigned s = 0;
-		IPlyReader *readers = nullptr;
-		IPlyReader **tail = &readers;
-		for (auto prop = elem->properties; prop; prop = prop->next)
-		{
-			if (prop->type != PLY_LIST)
-				s += prop->size;
-			else {
-				if(s > 0) {
-					IPlyReader *r1 = wyc_new(CPlyIgnoreSize, s);
-					*tail = r1;
-					tail = &r1->next;
-				}
-				IPlyReader *r2 = wyc_new(CPlyIgnoreList, prop->size);
-				*tail = r2;
-				tail = &r2->next;
-				s = 0;
-			}
-		}
-		m_stream.seekg(m_data_pos + pos);
-		for (unsigned i = 0; i < elem->count; ++i) {
-			for (auto r = readers; r; r = r->next)
+			if(!m_stream)
 			{
-				(*r)(m_stream);
-				if (!m_stream) {
-					clear_readers(readers);
-					return 0;
+				m_error = PLY_IO_INTERRUPT;
+				return false;
+			}
+			if(!elem->data)
+			{
+				elem->data_size = elem->size * elem->count;
+				elem->data = (char*)wyc_malloc(elem->data_size);
+			}
+			if(!elem->list_count)
+			{
+				m_stream.read(elem->data, elem->data_size);
+				continue;
+			}
+
+			typedef std::function<char*(std::istream&, char*)> Reader;
+			std::vector<Reader> readers;
+			readers.reserve(elem->property_count);
+			unsigned fixed_size = 0;
+			PlyListData** list_data_tail = &elem->list_data;
+			for(PlyPropertyImpl* prop = GET_PROPERTY(elem); prop; prop = NEXT_PROPERTY(prop))
+			{
+				if (prop->type != PLY_LIST)
+				{
+					fixed_size += prop->size;
+					continue;
+				}
+				if(fixed_size)
+				{
+					readers.emplace_back([fixed_size](std::istream& in, char* buf)
+					{
+						in.read(buf, fixed_size);
+						return buf + fixed_size;
+					});
+				}
+				// list data format
+				// 3 0 1 2
+				// ^ ^
+				// | |____ the first index
+				// |____ number of index
+				// list may contain 3 or 4 indices
+				// 3 indices indicate a triangle
+				// 4 indices indicate a triangle fan
+				// e.g 4 0 1 2 3
+				// indicate 2 triangles: (0, 1, 2) and (0, 2, 3)
+				const unsigned length_size = prop->length_size;
+				const unsigned item_size = prop->item_size;
+				if(length_size > sizeof(unsigned))
+				{
+					m_error = PLY_LIST_LENGTH_OVERFLOW;
+					return false;
+				}
+				if(item_size == 0)
+				{
+					m_error = PLY_LIST_INVALID_ITEM_SIZE;
+					return false;
+				}
+				PlyListData* list_data = wyc_new(PlyListData);
+				prop->list_data = list_data;
+				*list_data_tail = list_data;
+				list_data_tail = &list_data->next;
+				readers.emplace_back([length_size, item_size, list_data](std::istream& in, char* buf)
+				{
+					unsigned length = 0;
+					in.read((char*)&length, length_size);
+					*(unsigned*)buf = length;
+					buf += sizeof(unsigned);
+					list_data->ensure_capacity(length, item_size);
+					in.read(list_data->data + list_data->size * item_size, length * item_size);
+					list_data->size += length;
+					return buf;
+				});
+			}
+			if(fixed_size)
+			{
+				readers.emplace_back([fixed_size](std::istream& in, char* buf)
+				{
+					in.read(buf, fixed_size);
+					return buf + fixed_size;
+				});
+			}
+			char* data = elem->data;
+			for(unsigned i=0; i<elem->count; ++i)
+			{
+				for (auto reader : readers)
+				{
+					if(!m_stream)
+					{
+						m_error = PLY_IO_INTERRUPT;
+						return false;
+					}
+					data = reader(m_stream, data);
 				}
 			}
 		}
-		auto end_pos = m_stream.tellg();
-		clear_readers(readers);
-		return end_pos - pos;
+		m_is_data_loaded = true;
+		return true;
 	}
 
 } // namespace wyc

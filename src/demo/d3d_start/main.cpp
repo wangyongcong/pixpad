@@ -47,7 +47,7 @@ public:
 	void initialize() override
 	{
 		m_mesh = wyc_new(CMesh);
-		if(!m_mesh->load("assets/sofa.ply"))
+		if(!m_mesh->load("assets/icosahedron.ply"))
 		{
 			log_error("Can't load mesh");
 		}
