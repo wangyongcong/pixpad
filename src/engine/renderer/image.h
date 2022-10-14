@@ -4,12 +4,13 @@
 #include <vector>
 #include <memory>
 #include <ImathColorAlgo.h>
+#include "engine.h"
 #include "mathex/vecmath.h"
 
 namespace wyc
 {
 	
-	class CImage
+	class WYCAPI CImage
 	{
 	public:
 		CImage();

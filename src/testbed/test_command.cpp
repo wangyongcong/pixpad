@@ -3,7 +3,7 @@
 #include <functional>
 #include <strstream>
 #define WYC_SHELLCMD_IMPLEMENTATION
-#include "shellcmd.h"
+#include "common/shellcmd.h"
 #include "stb/stb_log.h"
 #include "test.h"
 

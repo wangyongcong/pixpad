@@ -1,9 +1,9 @@
 #pragma once
 #include <algorithm>
 #include <ImathMatrix.h>
-#include "vecmath.h"
-#include "material.h"
-#include "shader_api.h"
+#include "mathex/vecmath.h"
+#include "renderer/sparrow/material.h"
+#include "renderer/sparrow/shader_api.h"
 
 class CMaterialWireframe : public wyc::CMaterial
 {

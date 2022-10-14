@@ -1,14 +1,14 @@
 #ifndef WYC_HEADER_SURFACE
 #define WYC_HEADER_SURFACE
-
 #include <cstdint>
 #include <cassert>
-#include "common/util_macros.h"
+#include "engine.h"
+#include "common/common_macros.h"
 #include "common/utility.h"
 
 namespace wyc
 {
-	class CSurface
+	class WYCAPI CSurface
 	{
 	public:
 		CSurface();

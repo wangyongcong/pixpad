@@ -1,5 +1,7 @@
 project(engine)
 
+option(USE_MEMORY_TRACKING "Enable memory tracking" ON)
+
 # default platform/renderer name
 if(WIN32)
 	set(PLATFORM_NAME "Windows" CACHE STRING "Platform Name")
@@ -15,16 +17,29 @@ set_property(CACHE RENDERER_NAME PROPERTY STRINGS Direct3D12 Metal)
 string(TOLOWER ${PLATFORM_NAME} PLATFORM_NAME_LOWER)
 string(TOLOWER ${RENDERER_NAME} RENDERER_NAME_LOWER)
 
-# -----------
+if(BUILD_SHARED_LIBS)
+	set(ENGINE_PUBLIC_DEFINITIONS ${ENGINE_PUBLIC_DEFINITIONS} -DENGINE_SHARED_LIBS -DSTB_SHARED_LIBS)
+else()
+	set(ENGINE_PUBLIC_DEFINITIONS ${ENGINE_PUBLIC_DEFINITIONS} -DENGINE_STATIC_LIBS)
+endif()
+
+# -------------------------------------------------------------------
+# Engine 代码
+# -------------------------------------------------------------------
+set(ENGINE_SOURCE
+	engine.h
+)
+
+# -------------------------------------------------------------------
 # Common 模块
-# -----------
+# -------------------------------------------------------------------
 set(COMMON_PUBLIC
 	# Common module
 	common/any_stride_iterator.h
 	common/assertion_macros.h
 	common/log_macros.h
 	common/memory.h
-	common/util_macros.h
+	common/common_macros.h
 	common/utility.h
 )
 
@@ -39,9 +54,9 @@ set(COMMON_MODULE_SOURCE
 	${COMMON_PRIVATE}
 )
 
-# -----------
+# -------------------------------------------------------------------
 # MathEx 模块
-# -----------
+# -------------------------------------------------------------------
 set(MATHEX_PUBLIC
 	mathex/floatmath.h
 	mathex/vecmath.h
@@ -57,9 +72,9 @@ set(MATHEX_MODULE_SOURCE
 	${MATHEX_PRIVATE}
 )
 
-# -----------
+# -------------------------------------------------------------------
 # Game 模块
-# -----------
+# -------------------------------------------------------------------
 set(GAME_PUBLIC
 	# Game module
 	game/game_application.h
@@ -77,9 +92,9 @@ set(GAME_MODULE_SOURCE
 	${GAME_PRIVATE}
 )
 
-# ---------------
+# -------------------------------------------------------------------
 # 平台模块
-# ---------------
+# -------------------------------------------------------------------
 set(PLATFORM_PUBLIC
 	platform/platform.h
 )
@@ -103,14 +118,14 @@ set(PLATFORM_MODULE_SOURCE
 )
 
 if(PLATFORM_NAME STREQUAL "Windows")
-	add_definitions(-DPLATFORM_WINDOWS)
+	set(ENGINE_PUBLIC_DEFINITIONS ${ENGINE_PUBLIC_DEFINITIONS} -DPLATFORM_WINDOWS)
 elseif(PLATFORM_NAME STREQUAL "Mac")
-	add_definitions(-DPLATFORM_MAC)
+	set(ENGINE_PUBLIC_DEFINITIONS ${ENGINE_PUBLIC_DEFINITIONS} -DPLATFORM_MAC)
 endif()
 
-# -----------
+# -------------------------------------------------------------------
 # 渲染模块
-# -----------
+# -------------------------------------------------------------------
 set(RENDERER_PUBLIC
 	renderer/renderer.h
 )
@@ -149,9 +164,9 @@ set(RENDERER_MODULE_SOURCE
 	${SPECIFIC_RENDERER_SOURCE}
 )
 
-# ---------------
+# -------------------------------------------------------------------
 # Sparrow 渲染器
-# ---------------
+# -------------------------------------------------------------------
 set(SPARROW_PATH renderer/sparrow)
 
 set(SPARROW_RENDERER_PUBLIC 
@@ -217,13 +232,18 @@ source_group(renderer/sparrow/thread FILES ${SPARROW_THREAD})
 set(SPARROW_MODULE ${SPARROW_RENDERER_PUBLIC} ${SPARROW_RENDERER_PRIVATE} ${SPARROW_THREAD})
 set(RENDERER_MODULE_SOURCE ${RENDERER_MODULE_SOURCE} ${SPARROW_MODULE})
 
-# ---------------
+# -------------------------------------------------------------------
 # 设置第三方库依赖
-# ---------------
+# -------------------------------------------------------------------
 file(GLOB_RECURSE STB_SOURCE LIST_DIRECTORIES false
 	${3RD_PATH}/stb/*.h
 	${3RD_PATH}/stb/*.cpp
 )
+# export stb api
+if(BUILD_SHARED_LIBS)
+	add_definitions(-Dstb_EXPORTS)
+endif()
+
 
 set(MEMORY_MANAGER_PUBLIC ${3RD_PATH}/MemoryManager)
 set(MEMORY_MANAGER_SOURCE
@@ -251,9 +271,9 @@ set(THIRD_PARTY_SOURCE
 	${RTM_SOURCE}
 )
 
-# ------------------
+# -------------------------------------------------------------------
 # 渲染器相关的第三方库
-# ------------------
+# -------------------------------------------------------------------
 
 if(RENDERER_NAME STREQUAL "Direct3D12")
 # D3D12 helper library
@@ -286,6 +306,8 @@ source_group("3rd/D3D12Lib" FILES ${D3D12LIB_SOURCE})
 source_group("3rd/D3D12MemoryAllocator" FILES ${D3D12_MEMORY_ALLOCATOR_SOURCE})
 endif() # End Direct3D 12
 
+# engine group
+source_group("engine" FILES ${ENGINE_SOURCE})
 # common group
 source_group("common" FILES ${COMMON_MODULE_SOURCE})
 # math group
@@ -304,9 +326,9 @@ source_group("3rd/rtm" FILES ${RTM_SOURCE})
 source_group("3rd/stb" FILES ${STB_SOURCE})
 source_group("Natvis" FILES ${NATVIS})
 
-# ----------------------
+# -------------------------------------------------------------------
 # Windows resource files
-# ----------------------
+# -------------------------------------------------------------------
 
 if(PLATFORM_NAME STREQUAL "Windows")
 	set(RESOURCE_FILES 
@@ -317,18 +339,17 @@ if(PLATFORM_NAME STREQUAL "Windows")
 	source_group("Resources/Icon" FILES platform/windows/Resources/Icon/app_icon.ico)
 endif()
 
-# --------
+# -------------------------------------------------------------------
 # 设置工程
-# --------
+# -------------------------------------------------------------------
 
-option(USE_MEMORY_TRACKING "Enable memory tracking" "ON")
-
-if (USE_MEMORY_TRACKING)
+if(USE_MEMORY_TRACKING)
 	add_definitions(-DUSE_MEMORY_TRACKING)
 endif()
 
-add_library(${PROJECT_NAME} SHARED
+add_library(${PROJECT_NAME} STATIC
 	${THIRD_PARTY_SOURCE}
+	${ENGINE_SOURCE}
 	${COMMON_MODULE_SOURCE}
 	${MATHEX_MODULE_SOURCE}
 	${GAME_MODULE_SOURCE}
@@ -344,7 +365,7 @@ target_precompile_headers(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME}
-	PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+	PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 	PUBLIC ${THIRD_PARTY_PUBLIC}
 )
 
@@ -352,6 +373,19 @@ target_link_libraries(${PROJECT_NAME}
 	PUBLIC d3d12.lib
 	PUBLIC dxgi.lib
 	PUBLIC dxguid.lib
+	absl::flat_hash_map
+	absl::flat_hash_set
+	absl::strings
+	absl::status
+)
+
+if(NOT BUILD_SHARED_LIBS)
 	# 如果是 static lib 要将资源文件链接到库里面
-	# PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/GameFramework.dir/${CMAKE_CFG_INTDIR}/GameFramework.res
+	target_link_libraries(${PROJECT_NAME}
+		PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/engine.dir/${CMAKE_CFG_INTDIR}/game.res
+	)
+endif()
+
+target_compile_definitions(${PROJECT_NAME}
+	PUBLIC ${ENGINE_PUBLIC_DEFINITIONS}
 )

@@ -1,6 +1,6 @@
 #include "test.h"
-#include "mesh.h"
-#include "vecmath.h"
+#include "renderer/mesh.h"
+#include "mathex/vecmath.h"
 #include "mtl_wireframe.h"
 #include "mtl_lambert.h"
 

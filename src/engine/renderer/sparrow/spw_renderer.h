@@ -1,5 +1,5 @@
 #pragma once
-
+#include "engine.h"
 #include "renderer/sparrow/renderer.h"
 #include "renderer/sparrow/spw_render_target.h"
 #include "renderer/sparrow/thread/ring_queue.h"
@@ -9,7 +9,7 @@
 
 namespace wyc
 {
-	class CSpwRenderer : public CRenderer
+	class WYCAPI CSpwRenderer : public CRenderer
 	{
 	public:
 		CSpwRenderer();

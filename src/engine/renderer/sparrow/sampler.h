@@ -1,12 +1,13 @@
 #pragma once
 #include <ImathVec.h>
 #include <ImathColor.h>
+#include "engine.h"
 #include "mathex/vecmath.h"
 #include "renderer/image.h"
 
 namespace wyc
 {
-	class CSampler
+	class WYCAPI CSampler
 	{
 	public:
 		virtual ~CSampler() {}
@@ -14,7 +15,7 @@ namespace wyc
 		virtual void sample2d(const vec2f &uv, uint8_t level, color4f &color) = 0;
 	};
 
-	class CSpwSampler : public CSampler
+	class WYCAPI CSpwSampler : public CSampler
 	{
 	public:
 		CSpwSampler(const CImage *image);
@@ -26,7 +27,7 @@ namespace wyc
 		const CImage *m_image;
 	};
 
-	class CSpwMipmapSampler : public CSampler
+	class WYCAPI CSpwMipmapSampler : public CSampler
 	{
 	public:
 		typedef std::vector<std::shared_ptr<CImage>> ImageVector;

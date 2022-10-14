@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <ImathBox.h>
+#include "engine.h"
 #include "mathex/floatmath.h"
 
 #define SPW_SUB_PIXEL_PRECISION 8
@@ -543,18 +544,18 @@ namespace wyc
 		}
 	};
 
-	void setup_triangle(Triangle *edge, const vec2f *vf0, const vec2f *vf1, const vec2f *vf2);
+	WYCAPI void setup_triangle(Triangle *edge, const vec2f *vf0, const vec2f *vf1, const vec2f *vf2);
 	// search all blocks covered by triangle
-	unsigned scan_block(RenderTarget *rt, const Triangle *tri, BlockArena *arena, TileQueue *full_blocks, TileQueue *partial_blocks);
+	WYCAPI unsigned scan_block(RenderTarget *rt, const Triangle *tri, BlockArena *arena, TileQueue *full_blocks, TileQueue *partial_blocks);
 	// search all full/partial tiles covered by triangle
-	void scan_tile(const Triangle *prim, TileBlock *block, BlockArena *arena, TileQueue *full_tiles, TileQueue *partial_tiles);
+	WYCAPI void scan_tile(const Triangle *prim, TileBlock *block, BlockArena *arena, TileQueue *full_tiles, TileQueue *partial_tiles);
 	// divide full-covered blocks into tiles
-	void split_tile(const Triangle *prim, BlockArena *arena, TileBlock *block, TileQueue *full_tiles);
+	WYCAPI void split_tile(const Triangle *prim, BlockArena *arena, TileBlock *block, TileQueue *full_tiles);
 
 	typedef void (*PixelShader) (char *dst, const vec3f &w);
 	// draw partial-covered tile
-	void draw_tile(const Triangle *prim, TileBlock *tile, PixelShader shader);
+	WYCAPI void draw_tile(const Triangle *prim, TileBlock *tile, PixelShader shader);
 	// draw full-covered tile
-	void fill_tile(const Triangle *prim, TileBlock *tile, PixelShader shader);
+	WYCAPI void fill_tile(const Triangle *prim, TileBlock *tile, PixelShader shader);
 
 } // namespace wyc

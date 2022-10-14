@@ -1,6 +1,6 @@
 #include "test.h"
-#include "vecmath.h"
-#include "mesh.h"
+#include "mathex/vecmath.h"
+#include "renderer/mesh.h"
 #include "mtl_diffuse.h"
 #include <boost/filesystem.hpp>
 
@@ -12,10 +12,10 @@ void create_floor(wyc::CMesh* mesh, float r, float w=1)
 		wyc::vec4f color;
 		wyc::vec2f uv;
 	};
-	VertexAttrib attrib_array[] = {
-		{ATTR_POSITION, 3, offsetof(Vertex, pos)},
-		{ATTR_COLOR, 4, offsetof(Vertex, color)},
-		{ATTR_UV0, 2, offsetof(Vertex, uv)},
+	VertexAttribute attrib_array[] = {
+		{ATTR_POSITION, TinyImageFormat_R32G32B32_SFLOAT },
+		{ATTR_COLOR, TinyImageFormat_R32G32B32A32_SFLOAT },
+		{ATTR_UV0, TinyImageFormat_R32G32_SFLOAT },
 	};
 	Vertex verts[4] = {
 		{ {-r, 0,  r },{ 1, 1, 1, 1 },{ 0, 0 } },

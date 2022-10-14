@@ -4,6 +4,7 @@
 #include "stb/stb_image_write.h"
 #include "stb/stb_log.h"
 #include "common/utility.h"
+#include "absl/numeric/bits.h"
 
 namespace wyc
 {
@@ -150,19 +151,19 @@ namespace wyc
 	void CImage::create_checkerboard(unsigned size, const color3f &color1, const color3f &color2)
 	{
 		clear();
-		size = wyc::minimal_power2(size);
+		size = absl::bit_ceil(size);
 		m_width = m_height = size;
 		m_pitch = size * sizeof(uint32_t);
 		m_data = new unsigned char[m_pitch * size];
 		m_is_stbi_mem = false;
-		int half = size >> 1;
+		auto half = size >> 1;
 		auto p1 = (uint32_t*)m_data;
 		auto p2 = p1 + half;
 		uint32_t c1 = Imath::rgb2packed(color1);
 		uint32_t c2 = Imath::rgb2packed(color2);
-		for (auto k = 0; k < 2; ++k) {
-			for (auto j = 0; j < half; ++j) {
-				for (auto i = 0; i < half; ++i) {
+		for (auto k = 0u; k < 2; ++k) {
+			for (auto j = 0u; j < half; ++j) {
+				for (auto i = 0u; i < half; ++i) {
 					p1[i] = c1;
 					p2[i] = c2;
 				}

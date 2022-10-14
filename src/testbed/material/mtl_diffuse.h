@@ -1,7 +1,7 @@
 #pragma once
 #include "ImathMatrix.h"
-#include "material.h"
-#include "sampler.h"
+#include "renderer/sparrow/material.h"
+#include "renderer/sparrow/sampler.h"
 
 class CMaterialDiffuse : public wyc::CMaterial
 {

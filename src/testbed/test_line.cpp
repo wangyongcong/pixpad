@@ -1,9 +1,9 @@
 #include "test.h"
 #include <cmath>
 #include "renderer/image.h"
-#include "spw_renderer.h"
-#include "clipping.h"
-#include "spw_rasterizer.h"
+#include "renderer/sparrow/spw_renderer.h"
+#include "renderer/sparrow/clipping.h"
+#include "renderer/sparrow/spw_rasterizer.h"
 
 class CSimplePlotter
 {

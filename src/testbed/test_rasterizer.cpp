@@ -1,14 +1,14 @@
 #include <chrono>
 #include "test.h"
-#include "mesh.h"
-#include "vecmath.h"
-#include "mtl_color.h"
-#include "surface.h"
-#include "spw_rasterizer.h"
 #include "ImathBoxAlgo.h"
+#include "mathex/vecmath.h"
+#include "renderer/mesh.h"
 #include "renderer/image.h"
-#include "metric.h"
-#include "spw_tile.h"
+#include "renderer/sparrow/surface.h"
+#include "renderer/sparrow/spw_rasterizer.h"
+#include "renderer/sparrow/metric.h"
+#include "renderer/sparrow/spw_tile.h"
+#include "mtl_color.h"
 
 enum ERasterizerType
 {

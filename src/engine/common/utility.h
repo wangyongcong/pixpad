@@ -23,12 +23,14 @@ namespace wyc
 		st &= ~flag;
 	}
 
+	[[deprecated("Use absl::has_single_bit instead")]]
 	inline bool is_power2(unsigned val)
 	{
 		return (val&(val - 1)) == 0;
 	}
 
 	// return the minimal r, which (r = 2^a and r >= val)
+	[[deprecated("Use absl::bit_ceil instead")]]
 	unsigned minimal_power2(unsigned val);
 
 	// return log2(val), if val = 2^a (a >= 0)

@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include "engine.h"
 #include "mathex/vecmath.h"
 
 namespace wyc
@@ -22,9 +23,9 @@ namespace wyc
 		return 0;
 	}
 
-	int mipmap_level(float dudx, float dudy, unsigned texture_size, float &f);
+	WYCAPI int mipmap_level(float dudx, float dudy, unsigned texture_size, float &f);
 
-	float smooth_step(float edge0, float edge1, float x);
+	WYCAPI float smooth_step(float edge0, float edge1, float x);
 
 	template<class Vector>
 	inline Vector safe_divide(const Vector &v1, const Vector &v2) {

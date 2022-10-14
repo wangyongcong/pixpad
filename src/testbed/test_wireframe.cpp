@@ -1,5 +1,5 @@
 #include "test.h"
-#include "mesh.h"
+#include "renderer/mesh.h"
 #include "mtl_wireframe.h"
 
 using namespace wyc;

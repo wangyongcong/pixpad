@@ -1,8 +1,8 @@
 #pragma once
 #include <algorithm>
 #include "ImathMatrix.h"
-#include "material.h"
-#include "shader_api.h"
+#include "renderer/sparrow/material.h"
+#include "renderer/sparrow/shader_api.h"
 
 class CMaterialLambert : public wyc::CMaterial
 {

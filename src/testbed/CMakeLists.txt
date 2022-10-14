@@ -55,8 +55,10 @@ set_target_properties(${PROJECT_NAME}
 	RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
 )
 
+target_include_directories(${PROJECT_NAME} PRIVATE ${ENGINE_PATH})
+
 target_link_libraries(${PROJECT_NAME} 
-	sparrow 
+	engine 
 	${LIB_IMATH}
 	${Boost_SYSTEM_LIBRARY}
 	${Boost_PROGRAM_OPTIONS_LIBRARY}

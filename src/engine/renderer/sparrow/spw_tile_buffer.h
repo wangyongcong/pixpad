@@ -1,6 +1,6 @@
 #pragma once
 #include "spw_config.h"
-#include "common/util_macros.h"
+#include "common/common_macros.h"
 #include "common/utility.h"
 
 #define TILE_SIZE 4

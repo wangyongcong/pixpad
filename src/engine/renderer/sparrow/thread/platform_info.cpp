@@ -15,6 +15,12 @@
 
 namespace wyc
 {
+	const PlatformInfo& get_platform_info()
+	{
+		static PlatformInfo s_platform_info;
+		return s_platform_info;
+	}
+
 #ifdef __APPLE__
 	bool get_sys_string(int ctl_type, int ctl_name, std::string &ret)
 	{

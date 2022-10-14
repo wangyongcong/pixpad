@@ -6,13 +6,14 @@
 #include <future>
 #include <ImathForward.h>
 #include <ImathColor.h>
-#include "common/util_macros.h"
+#include "engine.h"
+#include "common/common_macros.h"
 #include "renderer/mesh.h"
 #include "renderer/sparrow/material.h"
 
 namespace wyc
 {
-	class CCommandAllocator
+	class WYCAPI CCommandAllocator
 	{
 	public:
 		CCommandAllocator(unsigned chunk_size, unsigned short granularity);

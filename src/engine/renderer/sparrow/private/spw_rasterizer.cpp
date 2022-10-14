@@ -324,7 +324,8 @@ namespace wyc
 		for(int i = 0; i < 16; ++i, ++xm, dst += PIXEL_SIZE) {
 			if(*xm < 0)
 				continue;
-			vec3f w(x0[i], x1[i], x2[i]);
+			// @todo use fixed point alogrithm?
+			vec3f w((float)x0[i], (float)x1[i], (float)x2[i]);
 			w += prim->tail;
 			float sum = w.x + w.y + w.z;
 			w /= sum;
@@ -404,7 +405,8 @@ namespace wyc
 		constexpr int PIXEL_SIZE = 4;
 		char *dst = tile->storage;
 		for(int i = 0; i < 16; ++i, dst += PIXEL_SIZE) {
-			vec3f w(x0[i], x1[i], x2[i]);
+			// @todo use fixed point alogrithm?
+			vec3f w((float)x0[i], (float)x1[i], (float)x2[i]);
 			w += prim->tail;
 			float sum = w.x + w.y + w.z;
 			w /= sum;

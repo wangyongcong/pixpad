@@ -86,6 +86,14 @@ set(LIB_IMATH Imath)
 # RTM lib
 set(RTM_INCLUDE ${3RD_PATH}/rtm/includes)
 
+# Google test
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+add_subdirectory(${3RD_PATH}/googletest)
+
+# Google abseil-cpp
+add_definitions(-DABSL_BUILD_TESTING=OFF -DABSL_USE_EXTERNAL_GOOGLETEST=ON)
+add_subdirectory(${3RD_PATH}/abseil-cpp)
+
 # end 3rd libs
 #--------------------------------------------------
 
@@ -120,26 +128,11 @@ include_directories(
 set(ENGINE_PATH ${SRC_ROOT}/engine)
 #set(SPARROW_PATH ${SRC_ROOT}/engine/renderer/sparrow)
 
-# setup targets
-#add_subdirectory(src/sparrow)
-#add_dependencies(sparrow ${LIB_IMATH})
-#set(SPARROW_INCLUDE_DIR 
-#	${ENGINE_PATH}
-#	${ENGINE_PATH}/common
-#	${ENGINE_PATH}/mathex
-#	${ENGINE_PATH}/renderer
-#	${SPARROW_PATH}
-#	${SPARROW_PATH}/core
-#	${SPARROW_PATH}/renderer
-#	${SPARROW_PATH}/thread
-#)
-# include_directories(${SPARROW_INCLUDE_DIR})
-
-# unit test
-# add_subdirectory(src/testbed)
-
 # engine
 add_subdirectory(src/engine)
+
+# unit test
+add_subdirectory(src/testbed)
 
 # pixpad
 # add_subdirectory(src/pixpad)

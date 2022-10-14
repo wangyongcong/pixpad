@@ -1,9 +1,9 @@
 #include <cmath>
 #include "test.h"
-#include "mesh.h"
-#include "vecmath.h"
+#include "mathex/vecmath.h"
+#include "renderer/mesh.h"
+#include "renderer/sparrow/metric.h"
 #include "mtl_color.h"
-#include "metric.h"
 
 class CTestBox : public CTest
 {

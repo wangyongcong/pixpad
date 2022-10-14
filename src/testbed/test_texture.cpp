@@ -1,6 +1,6 @@
 #include "test.h"
-#include "vecmath.h"
-#include "mesh.h"
+#include "mathex/vecmath.h"
+#include "renderer/mesh.h"
 #include "mtl_diffuse.h"
 #include "mtl_color.h"
 

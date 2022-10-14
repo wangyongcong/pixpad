@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <memory>
 #include <ImathMatrix.h>
+#include "engine.h"
 #include "mathex/vecmath.h"
 #include "renderer/vertex_buffer.h"
 #include "renderer/vertex_layout.h"
@@ -45,7 +46,7 @@ namespace wyc
 
 	template<class T> using remove_member_pointer_t = typename remove_member_pointer<T>::type;
 
-	class CShaderContext
+	class WYCAPI CShaderContext
 	{
 	public:
 		template<class T, class Vertex>
@@ -83,7 +84,7 @@ namespace wyc
 		unsigned out_stride;
 	};
 
-	class CUniform
+	class WYCAPI CUniform
 	{
 	public:
 		typedef void(*uniform_getter) (const CMaterial*, void*);
@@ -108,7 +109,7 @@ namespace wyc
 		MF_NO_PERSPECTIVE_CORRECTION = 1,
 	};
 
-	class CMaterial
+	class WYCAPI CMaterial
 	{
 	public:
 		typedef std::unordered_map<std::string, CUniform> UniformMap;

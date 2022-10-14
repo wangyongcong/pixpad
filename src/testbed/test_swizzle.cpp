@@ -1,10 +1,10 @@
-#include <stdlib.h>
+#include <cstdlib>
 #include "stb/stb_image.h"
 #include "stb/stb_image_write.h"
 #include "stb/stb_log.h"
+#include "renderer/sparrow/spw_tile.h"
+#include "renderer/sparrow/metric.h"
 #include "test.h"
-#include "spw_tile.h"
-#include "metric.h"
 
 using namespace wyc;
 

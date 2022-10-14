@@ -4,7 +4,7 @@
 #include <atomic>
 #include <vector>
 #include "renderer/sparrow/spw_config.h"
-#include "common/util_macros.h"
+#include "common/common_macros.h"
 #include "renderer/sparrow/thread/platform_info.h"
 
 namespace wyc

@@ -50,12 +50,12 @@
 #include <thread>
 #include <string>
 
-#ifdef _WINDLL
-	#ifdef engine_EXPORTS
-		#define STB_LOG_API __declspec(dllexport)
-	#else
-		#define STB_LOG_API __declspec(dllimport)
-	#endif
+#if defined(_WINDOWS) && defined(STB_SHARED_LIBS)
+#ifdef stb_EXPORTS
+	#define STB_LOG_API __declspec(dllexport)
+#else
+	#define STB_LOG_API __declspec(dllimport)
+#endif
 #else
 	#define STB_LOG_API
 #endif
@@ -97,7 +97,7 @@ enum StbLogLevel {
 #define LOG_BATCH_SIZE 64
 // string logger default buffer size
 #define LOG_STRING_SIZE 1024
-#define LOG_STRING_SIZE_MAX 1024 * 1024
+#define LOG_STRING_SIZE_MAX (1024 * 1024)
 // cache line size
 #ifndef CACHELINE_SIZE
 #define CACHELINE_SIZE 64

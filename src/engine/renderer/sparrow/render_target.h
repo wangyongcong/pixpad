@@ -1,6 +1,6 @@
 #pragma once
-
 #include <memory>
+#include "engine.h"
 
 namespace wyc
 {
@@ -42,7 +42,7 @@ namespace wyc
 		return EPixelFormat(format & SPW_STENCIL_MASK);
 	}
 
-	class CRenderTarget
+	class WYCAPI CRenderTarget
 	{
 	public:
 		virtual ~CRenderTarget() {}

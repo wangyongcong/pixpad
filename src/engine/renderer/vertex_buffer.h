@@ -4,8 +4,9 @@
 #include <cassert>
 #include <bitset>
 #include <ImathVec.h>
+#include "engine.h"
 #include "common/any_stride_iterator.h"
-#include "common/util_macros.h"
+#include "common/common_macros.h"
 #include "vertex_layout.h"
 
 namespace wyc
@@ -74,7 +75,7 @@ namespace wyc
 	typedef CAttribArrayImpl<false> CAttribArray;
 	typedef CAttribArrayImpl<true> CConstAttribArray;
 
-	class VertexBuffer
+	class WYCAPI VertexBuffer
 	{
 		DISALLOW_COPY_MOVE_AND_ASSIGN(VertexBuffer);
 	public:

@@ -1,6 +1,6 @@
 #pragma once
 #include "ImathMatrix.h"
-#include "material.h"
+#include "renderer/sparrow/material.h"
 
 
 class CMaterialColor : public wyc::CMaterial

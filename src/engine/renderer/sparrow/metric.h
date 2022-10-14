@@ -3,6 +3,7 @@
 #include <stack>
 #include <chrono>
 #include <string>
+#include "engine.h"
 
 namespace wyc
 {
@@ -27,7 +28,7 @@ namespace wyc
 		SPW_COUNTER_COUNT
 	};
 	
-	class CSpwMetric
+	class WYCAPI CSpwMetric
 	{
 	public:
 		static CSpwMetric* singleton() {
@@ -50,7 +51,7 @@ namespace wyc
 		std::vector<unsigned> m_counters;
 	};
 	
-	class CSpwMetricTimer
+	class WYCAPI CSpwMetricTimer
 	{
 	public:
 		CSpwMetricTimer(SPW_TIMER tid) {
@@ -61,7 +62,7 @@ namespace wyc
 		}
 	};
 	
-	class CSimpleTimer
+	class WYCAPI CSimpleTimer
 	{
 	public:
 		CSimpleTimer(const char *name, bool start=true);

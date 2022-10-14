@@ -1,11 +1,11 @@
 #pragma once
-
+#include "engine.h"
 #include "renderer/sparrow/render_target.h"
 #include "renderer/sparrow/surface.h"
 
 namespace wyc
 {
-	class CSpwRenderTarget : public CRenderTarget
+	class WYCAPI CSpwRenderTarget : public CRenderTarget
 	{
 	public:
 		CSpwRenderTarget();

@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <ImathBox.h>
+#include "engine.h"
 #include "mathex/vecmath.h"
 #include "mathex/floatmath.h"
 
@@ -26,15 +27,15 @@ namespace wyc
 		return p1 + (p2 - p1) * t;
 	}
 
-	void intersect(float *v1, float d1, float *v2, float d2, size_t stride, float *out);
+	WYCAPI void intersect(float *v1, float d1, float *v2, float d2, size_t stride, float *out);
 
 	// Clip polygon by planes
 	// planes: planes used to clip the polygon
 	// vertices: vertices of the polygon, when return, it will contain the result
-	void clip_polygon(const std::vector<vec4f> &planes, std::vector<vec3f> &vertices);
+	WYCAPI void clip_polygon(const std::vector<vec4f> &planes, std::vector<vec3f> &vertices);
 
 	// Clip polygon in homogeneous clipping space
-	void clip_polygon_homo(std::vector<vec4f> &vertices);
+	WYCAPI void clip_polygon_homo(std::vector<vec4f> &vertices);
 
 	// Clip polygon in homogeneous clipping space
 	// the polygon is treated as float stream
@@ -48,14 +49,14 @@ namespace wyc
 	// retutn: the buffer which contains the clipping result, it's either vertex_in or vertex_out.
 	// return nullptr if the polygon is totally clipped out
 	// when return, vertex_count specify the count of resulting vertices.
-	float* clip_polygon_stream(float *vertex_in, float *vertex_out, size_t &vertex_count, size_t stride);
+	WYCAPI float* clip_polygon_stream(float *vertex_in, float *vertex_out, size_t &vertex_count, size_t stride);
 
 	// Clip polygon in homogeneous clipping space. Each polygon is in the form of float stream
 	// vertex_in: polygon vertices. when clipping, amount of vertices may increase
 	// indices_in: vertex index
 	// indices_out: vertex index after clipping
 	// stride: vertex stride in float component
-	void clip_polygon_stream(std::vector<float> &vertices, std::vector<unsigned> &indices_in, std::vector<unsigned> &indices_out, unsigned stride);
+	WYCAPI void clip_polygon_stream(std::vector<float> &vertices, std::vector<unsigned> &indices_in, std::vector<unsigned> &indices_out, unsigned stride);
 
-	bool clip_line(vec2f &v0, vec2f &v1, const box2f &clip_window);
+	WYCAPI bool clip_line(vec2f &v0, vec2f &v1, const box2f &clip_window);
 } // namespace wyc

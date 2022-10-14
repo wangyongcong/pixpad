@@ -2,13 +2,14 @@
 
 #include <future>
 #include <ImathColor.h>
+#include "engine.h"
 #include "renderer/sparrow/render_target.h"
 #include "renderer/sparrow/render_command.h"
 #include "renderer/sparrow/thread/ring_queue.h"
 
 namespace wyc
 {
-	class CRenderer
+	class WYCAPI CRenderer
 	{
 	public:
 		CRenderer();

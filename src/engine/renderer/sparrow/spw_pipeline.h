@@ -1,10 +1,7 @@
 #pragma once
-#include <ImathMatrix.h>
-#include <ImathBox.h>
-#include <ImathColorAlgo.h>
 #include "ImathVec.h"
+#include "engine.h"
 #include "renderer/mesh.h"
-#include "renderer/vertex_layout.h"
 #include "renderer/sparrow/spw_config.h"
 #include "renderer/sparrow/spw_render_target.h"
 #include "renderer/sparrow/material.h"
@@ -19,7 +16,7 @@ namespace wyc
 		COUNTER_CLOCK_WISE = -1
 	};
 
-	class CSpwPipeline
+	class WYCAPI CSpwPipeline
 	{
 	public:
 		CSpwPipeline();

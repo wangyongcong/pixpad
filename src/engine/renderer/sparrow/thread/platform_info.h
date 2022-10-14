@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <string>
+#include "engine.h"
 
 namespace wyc
 {
@@ -24,9 +25,6 @@ namespace wyc
 		size_t page_size;
 	};
 
-	inline const PlatformInfo& get_platform_info() {
-		static PlatformInfo s_platform_info;
-		return s_platform_info;
-	}
+	WYCAPI const PlatformInfo& get_platform_info();
 
 } // namespace wyc

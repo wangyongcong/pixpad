@@ -2,8 +2,8 @@
 #include <string>
 #include <algorithm>
 #include "boost/program_options.hpp"
-#include "spw_renderer.h"
-#include "surface.h"
+#include "renderer/sparrow/spw_renderer.h"
+#include "renderer/sparrow/surface.h"
 
 #ifdef testbed_EXPORTS
 #define EXPORT_API extern "C" _declspec(dllexport)

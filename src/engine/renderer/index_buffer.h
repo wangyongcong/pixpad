@@ -2,12 +2,13 @@
 #include <cstdint>
 #include <numeric>
 #include <vector>
+#include "engine.h"
 #include "common/memory.h"
-#include "common/util_macros.h"
+#include "common/common_macros.h"
 
 namespace wyc
 {
-	class IndexBuffer
+	class WYCAPI IndexBuffer
 	{
 		DISALLOW_COPY_MOVE_AND_ASSIGN(IndexBuffer)
 	public:
