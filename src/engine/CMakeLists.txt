@@ -149,12 +149,16 @@ set(RENDERER_COMMON_SOURCE
 )
 
 if(RENDERER_NAME STREQUAL "Direct3D12")
+	set(ENGINE_PUBLIC_DEFINITIONS ${ENGINE_PUBLIC_DEFINITIONS} -DRENDERER_DIRECT3D12)
 	add_definitions(-DRENDERER_DIRECT3D12)
 	set(SPECIFIC_RENDERER_SOURCE
 		renderer/d3d12/d3d_helper.h
 		renderer/d3d12/d3d_helper.cpp
+		renderer/d3d12/d3d12_type.h
 		renderer/d3d12/renderer_d3d12.h
 		renderer/d3d12/renderer_d3d12.cpp
+		renderer/d3d12/resource_loader.h
+		renderer/d3d12/resource_loader.cpp
 	)
 endif() # Direct3D 12
 

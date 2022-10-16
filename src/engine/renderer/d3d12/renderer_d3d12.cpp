@@ -15,10 +15,34 @@
 #include "common/utility.h"
 #include "platform/windows/windows_window.h"
 #include "d3d_helper.h"
-
+#include "d3d12_type.h"
+#include "resource_loader.h"
 
 namespace wyc
 {
+#define D3D12_NEW_STRUCT(T, ptr)  T* ptr = wyc_new(T);\
+	RENDERER_MAKE_STRUCT(ptr, ERendererName::Direct3D12, T);
+
+#define D3D12_DELETE_STRUCT(ptr) wyc_delete(ptr)
+
+	template<class To, class From>
+	To* d3d12_struct_cast(From* ptr)
+	{
+		return RENDERER_CHECK_STRUCT(ptr, ERendererName::Direct3D12, To) ? (To*)(ptr) : nullptr;
+	}
+
+	template<class To, class From>
+	const To* d3d12_struct_cast(const From* ptr)
+	{
+		return RENDERER_CHECK_STRUCT(ptr, ERendererName::Direct3D12, To) ? (const To*)(ptr) : nullptr;
+	}
+
+	static D3D12_COMMAND_LIST_TYPE s_d3d12_command_list_type[ECommandType::COMMAND_TYPE_COUNT] = {
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		D3D12_COMMAND_LIST_TYPE_COMPUTE,
+		D3D12_COMMAND_LIST_TYPE_COPY
+	};
+
 	RendererD3D12::RendererD3D12()
 		: m_device_state(ERenderDeviceState::DEVICE_EMPTY)
 		, m_frame_buffer_count(3)
@@ -31,7 +55,7 @@ namespace wyc
 		, m_depth_format()
 		, m_viewport()
 		, m_window_handle(nullptr)
-		, m_gpu_info()
+		, m_gpu_info(nullptr)
 		, m_debug_layer(nullptr)
 		, m_dxgi_factory(nullptr)
 		, m_adapter(nullptr)
@@ -43,9 +67,10 @@ namespace wyc
 		, m_swap_chain_buffers(nullptr)
 		, m_depth_buffer(nullptr)
 		, m_command_queue(nullptr)
-		, m_command_list(nullptr)
-		, m_command_allocators(nullptr)
+		, m_command_pools(nullptr)
+		, m_command_lists(nullptr)
 		, m_frame_fence(nullptr)
+		, m_resource_loader(nullptr)
 	{
 	}
 
@@ -70,15 +95,15 @@ namespace wyc
 		}
 		m_frame_buffer_count = config.frame_buffer_count;
 		// check MSAA setting
-		if(config.sample_count > 4 && m_gpu_info.msaa8_quality_level > 0)
+		if(config.sample_count > 4 && m_gpu_info->msaa8_quality_level > 0)
 		{
 			m_sample_count = 8;
-			m_sample_quality = m_gpu_info.msaa8_quality_level - 1;
+			m_sample_quality = m_gpu_info->msaa8_quality_level - 1;
 		}
-		else if(config.sample_count > 1 && m_gpu_info.msaa4_quality_level > 0)
+		else if(config.sample_count > 1 && m_gpu_info->msaa4_quality_level > 0)
 		{
 			m_sample_count = 4;
-			m_sample_quality = m_gpu_info.msaa4_quality_level - 1;
+			m_sample_quality = m_gpu_info->msaa4_quality_level - 1;
 		}
 		else
 		{
@@ -126,53 +151,44 @@ namespace wyc
 		};
 
 		// create command queue
-		D3D12_COMMAND_QUEUE_DESC command_queue_desc = {};
-		command_queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		command_queue_desc.Priority = 0;
-		command_queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		command_queue_desc.NodeMask = 0;
-		if(FAILED(m_device->CreateCommandQueue(&command_queue_desc, IID_PPV_ARGS(&m_command_queue))))
+		CommandQueueDesc queue_desc = {
+			COMMAND_TYPE_DRAW, QUEUE_PRIORITY_NORMAL, 0
+		};
+		m_command_queue = (CommandQueueD3D12*)create_queue(queue_desc);
+		if(!m_command_queue)
 		{
-			LogError("Fail to create default command queue.");
 			return false;
 		}
 
 		// create default command list
-		m_command_allocators = (ID3D12CommandAllocator**)wyc_calloc(m_frame_buffer_count, sizeof(ID3D12CommandAllocator*));
-		memset(m_command_allocators, 0, sizeof(ID3D12CommandAllocator*) * m_frame_buffer_count);
+		m_command_pools = (CommandPoolD3D12**)wyc_calloc(m_frame_buffer_count, sizeof(void*));
+		memset(m_command_pools, 0, sizeof(void*) * m_frame_buffer_count);
+
+		m_command_lists = (CommandListD3D12**)wyc_calloc(m_frame_buffer_count, sizeof(void*));
+		memset(m_command_lists, 0, sizeof(void*) * m_frame_buffer_count);
 
 		for(uint8_t i = 0; i < m_frame_buffer_count; ++i)
 		{
-			if(FAILED(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_command_allocators[i]))))
+			CommandPoolD3D12* pool = (CommandPoolD3D12*)create_command_pool(m_command_queue);
+			if(!pool)
 			{
-				LogError("Fail to create command allocator %d", i);
+				LogError("Fail to create command pool %d", i);
 				return false;
 			}
-			// Ensure(CreateFence(mpCommandFences[i]));
-		}
-		if(FAILED(m_device->CreateCommandList(
-			0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
-			m_command_allocators[0], nullptr, 
-			IID_PPV_ARGS(&m_command_list)
-		))) 
-		{
-			LogError("Fail to create default command list");
-			return false;
+			m_command_pools[i] = pool;
+			CommandListD3D12* command_list = (CommandListD3D12*)create_command_list(pool);
+			if(!command_list)
+			{
+				LogError("Fail to create command list %d", i);
+				return false;
+			}
+			m_command_lists[i] = command_list;
 		}
 
-		size_t sz = sizeof(DeviceFence) + sizeof(uint64_t) * (m_frame_buffer_count - 1);
-		m_frame_fence = (DeviceFence*) wyc_malloc(sz);
-		memset(m_frame_fence, 0, sz);
-
-		if(FAILED((m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_frame_fence->fence)))))
+		m_frame_fence = (DeviceFenceD3D12*)create_fence(m_frame_buffer_count);
+		if(!m_frame_fence)
 		{
 			LogError("Fail to crate frame fence");
-			return false;
-		}
-		m_frame_fence->wait_event = CreateEvent(NULL, FALSE, FALSE, NULL);
-		if(m_frame_fence->wait_event == NULL)
-		{
-			LogError("Fail to crate event for fence");
 			return false;
 		}
 
@@ -189,7 +205,7 @@ namespace wyc
 		};
 		IDXGISwapChain1* swapChain1;
 		if(FAILED(m_dxgi_factory->CreateSwapChainForHwnd(
-			m_command_queue,
+			m_command_queue->queue,
 			hwnd,
 			&swap_chain_desc,
 			nullptr,
@@ -288,17 +304,24 @@ namespace wyc
 		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsv_heap->GetCPUDescriptorHandleForHeapStart());
 		m_device->CreateDepthStencilView(m_depth_buffer, &dsv_desc, dsvHandle);
 
+		// initialize resource queue
+		m_resource_loader = wyc_new(ResourceLoaderD3D12, this);
+		m_resource_loader->start();
+
 		// execute init commands
+		auto cmd_list = m_command_lists[0]->command_list;
+		cmd_list->Reset(m_command_pools[0]->allocator, NULL);
 		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 			m_depth_buffer, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		m_command_list->ResourceBarrier(1, &barrier);
-		m_command_list->Close();
+		cmd_list->ResourceBarrier(1, &barrier);
+		cmd_list->Close();
 
-		ID3D12CommandList* const command_lists[] = { m_command_list };
-		m_command_queue->ExecuteCommandLists(1, command_lists);
+		auto cmd_queue = m_command_queue->queue;
+		ID3D12CommandList* const command_lists[] = { cmd_list };
+		cmd_queue->ExecuteCommandLists(1, command_lists);
 		m_frame_index += 1;
 		m_frame_buffer_index = m_swap_chain->GetCurrentBackBufferIndex();
-		m_command_queue->Signal(m_frame_fence->fence, m_frame_index);
+		cmd_queue->Signal(m_frame_fence->fence, m_frame_index);
 		m_frame_fence->value[m_frame_buffer_index] = m_frame_index;
 
 		m_device_state = ERenderDeviceState::DEVICE_INITIALIZED;
@@ -315,43 +338,113 @@ namespace wyc
 		if(m_device_state == ERenderDeviceState::DEVICE_INITIALIZED)
 		{
 			wait_for_complete(m_frame_index);
+			if(m_resource_loader)
+			{
+				m_resource_loader->close();
+			}
 			m_device_state = ERenderDeviceState::DEVICE_CLOSED;
 		}
 	}
 
 	const GpuInfo& RendererD3D12::get_gpu_info(int index)
 	{
-		return m_gpu_info;
+		return *m_gpu_info;
+	}
+
+	DeviceResource* RendererD3D12::create_resource(EDeviceResourceType type, size_t size)
+	{
+		D3D12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Buffer(size);
+		D3D12_HEAP_PROPERTIES heap_prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		ID3D12Resource* resource;
+		if(FAILED(m_device->CreateCommittedResource(&heap_prop, D3D12_HEAP_FLAG_NONE, &res_desc, 
+			D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&resource))))
+		{
+			return nullptr;
+		}
+		D3D12_NEW_STRUCT(DeviceResourceD3D12, d3d_res);
+		d3d_res->size = size;
+		d3d_res->type = type;
+		d3d_res->resource = resource;
+		return d3d_res;
+	}
+
+	void RendererD3D12::release_resource(DeviceResource* res)
+	{
+		DeviceResourceD3D12* d3d_res = d3d12_struct_cast<DeviceResourceD3D12>(res);
+		if(!d3d_res)
+		{
+			log_error("[D3D] Expect D3D12 resource: type is %d.", RENDERER_STRUCT_TYPE(res));
+			return;
+		}
+		SAFE_RELEASE(d3d_res->resource);
+		D3D12_DELETE_STRUCT(d3d_res);
+	}
+
+	void RendererD3D12::upload_resource(DeviceResource* res, void* data, size_t size)
+	{
+		DeviceResourceD3D12* d3d_res = d3d12_struct_cast<DeviceResourceD3D12>(res);
+		if(!d3d_res)
+		{
+			log_error("[D3D] Expect D3D12 resource: type is %d.", RENDERER_STRUCT_TYPE(res));
+			return;
+		}
+		if(!d3d_res->resource)
+		{
+			log_error("[D3D] Resource is not valid.");
+			return;
+		}
+		if(size > d3d_res->size)
+		{
+			log_error("[D3D] Resource buffer is not enough.");
+			return;
+		}
+
+		m_resource_loader->upload(d3d_res, data, size, [this](DeviceResource* resource, bool is_succeed)
+		{
+			DeviceResourceD3D12* d3d12_res = (DeviceResourceD3D12*)resource;
+			ID3D12GraphicsCommandList* cmd_list = m_command_lists[m_frame_buffer_index]->command_list;
+			auto finish_barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3d12_res->resource, 
+			D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ);
+			cmd_list->ResourceBarrier(1, &finish_barrier);
+		});
+
 	}
 
 	void RendererD3D12::begin_frame()
 	{
 		m_frame_index += 1;
-		auto frameFenceValue = m_frame_fence->value[m_frame_buffer_index];
-		wait_for_complete(frameFenceValue);
+		auto frame_fence_value = m_frame_fence->value[m_frame_buffer_index];
+		wait_for_complete(frame_fence_value);
 
-		ID3D12CommandAllocator* pAllocator = m_command_allocators[m_frame_buffer_index];
-		pAllocator->Reset();
-		m_command_list->Reset(pAllocator, nullptr);
+		ID3D12CommandAllocator* allocator = m_command_pools[m_frame_buffer_index]->allocator;
+		ID3D12GraphicsCommandList* cmd_list = m_command_lists[m_frame_buffer_index]->command_list;
+		// reset memory allocator
+		allocator->Reset();
+		// reset command list and start to record commands
+		cmd_list->Reset(allocator, nullptr);
 
-		m_command_list->RSSetViewports(1, &m_viewport);
+		// handle resource loading
+		m_resource_loader->update();
+
+		// init viewport
+		cmd_list->RSSetViewports(1, &m_viewport);
 
 		// wait until back buffer is ready
-		auto frameBuffer = m_swap_chain_buffers[m_frame_buffer_index];
-		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-			frameBuffer, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		m_command_list->ResourceBarrier(1, &barrier);
+		auto frame_buffer = m_swap_chain_buffers[m_frame_buffer_index];
+		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			frame_buffer, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		cmd_list->ResourceBarrier(1, &barrier);
 
 		// clear frame buffer
-		float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		float clear_color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtv(m_rtv_heap->GetCPUDescriptorHandleForHeapStart(), m_frame_buffer_index, m_descriptor_size[D3D12_DESCRIPTOR_HEAP_TYPE_RTV]);
-		m_command_list->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
+		cmd_list->ClearRenderTargetView(rtv, clear_color, 0, nullptr);
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE dsv(m_dsv_heap->GetCPUDescriptorHandleForHeapStart());
-		m_command_list->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+		cmd_list->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 		// set render target
-		m_command_list->OMSetRenderTargets(1, &rtv, true, &dsv);
+		cmd_list->OMSetRenderTargets(1, &rtv, true, &dsv);
 	}
 
 	void RendererD3D12::end_frame()
@@ -360,16 +453,18 @@ namespace wyc
 
 	void RendererD3D12::present()
 	{
-		auto frameBuffer = m_swap_chain_buffers[m_frame_buffer_index];
+		ID3D12GraphicsCommandList* cmd_list = m_command_lists[m_frame_buffer_index]->command_list;
+		auto frame_buffer = m_swap_chain_buffers[m_frame_buffer_index];
 		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-			frameBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		m_command_list->ResourceBarrier(1, &barrier);
-		m_command_list->Close();
+			frame_buffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		cmd_list->ResourceBarrier(1, &barrier);
+		cmd_list->Close();
 
-		ID3D12CommandList* const commandLists[] = { m_command_list };
-		m_command_queue->ExecuteCommandLists(_countof(commandLists), commandLists);
+		auto queue = m_command_queue->queue;
+		ID3D12CommandList* const command_lists[] = { cmd_list };
+		queue->ExecuteCommandLists(_countof(command_lists), command_lists);
 		m_frame_fence->value[m_frame_buffer_index] = m_frame_index;
-		EnsureHResult(m_command_queue->Signal(m_frame_fence->fence, m_frame_index));
+		EnsureHResult(queue->Signal(m_frame_fence->fence, m_frame_index));
 		EnsureHResult(m_swap_chain->Present(0, 0));
 		m_frame_buffer_index = (m_frame_buffer_index + 1) % m_frame_buffer_count;
 	}
@@ -444,8 +539,8 @@ namespace wyc
 			return false;
 		}
 
-		D3D12GpuInfo* gpu_info_list = (D3D12GpuInfo*)alloca(sizeof(D3D12GpuInfo) * gpuCount);
-		memset(gpu_info_list, 0, sizeof(D3D12GpuInfo) * gpuCount);
+		GpuInfoD3D12* gpu_info_list = (GpuInfoD3D12*)alloca(sizeof(GpuInfoD3D12) * gpuCount);
+		memset(gpu_info_list, 0, sizeof(GpuInfoD3D12) * gpuCount);
 
 		struct GpuHandle
 		{
@@ -528,7 +623,8 @@ namespace wyc
 
 		m_adapter = gpu_list[gpu_index].adpater;
 		m_device = gpu_list[gpu_index].device;
-		memcpy(&m_gpu_info, &gpu_info_list[gpu_index], sizeof(GpuInfo));
+		m_gpu_info = wyc_new(GpuInfoD3D12);
+		memcpy(m_gpu_info, &gpu_info_list[gpu_index], sizeof(GpuInfo));
 
 		for(int i=0; i<gpuCount; ++i)
 		{
@@ -547,25 +643,25 @@ namespace wyc
 		msaa_quality_levels.NumQualityLevels = 0;
 		if(SUCCEEDED(m_device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &msaa_quality_levels, sizeof(msaa_quality_levels))))
 		{
-			m_gpu_info.msaa4_quality_level = (int) msaa_quality_levels.NumQualityLevels;
+			m_gpu_info->msaa4_quality_level = (int) msaa_quality_levels.NumQualityLevels;
 		}
 		msaa_quality_levels.SampleCount = 8;
 		msaa_quality_levels.NumQualityLevels = 0;
 		if(SUCCEEDED(m_device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &msaa_quality_levels, sizeof(msaa_quality_levels))))
 		{
-			m_gpu_info.msaa8_quality_level = (int) msaa_quality_levels.NumQualityLevels;
+			m_gpu_info->msaa8_quality_level = (int) msaa_quality_levels.NumQualityLevels;
 		}
 
-		LogInfo("Device: %ls", m_gpu_info.vendor_name);
-		LogInfo("Vendor ID: %d", m_gpu_info.vendor_id);
-		LogInfo("Revision ID: %d", m_gpu_info.revision);
+		LogInfo("Device: %ls", m_gpu_info->vendor_name);
+		LogInfo("Vendor ID: %d", m_gpu_info->vendor_id);
+		LogInfo("Revision ID: %d", m_gpu_info->revision);
 		float mem_size;
-		const char* unit = format_memory_size(m_gpu_info.video_memory, mem_size);
+		const char* unit = format_memory_size(m_gpu_info->video_memory, mem_size);
 		LogInfo("Video Memory: %.1f %s", mem_size, unit);
-		unit = format_memory_size(m_gpu_info.shared_memory, mem_size);
+		unit = format_memory_size(m_gpu_info->shared_memory, mem_size);
 		LogInfo("Shared Memory: %.1f %s", mem_size, unit);
-		LogInfo("MSAA 4x: %d", m_gpu_info.msaa4_quality_level);
-		LogInfo("MSAA 8x: %d", m_gpu_info.msaa8_quality_level);
+		LogInfo("MSAA 4x: %d", m_gpu_info->msaa4_quality_level);
+		LogInfo("MSAA 8x: %d", m_gpu_info->msaa8_quality_level);
 
 		for(int i=0; i<D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i)
 		{
@@ -620,15 +716,38 @@ namespace wyc
 			return;
 		}
 		m_device_state = ERenderDeviceState::DEVICE_RELEASED;
-
-		if (m_command_allocators)
+		if(m_resource_loader)
+		{
+			wyc_delete(m_resource_loader);
+			m_resource_loader = nullptr;
+		}
+		if(m_command_pools)
 		{
 			for (uint8_t i = 0; i < m_frame_buffer_count; ++i)
 			{
-				m_command_allocators[i]->Release();
+				if(auto pool = m_command_pools[i])
+				{
+					release_command_pool(pool);
+				}
+				if(auto command_list = m_command_lists[i])
+				{
+					release_command_list(command_list);
+				}
 			}
-			wyc_free(m_command_allocators);
-			m_command_allocators = nullptr;
+			wyc_free(m_command_pools);
+			wyc_free(m_command_lists);
+			m_command_pools = nullptr;
+			m_command_lists = nullptr;
+		}
+		if(m_command_queue)
+		{
+			release_queue(m_command_queue);
+			m_command_queue = nullptr;
+		}
+		if(m_frame_fence)
+		{
+			release_fence(m_frame_fence);
+			m_frame_fence = nullptr;
 		}
 
 		if (m_swap_chain_buffers)
@@ -646,16 +765,6 @@ namespace wyc
 		SAFE_RELEASE(m_rtv_heap);
 		SAFE_RELEASE(m_dsv_heap);
 
-		SAFE_RELEASE(m_command_queue);
-		SAFE_RELEASE(m_command_list);
-		if(m_frame_fence)
-		{
-			SAFE_RELEASE(m_frame_fence->fence);
-			SAFE_CLOSE_HANDLE(m_frame_fence->wait_event);
-			wyc_free(m_frame_fence);
-			m_frame_fence = nullptr;
-		}
-
 		SAFE_RELEASE(m_adapter);
 		SAFE_RELEASE(m_dxgi_factory);
 
@@ -666,9 +775,13 @@ namespace wyc
 			m_device_info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false);
 			SAFE_RELEASE(m_device_info_queue);
 		}
+		if(m_gpu_info)
+		{
+			wyc_delete(m_gpu_info);
+			m_gpu_info = nullptr;
+		}
 		SAFE_RELEASE(m_debug_layer);
 		SAFE_RELEASE(m_device);
-
 		report_live_objects(L"Check leaks on shutdown");
 	}
 
@@ -698,11 +811,183 @@ namespace wyc
 		}
 	}
 
-	static D3D12_COMMAND_LIST_TYPE s_d3d12_command_list_type_converter[ECommandType::MAX_COUNT] = {
-		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		D3D12_COMMAND_LIST_TYPE_COMPUTE,
-		D3D12_COMMAND_LIST_TYPE_COPY
-	};
+	CommandQueue* RendererD3D12::create_queue(const CommandQueueDesc& desc)
+	{
+		// create command queue
+		D3D12_COMMAND_QUEUE_DESC command_queue_desc;
+		command_queue_desc.Type = s_d3d12_command_list_type[desc.type];
+		command_queue_desc.Priority = (int)desc.priority;
+		command_queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		command_queue_desc.NodeMask = desc.node;
+		ID3D12CommandQueue* d3d_queue;
+		if(FAILED(m_device->CreateCommandQueue(&command_queue_desc, IID_PPV_ARGS(&d3d_queue))))
+		{
+			LogError("Fail to create command queue.");
+			return nullptr;
+		}
+		D3D12_NEW_STRUCT(CommandQueueD3D12, queue);
+		queue->type = desc.type;
+		queue->priority = desc.priority;
+		queue->node = desc.node;
+		queue->queue = d3d_queue;
+		return queue;
+	}
+
+	void RendererD3D12::release_queue(CommandQueue* queue)
+	{
+		CommandQueueD3D12* d3d_queue = d3d12_struct_cast<CommandQueueD3D12>(queue);
+		if(!d3d_queue)
+		{
+			log_error("Type is not matched (expected D3D12CommandQueue)", RENDERER_STRUCT_TYPE(queue));
+			return;
+		}
+		SAFE_RELEASE(d3d_queue->queue);
+		D3D12_DELETE_STRUCT(d3d_queue);
+	}
+
+	CommandPool* RendererD3D12::create_command_pool(CommandQueue* queue)
+	{
+		CommandQueueD3D12* d3d_queue = d3d12_struct_cast<CommandQueueD3D12>(queue);
+		if(!d3d_queue)
+		{
+			log_error("Type is not matched (expected D3D12CommandQueue): %d", RENDERER_STRUCT_TYPE(queue));
+			return nullptr;
+		}
+		ID3D12CommandAllocator* allocator;
+		if (FAILED(m_device->CreateCommandAllocator(s_d3d12_command_list_type[d3d_queue->type], IID_PPV_ARGS(&allocator))))
+		{
+			LogError("Fail to create command allocator");
+			return nullptr;
+		}
+		D3D12_NEW_STRUCT(CommandPoolD3D12, d3d_pool);
+		d3d_pool->queue = queue;
+		d3d_pool->allocator = allocator;
+		return d3d_pool;
+	}
+
+	void RendererD3D12::release_command_pool(CommandPool* pool)
+	{
+		CommandPoolD3D12* d3d_pool = d3d12_struct_cast<CommandPoolD3D12>(pool);
+		if(!d3d_pool)
+		{
+			log_error("Type is not matched (expected D3D12CommandPool): %d", RENDERER_STRUCT_TYPE(pool));
+			return;
+		}
+		SAFE_RELEASE(d3d_pool->allocator);
+		D3D12_DELETE_STRUCT(d3d_pool);
+	}
+
+	CommandList* RendererD3D12::create_command_list(CommandPool* pool)
+	{
+		CommandPoolD3D12* d3d_pool = d3d12_struct_cast<CommandPoolD3D12>(pool);
+		if(!d3d_pool)
+		{
+			log_error("Type is not matched (expected D3D12CommandPool): %d", RENDERER_STRUCT_TYPE(pool));
+			return nullptr;
+		}
+		CommandQueueD3D12* d3d_queue = (CommandQueueD3D12*)d3d_pool->queue;
+		ID3D12GraphicsCommandList* command_list;
+		if (FAILED(m_device->CreateCommandList(d3d_queue->node, s_d3d12_command_list_type[d3d_queue->type], 
+			d3d_pool->allocator, nullptr, IID_PPV_ARGS(&command_list)
+		)))
+		{
+			LogError("Fail to create command list");
+			return nullptr;
+		}
+		command_list->Close();
+		D3D12_NEW_STRUCT(CommandListD3D12, d3d_commands);
+		d3d_commands->pool = pool;
+		d3d_commands->command_list = command_list;
+		return d3d_commands;
+	}
+
+	void RendererD3D12::release_command_list(CommandList* cmd_list)
+	{
+		CommandListD3D12* d3d_cmds = d3d12_struct_cast<CommandListD3D12>(cmd_list);
+		if(!d3d_cmds)
+		{
+			log_error("Type is not matched (expected D3D12CommandList): %d", RENDERER_STRUCT_TYPE(cmd_list));
+			return;
+		}
+		SAFE_RELEASE(d3d_cmds->command_list);
+		D3D12_DELETE_STRUCT(d3d_cmds);
+	}
+
+	DeviceFence* RendererD3D12::create_fence(unsigned value_count)
+	{
+		ID3D12Fence* d3d_fence;
+		if(FAILED((m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&d3d_fence)))))
+		{
+			LogError("Fail to crate D3D12 fence");
+			return nullptr;
+		}
+		HANDLE handle = CreateEvent(NULL, FALSE, FALSE, NULL);
+		if(handle == NULL)
+		{
+			d3d_fence->Release();
+			LogError("Fail to crate event for fence");
+			return nullptr;
+		}
+		size_t sz = sizeof(DeviceFenceD3D12) + sizeof(uint64_t) * (value_count - 1);
+		DeviceFenceD3D12* fence = (DeviceFenceD3D12*) wyc_malloc(sz);
+		RENDERER_MAKE_STRUCT(fence, ERendererName::Direct3D12, DeviceFenceD3D12);
+		fence->fence = d3d_fence;
+		fence->wait_event = handle;
+		fence->count = value_count;
+		memset(fence->value, 0, value_count * sizeof(uint64_t));
+		return fence;
+	}
+
+	void RendererD3D12::release_fence(DeviceFence* fence)
+	{
+		DeviceFenceD3D12* d3d_fence = d3d12_struct_cast<DeviceFenceD3D12>(fence);
+		if(!d3d_fence)
+		{
+			log_error("Type is not matched (expected DeviceFenceD3D12): %d", RENDERER_STRUCT_TYPE(fence));
+			return;
+		}
+		SAFE_RELEASE(d3d_fence->fence);
+		SAFE_CLOSE_HANDLE(d3d_fence->wait_event);
+		wyc_free(d3d_fence);
+	}
+
+	bool RendererD3D12::is_fence_completed(DeviceFence* fence, unsigned index)
+	{
+		DeviceFenceD3D12* d3d_fence = d3d12_struct_cast<DeviceFenceD3D12>(fence);
+		if(!d3d_fence)
+		{
+			log_error("Type is not matched (expected DeviceFenceD3D12): %d", RENDERER_STRUCT_TYPE(fence));
+			return false;
+		}
+		if(index >= d3d_fence->count)
+		{
+			log_error("Invalid fence value index.");
+			return false;
+		}
+		return d3d_fence->fence->GetCompletedValue() >= d3d_fence->value[index];
+	}
+
+	void RendererD3D12::wait_for_fence(DeviceFence* fence, unsigned index)
+	{
+		DeviceFenceD3D12* d3d_fence = d3d12_struct_cast<DeviceFenceD3D12>(fence);
+		if(!d3d_fence)
+		{
+			log_error("Type is not matched (expected DeviceFenceD3D12): %d", RENDERER_STRUCT_TYPE(fence));
+			return;
+		}
+		if(index >= d3d_fence->count)
+		{
+			log_error("Invalid fence value index.");
+			return;
+		}
+		uint64_t fence_value = d3d_fence->value[index];
+		ID3D12Fence* hw_fence = d3d_fence->fence;
+		if(hw_fence->GetCompletedValue() < fence_value)
+		{
+			hw_fence->SetEventOnCompletion(fence_value, d3d_fence->wait_event);
+			WaitForSingleObject(d3d_fence->wait_event, INFINITE);
+		}
+	}
 
 	void RendererD3D12::enable_debug_layer()
 	{

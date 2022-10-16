@@ -135,6 +135,11 @@ namespace wyc
 			return m_data;
 		}
 
+		const char* data() const
+		{
+			return m_data;
+		}
+
 		size_t data_size() const
 		{
 			return m_data_size;

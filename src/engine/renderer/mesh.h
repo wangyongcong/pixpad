@@ -5,6 +5,7 @@
 #include <array>
 #include <initializer_list>
 #include <ImathMatrix.h>
+#include "common/common_macros.h"
 #include "mathex/vecmath.h"
 #include "vertex_buffer.h"
 #include "vertex_layout.h"
@@ -22,10 +23,9 @@ enum EPrimitiveType
 
 class WYCAPI CMesh
 {
+	DISALLOW_COPY_MOVE_AND_ASSIGN(CMesh)
 public:
 	CMesh();
-	CMesh(const CMesh& rhs) = delete;
-	CMesh& operator = (const CMesh& rhs) = delete;
 	~CMesh();
 	template<typename Vertex>
 	void set_vertices(const VertexAttribute *attrib_array, unsigned attrib_count, const Vertex* vertices, unsigned vertex_count);

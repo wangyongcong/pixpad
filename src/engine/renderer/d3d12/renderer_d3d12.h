@@ -1,5 +1,4 @@
 #pragma once
-
 #include <d3d12.h>
 #include "renderer/renderer.h"
 #include "common/common_macros.h"
@@ -7,14 +6,13 @@
 
 namespace wyc
 {
-	class RendererD3D12;
+	struct DeviceFenceD3D12;
+	struct CommandQueueD3D12;
+	struct CommandPoolD3D12;
+	struct CommandListD3D12;
+	struct GpuInfoD3D12;
 
-	struct D3D12GpuInfo : GpuInfo
-	{
-		D3D_FEATURE_LEVEL feature_level = D3D_FEATURE_LEVEL(0);
-		D3D12_FEATURE_DATA_D3D12_OPTIONS feature_data;
-		D3D12_FEATURE_DATA_D3D12_OPTIONS1 feature_data1;
-	};
+	class ResourceLoaderD3D12;
 
 	enum class ERenderDeviceState : uint8_t
 	{
@@ -31,7 +29,10 @@ namespace wyc
 		RendererD3D12();
 		~RendererD3D12() override;
 
+		// --------------------------------------------------------------------
 		// Implement IRenderer
+		// --------------------------------------------------------------------
+
 		bool initialize(IGameWindow* game_window, const RendererConfig& config) override;
 		void release() override;
 		void begin_frame() override;
@@ -40,8 +41,27 @@ namespace wyc
 		void resize() override;
 		void close() override;
 		const GpuInfo& get_gpu_info(int index) override;
-		// IRenderer
+		CommandQueue* create_queue(const CommandQueueDesc& desc) override;
+		void release_queue(CommandQueue* queue) override;
+		CommandPool* create_command_pool(CommandQueue* queue) override;
+		void release_command_pool(CommandPool* pool) override;
+		CommandList* create_command_list(CommandPool* pool) override;
+		void release_command_list(CommandList* cmd_list) override;
+		DeviceResource* create_resource(EDeviceResourceType type, size_t size) override;
+		void release_resource(DeviceResource* res) override;
+		void upload_resource(DeviceResource* res, void* data, size_t size) override;
+		DeviceFence* create_fence(unsigned value_count=1) override;
+		void release_fence(DeviceFence* fence) override;
+		bool is_fence_completed(DeviceFence* fence, unsigned index = 0) override;
+		void wait_for_fence(DeviceFence* fence, unsigned index=0) override;
+		// --------------------------------------------------------------------
+		// End of IRenderer
+		// --------------------------------------------------------------------
 
+		ID3D12Device2* GetDevice()
+		{
+			return m_device;
+		}
 	protected:
 		void enable_debug_layer();
 		bool create_device(HWND hwnd, uint32_t width, uint32_t height, const RendererConfig& config);
@@ -61,7 +81,7 @@ namespace wyc
 		D3D12_VIEWPORT m_viewport;
 
 		HWND m_window_handle;
-		D3D12GpuInfo m_gpu_info;
+		GpuInfoD3D12* m_gpu_info;
 		ID3D12Debug* m_debug_layer;
 		IDXGIFactory6* m_dxgi_factory;
 		IDXGIAdapter4* m_adapter;
@@ -73,17 +93,12 @@ namespace wyc
 		ID3D12Resource** m_swap_chain_buffers;
 		ID3D12Resource* m_depth_buffer;
 
-		ID3D12CommandQueue* m_command_queue;
-		ID3D12GraphicsCommandList* m_command_list;
-		ID3D12CommandAllocator** m_command_allocators;
+		// frame graphic command queue
+		CommandQueueD3D12* m_command_queue;
+		CommandPoolD3D12** m_command_pools;
+		CommandListD3D12** m_command_lists;
+		DeviceFenceD3D12* m_frame_fence;
 
-		struct DeviceFence
-		{
-			ID3D12Fence* fence;
-			HANDLE wait_event;
-			uint64_t value[1];
-		};
-		DeviceFence* m_frame_fence;
+		ResourceLoaderD3D12* m_resource_loader;
 	};
-
 } // namespace wyc

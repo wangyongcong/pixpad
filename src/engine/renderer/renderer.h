@@ -5,6 +5,24 @@
 
 namespace wyc
 {
+	enum ERendererName : uint16_t
+	{
+		UnknownRenderer,
+		Direct3D12,
+		Metal,
+	};
+
+	struct RenderStructHead
+	{
+		ERendererName type;
+		size_t size;
+	};
+
+#define RENDERER_STRUCT(stype) RenderStructHead intrinsic_header
+#define RENDERER_MAKE_STRUCT(ptr, rtype, stype) (ptr)->intrinsic_header = {(rtype), sizeof(stype)}
+#define RENDERER_CHECK_STRUCT(ptr, rtype, stype) (((ptr)->intrinsic_header.type == (rtype)) && ((ptr)->intrinsic_header.size == sizeof(stype)))
+#define RENDERER_STRUCT_TYPE(ptr) (ptr)->intrinsic_header.type
+
 	struct RendererConfig
 	{
 		uint8_t frame_buffer_count;
@@ -28,19 +46,67 @@ namespace wyc
 		int msaa8_quality_level;
 	};
 
-	enum EFenceStatus
+	enum EQueuePriority
 	{
-		COMPLETE,
-		INCOMPLETE,
+		QUEUE_PRIORITY_NORMAL = 0,
+		QUEUE_PRIORITY_HIGH,
+		MAX_QUEUE_PRIORITY
 	};
 
 	enum ECommandType
 	{
-		DRAW,
-		COMPUTE,
-		COPY,
+		COMMAND_TYPE_DRAW,
+		COMMAND_TYPE_COMPUTE,
+		COMMAND_TYPE_COPY,
 		// count of command list type
-		MAX_COUNT
+		COMMAND_TYPE_COUNT
+	};
+
+	enum EDeviceResourceType
+	{
+		VERTEX_BUFFER,
+		INDEX_BUFFER,
+		TEXTURE_1D,
+		TEXTURE_2D,
+	};
+
+	struct DeviceFence
+	{
+		RENDERER_STRUCT(DeviceFence);
+	};
+
+	struct CommandQueueDesc
+	{
+		ECommandType type;
+		EQueuePriority priority;
+		unsigned node;
+	};
+
+	struct CommandQueue
+	{
+		RENDERER_STRUCT(CommandQueue);
+		ECommandType type;
+		EQueuePriority priority;
+		unsigned node;
+	};
+
+	struct CommandPool
+	{
+		RENDERER_STRUCT(CommandPool);
+		CommandQueue* queue;
+	};
+
+	struct CommandList
+	{
+		RENDERER_STRUCT(CommandList);
+		CommandPool* pool;
+	};
+
+	struct DeviceResource
+	{
+		RENDERER_STRUCT(DeviceResource);
+		EDeviceResourceType type;
+		size_t size;
 	};
 
 	class WYCAPI IRenderer
@@ -55,5 +121,19 @@ namespace wyc
 		virtual void resize() = 0;
 		virtual void close() = 0;
 		virtual const GpuInfo& get_gpu_info(int index = 0) = 0;
+		virtual CommandQueue* create_queue(const CommandQueueDesc& desc) = 0;
+		virtual void release_queue(CommandQueue* queue) = 0;
+		virtual CommandPool* create_command_pool(CommandQueue* queue) = 0;
+		virtual void release_command_pool(CommandPool* pool) = 0;
+		virtual CommandList* create_command_list(CommandPool* pool) = 0;
+		virtual void release_command_list(CommandList* cmd_list) = 0;
+		virtual DeviceResource* create_resource(EDeviceResourceType type, size_t size) = 0;
+		virtual void release_resource(DeviceResource* res) = 0;
+		virtual void upload_resource(DeviceResource* res, void* data, size_t size) = 0;
+		virtual DeviceFence* create_fence(unsigned value_count=1) = 0;
+		virtual void release_fence(DeviceFence* fence) = 0;
+		virtual bool is_fence_completed(DeviceFence* fence, unsigned index = 0) = 0;
+		virtual void wait_for_fence(DeviceFence* fence, unsigned index=0) = 0;
+
 	};
 } // namespace wyc
