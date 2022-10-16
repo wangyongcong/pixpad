@@ -222,3 +222,6 @@ install/
 build*/
 cmake-build*/
 .idea
+
+saved/
+tools/config
