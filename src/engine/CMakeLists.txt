@@ -41,12 +41,14 @@ set(COMMON_PUBLIC
 	common/memory.h
 	common/common_macros.h
 	common/utility.h
+	common/task_thread.h
 )
 
 set(COMMON_PRIVATE
 	# Common module
 	common/memory_tracking.cpp
 	common/utility.cpp
+	common/task_thread.cpp
 )
 
 set(COMMON_MODULE_SOURCE
