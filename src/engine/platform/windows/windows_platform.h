@@ -3,9 +3,9 @@
 
 namespace wyc
 {
-	extern WYCAPI HINSTANCE gModuleInstance;
-	extern WYCAPI HINSTANCE gAppInstance;
+	extern WYCAPI HINSTANCE g_module_instance;
+	extern WYCAPI HINSTANCE g_app_instance;
 
-#define GetModuleInstance() (wyc::gModuleInstance != NULL ? wyc::gModuleInstance : wyc::gAppInstance);
+#define GetModuleInstance() (wyc::g_module_instance != NULL ? wyc::g_module_instance : wyc::g_app_instance);
 
 }

@@ -1,5 +1,5 @@
 #include "engine_pch.h"
-#include "renderer_d3d12.h"
+#include "renderer/d3d12/renderer_d3d12.h"
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -14,9 +14,9 @@
 #include "common/memory.h"
 #include "common/utility.h"
 #include "platform/windows/windows_window.h"
-#include "d3d_helper.h"
-#include "d3d12_type.h"
-#include "resource_loader.h"
+#include "renderer/d3d12/d3d_helper.h"
+#include "renderer/d3d12/d3d12_type.h"
+#include "renderer/d3d12/resource_loader.h"
 
 namespace wyc
 {

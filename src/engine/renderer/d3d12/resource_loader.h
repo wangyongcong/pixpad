@@ -1,8 +1,9 @@
 #pragma once
 #include <functional>
 #include "d3d12_type.h"
-#include "renderer_d3d12.h"
+#include "renderer/d3d12/renderer_d3d12.h"
 #include "common/common_macros.h"
+#include "common/task_thread.h"
 
 namespace wyc
 {

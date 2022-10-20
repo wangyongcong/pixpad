@@ -27,41 +27,41 @@ namespace wyc
 
 		inline IGameWindow* get_window() const
 		{
-			return mpWindow;
+			return m_window;
 		}
 		inline IRenderer* get_renderer() const
 		{
-			return mpRenderer;
+			return m_renderer;
 		}
 
 	protected:
 		virtual bool initialize(const wchar_t* appName, uint32_t windowWidth, uint32_t windowHeight);
 		virtual void start_logger();
 
-		std::wstring mAppName;
-		IGameInstance* mpGameInstance;
-		IGameWindow* mpWindow;
-		IRenderer* mpRenderer;
+		std::wstring m_app_name;
+		IGameInstance* m_game_instance;
+		IGameWindow* m_window;
+		IRenderer* m_renderer;
 	};
 
-	extern WYCAPI GameApplication* gApplication;
+	extern WYCAPI GameApplication* g_application;
 } // namespace wyc
 
 #ifdef PLATFORM_WINDOWS
 #define APPLICATION_MAIN(GameInstanceClass) \
 namespace wyc \
 {\
-	extern WYCAPI HINSTANCE gAppInstance;\
+	extern WYCAPI HINSTANCE g_app_instance;\
 }\
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR lpCmdLine, _In_ int nShowCmd) \
 {\
-	wyc::gAppInstance = hInstance;\
+	wyc::g_app_instance = hInstance;\
 	if(!wyc::GameApplication::create_application(L#GameInstanceClass, 1290, 720)) {\
 		return 1;\
 	}\
-	GameInstanceClass gameInstance;\
-	gApplication->start_game(&gameInstance);\
-	gApplication->destroy_application();\
+	GameInstanceClass game_instance;\
+	g_application->start_game(&game_instance);\
+	g_application->destroy_application();\
 	return 0;\
 }
 #endif

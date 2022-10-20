@@ -2,8 +2,8 @@
 
 namespace wyc
 {
-	WYCAPI HINSTANCE gModuleInstance = NULL;
-	WYCAPI HINSTANCE gAppInstance = NULL;
+	WYCAPI HINSTANCE g_module_instance = NULL;
+	WYCAPI HINSTANCE g_app_instance = NULL;
 }
 
 BOOL WINAPI DllMain(
@@ -17,7 +17,7 @@ BOOL WINAPI DllMain(
 	case DLL_PROCESS_ATTACH:
 		// Initialize once for each new process.
 		// Return FALSE to fail DLL load.
-		wyc::gModuleInstance = hinstDLL;
+		wyc::g_module_instance = hinstDLL;
 		break;
 
 	case DLL_THREAD_ATTACH:

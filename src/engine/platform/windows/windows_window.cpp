@@ -41,7 +41,7 @@ namespace wyc
 			windowClass.lpfnWndProc = &WindowProcess;
 			windowClass.cbClsExtra = 0;
 			windowClass.cbWndExtra = 0;
-			windowClass.hInstance = gAppInstance;
+			windowClass.hInstance = g_app_instance;
 
 			HINSTANCE moduleInstance = GetModuleInstance();
 			windowClass.hIcon = LoadIcon(moduleInstance, MAKEINTRESOURCE(IDI_APP_ICON));
@@ -74,7 +74,7 @@ namespace wyc
 		int windowY = std::max<int>(0, (screenHeight - windowHeight) / 2);
 
 		HWND hMainWnd = CreateWindowW(sWindowClassName, title, style,
-			windowX, windowY, windowWidth, windowHeight, NULL, NULL, gAppInstance, NULL);
+			windowX, windowY, windowWidth, windowHeight, NULL, NULL, g_app_instance, NULL);
 		if (!hMainWnd)
 		{
 			// fail to create windows

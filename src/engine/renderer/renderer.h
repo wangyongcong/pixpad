@@ -109,6 +109,11 @@ namespace wyc
 		size_t size;
 	};
 
+	struct Shader
+	{
+		RENDERER_STRUCT(Shader);
+	};
+
 	class WYCAPI IRenderer
 	{
 	public:
@@ -121,6 +126,7 @@ namespace wyc
 		virtual void resize() = 0;
 		virtual void close() = 0;
 		virtual const GpuInfo& get_gpu_info(int index = 0) = 0;
+
 		virtual CommandQueue* create_queue(const CommandQueueDesc& desc) = 0;
 		virtual void release_queue(CommandQueue* queue) = 0;
 		virtual CommandPool* create_command_pool(CommandQueue* queue) = 0;
@@ -130,10 +136,10 @@ namespace wyc
 		virtual DeviceResource* create_resource(EDeviceResourceType type, size_t size) = 0;
 		virtual void release_resource(DeviceResource* res) = 0;
 		virtual void upload_resource(DeviceResource* res, void* data, size_t size) = 0;
+		
 		virtual DeviceFence* create_fence(unsigned value_count=1) = 0;
 		virtual void release_fence(DeviceFence* fence) = 0;
 		virtual bool is_fence_completed(DeviceFence* fence, unsigned index = 0) = 0;
 		virtual void wait_for_fence(DeviceFence* fence, unsigned index=0) = 0;
-
 	};
 } // namespace wyc

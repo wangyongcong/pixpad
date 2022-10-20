@@ -1,5 +1,6 @@
 #include "engine_pch.h"
-#include "resource_loader.h"
+#include "renderer/d3d12/resource_loader.h"
+#include "common/memory.h"
 #include "stb/stb_log.h"
 
 namespace wyc
@@ -31,8 +32,6 @@ namespace wyc
 		}
 		if(!m_is_started)
 		{
-			// auto cmd_list = m_loader_list->command_list;
-			// cmd_list->Reset(m_loader_pool->allocator, nullptr);
 			m_is_started = true;
 		}
 		return true;
@@ -197,10 +196,16 @@ namespace wyc
 		res_data.SlicePitch = task.size;
 		auto d3d_res = task.resource->resource;
 		auto cmd_list = m_loader_list->command_list;
+
 		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3d_res, 
 		D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
 		cmd_list->ResourceBarrier(1, &barrier);
+
 		UpdateSubresources<1>(cmd_list, d3d_res, upload, 0, 0, 1, &res_data);
+
+		barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3d_res,
+			D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
+		cmd_list->ResourceBarrier(1, &barrier);
 
 		auto client_callback = task.callback;
 		task.callback =[upload, client_callback](DeviceResourceD3D12* arg1, bool arg2)

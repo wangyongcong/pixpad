@@ -25,16 +25,16 @@ extern void MemAllocExit();
 
 namespace wyc
 {
-	WYCAPI GameApplication* gApplication = nullptr;
+	WYCAPI GameApplication* g_application = nullptr;
 
 	bool GameApplication::create_application(const wchar_t* appName, uint32_t windowWidth, uint32_t windowHeight)
 	{
 		MemAllocInit();
-		gApplication = wyc_new(ApplicationClass, appName);
-		gApplication->start_logger();
-		if(!gApplication->initialize(appName, windowWidth, windowHeight))
+		g_application = wyc_new(ApplicationClass, appName);
+		g_application->start_logger();
+		if(!g_application->initialize(appName, windowWidth, windowHeight))
 		{
-			wyc_delete(gApplication);
+			wyc_delete(g_application);
 			return false;
 		}
 		Log("Application started");
@@ -43,11 +43,11 @@ namespace wyc
 
 	void GameApplication::destroy_application()
 	{
-		if(gApplication)
+		if(g_application)
 		{
-			wyc_delete(gApplication);
-			gApplication = nullptr;
-			Log("Application exited");
+			wyc_delete(g_application);
+			g_application = nullptr;
+			Log("Application exit");
 		}
 		close_logger();
 		MemAllocExit();
@@ -55,7 +55,7 @@ namespace wyc
 
 	static int64_t gHighResTimerFrequency = 0;
 
-	void InitTime()
+	void init_time()
 	{
 		LARGE_INTEGER frequency;
 		if (QueryPerformanceFrequency(&frequency))
@@ -68,16 +68,16 @@ namespace wyc
 		}
 	}
 
-	int64_t GetTime()
+	int64_t get_time()
 	{
 		LARGE_INTEGER counter;
 		QueryPerformanceCounter(&counter);
 		return counter.QuadPart * (int64_t)1e6 / gHighResTimerFrequency;
 	}
 
-	float GetTimeSince(int64_t &start)
+	float get_time_since(int64_t &start)
 	{
-		int64_t end = GetTime();
+		int64_t end = get_time();
 		float delta = (float)(end - start) / (float)1e6;
 		start = end;
 		return delta;
@@ -89,43 +89,43 @@ namespace wyc
 	}
 
 	GameApplication::GameApplication(const wchar_t* appName)
-		: mAppName(appName)
-		, mpGameInstance(nullptr)
-		, mpWindow(nullptr)
-		, mpRenderer(nullptr)
+		: m_app_name(appName)
+		, m_game_instance(nullptr)
+		, m_window(nullptr)
+		, m_renderer(nullptr)
 	{
 
 	}
 
 	GameApplication::~GameApplication()
 	{
-		if (mpRenderer)
+		if (m_renderer)
 		{
-			mpRenderer->release();
-			wyc_delete(mpRenderer);
-			mpRenderer = nullptr;
+			m_renderer->release();
+			wyc_delete(m_renderer);
+			m_renderer = nullptr;
 		}
-		if(mpWindow)
+		if(m_window)
 		{
-			wyc_delete(mpWindow);
-			mpWindow = nullptr;
+			wyc_delete(m_window);
+			m_window = nullptr;
 		}
 	}
 
 	void GameApplication::show_window(bool visible)
 	{
-		if(mpWindow)
+		if(m_window)
 		{
-			mpWindow->set_visible(visible);
+			m_window->set_visible(visible);
 		}
 	}
 
 	void GameApplication::start_game(IGameInstance* pGame)
 	{
-		mpGameInstance = pGame;
-		InitTime();
-		mpGameInstance->initialize();
-		int64_t lastTime = GetTime();
+		m_game_instance = pGame;
+		init_time();
+		m_game_instance->initialize();
+		int64_t lastTime = get_time();
 		MSG msg = { 0 };
 		while (msg.message != WM_QUIT)
 		{
@@ -134,24 +134,24 @@ namespace wyc
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
-			float deltaTime = GetTimeSince(lastTime);
-			mpGameInstance->tick(deltaTime);
-			mpRenderer->begin_frame();
-			mpGameInstance->draw(mpRenderer);
-			mpRenderer->present();
+			float deltaTime = get_time_since(lastTime);
+			m_game_instance->tick(deltaTime);
+			m_renderer->begin_frame();
+			m_game_instance->draw(m_renderer);
+			m_renderer->present();
 		}
-		mpRenderer->close();
-		mpGameInstance->exit();
+		m_renderer->close();
+		m_game_instance->exit();
 	}
 
 	bool GameApplication::initialize(const wchar_t* appName, uint32_t windowWidth, uint32_t windowHeight)
 	{
-		mpWindow = wyc_new(GameWindowClass);
-		if(!mpWindow->create(appName, windowWidth, windowHeight))
+		m_window = wyc_new(GameWindowClass);
+		if(!m_window->create(appName, windowWidth, windowHeight))
 		{
 			return false;
 		}
-		mpRenderer = wyc_new(RenderClass);
+		m_renderer = wyc_new(RenderClass);
 		const RendererConfig config {
 			3,
 			1,
@@ -163,12 +163,12 @@ namespace wyc
 			false,
 #endif
 		};
-		if(!mpRenderer->initialize(mpWindow, config))
+		if(!m_renderer->initialize(m_window, config))
 		{
 			LogError("Fail to initialize renderer");
 			return false;
 		}
-		mpWindow->set_visible(true);
+		m_window->set_visible(true);
 		return true;
 	}
 
@@ -176,7 +176,7 @@ namespace wyc
 	{
 		auto path = std::filesystem::current_path();
 		path /= "saved/logs";
-		std::wstring logName = mAppName + L".log";
+		std::wstring logName = m_app_name + L".log";
 		std::replace(logName.begin(), logName.end(), L' ', L'-');
 		path /= logName.c_str();
 		std::string ansi = path.generic_string();

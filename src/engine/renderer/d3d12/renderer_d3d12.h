@@ -54,11 +54,12 @@ namespace wyc
 		void release_fence(DeviceFence* fence) override;
 		bool is_fence_completed(DeviceFence* fence, unsigned index = 0) override;
 		void wait_for_fence(DeviceFence* fence, unsigned index=0) override;
+		
 		// --------------------------------------------------------------------
 		// End of IRenderer
 		// --------------------------------------------------------------------
 
-		ID3D12Device2* GetDevice()
+		ID3D12Device2* GetDevice() const
 		{
 			return m_device;
 		}

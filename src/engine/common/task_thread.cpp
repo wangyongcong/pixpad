@@ -1,32 +1,32 @@
-#include "task_thread.h"
+#include "common/task_thread.h"
+#include "stb/stb_log.h"
 
 namespace wyc
 {
 	TaskThread::TaskThread()
 	{
+		m_stopped = false;
 	}
 
 	TaskThread::~TaskThread()
 	{
-		stop();
-		m_worker.join();
+		if(m_worker.joinable())
+		{
+			stop();
+		}
 	}
 
 	void TaskThread::start()
 	{
-		m_stopped = false;
 		m_worker = std::move(std::thread([this]()
 		{
 			while(true)
 			{
 				std::function<void()> task;
 				{
-					std::unique_lock lock(m_mutex);
-					m_cv.wait(lock, [this]()
-					{
-						return is_stopped() || !m_task_queue.empty();
-					});
-					if(is_stopped())
+					absl::MutexLock lock(&m_mutex);
+					m_mutex.Await(absl::Condition(this, &TaskThread::has_tasks));
+					if(m_stopped)
 					{
 						break;
 					}
@@ -35,13 +35,17 @@ namespace wyc
 				}
 				task();
 			}
+			log_info("Task thread exit");
 		}));
 	}
 
 	void TaskThread::stop()
 	{
-		m_stopped.store(true, std::memory_order_release);
-		m_cv.notify_all();
+		{
+			absl::MutexLock lock(&m_mutex);
+			m_stopped = true;
+		}
+		m_worker.join();
 	}
 
 }
