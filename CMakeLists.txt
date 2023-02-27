@@ -87,11 +87,11 @@ set(LIB_IMATH Imath)
 set(RTM_INCLUDE ${3RD_PATH}/rtm/includes)
 
 # Google test
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-add_subdirectory(${3RD_PATH}/googletest)
+#set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+#add_subdirectory(${3RD_PATH}/googletest)
 
 # Google abseil-cpp
-add_definitions(-DABSL_BUILD_TESTING=OFF -DABSL_USE_EXTERNAL_GOOGLETEST=ON)
+add_definitions(-DABSL_BUILD_TESTING=OFF -DABSL_USE_EXTERNAL_GOOGLETEST=OFF)
 add_subdirectory(${3RD_PATH}/abseil-cpp)
 
 # end 3rd libs

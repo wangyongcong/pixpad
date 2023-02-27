@@ -64,8 +64,9 @@ namespace wyc
 
 	enum EDeviceResourceType
 	{
-		VERTEX_BUFFER,
+		CONSTANT_BUFFER,
 		INDEX_BUFFER,
+		VERTEX_BUFFER,
 		TEXTURE_1D,
 		TEXTURE_2D,
 	};
@@ -135,7 +136,7 @@ namespace wyc
 		virtual void release_command_list(CommandList* cmd_list) = 0;
 		virtual DeviceResource* create_resource(EDeviceResourceType type, size_t size) = 0;
 		virtual void release_resource(DeviceResource* res) = 0;
-		virtual void upload_resource(DeviceResource* res, void* data, size_t size) = 0;
+		virtual void upload_resource(DeviceResource* res, size_t offset, void* data, size_t size) = 0;
 		
 		virtual DeviceFence* create_fence(unsigned value_count=1) = 0;
 		virtual void release_fence(DeviceFence* fence) = 0;

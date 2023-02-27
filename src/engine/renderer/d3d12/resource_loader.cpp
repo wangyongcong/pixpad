@@ -107,11 +107,11 @@ namespace wyc
 		std::swap(m_commited_tasks, m_pending_tasks);
 	}
 
-	void ResourceLoaderD3D12::upload(DeviceResourceD3D12* resource, void* data, size_t size, std::function<void(DeviceResourceD3D12*, bool)> callback)
+	void ResourceLoaderD3D12::upload(DeviceResourceD3D12* resource, size_t offset, void* data, size_t size, std::function<void(DeviceResourceD3D12*, bool)> callback)
 	{
 		if(m_is_started)
 		{
-			m_pending_tasks->emplace_back(ResourceTask{TASK_UPLOAD, resource, data, size, 0, callback});
+			m_pending_tasks->emplace_back(ResourceTask{TASK_UPLOAD, resource, offset, data, size, 0, callback});
 		}
 	}
 
@@ -201,7 +201,7 @@ namespace wyc
 		D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
 		cmd_list->ResourceBarrier(1, &barrier);
 
-		UpdateSubresources<1>(cmd_list, d3d_res, upload, 0, 0, 1, &res_data);
+		UpdateSubresources<1>(cmd_list, d3d_res, upload, task.offset, 0, 1, &res_data);
 
 		barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3d_res,
 			D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);

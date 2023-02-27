@@ -385,7 +385,7 @@ namespace wyc
 		}
 		unsigned vertex_count = ply.vertex_count();
 		m_vb.resize(vertex_count);
-		if(vertex_count != ply.read_vertex(m_vb.data(), m_vb.data_size()))
+		if(vertex_count != ply.read_vertex((char*)m_vb.data(), m_vb.data_size()))
 		{
 			log_error("[PLY] fail to read vertex data [%s]", path);
 			ply.detail();

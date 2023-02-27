@@ -49,7 +49,7 @@ namespace wyc
 		void release_command_list(CommandList* cmd_list) override;
 		DeviceResource* create_resource(EDeviceResourceType type, size_t size) override;
 		void release_resource(DeviceResource* res) override;
-		void upload_resource(DeviceResource* res, void* data, size_t size) override;
+		void upload_resource(DeviceResource* res, size_t offset, void* data, size_t size) override;
 		DeviceFence* create_fence(unsigned value_count=1) override;
 		void release_fence(DeviceFence* fence) override;
 		bool is_fence_completed(DeviceFence* fence, unsigned index = 0) override;

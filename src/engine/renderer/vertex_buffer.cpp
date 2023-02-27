@@ -107,7 +107,7 @@ namespace wyc
 		if(vertex_count > 0)
 		{
 			m_data_size = vertex_count * m_vert_size;
-			m_data = (char*)wyc_malloc(m_data_size);
+			m_data = (uint8_t*)wyc_malloc(m_data_size);
 
 			size_t data_offset = 0;
 			for(VertexAttribteStream &va_array: m_attr_stream)

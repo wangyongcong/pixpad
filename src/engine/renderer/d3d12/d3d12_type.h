@@ -37,6 +37,8 @@ namespace wyc
 	{
 		ID3D12Resource* resource;
 		DeviceFenceD3D12* signal;
+		uint8_t* mapped_buffer;
+		size_t mapped_size;
 	};
 
 }

@@ -353,18 +353,54 @@ namespace wyc
 
 	DeviceResource* RendererD3D12::create_resource(EDeviceResourceType type, size_t size)
 	{
-		D3D12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Buffer(size);
-		D3D12_HEAP_PROPERTIES heap_prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 		ID3D12Resource* resource;
-		if(FAILED(m_device->CreateCommittedResource(&heap_prop, D3D12_HEAP_FLAG_NONE, &res_desc, 
-			D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&resource))))
+		void* mapped_buffer = nullptr;
+		if(type == CONSTANT_BUFFER)
 		{
-			return nullptr;
+			// Constant buffers must be a multiple of the minimum hardware
+			size = ALIGN_CONSTANT_BUFFER_SIZE(size);
+			if(FAILED(m_device->CreateCommittedResource(
+				&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), 
+				D3D12_HEAP_FLAG_NONE, 
+				&CD3DX12_RESOURCE_DESC::Buffer(size), 
+				D3D12_RESOURCE_STATE_COMMON, 
+				nullptr, 
+				IID_PPV_ARGS(&resource))))
+			{
+				return nullptr;
+			}
+			if(FAILED(resource->Map(0, nullptr, &mapped_buffer)))
+			{
+				log_error("Can't map constant buffer");
+			}
+		}
+		else
+		{
+			if(FAILED(m_device->CreateCommittedResource(
+				&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), 
+				D3D12_HEAP_FLAG_NONE, 
+				&CD3DX12_RESOURCE_DESC::Buffer(size), 
+				D3D12_RESOURCE_STATE_COMMON, 
+				nullptr, 
+				IID_PPV_ARGS(&resource))))
+			{
+				return nullptr;
+			}
 		}
 		D3D12_NEW_STRUCT(DeviceResourceD3D12, d3d_res);
 		d3d_res->size = size;
 		d3d_res->type = type;
 		d3d_res->resource = resource;
+		if(type == CONSTANT_BUFFER)
+		{
+			d3d_res->mapped_buffer = (uint8_t*)mapped_buffer;
+			d3d_res->mapped_size = size;
+		}
+		else
+		{
+			d3d_res->mapped_buffer = nullptr;
+			d3d_res->mapped_size = 0;
+		}
 		return d3d_res;
 	}
 
@@ -376,11 +412,17 @@ namespace wyc
 			log_error("[D3D] Expect D3D12 resource: type is %d.", RENDERER_STRUCT_TYPE(res));
 			return;
 		}
+		if(d3d_res->mapped_buffer)
+		{
+			assert(d3d_res->resource);
+			d3d_res->resource->Unmap(0, nullptr);
+			d3d_res->mapped_buffer = nullptr;
+		}
 		SAFE_RELEASE(d3d_res->resource);
 		D3D12_DELETE_STRUCT(d3d_res);
 	}
 
-	void RendererD3D12::upload_resource(DeviceResource* res, void* data, size_t size)
+	void RendererD3D12::upload_resource(DeviceResource* res, size_t offset, void* data, size_t size)
 	{
 		DeviceResourceD3D12* d3d_res = d3d12_struct_cast<DeviceResourceD3D12>(res);
 		if(!d3d_res)
@@ -399,15 +441,31 @@ namespace wyc
 			return;
 		}
 
-		m_resource_loader->upload(d3d_res, data, size, [this](DeviceResource* resource, bool is_succeed)
+		if(d3d_res->type == CONSTANT_BUFFER)
 		{
-			DeviceResourceD3D12* d3d12_res = (DeviceResourceD3D12*)resource;
-			ID3D12GraphicsCommandList* cmd_list = m_command_lists[m_frame_buffer_index]->command_list;
-			auto finish_barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3d12_res->resource, 
-			D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ);
-			cmd_list->ResourceBarrier(1, &finish_barrier);
-		});
-
+			if(d3d_res->mapped_buffer)
+			{
+				offset = ALIGN_CONSTANT_BUFFER_SIZE(offset);
+				size = ALIGN_CONSTANT_BUFFER_SIZE(size);
+				if(offset + size > d3d_res->mapped_size)
+				{
+					log_warning("constant buffer upload size is overflow");
+					size = d3d_res->mapped_size - offset;
+				}
+				memcpy(d3d_res->mapped_buffer + offset, data, size);
+			}
+		}
+		else
+		{
+			m_resource_loader->upload(d3d_res, offset, data, size, [this](DeviceResource* resource, bool is_succeed)
+			{
+				DeviceResourceD3D12* d3d12_res = (DeviceResourceD3D12*)resource;
+				ID3D12GraphicsCommandList* cmd_list = m_command_lists[m_frame_buffer_index]->command_list;
+				auto finish_barrier = CD3DX12_RESOURCE_BARRIER::Transition(d3d12_res->resource, 
+				D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ);
+				cmd_list->ResourceBarrier(1, &finish_barrier);
+			});
+		}
 	}
 
 	void RendererD3D12::begin_frame()

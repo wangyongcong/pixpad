@@ -70,9 +70,37 @@ public:
 		{
 			renderer->release_resource(m_gpu_vb);
 		}
+		if(m_gpu_ib)
+		{
+			renderer->release_resource(m_gpu_ib);
+		}
 		wyc_safe_delete(m_mesh);
 	}
 
+	void on_mesh_loaded()
+	{
+		bool is_ready = m_is_mesh_loaded.get();
+		if(!is_ready)
+		{
+			log_error("Fail to load mesh");
+		}
+		else
+		{
+			log_debug("Mesh is loaded at frame %lld", m_frame_count);
+		}
+		VertexBuffer& vb = m_mesh->vertex_buffer();
+		auto renderer = g_application->get_renderer();
+		m_gpu_vb = renderer->create_resource(VERTEX_BUFFER, vb.data_size());
+		log_debug("Upload vertex buffer: %p", m_gpu_vb);
+		renderer->upload_resource(m_gpu_vb, 0, vb.data(), vb.data_size());
+
+		IndexBuffer& ib = m_mesh->index_buffer();
+		m_gpu_ib = renderer->create_resource(INDEX_BUFFER, ib.data_size());
+		log_debug("Upload index buffer: %p", m_gpu_ib);
+		renderer->upload_resource(m_gpu_ib, 0, ib.data(), ib.data_size());
+
+
+	}
 
 	void tick(float delta_time) override
 	{
@@ -81,24 +109,10 @@ public:
 		{
 			if(std::future_status::ready == m_is_mesh_loaded.wait_for(std::chrono::milliseconds(0)))
 			{
-				bool is_ready = m_is_mesh_loaded.get();
-				if(!is_ready)
-				{
-					log_error("Fail to load mesh");
-				}
-				else
-				{
-					log_debug("Mesh is loaded at frame %lld", m_frame_count);
-				}
-				const VertexBuffer& vb = m_mesh->vertex_buffer();
-				auto renderer = g_application->get_renderer();
-				m_gpu_vb = renderer->create_resource(VERTEX_BUFFER, vb.data_size());
-				log_debug("Upload resource: %p", m_gpu_vb);
-				renderer->upload_resource(m_gpu_vb, (void*)vb.data(), vb.data_size());
+				on_mesh_loaded();
 			}
 		}
 	}
-
 
 	void draw(IRenderer* renderer) override
 	{
@@ -107,6 +121,7 @@ public:
 private:
 	CMesh *m_mesh;
 	DeviceResource* m_gpu_vb;
+	DeviceResource* m_gpu_ib;
 	TaskThread* m_task_thread;
 	std::future<bool> m_is_mesh_loaded;
 	uint64_t m_frame_count;

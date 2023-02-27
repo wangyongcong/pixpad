@@ -32,7 +32,7 @@ namespace wyc
 			, m_end(nullptr)
 			, m_stride(0)
 		{}
-		CAttribArrayImpl(char *beg, char *end, unsigned stride)
+		CAttribArrayImpl(uint8_t *beg, uint8_t *end, unsigned stride)
 			: m_beg(beg)
 			, m_end(end)
 			, m_stride(stride)
@@ -67,8 +67,8 @@ namespace wyc
 			return{ m_end };
 		}
 	protected:
-		char *m_beg;
-		char *m_end;
+		uint8_t *m_beg;
+		uint8_t *m_end;
 		unsigned m_stride;
 	};
 
@@ -130,12 +130,12 @@ namespace wyc
 			return{ m_data + m_data_size };
 		}
 
-		char* data()
+		void* data()
 		{
 			return m_data;
 		}
 
-		const char* data() const
+		const void* data() const
 		{
 			return m_data;
 		}
@@ -211,7 +211,7 @@ namespace wyc
 		}
 
 	protected:
-		char *m_data;
+		uint8_t *m_data;
 		size_t m_data_size;
 		size_t m_vert_count;
 		// vertex size in byte
@@ -239,7 +239,7 @@ namespace wyc
 
 		struct VertexAttribteStream
 		{
-			char* data;
+			uint8_t* data;
 			size_t size;
 			// attribute stride in byte
 			unsigned stride; 

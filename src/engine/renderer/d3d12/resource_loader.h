@@ -18,6 +18,7 @@ namespace wyc
 	{
 		ETaskType type;
 		DeviceResourceD3D12* resource;
+		size_t offset;
 		void* data;
 		size_t size;
 		int error;
@@ -34,7 +35,7 @@ namespace wyc
 		void close();
 		void wait_all();
 		void update();
-		void upload(DeviceResourceD3D12* resource, void* data, size_t size, std::function<void(DeviceResourceD3D12*, bool)> callback);
+		void upload(DeviceResourceD3D12* resource, size_t offset, void* data, size_t size, std::function<void(DeviceResourceD3D12*, bool)> callback);
 
 	protected:
 		bool initialize();
